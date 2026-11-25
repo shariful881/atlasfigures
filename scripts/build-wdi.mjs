@@ -119,7 +119,7 @@ function main() {
     indicators[L.key] = {
       code, label: L.label, unit: L.unit, wbName: mt.IndicatorName, source: mt.Source,
       licence: 'CC BY 4.0', licenceUrl: 'https://creativecommons.org/licenses/by/4.0/',
-      wdiLastUpdated: lastUpdated, file: `${code}.zip`, sha256: sha(buf),
+      aggregation: mt.Aggregationmethod ?? null, wdiLastUpdated: lastUpdated, file: `${code}.zip`, sha256: sha(buf),
       url: `https://data.worldbank.org/indicator/${code}`,
     };
   }

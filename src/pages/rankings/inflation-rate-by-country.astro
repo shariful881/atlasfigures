@@ -1,0 +1,191 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/inflation-rate-by-country.json';
+import { econData, econMeta, aggregate, valueIn, latest, rankBy, notRanked, rankingYear } from '../../lib/econ';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { commonName, pagesOf } from '../../lib/names';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/rankings/inflation-rate-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = meta.verification?.checkedOn;
+const name = commonName;
+
+const L = rankingYear('inflationPct');
+const ranked = rankBy('inflationPct', L);
+const missing = notRanked('inflationPct', L);
+const N = ranked.length;
+const W = aggregate('WLD').series.inflationPct;
+const median = valueIn(W, L)!;
+const byIso = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const last = (x: string) => latest(econData(x).series.inflationPct)!;
+const doubleDigit = ranked.filter((r) => r.value > 10);
+const atOrBelow3 = ranked.filter((r) => r.value <= 3);
+const falling = ranked.filter((r) => r.value < 0);
+const wYears = W.filter(([y]) => y >= 1990 && y <= L);
+const w2022 = valueIn(W, 2022)!;
+const worldPeak = wYears.filter(([y]) => y >= 2009).reduce((a, b) => (b[1] > a[1] ? b : a));
+const sasia = ['BGD', 'PAK', 'NPL', 'IND', 'LKA'].map((x) => byIso(x));
+
+assertClaim(econMeta.indicators.inflationPct.aggregation === 'Median', 'World Bank world inflation figure is a median');
+assertClaim(['IRN', 'TUR', 'BDI'].every((x, i) => ranked[i].iso3 === x), 'Iran, Turkey, Burundi highest');
+assertClaim(ranked[N - 1].iso3 === 'LKA' && falling.length > 10, 'Sri Lanka lowest; more than ten economies with falling prices');
+assertClaim(missing.some((m) => m.iso3 === 'ARG' && m.latestYear === L - 1) && missing.some((m) => m.iso3 === 'USA' && m.latestYear === L - 1), 'Argentina and the United States have no figure for the ranking year');
+assertClaim(last('ARG').value > 200, 'Argentina above 200% in its latest year');
+assertClaim(ranked.slice(0, 3).every((r) => r.value > 30) && ranked[3].value < 30, 'exactly the top three above 30%');
+assertClaim(rankBy('inflationPct', L - 1)[0].iso3 === 'ARG', 'Argentina had the steepest rise in the previous year');
+assertClaim(ranked[N - 2].iso3 === 'NER' && ranked[N - 3].iso3 === 'TCD', 'Niger and Chad next lowest');
+assertClaim(valueIn(econData('LKA').series.inflationPct, 2022)! > 40, 'Sri Lanka spike in 2022');
+assertClaim(worldPeak[0] === 2022 && valueIn(W, 2008)! > w2022, 'world median inflation in 2022 the highest since 2008');
+assertClaim(atOrBelow3.length > N * 0.45, 'nearly half at or below 3%');
+assertClaim(byIso('BGD').rank === 20 && sasia.map((r) => r.iso3).join() === 'BGD,PAK,NPL,IND,LKA' && sasia.every((r, i) => i === 0 || r.rank > sasia[i - 1].rank), 'South Asia order: Bangladesh, Pakistan, Nepal, India, Sri Lanka');
+
+const title = `Inflation Rate by Country ${L}: Highest and Lowest | AtlasFigures`;
+const description = `Iran had the highest consumer price inflation in ${L} at ${pct(ranked[0].value)}, ahead of Turkey and Burundi; Sri Lanka's prices fell ${pct(Math.abs(ranked[N - 1].value))}. Every economy with a ${L} World Bank figure is listed.`;
+
+const cards = [
+  { label: 'Typical rate (median)', value: pct(median), year: L },
+  { label: 'Highest', value: pct(ranked[0].value), year: L, note: name(ranked[0].iso3) },
+  { label: 'Above 10%', value: String(doubleDigit.length), year: L, note: 'economies' },
+  { label: 'Prices fell', value: String(falling.length), year: L, note: 'economies' },
+];
+
+const top = ranked[0].value;
+const rows = ranked.map((r) => {
+  const prev = valueIn(econData(r.iso3).series.inflationPct, L - 1);
+  const pg = pagesOf(r.iso3); const site = pg.economy ?? pg.population;
+  return {
+    rank: r.rank, iso3: r.iso3, name: name(r.iso3), site, href: site ? path(site) : null, region: r.region,
+    bar: Math.max(0, r.value) / top, value: pct(r.value),
+    cells: [prev == null ? '–' : pct(prev), r.incomeGroup ?? '–'],
+  };
+});
+const regions = [...new Set(ranked.map((r) => r.region))].sort();
+
+const faq = [
+  { q: `Which country has the highest inflation in ${L}?`, a: `Iran, where the cost of living climbed ${pct(ranked[0].value)} over ${L}. Turkey (${pct(ranked[1].value)}) and Burundi (${pct(ranked[2].value)}) follow. Argentina is not in the ${L} list: its latest World Bank figure is ${pct(last('ARG').value)}, for ${last('ARG').year}.` },
+  { q: 'Which countries have deflation?', a: `${falling.length} economies recorded falling consumer prices in ${L}, led by Sri Lanka (${pct(ranked[N - 1].value)}), Niger (${pct(ranked[N - 2].value)}) and Chad (${pct(ranked[N - 3].value)}).` },
+  { q: 'What is the average inflation rate in the world?', a: `The World Bank's world figure for ${L} is ${pct(median)}. It is a median: half of economies had higher inflation and half lower. In 2022 it reached ${pct(w2022)}.` },
+  { q: 'Why is the United States missing from the inflation ranking?', a: `The World Bank had not yet published a ${L} consumer price figure for the United States when this page was built; its latest is ${pct(last('USA').value)} for ${last('USA').year}. We rank only economies with a figure for the same year.` },
+  { q: 'What is the inflation rate in Bangladesh?', a: `${pct(byIso('BGD').value)} in ${L}, the ${ord(byIso('BGD').rank)} highest of ${N} economies and the highest in South Asia.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Inflation rate by country ${L}: ${N} economies from highest to lowest`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'CreativeWork', name: 'World Development Indicators', url: WDI_URL, publisher: { '@type': 'Organization', name: 'The World Bank' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `Inflation rate by country, ${L}`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Inflation rate by country, ${L} (consumer prices, annual %)`,
+    description: `Annual consumer price inflation of ${N} economies in ${L}, ranked, with the previous year's rate and the World Bank income group, from the World Development Indicators (update of ${longDate(econMeta.indicators.gdp.wdiLastUpdated)}; original source IMF International Financial Statistics).`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WDI_URL], temporalCoverage: `${L - 1}/${L}`,
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['Inflation, consumer prices (annual %)', 'World Bank income group'],
+    dateModified: iso(UPDATED), license: econMeta.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/inflation-rate-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="Inflation by country" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Inflation rate by country', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>Inflation rate by country, {L}</h1>
+    <p class="answer">Consumer prices rose fastest in <strong>Iran</strong>, by <strong>{pct(ranked[0].value)}</strong> in {L}, and fell most in Sri Lanka ({pct(ranked[N - 1].value)}). The typical economy saw prices go up {pct(median)}, the World Bank's world median.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`Inflation ranking, ${L}`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`Consumer price inflation by economy, ${L}`}
+        subtitle={`Yearly rise in consumer prices, highest first, with the ${L - 1} rate alongside. A minus sign means prices fell.`}
+        valueLabel={`Inflation ${L}`}
+        cols={[{ label: String(L - 1) }, { label: 'Income group', cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={regions}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        csv={path('/data/inflation-rate-by-country.csv')} csvName="inflation-rate-by-country.csv"
+        licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+      />
+      <p class="note">{missing.length} economies are absent because their {L} figure is not out yet: Argentina's latest is {pct(last('ARG').value)} ({last('ARG').year}), the United States' {pct(last('USA').value)} ({last('USA').year}). Older years never stand in.</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>Where are prices rising fastest?</h2>
+        <p>In Iran, Turkey and Burundi, each above 30% in {L}. In all, {doubleDigit.length} economies had double-digit inflation. Argentina, which had the world's steepest rise in 2024 at {pct(last('ARG').value)}, is missing only because its {L} figure is not in the World Bank database yet.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Is world inflation back to normal?</h2>
+        <p>For most economies, yes. Measured by the World Bank's median, inflation peaked at {pct(w2022)} in 2022, its highest since 2008, and was down to {pct(median)} by {L}. {atOrBelow3.length} economies out of {N} kept price rises at 3% or less, and {falling.length} saw prices fall outright.</p>
+      </div>
+      <LineChart
+        title={`World median inflation, 1990–${L}`}
+        subtitle="Half of economies had higher consumer price inflation each year, half lower."
+        points={wYears.map(([x, y]) => ({ x, y }))}
+        format="percent" highlight={L} estimateLabel="World Bank data"
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+
+      <div class="story-block prose">
+        <h2>Which countries have falling prices?</h2>
+        <p>Sri Lanka ({pct(ranked[N - 1].value)}), Niger ({pct(ranked[N - 2].value)}) and Chad ({pct(ranked[N - 3].value)}) recorded the biggest drops in consumer prices. A year of falling prices can follow a spike, as in Sri Lanka, where prices had jumped {pct(valueIn(econData('LKA').series.inflationPct, 2022)!)} in 2022.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>How does inflation compare across South Asia?</h2>
+        <p><a href={path('/economy/bangladesh/')}>Bangladesh</a> had the region's highest rate at {pct(byIso('BGD').value)}, {ord(byIso('BGD').rank)} in the world, followed by Pakistan ({pct(byIso('PAK').value)}), Nepal ({pct(byIso('NPL').value)}) and India ({pct(byIso('IND').value)}), while Sri Lanka's prices fell.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Quick answers about inflation by country</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): inflation, consumer prices (annual %), FP.CPI.TOTL.ZG, from the IMF's International Financial Statistics. The world figure is the World Bank's median across economies. Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+        </ul>
+        <p class="note">Inflation here is the change in the cost of a typical basket of consumer goods and services over the year, as each country's statistics office measures it. Only economies with a {L} figure are ranked; nothing is estimated or carried forward. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Inflation rate by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+</style>

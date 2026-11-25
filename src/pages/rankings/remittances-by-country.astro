@@ -1,0 +1,189 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/remittances-by-country.json';
+import { econData, econMeta, aggregate, valueIn, latest, rankBy, notRanked, rankingYear, usd } from '../../lib/econ';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { commonName, pagesOf } from '../../lib/names';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/rankings/remittances-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = meta.verification?.checkedOn;
+const name = commonName;
+
+const L = rankingYear('remittances');
+const ranked = rankBy('remittances', L);
+const byShare = rankBy('remittancesPctGdp', L);
+const missing = notRanked('remittances', L);
+const N = ranked.length;
+const W = aggregate('WLD').series.remittances;
+const world = valueIn(W, L)!;
+const byIso = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const shareOf = (x: string) => byShare.find((r) => r.iso3 === x);
+const top10 = ranked.slice(0, 10).reduce((a, r) => a + r.value, 0);
+const india = econData('IND').series.remittances;
+const india100 = india.find(([, v]) => v > 100e9)![0];
+const over10 = byShare.filter((r) => r.value > 10);
+const wYears = W.filter(([y]) => y >= 1990 && y <= L);
+const eth = latest(econData('ETH').series.remittances)!;
+
+assertClaim(econMeta.indicators.remittances.aggregation === 'Sum', 'world remittances are a sum');
+assertClaim(['IND', 'MEX', 'FRA', 'PHL', 'EGY', 'PAK', 'BGD'].every((x, i) => ranked[i].iso3 === x), 'top seven order');
+assertClaim(india100 === 2022, 'India first above $100 billion in 2022');
+assertClaim(['TJK', 'TON', 'NPL'].every((x, i) => byShare[i].iso3 === x), 'Tajikistan, Tonga, Nepal most dependent');
+assertClaim(top10 / world > 0.5, 'top ten receive more than half');
+assertClaim(valueIn(W, 2000)! * 7 < world, 'world total more than seven times its 2000 level');
+assertClaim(missing.some((m) => m.iso3 === 'ETH' && m.latestYear === L - 1), 'Ethiopia not ranked, latest previous year');
+assertClaim(shareOf('FRA')!.value < 2, 'France: remittances small relative to GDP');
+assertClaim(ranked[0].value > 2 * ranked[1].value, 'India more than twice Mexico');
+assertClaim(byIso('CHN').rank > byIso('BGD').rank, 'Pakistan and Bangladesh ahead of China');
+
+const title = `Remittances by Country ${L}: Who Receives the Most | AtlasFigures`;
+const description = `India received ${usd(ranked[0].value)} in remittances in ${L}, the most of any country, ahead of Mexico and France. ${N} economies ranked by money received, plus who depends on it most as a share of GDP.`;
+
+const cards = [
+  { label: 'World total', value: usd(world).replace(' billion', 'B'), year: L },
+  { label: 'Largest receiver', value: usd(ranked[0].value).replace(' billion', 'B'), year: L, note: name(ranked[0].iso3) },
+  { label: 'Top 10 share', value: pct((top10 / world) * 100), year: L, note: 'of world total' },
+  { label: 'Over 10% of GDP', value: String(over10.length), year: L, note: 'economies' },
+];
+
+const top = ranked[0].value;
+const rows = ranked.map((r) => {
+  const sh = shareOf(r.iso3);
+  const pg = pagesOf(r.iso3); const site = pg.economy ?? pg.population;
+  return {
+    rank: r.rank, iso3: r.iso3, name: name(r.iso3), site, href: site ? path(site) : null, region: r.region,
+    bar: r.value / top, value: Math.round(r.value / 1e6).toLocaleString('en-US'),
+    cells: [sh ? pct(sh.value) : '–', sh ? String(sh.rank) : '–'],
+  };
+});
+const regions = [...new Set(ranked.map((r) => r.region))].sort();
+
+const faq = [
+  { q: 'Which country receives the most remittances?', a: `India, with ${usd(ranked[0].value)} in ${L}, about ${pct((ranked[0].value / world) * 100)} of the world total. Mexico (${usd(ranked[1].value)}) is second.` },
+  { q: 'Which country depends most on remittances?', a: `Tajikistan, where money received from abroad equalled ${pct(byShare[0].value)} of GDP in ${L}. Tonga (${pct(byShare[1].value)}) and Nepal (${pct(byShare[2].value)}) follow.` },
+  { q: 'How much money do migrants send home worldwide?', a: `${usd(world)} in ${L} by the World Bank's count, up from ${usd(valueIn(W, 2000)!)} in 2000. Money sent through informal channels is largely missing from these figures.` },
+  { q: 'Why is France among the top receivers of remittances?', a: `The World Bank's measure counts not only money sent home by migrants but also the pay of border, seasonal and other short-term workers employed in another economy. France received ${usd(byIso('FRA').value)} in ${L}, though that is only ${pct(shareOf('FRA')!.value)} of its GDP.` },
+  { q: 'How much remittance does Pakistan receive compared with Bangladesh?', a: `Pakistan received ${usd(byIso('PAK').value)} in ${L} (${ord(byIso('PAK').rank)}) and Bangladesh ${usd(byIso('BGD').value)} (${ord(byIso('BGD').rank)}), equal to ${pct(shareOf('PAK')!.value)} and ${pct(shareOf('BGD')!.value)} of their GDP.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Remittances by country ${L}: ${N} economies ranked by money received from abroad`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'CreativeWork', name: 'World Development Indicators', url: WDI_URL, publisher: { '@type': 'Organization', name: 'The World Bank' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `Remittances received by country, ${L}`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Personal remittances received by country, ${L} (current US$ and % of GDP)`,
+    description: `Personal remittances received by ${N} economies in ${L} in current US dollars, ranked, with remittances as a share of GDP and its rank, from the World Development Indicators (update of ${longDate(econMeta.indicators.gdp.wdiLastUpdated)}; original sources IMF balance of payments data and World Bank staff estimates).`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WDI_URL], temporalCoverage: String(L),
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['Personal remittances, received (current US$)', 'Personal remittances, received (% of GDP)'],
+    dateModified: iso(UPDATED), license: econMeta.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/remittances-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="Remittances by country" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Remittances by country', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>Remittances by country, {L}</h1>
+    <p class="answer"><strong>India</strong> received the most money from abroad in {L}: <strong>{usd(ranked[0].value)}</strong> in personal remittances, more than twice as much as second-placed Mexico. Worldwide the World Bank counts {usd(world)}, and the ten biggest receivers took {pct((top10 / world) * 100)} of it.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`Remittances ranking, ${L}`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`Money received from abroad by economy, ${L}`}
+        subtitle="Personal remittances in millions of current US dollars, largest first, next to their size relative to the economy."
+        valueLabel="US$ million"
+        cols={[{ label: '% of GDP' }, { label: 'Rank by % of GDP', cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={regions}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        csv={path('/data/remittances-by-country.csv')} csvName="remittances-by-country.csv"
+        licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+      />
+      <p class="note">Left out for lack of a {L} figure: {missing.length} economies, among them Ethiopia (latest: {usd(eth.value)}, {eth.year}).</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>Which countries receive the most remittances?</h2>
+        <p>India ({usd(ranked[0].value)}), Mexico ({usd(ranked[1].value)}) and France ({usd(ranked[2].value)}), followed by the Philippines, Egypt, Pakistan and Bangladesh. India's inflow first passed one hundred billion dollars in {india100}. France's place is a reminder that the World Bank's measure also includes the pay of border, seasonal and other short-term workers employed in another economy, not only money sent home by migrants.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Which economies rely most on money from abroad?</h2>
+        <p>Measured against the size of the economy, Tajikistan comes first: remittances equalled {pct(byShare[0].value)} of its GDP in {L}. Tonga ({pct(byShare[1].value)}) and <a href={path('/population/nepal/')}>Nepal</a> ({pct(byShare[2].value)}) follow, and {over10.length} economies received more than a tenth of GDP this way. For the biggest receivers in dollars the share is far smaller: {pct(shareOf('IND')!.value)} for India and {pct(shareOf('MEX')!.value)} for Mexico.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>How much have remittances grown?</h2>
+        <p>From {usd(valueIn(W, 2000)!)} worldwide in 2000 to {usd(world)} in {L}, more than seven times as much in current dollars. The World Bank cautions that the data are imperfect: many transfers are small and travel through informal channels, such as cash carried across borders, that official statistics miss.</p>
+      </div>
+      <LineChart
+        title={`World remittances received, 1990–${L}`}
+        subtitle="Sum of personal remittances received by all economies, current US dollars."
+        points={wYears.map(([x, y]) => ({ x, y }))}
+        format="usdBillions" highlight={L} estimateLabel="World Bank data"
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+
+      <div class="story-block prose">
+        <h2>Where do Pakistan and Bangladesh stand?</h2>
+        <p>Pakistan is {ord(byIso('PAK').rank)} with {usd(byIso('PAK').value)} and <a href={path('/economy/bangladesh/')}>Bangladesh</a> {ord(byIso('BGD').rank)} with {usd(byIso('BGD').value)}, both ahead of China. Relative to their economies the inflows are {pct(shareOf('PAK')!.value)} and {pct(shareOf('BGD')!.value)} of GDP.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Quick answers about remittances by country</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): personal remittances, received, in current US$ (BX.TRF.PWKR.CD.DT) and as % of GDP (BX.TRF.PWKR.DT.GD.ZS), from IMF balance of payments data and World Bank staff estimates. The world figure is the World Bank's sum. Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+        </ul>
+        <p class="note">Personal remittances are personal transfers between households plus the pay of non-resident short-term workers, as defined in the IMF's Balance of Payments Manual (sixth edition). Only economies with a {L} figure are ranked; nothing is carried forward. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Remittances by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+</style>

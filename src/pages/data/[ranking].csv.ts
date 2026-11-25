@@ -3,7 +3,7 @@
 import { econData, econMeta, rankBy, rankingYear, valueIn } from '../../lib/econ';
 import { commonName } from '../../lib/names';
 
-const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita'; cols: [string, (iso3: string, y: number) => number | string | null][] }> = {
+const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 'unemploymentPct' | 'remittances'; cols: [string, (iso3: string, y: number) => number | string | null][] }> = {
   'gdp-by-country': { key: 'gdp', cols: [
     ['gdp_current_usd', (x, y) => valueIn(econData(x).series.gdp, y)],
     ['gdp_growth_pct_constant_prices', (x, y) => valueIn(econData(x).series.gdpGrowthPct, y)],
@@ -13,6 +13,20 @@ const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita'; cols: [string, (is
     ['gdp_per_person_current_usd', (x, y) => valueIn(econData(x).series.gdpPerCapita, y)],
     ['gdp_per_person_ppp_current_international_dollars', (x, y) => valueIn(econData(x).series.gdpPerCapitaPpp, y)],
     ['world_bank_income_group', (x) => econData(x).incomeGroup],
+  ] },
+  'inflation-rate-by-country': { key: 'inflationPct', cols: [
+    ['inflation_consumer_prices_pct', (x, y) => valueIn(econData(x).series.inflationPct, y)],
+    ['inflation_previous_year_pct', (x, y) => valueIn(econData(x).series.inflationPct, y - 1)],
+    ['world_bank_income_group', (x) => econData(x).incomeGroup],
+  ] },
+  'unemployment-rate-by-country': { key: 'unemploymentPct', cols: [
+    ['unemployment_pct_modelled_ilo', (x, y) => valueIn(econData(x).series.unemploymentPct, y)],
+    ['unemployment_2020_pct', (x) => valueIn(econData(x).series.unemploymentPct, 2020)],
+    ['world_bank_income_group', (x) => econData(x).incomeGroup],
+  ] },
+  'remittances-by-country': { key: 'remittances', cols: [
+    ['remittances_received_current_usd', (x, y) => valueIn(econData(x).series.remittances, y)],
+    ['remittances_received_pct_gdp', (x, y) => valueIn(econData(x).series.remittancesPctGdp, y)],
   ] },
 };
 
