@@ -1,0 +1,240 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import ind from '../../data/countries/india.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, people, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: the largest country, heading for a peak.
+const PAGE = '/population/india/';
+const un = countryData(ind.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const cn = byYear(countryData('CHN').years);
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (ind.verification as any).checkedOn as string | undefined;
+
+const overtook = un.years.find((r) => r.population > cn[r.year].population)!.year;
+assertClaim(overtook === 2022 && c.worldRank === 1, 'India passed China in 2022 and is first now');
+assertClaim(un.years.filter((r) => r.year >= overtook).every((r) => r.worldRank === 1), 'India stays first to 2100');
+const lead = c.population - cn[CURRENT_YEAR].population;
+const lead2050 = y[2050].population - cn[2050].population;
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+const firstFall = un.years.find((r) => r.year > CURRENT_YEAR && r.change < 0)!.year;
+assertClaim(peak.year === 2061 && firstFall === peak.year + 1, 'peak in 2061, first fall in 2062');
+const subRep = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(subRep === 2020 && un.years.filter((r) => r.year >= subRep).every((r) => r.fertility < 2.1), 'below 2.1 from 2020 on');
+const birthPeak = un.years.filter((r) => !r.projection).reduce((a, b) => (b.births > a.births ? b : a));
+const birthsPerDay = Math.round(c.births / 365 / 1000) * 1000;
+assertClaim(un.years.filter((r) => r.year > CURRENT_YEAR).every((r, i, a) => r.births < (i ? a[i - 1].births : c.births)), 'fewer births every projected year');
+const sameSizeYear = un.years.find((r) => r.population >= y[2100].population)!.year;
+assertClaim(sameSizeYear > CURRENT_YEAR && sameSizeYear <= 2030, 'the 2100 total equals the size India passes within a few years');
+assertClaim(y[2021].lifeExpectancy < y[2019].lifeExpectancy - 3 && y[2022].lifeExpectancy > y[2021].lifeExpectancy, 'life expectancy dropped by more than three years in 2021, then recovered');
+assertClaim(un.years.filter((r) => r.year < overtook).every((r) => cn[r.year].worldRank === 1), 'China first every year before');
+assertClaim(c.medianAge < 30, 'half of Indians younger than 30');
+const gapUS = byYear(countryData('USA').years)[CURRENT_YEAR].medianAge - c.medianAge, gapCN = cn[CURRENT_YEAR].medianAge - c.medianAge;
+assertClaim(gapUS > 9 && gapUS < 12 && gapCN > 9 && gapCN < 12, 'about ten years younger than the US or China');
+assertClaim([1990, 1995, 2000, 2005].every((yr) => y[yr].births > c.births), 'generations born in the 1990s and 2000s were larger than this year\'s births');
+assertClaim(c.infantMortalityPer1000 > 18 && c.infantMortalityPer1000 < 22 && y[2000].infantMortalityPer1000 < y[1950].infantMortalityPer1000 / 2, 'about one in fifty; more than halved by 2000');
+assertClaim(un.years.filter((r) => r.year >= 1960 && r.year < 1990 && r.growthRatePct > 2).length >= 20, 'above 2% for most of 1960-1989');
+const urbanPeople = (c.population * c.urbanPct!) / 100;
+assertClaim(un.years.every((r) => r.urbanPct == null || r.urbanPct < 50), 'urban share stays under half to 2050');
+assertClaim(y[1950].infantMortalityPer1000 > 170 && c.infantMortalityPer1000 < 21, 'infant deaths from over 170 to about 21 per 1,000');
+
+const title = `India's Population in ${CURRENT_YEAR}: ${(c.population / 1e9).toFixed(2)} Billion, the World's Largest | AtlasFigures`;
+const description = `India now has roughly ${people(c.population)} people (${CURRENT_YEAR}) after passing China in ${overtook}. When the UN expects it to peak, why families have shrunk to ${dec(c.fertility, 2)} children, and how few Indians live in cities.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: ind.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Infant deaths per 1,000 births', value: dec(c.infantMortalityPer1000, 1) },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: `${(c.population / 1e9).toFixed(2)}B` },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'Births a day', value: int(birthsPerDay) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+];
+
+const rows = displayRows(un.years, ind.tableYears);
+
+const faq = [
+  { q: "Is India's population bigger than China's?", a: `Yes. India moved ahead during ${overtook}, in the UN's estimates, and in ${CURRENT_YEAR} has about ${millions(lead)} more people than China. The gap is projected to widen to ${millions(lead2050)} by 2050 because China is shrinking.` },
+  { q: 'How many births does India have per day?', a: `Around ${int(birthsPerDay)} a day, or ${millions(c.births)} over ${CURRENT_YEAR}. Yearly births peaked in ${birthPeak.year} at ${millions(birthPeak.births)}; the UN projects fewer every year from here on.` },
+  { q: "How fast is India's population growing?", a: `By ${pct(c.growthRatePct)} in ${CURRENT_YEAR}, adding roughly ${millions(c.change)} people. Growth was above 2% a year for most of the 1960s, 70s and 80s.` },
+  { q: "When will India's population start to decline?", a: `The UN projects the first yearly fall in ${firstFall}, after a peak of ${people(peak.population)} in ${peak.year}. By 2100 India would be back to ${people(y[2100].population)}, still the largest population of any country.` },
+  { q: 'What share of Indians live in urban areas?', a: `${pct(c.urbanPct!)} in ${CURRENT_YEAR} under India's own definition of urban, about ${millions(urbanPeople)} people. For 2050 the projection is ${pct(y[2050].urbanPct!)}.` },
+];
+assertClaim([1960, 1970, 1980].every((yr) => y[yr].growthRatePct > 2), 'growth above 2% a year in the 1960s-80s');
+
+const schema = countrySchema({
+  page: PAGE, slug: ind.slug, name: ind.name, wikipedia: ind.wikipedia,
+  headline: `India's population in ${CURRENT_YEAR}: ${people(c.population)} and a peak in ${peak.year}`,
+  description,
+  datasetName: 'India population, density, fertility, median age and urban share, 1950–2100',
+  datasetDescription: `Mid-year population of India for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: ind.published, updated: ind.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  extraCitations: [{ name: 'Arthapedia: Urban', url: 'https://ies.gov.in/arthapedia/concept/urban', publisher: 'Indian Economic Service, Government of India' }],
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="India"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'India', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>India's population, now the world's largest</h1>
+        <LiveCounter
+          label="Estimated people in India now"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: 1 July ${CURRENT_YEAR} figure, rising by about ${int(c.change / 365)} people a day`}
+        />
+        <p class="answer">
+          India is home to about <strong>{people(c.population)} people</strong> in {CURRENT_YEAR}, {pct(c.worldSharePct)} of everyone alive and more than any other country. It overtook China in {overtook}, and on UN projections it should go on growing until <strong>{peak.year}</strong>.
+        </p>
+        <div class="dates"><span>Updated <time datetime={ind.updated}>{longDate(ind.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="India" code="in" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>When did India become the most populous country?</h2>
+          <p>In {overtook}. The UN's current estimates put India's mid-year total just ahead of China's that year; China had been first in every earlier year of the UN record, which starts in 1950. The gap has opened quickly since. In {CURRENT_YEAR} India has roughly {millions(lead)} more people than its neighbour; by 2050 the difference is projected at {millions(lead2050)}.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>When will India's population peak?</h2>
+          <p>Around {peak.year}, at about {people(peak.population)}, on the UN's medium projection. The first year of decline would follow in {firstFall}. Even after that, India stays first in the world: the projection ends the century at {people(y[2100].population)}, about the size India reaches in {sameSizeYear}.</p>
+        </div>
+        <LineChart
+          title="India's population from 1950, with the UN projection to 2100"
+          subtitle="Mid-year totals. The curve rises to a peak in the 2060s; the dashed part is projected."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Are Indian families getting smaller?</h2>
+          <p>Yes, much smaller. A woman in India had {dec(y[1960].fertility, 2)} children on average in 1960; in {CURRENT_YEAR} the figure is {dec(c.fertility, 2)}. It slipped beneath 2.1, the replacement rate, in {subRep}. The number of babies has turned too: yearly births peaked in {birthPeak.year} at {millions(birthPeak.births)} and are down to {millions(c.births)}, about {int(birthsPerDay)} a day. The population still grows because the large generations born in the 1990s and 2000s are now having children of their own.</p>
+        </div>
+        <LineChart
+          title="Average number of children per Indian woman, 1950–2050"
+          subtitle="Total fertility rate from the UN. It crossed below 2.1 in 2020; the dashed part is projected."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="children per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'Generations replace themselves at 2.1' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How many Indian babies survive their first year now?</h2>
+          <p>Far more than at independence. In 1950 about {int(y[1950].infantMortalityPer1000)} of every 1,000 babies died before turning one; in {CURRENT_YEAR} the UN estimate is {dec(c.infantMortalityPer1000, 1)}. Life expectancy at birth has climbed from {dec(y[1950].lifeExpectancy, 1)} years to {dec(c.lifeExpectancy, 1)}, despite a sharp setback in 2021, when it fell to {dec(y[2021].lifeExpectancy, 1)} from {dec(y[2019].lifeExpectancy, 1)} two years earlier.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Infant deaths per 1,000 births in India">
+          <div><span class="y">1950</span><div class="v">{int(y[1950].infantMortalityPer1000)}</div><span class="d">Infant deaths per 1,000 births</span></div>
+          <div><span class="y">2000</span><div class="v">{int(y[2000].infantMortalityPer1000)}</div><span class="d">Cut by more than half</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{dec(c.infantMortalityPer1000, 1)}</div><span class="d">About one in fifty</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Why do most Indians still live outside cities?</h2>
+          <p>Partly because of how India draws the line. A place is urban only if it has a municipal body or passes three census tests: at least 5,000 residents, at least 400 people per km², and at least three in four male main workers outside farming. On that national definition, {pct(c.urbanPct!)} of Indians are urban in {CURRENT_YEAR}, about {millions(urbanPeople)} people, compared with {pct(y[1950].urbanPct!)} in 1950. Even by 2050 the projected share, {pct(y[2050].urbanPct!)}, is short of half.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How young is India's population?</h2>
+          <p>Half of all Indians are younger than {dec(c.medianAge, 1)}. That is about ten years below the median in the United States or China, and it explains why India keeps growing even with fewer children per family. The median is projected to reach {dec(y[2050].medianAge, 1)} by 2050 and {dec(y[2100].medianAge, 1)} by 2100.</p>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="India by the numbers, 1950–2100"
+          subtitle="Population on 1 July of the years shown, alongside crowding (people per km²), family size, the median age, how urban India is (to 2050) and its rank. 2030 onward: UN projection."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${ind.slug}-population.csv`)}
+          csvName={`${ind.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">India's population in brief</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files): population, births, growth, density, fertility, median age, infant mortality, life expectancy, world rank, the comparison with China and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+            <li><a href="https://ies.gov.in/arthapedia/concept/urban">Indian Economic Service (Government of India), Arthapedia: "Urban"</a>: the Census of India definition of urban areas (statutory towns and census towns).</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and adds the UN's projected growth for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={ind.published}>{longDate(ind.published)}</time> · Updated <time datetime={ind.updated}>{longDate(ind.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('India population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="India" code="in" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

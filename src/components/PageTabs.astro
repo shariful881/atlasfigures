@@ -1,0 +1,23 @@
+---
+// Mobile segment tabs (Story / Data / FAQ) and bottom sheets for country pages. Shared UI, not content.
+---
+<script is:inline>
+    (function () {
+      var tabs = document.querySelectorAll('.segments [role="tab"]');
+      var panels = document.querySelectorAll('.panel');
+      var mq = window.matchMedia('(max-width: 767px)');
+      function show(name) {
+        tabs.forEach(function (t) { t.setAttribute('aria-selected', t.dataset.panel === name ? 'true' : 'false'); });
+        panels.forEach(function (p) { if (p.dataset.panel === name) p.removeAttribute('hidden-mobile'); else p.setAttribute('hidden-mobile', ''); });
+      }
+      tabs.forEach(function (t) { t.addEventListener('click', function () {
+        show(t.dataset.panel);
+        var seg = document.querySelector('.segments'); var y = seg.getBoundingClientRect().top + window.scrollY - 70;
+        if (window.scrollY > y) window.scrollTo({ top: y });
+      }); });
+      function sync() { if (mq.matches) show(document.querySelector('.segments [aria-selected="true"]').dataset.panel); else panels.forEach(function (p) { p.removeAttribute('hidden-mobile'); }); }
+      mq.addEventListener('change', sync); sync();
+      document.querySelectorAll('[data-open]').forEach(function (b) { b.addEventListener('click', function () { var d = document.getElementById(b.dataset.open); d && d.showModal(); }); });
+      document.querySelectorAll('dialog.sheet').forEach(function (d) { d.addEventListener('click', function (e) { if (e.target === d || e.target.hasAttribute('data-close')) d.close(); }); });
+    })();
+</script>

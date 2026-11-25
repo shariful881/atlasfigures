@@ -17,8 +17,11 @@ interface Props {
 const { label, anchorValue, anchorDate, perYear, note } = Astro.props;
 const id = `c${Math.random().toString(36).slice(2, 8)}`;
 const perDay = Math.round(perYear / 365);
+const falling = perYear < 0;
+const sign = falling ? '−' : '+';
+const fmtAbs = (n: number) => Math.abs(n).toLocaleString('en-US');
 ---
-<section class="live" id={id} data-anchor={anchorValue} data-date={anchorDate} data-rate={perYear} aria-label={label}>
+<section class={falling ? "live falling" : "live"} id={id} data-anchor={anchorValue} data-date={anchorDate} data-rate={perYear} aria-label={label}>
   <Contours />
   <div class="live-top">
     <span class="live-pill"><span class="pulse" aria-hidden="true"></span>LIVE</span>
@@ -26,15 +29,15 @@ const perDay = Math.round(perYear / 365);
     <span class="live-clock" aria-hidden="true">as of <span data-k="clock">--:--:--</span></span>
   </div>
   <div class="odo" data-k="total" aria-hidden="true">{anchorValue.toLocaleString('en-US')}</div>
-  <p class="visually-hidden">Estimated {label.toLowerCase()}: about {anchorValue.toLocaleString('en-US')} at {anchorDate}, rising by about {perDay.toLocaleString('en-US')} a day.</p>
+  <p class="visually-hidden">Estimated {label.toLowerCase()}: about {anchorValue.toLocaleString('en-US')} at {anchorDate}, {falling ? 'falling' : 'rising'} by about {fmtAbs(perDay)} a day.</p>
   <div class="next" aria-hidden="true">
     <div class="next-bar"><span data-k="bar"></span></div>
-    <span class="next-txt">Next +1 in <b data-k="next">–</b></span>
+    <span class="next-txt">Next {sign}1 in <b data-k="next">–</b></span>
   </div>
   <div class="live-stats">
-    <div><span class="k">Added today</span><span class="v" data-k="today">–</span></div>
-    <div><span class="k">Added this year</span><span class="v" data-k="year">–</span></div>
-    <div><span class="k">Per day</span><span class="v">+{perDay.toLocaleString('en-US')}</span></div>
+    <div><span class="k">{falling ? 'Change today' : 'Added today'}</span><span class="v" data-k="today">–</span></div>
+    <div><span class="k">{falling ? 'Change this year' : 'Added this year'}</span><span class="v" data-k="year">–</span></div>
+    <div><span class="k">Per day</span><span class="v">{sign}{fmtAbs(perDay)}</span></div>
   </div>
   <p class="live-est">
     <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 9v5M10 6.2v.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -70,11 +73,13 @@ const perDay = Math.round(perYear / 365);
     function tick() {
       var now = Date.now(), exact = anchor + (now - t0) * perMs, v = Math.floor(exact), d = new Date(now);
       var str = fmt(v); render(str); if (mini) mini.textContent = str;
-      today.textContent = '+' + fmt((now - new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()) * perMs);
-      year.textContent = '+' + fmt((now - new Date(d.getFullYear(), 0, 1).getTime()) * perMs);
-      var frac = exact - v, secs = Math.max(1, Math.ceil((1 - frac) / perMs / 1000));
+      var sg = perMs < 0 ? '−' : '+', ab = function (n) { return fmt(Math.abs(n)); };
+      today.textContent = sg + ab((now - new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()) * perMs);
+      year.textContent = sg + ab((now - new Date(d.getFullYear(), 0, 1).getTime()) * perMs);
+      var frac = exact - v, left = perMs < 0 ? frac : 1 - frac, done = 1 - left;
+      var secs = Math.max(1, Math.ceil(left / Math.abs(perMs) / 1000));
       next.textContent = secs < 60 ? secs + 's' : Math.ceil(secs / 60) + 'm';
-      bar.style.width = (frac * 100).toFixed(1) + '%';
+      bar.style.width = (done * 100).toFixed(1) + '%';
       clock.textContent = d.toLocaleTimeString('en-GB');
     }
     tick(); setInterval(tick, 200);

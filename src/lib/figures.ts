@@ -37,7 +37,9 @@ export const millions = (v: number) => `${(v / 1e6).toFixed(1)} million`;
 /** Short millions for tiles: "177.8M" */
 export const millionsShort = (v: number) => `${(v / 1e6).toFixed(1)}M`;
 /** Prose billions, 1 decimal: "8.3 billion" */
-export const billions = (v: number) => `${(v / 1e9).toFixed(1)} billion`;
+export const billions = (v: number, d = 1) => `${(v / 1e9).toFixed(d)} billion`;
+/** Population in prose: millions (1 decimal) below a billion, billions (2 decimals) from a billion up. */
+export const people = (v: number) => (Math.abs(v) >= 1e9 ? billions(v, 2) : millions(v));
 /** Percent, 1 decimal: "1.2%" */
 export const pct = (v: number) => `${v.toFixed(1)}%`;
 /** Ordinal: 8 → "8th" */
