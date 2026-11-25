@@ -3,15 +3,19 @@ import Base from '../../layouts/Base.astro';
 import Flag from '../../components/Flag.astro';
 import Icon from '../../components/Icon.astro';
 import { abs, path, WEBSITE_ID } from '../../site';
-import { countryData, byYear, CURRENT_YEAR } from '../../lib/figures';
+import { countryData, byYear, worldData, CURRENT_YEAR } from '../../lib/figures';
 
 const PAGE = '/population/';
 // Sorted by population, largest first (the order readers scan for).
 const files = import.meta.glob('../../data/countries/*.json', { eager: true }) as Record<string, { default: any }>;
+// Continent filter comes from the UN's own region (Americas = Latin America and the Caribbean + Northern America),
+// not from the editorial JSON, so every page lands in the right group.
+const CONT: Record<string, string> = { Africa: 'Africa', Asia: 'Asia', Europe: 'Europe', Oceania: 'Oceania', 'Latin America and the Caribbean': 'Americas', 'Northern America': 'Americas' };
 const withData = (c: any) => {
   const un = countryData(c.iso3);
-  return { ...c, region: un.subregion, now: byYear(un.years)[CURRENT_YEAR] };
+  return { ...c, region: un.subregion, cont: CONT[un.region], now: byYear(un.years)[CURRENT_YEAR] };
 };
+const world = byYear(worldData.years)[CURRENT_YEAR];
 const countries = Object.values(files).map((m) => m.default).map(withData).sort((a, b) => b.now.population - a.now.population);
 const schema = [
   {
@@ -40,14 +44,31 @@ const schema = [
   <h1>Population by country</h1>
   <p class="answer">Each country has its own page, written around what makes its population story different, with figures from the UN's World Population Prospects 2024. New countries are added every week.</p>
   <p class="note hub-rank">Every country and area in one list: <a href={path('/rankings/population-by-country/')}>population by country</a> · <a href={path('/rankings/population-density-by-country/')}>population density by country</a></p>
-  <div class="filters" role="group" aria-label="Filter by continent">
-    {['All', 'Asia', 'Africa', 'Europe', 'Americas', 'Oceania'].map((r, i) => (
-      <button type="button" class={i === 0 ? 'on' : ''} aria-pressed={i === 0 ? 'true' : 'false'} data-region={r}>{r}</button>
-    ))}
+  <a class="world-card" href={path('/population/world/')}>
+    <Flag code="world" class="flag" />
+    <span><span class="name">World population</span><br /><span class="meta">Live estimate and UN projections</span></span>
+    <span class="val">{(world.population / 1e9).toFixed(2)}B</span>
+    <span class="chev"><Icon name="chevron" /></span>
+  </a>
+  <div class="hub-tools">
+    <div class="filters" role="group" aria-label="Filter by continent">
+      {['All', 'Asia', 'Africa', 'Europe', 'Americas', 'Oceania'].map((r, i) => (
+        <button type="button" class={i === 0 ? 'on' : ''} aria-pressed={i === 0 ? 'true' : 'false'} data-region={r}>{r}</button>
+      ))}
+    </div>
+    <label class="sort">Sort by
+      <select id="hub-sort">
+        <option value="pop">Population</option>
+        <option value="name">Name, A–Z</option>
+        <option value="growth">Growth rate</option>
+        <option value="density">People per km²</option>
+      </select>
+    </label>
   </div>
+  <p class="hub-count note" aria-live="polite"><span id="hub-n">{countries.length}</span> countries with their own page</p>
   <div class="list">
     {countries.map((c) => (
-      <a class="row" href={path(`/population/${c.slug}/`)} data-continent={c.continent}>
+      <a class="row" href={path(`/population/${c.slug}/`)} data-continent={c.cont} data-name={c.name} data-pop={c.now.population} data-growth={c.now.growthRatePct} data-density={c.now.densityPerKm2}>
         <Flag code={c.code} class="flag" />
         <span><span class="name">{c.name}</span><br /><span class="meta">{c.region}</span></span>
         <span class="rank">#{c.now.worldRank} in the world</span>
@@ -59,12 +80,40 @@ const schema = [
   </div>
   <script is:inline>
     (function () {
-      var btns = document.querySelectorAll('.filters button'), rows = document.querySelectorAll('.list .row'), empty = document.querySelector('.list .empty');
+      var btns = document.querySelectorAll('.filters button'), list = document.querySelector('.list'), rows = Array.prototype.slice.call(list.querySelectorAll('.row'));
+      var empty = list.querySelector('.empty'), sel = document.getElementById('hub-sort'), count = document.getElementById('hub-n'), region = 'All';
+      var cmp = {
+        pop: function (a, b) { return b.dataset.pop - a.dataset.pop; },
+        name: function (a, b) { return a.dataset.name.localeCompare(b.dataset.name); },
+        growth: function (a, b) { return b.dataset.growth - a.dataset.growth; },
+        density: function (a, b) { return b.dataset.density - a.dataset.density; },
+      };
+      function apply() {
+        rows.sort(cmp[sel.value]).forEach(function (r) { list.insertBefore(r, empty); });
+        var n = 0; rows.forEach(function (r) { var ok = region === 'All' || r.dataset.continent === region; r.hidden = !ok; if (ok) n++; });
+        empty.hidden = n > 0; count.textContent = n;
+      }
       btns.forEach(function (b) { b.addEventListener('click', function () {
         btns.forEach(function (x) { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-        var n = 0; rows.forEach(function (r) { var ok = b.dataset.region === 'All' || r.dataset.continent === b.dataset.region; r.hidden = !ok; if (ok) n++; });
-        empty.hidden = n > 0;
+        region = b.dataset.region; apply();
       }); });
+      sel.addEventListener('change', apply);
     })();
   </script>
+  <style>
+    .world-card { display: grid; grid-template-columns: 44px 1fr auto 20px; align-items: center; gap: 14px; padding: 14px 18px; margin: 4px 0 18px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); text-decoration: none; color: var(--text); }
+    .world-card:hover { background: var(--water-2); }
+    .world-card .flag { width: 44px; height: 30px; border-radius: 4px; overflow: hidden; }
+    .world-card .name { font-weight: 700; color: var(--ocean); }
+    .world-card .meta { font-size: .85rem; color: var(--text-3); }
+    .world-card .val { font-weight: 700; color: var(--ocean); }
+    .world-card .chev { color: var(--text-3); }
+    .hub-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+    .hub-tools .filters { margin: 0; }
+    .sort { display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; color: var(--text-2); font-weight: 600; }
+    .sort select { font: inherit; font-weight: 600; color: var(--ocean); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; min-height: 40px; }
+    .hub-count { margin: 10px 2px; }
+    .list .row[hidden] { display: none; } /* .row sets display:grid, which would otherwise override [hidden] */
+    @media (max-width: 767px) { .hub-tools { display: block; } .sort { margin: 8px 0 0; } }
+  </style>
 </Base>
