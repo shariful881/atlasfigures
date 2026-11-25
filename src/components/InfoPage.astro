@@ -7,7 +7,7 @@ const { title, heading, description, slug, type = 'WebPage', updated } = Astro.p
 const page = `/${slug}/`;
 const schema = [{
   '@type': type, '@id': abs(`${page}#page`), name: heading, url: abs(page), description,
-  isPartOf: { '@id': WEBSITE_ID }, about: { '@id': ORG_ID }, dateModified: updated, inLanguage: 'en',
+  isPartOf: { '@id': WEBSITE_ID }, about: { '@id': ORG_ID }, dateModified: `${updated}T12:00:00+06:00`, inLanguage: 'en',
 }];
 ---
 <Base title={`${title} | AtlasFigures`} description={description} section="about" appTitle={heading} back="/"

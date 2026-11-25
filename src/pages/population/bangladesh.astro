@@ -8,6 +8,8 @@ import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER } from '../../site';
 
 const PUBLISHED = '2026-11-25';
 const UPDATED = '2026-11-25';
+// Full ISO datetimes with time zone for structured data (Dhaka, UTC+6).
+const iso = (d: string) => `${d}T12:00:00+06:00`;
 const PAGE = '/population/bangladesh/';
 
 const c = bd.current;
@@ -50,8 +52,8 @@ const schema = [
     '@id': abs(`${PAGE}#article`),
     headline: `Bangladesh population 2026: ${m(c.population)}, density and trends`,
     description,
-    datePublished: PUBLISHED,
-    dateModified: UPDATED,
+    datePublished: iso(PUBLISHED),
+    dateModified: iso(UPDATED),
     author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') },
     publisher: { '@id': ORG_ID },
     isPartOf: { '@id': WEBSITE_ID },
@@ -75,7 +77,8 @@ const schema = [
     temporalCoverage: '1960/2050',
     spatialCoverage: { '@type': 'Place', name: 'Bangladesh' },
     variableMeasured: ['Population', 'Population density (people per km²)', 'Total fertility rate', 'Median age', 'Urban population (%)', 'Net migrants', 'World population rank'],
-    dateModified: UPDATED,
+    dateModified: iso(UPDATED),
+    license: 'https://creativecommons.org/licenses/by/3.0/igo/',
     distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/bangladesh-population.csv') }],
   },
   {
@@ -197,7 +200,7 @@ const schema = [
             </tbody>
           </table>
         </div>
-        <p class="download"><a href={path('/data/bangladesh-population.csv')} download>Download this table as CSV</a> · Please credit "AtlasFigures, based on UN World Population Prospects 2024"</p>
+        <p class="download"><a href={path('/data/bangladesh-population.csv')} download>Download this table as CSV</a> · Data licence: <a href="https://creativecommons.org/licenses/by/3.0/igo/">CC BY 3.0 IGO</a> (UN). Please credit "AtlasFigures, based on UN World Population Prospects 2024"</p>
       </section>
 
       <section class="panel" data-panel="faq" aria-labelledby="faq-h">
