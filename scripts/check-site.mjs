@@ -206,7 +206,9 @@ for (const file of pages) {
     // Measured figures in millions need exactly 1 decimal; round thresholds ("more than 10 million people") are fine.
     for (const m of t.matchAll(/(?<![\d.,])(\d+(?:\.\d+)?) million/g)) {
       const before = t.slice(Math.max(0, m.index - 10), m.index);
+      // Round thresholds and milestones ("more than 10 million", "crossed 100 million") are not measured figures.
       if (/(than|over|under|least) $/.test(before) && /^\d+$/.test(m[1])) continue;
+      if (/(pass|passes|passed|crossed|reach|reaches|reached|past|above|below|the) $/.test(before) && /^\d+0$/.test(m[1])) continue;
       if (!/^\d+\.\d$/.test(m[1])) fail(where, `"${m[0]}": millions need exactly 1 decimal`);
     }
   }

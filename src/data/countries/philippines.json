@@ -1,0 +1,53 @@
+{
+  "slug": "philippines",
+  "name": "Philippines",
+  "demonym": "Filipino",
+  "capital": "Manila",
+  "iso3": "PHL",
+  "code": "ph",
+  "continent": "Asia",
+  "wikipedia": "https://en.wikipedia.org/wiki/Philippines",
+  "unName": "Philippines",
+  "published": "2026-11-25",
+  "updated": "2026-11-25",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    2000,
+    2010,
+    2020,
+    2026,
+    2030,
+    2040,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-25",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/philippines.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population 1950–2100, rank 2026/2100, share, growth, density 1950/2026, land area",
+      "Fertility 1950/2010/2020/2026 and fourth-steepest fall since 2010 among countries over 50 million (the three above are African)",
+      "Births, deaths, natural gain, net emigration since 2013; births peak (2010); median age",
+      "Peak (2057), natural loss from 2061, 2100 total; second in South-East Asia (build check); urban share and majority year (2014)",
+      "Title, meta description, Article headline, FAQ answers in JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 68 of 68 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. No image alt text on the page (the flag and charts carry aria-labels)."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-25",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}

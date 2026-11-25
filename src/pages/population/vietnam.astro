@@ -1,0 +1,223 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import vn from '../../data/countries/vietnam.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: past 100 million, near-replacement fertility for decades, ageing fast.
+const PAGE = '/population/vietnam/';
+const un = countryData(vn.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (vn.verification as any).checkedOn as string | undefined;
+
+const hundred = un.years.find((r) => r.population >= 100e6)!.year;
+assertClaim(hundred === 2023, 'passed 100 million in 2023');
+const near = un.years.filter((r) => r.year >= 1998 && !r.projection);
+const lo = Math.min(...near.map((r) => r.fertility)), hi = Math.max(...near.map((r) => r.fertility));
+assertClaim(lo > 1.85 && hi < 2.11, 'fertility between about 1.9 and 2.1 every year from 1998 to 2023');
+const tfrMax = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+const natLoss = un.years.find((r) => r.naturalChange < 0)!.year;
+assertClaim(peak.year === 2049 && natLoss === 2051, 'peak 2049, deaths above births from 2051');
+assertClaim(Math.abs(y[2000].medianAge - y[1950].medianAge) < 1 && c.medianAge - y[2000].medianAge > 10, 'median age flat 1950-2000, then up more than ten years');
+assertClaim(un.years.every((r) => r.urbanPct == null || r.urbanPct < 50), 'urban minority through 2050');
+assertClaim(Math.round(c.medianAge - y[2000].medianAge) === 11 && y[2050].medianAge > 40 && c.netMigrants < 0, 'eleven years older than 2000; past 40 by 2050; net outflow');
+const birthPeak = un.years.filter((r) => !r.projection).reduce((a, b) => (b.births > a.births ? b : a));
+const times = c.population / y[1950].population;
+assertClaim(times > 4 && times < 4.2, 'about four times the 1950 population');
+
+const title = `Vietnam Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)} Million, Past 100 Million and Ageing Fast | AtlasFigures`;
+const description = `Vietnam passed 100 million people in ${hundred} and has ${millions(c.population)} in ${CURRENT_YEAR}. Fertility has sat near 2 for a quarter-century; a peak is projected for ${peak.year}, with half the population over ${dec(y[2050].medianAge, 1)} by 2050.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: vn.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+  { label: 'Urban', value: pct(c.urbanPct!) },
+];
+
+const rows = displayRows(un.years, vn.tableYears);
+
+const faq = [
+  { q: 'What is the current Vietnamese population?', a: `The mid-${CURRENT_YEAR} UN estimate is about ${millions(c.population)}, putting Vietnam ${ord(c.worldRank!)} globally and third within South-East Asia.` },
+  { q: 'Is Vietnam still adding people?', a: `Yes, about ${int(Math.round(c.change / 1000))} thousand in ${CURRENT_YEAR}, a rise of ${pct(c.growthRatePct)}. The gains shrink each decade and end in ${peak.year}.` },
+  { q: 'How many children does a typical Vietnamese family have?', a: `${dec(c.fertility, 2)} in ${CURRENT_YEAR}, by the UN's measure. From 1998 to 2023 it ranged between ${dec(lo, 2)} and ${dec(hi, 2)}; the high point was ${dec(tfrMax.fertility, 2)}, in ${tfrMax.year}.` },
+  { q: 'From which year is Vietnam expected to shrink?', a: `From ${peak.year + 1}, once the total peaks at ${millions(peak.population)}. The medium projection reaches ${millions(y[2100].population)} by 2100.` },
+  { q: 'Are births in Vietnam declining?', a: `Yes: roughly ${millions(c.births)} in ${CURRENT_YEAR}, against the ${birthPeak.year} high of ${millions(birthPeak.births)}.` },
+];
+const sea = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m)
+  .filter((d: any) => d.subregion === 'South-Eastern Asia').sort((a: any, b: any) => b.years.find((r: any) => r.year === CURRENT_YEAR).population - a.years.find((r: any) => r.year === CURRENT_YEAR).population).map((d: any) => d.iso3);
+assertClaim(sea[2] === 'VNM', 'third in South-East Asia');
+
+const schema = countrySchema({
+  page: PAGE, slug: vn.slug, name: vn.name, wikipedia: vn.wikipedia,
+  headline: `Vietnam's population in ${CURRENT_YEAR}: ${millions(c.population)}, past the 100 million mark`,
+  description,
+  datasetName: 'Vietnam population, density, fertility, median age and urban share, 1950–2100',
+  datasetDescription: `Mid-year population of Vietnam (Viet Nam) for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: vn.published, updated: vn.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Vietnam"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Vietnam', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Vietnam's population after 100 million</h1>
+        <LiveCounter
+          label="Vietnam: people right now (estimate)"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: 1 July ${CURRENT_YEAR} figure, up about ${int(c.change / 365)} per day`}
+        />
+        <p class="answer">
+          Vietnam's population crossed <strong>100 million in {hundred}</strong> and is about {millions(c.population)} in {CURRENT_YEAR}, {ord(c.worldRank!)} in the world. Growth has eased to {pct(c.growthRatePct)} a year, with a <strong>projected peak in {peak.year}</strong>.
+        </p>
+        <div class="dates"><span>Updated <time datetime={vn.updated}>{longDate(vn.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Vietnam" code="vn" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>When did Vietnam's population reach 100 million?</h2>
+          <p>In {hundred}, by the UN's mid-year estimates. That is roughly four times the {millions(y[1950].population)} counted in 1950. Growth has since eased: the {CURRENT_YEAR} gain is about {int(Math.round(c.change / 1000))} thousand people, from {millions(c.births)} births against {int(Math.round(c.deaths / 1000))} thousand deaths, minus a modest net outflow of migrants.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Has Vietnam's fertility stayed near replacement level?</h2>
+          <p>For a quarter of a century, yes. Every year from 1998 to 2023, the UN estimate sat between {dec(lo, 2)} and {dec(hi, 2)} children per woman, just around the replacement mark of 2.1. That followed a steep decline from {dec(tfrMax.fertility, 2)} in {tfrMax.year} and {dec(y[1990].fertility, 2)} as late as 1990. The {CURRENT_YEAR} figure is {dec(c.fertility, 2)}.</p>
+        </div>
+        <LineChart
+          title="Vietnam's fertility rate since 1950: a long plateau near 2"
+          subtitle="Children per woman, 1950–2050, with the 2.1 replacement line. Dashed values are UN projections."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="children per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'Replacement line' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>When will Vietnam's population stop rising?</h2>
+          <p>In {peak.year}, with a high of about {millions(peak.population)} in the UN's medium scenario. Deaths would outnumber births from {natLoss}, and the population would ease to {millions(y[2100].population)} by 2100. Over the same period Vietnam would slide from {ord(c.worldRank!)} to {ord(y[2100].worldRank!)} in the global ranking.</p>
+        </div>
+        <LineChart
+          title="Vietnam's population, 1950–2100"
+          subtitle="Mid-year count; the UN's projected path (dashed) levels off around 2049 and then declines."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How quickly is Vietnam ageing?</h2>
+          <p>Quickly, after decades of standing still. The median age barely changed between 1950 ({dec(y[1950].medianAge, 1)}) and 2000 ({dec(y[2000].medianAge, 1)}), then jumped to {dec(c.medianAge, 1)} by {CURRENT_YEAR}; projections put it at {dec(y[2050].medianAge, 1)} for 2050 and {dec(y[2100].medianAge, 1)} for 2100. Newborns can now expect {dec(c.lifeExpectancy, 1)} years of life, against {dec(y[1950].lifeExpectancy, 1)} in 1950.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Median age in Vietnam">
+          <div><span class="y">2000</span><div class="v">{dec(y[2000].medianAge, 1)}</div><span class="d">Same as in 1950</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{dec(c.medianAge, 1)}</div><span class="d">Eleven years older</span></div>
+          <div><span class="y">2050, UN projection</span><div class="v">{dec(y[2050].medianAge, 1)}</div><span class="d">Past forty</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>What share of Vietnam is urban?</h2>
+          <p>Vietnam's own definition puts the urban share at {pct(c.urbanPct!)} in {CURRENT_YEAR}, up from {pct(y[1950].urbanPct!)} in 1950. The 2050 projection, {pct(y[2050].urbanPct!)}, would still leave most Vietnamese outside urban areas. Density averages {int(c.densityPerKm2)} people per square kilometre.</p>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Vietnam, 1950 to 2100, in numbers"
+          subtitle="Vietnam's UN record from 1950 on; projected entries start in 2030."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${vn.slug}-population.csv`)}
+          csvName={`${vn.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Vietnam's population: reader questions</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{vn.unName}"): population, births, deaths, growth, density, fertility, median age, life expectancy, world rank, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and adds the UN's projected growth for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={vn.published}>{longDate(vn.published)}</time> · Updated <time datetime={vn.updated}>{longDate(vn.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Vietnam population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Vietnam" code="vn" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
