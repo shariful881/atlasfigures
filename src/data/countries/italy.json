@@ -1,0 +1,53 @@
+{
+  "slug": "italy",
+  "name": "Italy",
+  "demonym": "Italian",
+  "capital": "Rome",
+  "iso3": "ITA",
+  "code": "it",
+  "continent": "Europe",
+  "wikipedia": "https://en.wikipedia.org/wiki/Italy",
+  "unName": "Italy",
+  "published": "2026-11-25",
+  "updated": "2026-11-25",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    2000,
+    2010,
+    2020,
+    2026,
+    2030,
+    2040,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-25",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/italy.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population 1950–2100, rank 2026/2100, share, growth, daily fall, density, land area",
+      "Peak 2014 and smaller every later year; deaths per birth; natural loss first in 1993 and in most years since; migration under a quarter of the natural loss",
+      "Births over 1 million in 1964 and now (thousands), deaths; fertility 1964/2026, second-lowest in Europe (over 5 million) after Ukraine",
+      "Median age 1950/2026/2050, highest among European countries over 5 million and second to Japan worldwide in that group; life expectancy 1950/2026",
+      "2100 total, 40.0% fall, sixth-steepest among countries over 20 million; largest population in Southern Europe; urban share; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 68 of 68 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Statements about Europe are limited to countries over 5 or 10 million because some microstates rank higher. No image alt text on the page (the flag and charts carry aria-labels)."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-25",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
