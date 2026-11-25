@@ -69,15 +69,15 @@ const id = `ch${Math.random().toString(36).slice(2, 8)}`;
   {subtitle && <p class="fig-sub">{subtitle}</p>}
   <div class="readout num" aria-live="polite">{hl ? `${hl.x}: ${fmtLong(hl.y)}` : ''}</div>
   {variants.map(({ cls, g }) => (
-    <svg class={cls} viewBox={`0 0 ${g.W} ${g.H}`} role="img" aria-label={title} font-family="Schibsted Grotesk, system-ui, sans-serif" data-points={JSON.stringify(g.data)} data-w={g.W}>
+    <svg class={cls} viewBox={`0 0 ${g.W} ${g.H}`} role="img" aria-label={title} font-family="Schibsted Grotesk Variable, Schibsted Grotesk, system-ui, sans-serif" data-points={JSON.stringify(g.data)} data-w={g.W}>
       {g.ticks.map((t) => (
         <g>
           <line x1={g.L} x2={g.W - g.R} y1={g.Y(t)} y2={g.Y(t)} stroke="#e6edf0" />
-          <text x={g.L - 6} y={g.Y(t) + g.fs / 3} text-anchor="end" font-size={g.fs} fill="#8696a2">{fmt(t)}</text>
+          <text x={g.L - 6} y={g.Y(t) + g.fs / 3} text-anchor="end" font-size={g.fs} fill="#61707c">{fmt(t)}</text>
         </g>
       ))}
       {g.labels.map((x) => (
-        <text x={g.X(x)} y={g.H - g.fs * 0.8} text-anchor="middle" font-size={g.fs} fill={x === highlight ? '#123b5a' : '#8696a2'} font-weight={x === highlight ? 700 : 400}>{x}</text>
+        <text x={g.X(x)} y={g.H - g.fs * 0.8} text-anchor="middle" font-size={g.fs} fill={x === highlight ? '#123b5a' : '#61707c'} font-weight={x === highlight ? 700 : 400}>{x}</text>
       ))}
       {g.projPath && <rect x={g.X(g.last.x)} y={g.T} width={g.W - g.R - g.X(g.last.x)} height={g.H - g.T - g.B} fill="#eef5f7" />}
       {g.projPath && <text x={g.W - g.R - 6} y={g.T + g.fs + 2} text-anchor="end" font-size={g.fs * 0.92} fill="#5d6c78">UN projection</text>}

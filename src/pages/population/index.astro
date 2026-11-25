@@ -3,18 +3,37 @@ import Base from '../../layouts/Base.astro';
 import Flag from '../../components/Flag.astro';
 import Icon from '../../components/Icon.astro';
 import bd from '../../data/countries/bangladesh.json';
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const countries = [{ ...bd, code: 'bd' }];
+import { abs, path, WEBSITE_ID } from '../../site';
+
+const PAGE = '/population/';
+// Sorted by population, largest first (the order readers scan for).
+const countries = [bd].sort((a, b) => b.current.population - a.current.population);
+const schema = [
+  {
+    '@type': 'CollectionPage',
+    '@id': abs(`${PAGE}#page`),
+    name: 'Population by country',
+    url: abs(PAGE),
+    isPartOf: { '@id': WEBSITE_ID },
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListOrder: 'https://schema.org/ItemListOrderDescending',
+      numberOfItems: countries.length,
+      itemListElement: countries.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: `${c.name} population`, url: abs(`/population/${c.slug}/`) })),
+    },
+  },
+];
 ---
 <Base
-  title="Population of Every Country | AtlasFigures"
-  description="Population, density, fertility and the story behind the numbers for every country in the world."
+  title="Population of Every Country, 2026 | AtlasFigures"
+  description="How many people live in each country in 2026, how crowded it is and where it is heading by 2050, with every figure sourced to the UN."
   section="population"
   appTitle="Population"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: PAGE }]}
+  schema={schema}
 >
-  <nav class="crumbs" aria-label="Breadcrumb"><a href={`${base}/`}>Home</a> / Population</nav>
   <h1>Population by country</h1>
-  <p class="answer">Each country has its own page, written around what makes its population story different. New countries are added every week.</p>
+  <p class="answer">Each country has its own page, written around what makes its population story different, with figures from the UN's World Population Prospects 2024. New countries are added every week.</p>
   <div class="filters" role="group" aria-label="Filter by continent">
     {['All', 'Asia', 'Africa', 'Europe', 'Americas', 'Oceania'].map((r, i) => (
       <button type="button" class={i === 0 ? 'on' : ''} aria-pressed={i === 0 ? 'true' : 'false'} data-region={r}>{r}</button>
@@ -22,7 +41,7 @@ const countries = [{ ...bd, code: 'bd' }];
   </div>
   <div class="list">
     {countries.map((c) => (
-      <a class="row" href={`${base}/population/${c.slug}/`} data-continent={c.continent}>
+      <a class="row" href={path(`/population/${c.slug}/`)} data-continent={c.continent}>
         <Flag code={c.code} class="flag" />
         <span><span class="name">{c.name}</span><br /><span class="meta">{c.region}</span></span>
         <span class="rank">#{c.current.worldRank} in the world</span>

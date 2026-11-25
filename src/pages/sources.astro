@@ -1,0 +1,14 @@
+---
+import InfoPage from '../components/InfoPage.astro';
+import { path } from '../site';
+---
+<InfoPage title="Data Sources" heading="Sources" slug="sources" updated="2026-11-25"
+  description="The official data sources behind AtlasFigures: UN World Population Prospects 2024 and national statistics offices.">
+  <p>These are the sources currently used on AtlasFigures. Each page also lists the sources for its own figures.</p>
+  <h2>Population</h2>
+  <ul>
+    <li><a href="https://population.un.org/wpp/">United Nations, Department of Economic and Social Affairs, Population Division: World Population Prospects 2024</a>. Population, density, fertility, median age, urban share, migration and projections to 2100.</li>
+    <li><a href="https://bbs.portal.gov.bd/">Bangladesh Bureau of Statistics: Population and Housing Census 2022</a>. City populations in Bangladesh.</li>
+  </ul>
+  <p>New sources are added here as new sections launch. See our <a href={path('/methodology/')}>methodology</a> for how the figures are used.</p>
+</InfoPage>

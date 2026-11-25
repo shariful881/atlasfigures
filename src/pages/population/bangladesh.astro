@@ -4,8 +4,12 @@ import KeyFacts from '../../components/KeyFacts.astro';
 import LiveCounter from '../../components/LiveCounter.astro';
 import LineChart from '../../components/LineChart.astro';
 import bd from '../../data/countries/bangladesh.json';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER } from '../../site';
 
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const PUBLISHED = '2026-11-25';
+const UPDATED = '2026-11-25';
+const PAGE = '/population/bangladesh/';
+
 const c = bd.current;
 const fmt = (n: number) => n.toLocaleString('en-US');
 const m = (n: number) => `${(n / 1e6).toFixed(1)} million`;
@@ -13,6 +17,10 @@ const s = Object.fromEntries(bd.series.map((r) => [r.year, r]));
 const perDay = Math.round(c.netChange / 365);
 const src = 'UN World Population Prospects 2024';
 const proj = (r: any) => Boolean(r.projection);
+const urbanPeople = Math.round(c.population * c.urbanPct / 100);
+
+const title = `Bangladesh Population 2026: ${(c.population / 1e6).toFixed(1)} Million | AtlasFigures`;
+const description = `Bangladesh has about ${m(c.population)} people in 2026, ${fmt(c.densityPerKm2)} per km². How it tripled since 1960, cut births from 6.8 to 2.1 per woman, and what the UN projects for 2050.`;
 
 const facts = [
   { label: 'Population 2026', value: `${(c.population / 1e6).toFixed(1)}M` },
@@ -30,29 +38,67 @@ const facts = [
 const faq = [
   { q: 'What is the population of Bangladesh in 2026?', a: `About ${m(c.population)} people at mid-2026, according to the UN's World Population Prospects 2024. That makes Bangladesh the ${c.worldRank}th most populous country, with ${c.worldSharePct}% of the world's people.` },
   { q: 'How densely populated is Bangladesh?', a: `About ${fmt(c.densityPerKm2)} people per square kilometre of land, on ${fmt(c.landAreaKm2)} km².` },
-  { q: 'Is the population of Bangladesh still growing?', a: `Yes, by about ${c.yearlyChangePct}% a year — roughly ${fmt(c.netChange)} more people each year, or around ${fmt(perDay)} a day. The UN expects growth to slow to about 0.5% a year by 2050.` },
+  { q: 'Is the population of Bangladesh still growing?', a: `Yes, by about ${c.yearlyChangePct}% a year: roughly ${fmt(c.netChange)} more people each year, or around ${fmt(perDay)} a day. The UN projects growth to slow to about 0.5% a year by 2050.` },
   { q: 'What will the population of Bangladesh be in 2050?', a: `The UN's medium projection is ${m(s[2050].population)} in 2050.` },
+  { q: 'What is the median age in Bangladesh?', a: `${c.medianAge} years in 2026, up from ${s[1980].medianAge} in 1980. The UN projects ${s[2050].medianAge} by 2050.` },
+];
+
+const country = { '@type': 'Country', name: 'Bangladesh', sameAs: 'https://en.wikipedia.org/wiki/Bangladesh' };
+const schema = [
+  {
+    '@type': 'Article',
+    '@id': abs(`${PAGE}#article`),
+    headline: `Bangladesh population 2026: ${m(c.population)}, density and trends`,
+    description,
+    datePublished: PUBLISHED,
+    dateModified: UPDATED,
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') },
+    publisher: { '@id': ORG_ID },
+    isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE),
+    image: abs('/icon-512.png'),
+    inLanguage: 'en',
+    about: country,
+    citation: [
+      { '@type': 'CreativeWork', name: 'World Population Prospects 2024', url: 'https://population.un.org/wpp/', publisher: { '@type': 'Organization', name: 'United Nations, Department of Economic and Social Affairs, Population Division' } },
+      { '@type': 'CreativeWork', name: 'Population and Housing Census 2022', url: 'https://bbs.portal.gov.bd/', publisher: { '@type': 'Organization', name: 'Bangladesh Bureau of Statistics' } },
+    ],
+  },
+  {
+    '@type': 'Dataset',
+    '@id': abs(`${PAGE}#dataset`),
+    name: 'Bangladesh population, density, fertility, median age and urban share, 1960–2050',
+    description: 'Mid-year population of Bangladesh for selected years from 1960 to 2026, with UN medium-variant projections for 2030, 2040 and 2050, including density, total fertility rate, median age, urban share, net migration and world rank.',
+    url: abs(PAGE),
+    creator: { '@id': ORG_ID },
+    isBasedOn: 'https://population.un.org/wpp/',
+    temporalCoverage: '1960/2050',
+    spatialCoverage: { '@type': 'Place', name: 'Bangladesh' },
+    variableMeasured: ['Population', 'Population density (people per km²)', 'Total fertility rate', 'Median age', 'Urban population (%)', 'Net migrants', 'World population rank'],
+    dateModified: UPDATED,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/bangladesh-population.csv') }],
+  },
+  {
+    '@type': 'FAQPage',
+    '@id': abs(`${PAGE}#faq`),
+    mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  },
 ];
 ---
 <Base
-  title={`Bangladesh Population 2026: ${m(c.population)}, Density & Trends | AtlasFigures`}
-  description={`Bangladesh has about ${m(c.population)} people in 2026, at ${fmt(c.densityPerKm2)} per km². How the country tripled in size, cut fertility from almost 7 children to 2, and what 2050 looks like.`}
+  title={title}
+  description={description}
   section="population"
   appTitle="Bangladesh"
-  back={`${base}/population/`}
+  back="/population/"
   miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Bangladesh', href: PAGE }]}
+  schema={schema}
 >
-  <script type="application/ld+json" slot="head" set:html={JSON.stringify({
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
-  })} />
-
-  <nav class="crumbs" aria-label="Breadcrumb"><a href={`${base}/`}>Home</a> / <a href={`${base}/population/`}>Population</a> / Bangladesh</nav>
-
   <div class="country">
-    <div class="country-main">
-      <div class="country-head">
+    <article class="country-main">
+      <header class="country-head">
         <h1>Bangladesh population</h1>
         <LiveCounter
           label="Live estimate"
@@ -64,24 +110,24 @@ const faq = [
         <p class="answer">
           Bangladesh has about <strong>{m(c.population)} people</strong> in 2026, the world's {c.worldRank}th largest population, on less land than many single US states. At <strong>{fmt(c.densityPerKm2)} people per km²</strong>, it is the most crowded large country on Earth.
         </p>
+        <p class="dates">Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · Data: {src}</p>
         <KeyFacts variant="mobile" facts={facts} source={src} sourceUrl={bd.sourceUrl} />
-      </div>
+      </header>
 
       <div class="segments" role="tablist" aria-label="Page sections">
         <button role="tab" aria-selected="true" data-panel="story">Story</button>
         <button role="tab" aria-selected="false" data-panel="data">Data</button>
         <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
-        <button role="tab" aria-selected="false" data-panel="sources">Sources</button>
       </div>
 
-      <section class="panel" data-panel="story">
+      <section class="panel" data-panel="story" aria-label="The story">
         <p class="answer lead">
           The story of Bangladesh's population is not just about size. In two generations the country more than tripled its numbers, then cut the average family from nearly seven children to two, a fall that took many other countries a century.
         </p>
 
         <div class="story-block prose">
-          <h2>Three times as many people on the same land</h2>
-          <p>In 1960 about {m(s[1960].population)} people lived in what is now Bangladesh. By 2026 there are {m(c.population)}, nearly 3.4 times as many, on the same {fmt(c.landAreaKm2)} km² of land. Density rose with them, from {fmt(s[1960].density)} to {fmt(c.densityPerKm2)} people per square kilometre.</p>
+          <h2>How much has Bangladesh's population grown since 1960?</h2>
+          <p>It has grown about 3.4 times, from {m(s[1960].population)} in 1960 to {m(c.population)} in 2026, all on the same {fmt(c.landAreaKm2)} km² of land. Density rose with it, from {fmt(s[1960].density)} to {fmt(c.densityPerKm2)} people per square kilometre.</p>
         </div>
         <LineChart
           title="Population of Bangladesh, 1960–2050"
@@ -93,11 +139,11 @@ const faq = [
         />
 
         <div class="story-block prose">
-          <h2>From seven children to two</h2>
-          <p>The bigger surprise is how fast families shrank. In 1970 a Bangladeshi woman had on average {s[1970].fertility} children. By 2000 that had halved to {s[2000].fertility}, and in 2026 it is {c.fertility}, close to the level where each generation simply replaces the last. The UN expects it to keep falling, to {s[2050].fertility} by 2050.</p>
+          <h2>How many children does a woman in Bangladesh have?</h2>
+          <p>About {c.fertility} on average in 2026, down from {s[1970].fertility} in 1970. The rate halved to {s[2000].fertility} by 2000 and is now close to 2.1, the level at which each generation simply replaces the last. The UN expects it to keep falling, to {s[2050].fertility} by 2050.</p>
         </div>
         <LineChart
-          title="Births per woman in Bangladesh"
+          title="Births per woman in Bangladesh, 1960–2050"
           subtitle="Total fertility rate. About 2.1 means each generation replaces itself."
           points={bd.series.map((r) => ({ x: r.year, y: r.fertility, projection: proj(r) }))}
           highlight={2026}
@@ -105,40 +151,41 @@ const faq = [
         />
 
         <div class="story-block prose">
-          <h2>A young country that is starting to age</h2>
-          <p>Falling birth rates change the shape of a country. In 1980 the median Bangladeshi was {s[1980].medianAge} years old; today the median is {c.medianAge}. That puts an unusually large share of people in their working years, the window economists call a demographic dividend. By 2050 the median age is projected to reach {s[2050].medianAge}, so the window will not stay open forever.</p>
+          <h2>How old is the population of Bangladesh?</h2>
+          <p>The median Bangladeshi is {c.medianAge} years old in 2026, up from {s[1980].medianAge} in 1980. That puts an unusually large share of people in their working years, the window economists call a demographic dividend. By 2050 the median age is projected to reach {s[2050].medianAge}, so the window will not stay open forever.</p>
         </div>
-        <div class="age-row" role="group" aria-label="Median age">
+        <div class="age-row" role="group" aria-label="Median age of Bangladesh">
           <div><span class="y">Median age, 1980</span><div class="v">{s[1980].medianAge}</div><span class="d">Half the country were children</span></div>
           <div><span class="y">2026</span><div class="v">{c.medianAge}</div><span class="d">A working-age country</span></div>
-          <div><span class="y">2050, projected</span><div class="v">{s[2050].medianAge}</div><span class="d">Starting to age</span></div>
+          <div><span class="y">2050, UN projection</span><div class="v">{s[2050].medianAge}</div><span class="d">Starting to age</span></div>
         </div>
 
         <div class="story-block prose">
-          <h2>The move to the cities</h2>
-          <p>In 1960 only {s[1960].urbanPct}% of the population lived in towns and cities. Today it is {c.urbanPct}%, about {m(Math.round(c.population * c.urbanPct / 100))} people, and the UN projects {s[2050].urbanPct}% by 2050, when most Bangladeshis will be city dwellers. Dhaka's two city corporations alone counted {fmt(bd.dhakaCensus2022)} residents in the 2022 census by the Bangladesh Bureau of Statistics.</p>
+          <h2>How many people in Bangladesh live in cities?</h2>
+          <p>About {c.urbanPct}% in 2026, or {m(urbanPeople)} people, up from {s[1960].urbanPct}% in 1960. The UN projects {s[2050].urbanPct}% by 2050, when most Bangladeshis will be city dwellers. Dhaka's two city corporations alone counted {fmt(bd.dhakaCensus2022)} residents in the 2022 census by the Bangladesh Bureau of Statistics.</p>
         </div>
 
         <div class="story-block prose">
-          <h2>A nation of emigrants</h2>
-          <p>Since the 1970s more people have left Bangladesh each year than have arrived. Net emigration peaked at around {Math.abs(Math.round(s[2010].netMigrants / 1e5) / 10)} million a year around 2010 and is about {Math.abs(Math.round(c.netMigrants / 1e3))} thousand in 2026. Those workers abroad, many in the Gulf and Southeast Asia, are part of the country's story as much as the people at home.</p>
+          <h2>How many people leave Bangladesh each year?</h2>
+          <p>About {Math.abs(Math.round(c.netMigrants / 1e3))} thousand more people left than arrived in 2026. Net emigration has been negative since the 1970s and peaked at around {Math.abs(Math.round(s[2010].netMigrants / 1e5) / 10)} million a year around 2010. Those workers abroad, many in the Gulf and Southeast Asia, are part of the country's story as much as the people at home.</p>
         </div>
 
         <div class="story-block prose">
-          <h2>What 2050 looks like</h2>
-          <p>Growth is slowing but has not stopped. The UN's medium projection puts Bangladesh at {m(s[2050].population)} in 2050, with density reaching {fmt(s[2050].density)} people per km². Because other countries are growing faster, Bangladesh is projected to slip from {c.worldRank}th to {s[2050].rank}th place in the world population ranking.</p>
+          <h2>What will the population of Bangladesh be in 2050?</h2>
+          <p>About {m(s[2050].population)}, according to the UN's medium projection. Growth is slowing but has not stopped, and density would reach {fmt(s[2050].density)} people per km². Because other countries are growing faster, Bangladesh is projected to slip from {c.worldRank}th to {s[2050].rank}th place in the world population ranking.</p>
         </div>
       </section>
 
-      <section class="panel" data-panel="data">
-        <h2>Bangladesh population by year</h2>
+      <section class="panel" data-panel="data" aria-labelledby="data-h">
+        <h2 id="data-h">Bangladesh population by year (1960–2050)</h2>
         <div class="table-scroll">
           <table class="data">
-            <thead><tr><th>Year</th><th>Population</th><th>People/km²</th><th>Births per woman</th><th>Median age</th><th>Urban</th><th>World rank</th></tr></thead>
+            <caption class="visually-hidden">Population of Bangladesh by year with density, births per woman, median age, urban share and world rank. Source: {src}.</caption>
+            <thead><tr><th scope="col">Year</th><th scope="col">Population</th><th scope="col">People/km²</th><th scope="col">Births per woman</th><th scope="col">Median age</th><th scope="col">Urban</th><th scope="col">World rank</th></tr></thead>
             <tbody>
               {bd.series.map((r) => (
                 <tr class={proj(r) ? 'proj' : ''}>
-                  <td>{r.year}{proj(r) ? ' (UN projection)' : ''}</td>
+                  <th scope="row">{r.year}{proj(r) ? ' (UN projection)' : ''}</th>
                   <td>{fmt(r.population)}</td>
                   <td>{fmt(r.density)}</td>
                   <td>{r.fertility}</td>
@@ -150,33 +197,34 @@ const faq = [
             </tbody>
           </table>
         </div>
+        <p class="download"><a href={path('/data/bangladesh-population.csv')} download>Download this table as CSV</a> · Please credit "AtlasFigures, based on UN World Population Prospects 2024"</p>
       </section>
 
-      <section class="panel" data-panel="faq">
-        <h2>Quick answers</h2>
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Quick answers about Bangladesh's population</h2>
         <div class="faq">
-          {faq.map((f, i) => (<details open={i === 0}><summary>{f.q}</summary><p>{f.a}</p></details>))}
+          {faq.map((f, i) => (<details open={i === 0}><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
         </div>
       </section>
 
-      <section class="panel" data-panel="sources">
-        <h2>Sources</h2>
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
         <div class="sources-block">
           <ul class="sources">
             <li><a href="https://population.un.org/wpp/">UN DESA Population Division, World Population Prospects 2024</a> (medium variant): population, density, fertility, median age, urban share, migration and projections.</li>
             <li><a href="https://bbs.portal.gov.bd/">Bangladesh Bureau of Statistics, Population and Housing Census 2022</a>: population of Dhaka's city corporations.</li>
           </ul>
-          <p class="note">The live counter starts from the UN's mid-2026 estimate and adds the UN's projected yearly growth evenly through the year. It is an estimate, not a real-time count.</p>
+          <p class="note">The live counter starts from the UN's mid-2026 estimate and adds the UN's projected yearly growth evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
         </div>
-      </section>
-    </div>
+      </details>
+    </article>
 
     <KeyFacts variant="box" facts={facts} source={src} sourceUrl={bd.sourceUrl} />
   </div>
 
   <script is:inline>
     (function () {
-      // Mobile segment tabs: show one panel at a time. Desktop shows all panels (CSS ignores the attribute).
       var tabs = document.querySelectorAll('.segments [role="tab"]');
       var panels = document.querySelectorAll('.panel');
       var mq = window.matchMedia('(max-width: 767px)');
@@ -191,12 +239,8 @@ const faq = [
       }); });
       function sync() { if (mq.matches) show(document.querySelector('.segments [aria-selected="true"]').dataset.panel); else panels.forEach(function (p) { p.removeAttribute('hidden-mobile'); }); }
       mq.addEventListener('change', sync); sync();
-
-      // Bottom sheets
       document.querySelectorAll('[data-open]').forEach(function (b) { b.addEventListener('click', function () { var d = document.getElementById(b.dataset.open); d && d.showModal(); }); });
-      document.querySelectorAll('dialog.sheet').forEach(function (d) {
-        d.addEventListener('click', function (e) { if (e.target === d || e.target.hasAttribute('data-close')) d.close(); });
-      });
+      document.querySelectorAll('dialog.sheet').forEach(function (d) { d.addEventListener('click', function (e) { if (e.target === d || e.target.hasAttribute('data-close')) d.close(); }); });
     })();
   </script>
 </Base>

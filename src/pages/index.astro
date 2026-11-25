@@ -3,9 +3,8 @@ import Base from '../layouts/Base.astro';
 import LiveCounter from '../components/LiveCounter.astro';
 import Contours from '../components/Contours.astro';
 import Icon from '../components/Icon.astro';
-import Flag from '../components/Flag.astro';
 import bd from '../data/countries/bangladesh.json';
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+import { path } from '../site';
 
 const tiles = [
   { key: 'population' as const, title: 'Population', text: 'Every country: how many people, how crowded, and where it is heading by 2050.', live: true },
@@ -15,25 +14,25 @@ const tiles = [
 ];
 ---
 <Base
-  title="AtlasFigures: World Population, Countries and Global Statistics"
+  title="World Population Live & Country Statistics | AtlasFigures"
   description="Live world population and the story behind the numbers for every country: population, time, economy and rankings, with every figure sourced."
 >
   <section class="hero">
+    <h1>Every country, told on its own terms.</h1>
+    <p class="intro">There are about <strong>8.3 billion people</strong> on Earth in 2026, and the UN expects about 69 million more each year. AtlasFigures gives every country its own page, written around what makes its figures different, with every number sourced.</p>
     <LiveCounter
       label="People on Earth right now"
       anchorValue={8305414064}
       anchorDate="2026-07-26"
       perYear={69000000}
-      note="Estimate based on UN World Population Prospects 2024, which puts growth at about 69 million people a year"
+      note="Live estimate based on UN World Population Prospects 2024"
     />
-    <h1>Every country, told on its own terms.</h1>
-    <p class="intro">Each country gets its own page, written around what makes its figures different, never the same template with the numbers swapped. Every number names its source.</p>
   </section>
 
   <h2>Explore</h2>
   <div class="section-grid swipe">
     {tiles.map((t) => (
-      <a class="tile" href={`${base}/${t.key}/`}>
+      <a class="tile" href={path(`/${t.key}/`)}>
         <span class="ico"><Icon name={t.key} /></span>
         <h3>{t.title}</h3>
         <p>{t.text}</p>
@@ -43,7 +42,7 @@ const tiles = [
   </div>
 
   <h2>Featured country</h2>
-  <a class="feature" href={`${base}/population/bangladesh/`}>
+  <a class="feature" href={path('/population/bangladesh/')}>
     <div class="body">
       <h3>Bangladesh</h3>
       <div class="big num">{(bd.current.population / 1e6).toFixed(1)} million</div>

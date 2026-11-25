@@ -12,10 +12,10 @@
   --contour-2: #e2f0e9;
   --live: #d7263d;
   --text: #33414d;
-  --text-2: #5d6c78;
-  --text-3: #8696a2;
+  --text-2: #4f5e6a;
+  --text-3: #61707c;
   --line: #dde6ea;
-  --font: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font: "Schibsted Grotesk Variable", "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --wrap: 1140px;
   --tabbar-h: 64px;
   --appbar-h: 56px;
@@ -41,7 +41,6 @@ body {
   font-family: var(--font);
   font-size: 17px;
   line-height: 1.6;
-  font-feature-settings: "tnum" 1;
 }
 a { color: var(--ocean-2); text-decoration-thickness: 1px; text-underline-offset: 3px; }
 a:hover { color: var(--contour); }
@@ -73,7 +72,7 @@ p { margin: 0 0 1em; }
 .site-footer { margin-top: 96px; background: var(--ocean); color: #b7cad6; padding: 40px 0 56px; font-size: .9rem; }
 .site-footer a { color: #fff; }
 .site-footer .cols { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 32px; }
-.site-footer h3 { color: #fff; font-size: .95rem; margin: 0 0 8px; }
+.site-footer .foot-h { color: #fff; font-size: .95rem; margin: 0 0 8px; }
 .site-footer ul { list-style: none; margin: 0; padding: 0; }
 .site-footer li { margin-bottom: 4px; }
 
@@ -317,6 +316,32 @@ a.tile:hover { border-color: var(--contour); color: var(--text); }
   .chart-m { display: block !important; }
   .counter .contours { opacity: .5; }
 }
-.hero .counter + h1 { margin-top: 40px; }
-@media (max-width: 767px) { .hero .counter + h1 { margin-top: 22px; } }
+.hero .intro + .counter { margin-top: 28px; }
+@media (max-width: 767px) { .hero .intro + .counter { margin-top: 16px; } }
 @media (max-width: 767px) { main > h1 { margin-top: 14px; } }
+
+/* SEO-structure helpers */
+.faq summary h3 { margin: 0; font-size: 1rem; color: inherit; font-weight: 700; }
+.dates { font-size: .85rem; color: var(--text-3); margin: 0 0 18px; }
+.download { font-size: .9rem; margin: 12px 0 0; color: var(--text-2); }
+.download a { font-weight: 600; }
+@media (max-width: 767px) { .dates { margin: 0 2px 12px; } .download { padding: 0 2px; } }
+.prose-page { max-width: 70ch; }
+.prose-page h2 { font-size: 1.3rem; }
+@media (max-width: 767px) { .prose-page { background: var(--surface); border-radius: var(--r-lg); padding: 16px 18px; } }
+
+/* Sources: always collapsed by default, like FAQ (desktop and mobile) */
+.sources-details { margin-top: 32px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.sources-details summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 0; }
+.sources-details summary::-webkit-details-marker { display: none; }
+.sources-details summary h2 { margin: 0; font-size: 1.1rem; }
+.sources-details summary::after { content: "+"; font-size: 1.4rem; color: var(--text-3); line-height: 1; }
+.sources-details[open] summary::after { content: "–"; }
+.sources-details .sources-block { padding-bottom: 14px; }
+@media (max-width: 767px) {
+  .sources-details { background: var(--surface); border: 0; border-radius: var(--r-lg); padding: 0 16px; margin-top: 16px; }
+  .sources-details .sources-block { background: none; padding: 0 0 14px; }
+}
+
+/* Tabular figures only where numbers line up (counters, tables, facts) — never in running text */
+.num, .counter .value, .chip .v, table.data td, .facts dd, .fact-tiles .v, .row .val, .age-row .v, .readout { font-variant-numeric: tabular-nums; }

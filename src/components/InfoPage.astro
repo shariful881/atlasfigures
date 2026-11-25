@@ -1,0 +1,20 @@
+---
+// Shared shell for About / Methodology / Sources / Contact / Privacy pages.
+import Base from '../layouts/Base.astro';
+import { abs, WEBSITE_ID, ORG_ID, longDate } from '../site';
+interface Props { title: string; heading: string; description: string; slug: string; type?: 'AboutPage' | 'ContactPage' | 'WebPage'; updated: string }
+const { title, heading, description, slug, type = 'WebPage', updated } = Astro.props;
+const page = `/${slug}/`;
+const schema = [{
+  '@type': type, '@id': abs(`${page}#page`), name: heading, url: abs(page), description,
+  isPartOf: { '@id': WEBSITE_ID }, about: { '@id': ORG_ID }, dateModified: updated, inLanguage: 'en',
+}];
+---
+<Base title={`${title} | AtlasFigures`} description={description} section="about" appTitle={heading} back="/"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: heading, href: page }]} schema={schema}>
+  <h1>{heading}</h1>
+  <div class="prose-page">
+    <slot />
+    <p class="note">Last updated <time datetime={updated}>{longDate(updated)}</time></p>
+  </div>
+</Base>
