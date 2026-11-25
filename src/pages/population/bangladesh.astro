@@ -6,6 +6,7 @@ import LineChart from '../../components/LineChart.astro';
 import DataTable from '../../components/DataTable.astro';
 import SourceBadge from '../../components/SourceBadge.astro';
 import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
 import bd from '../../data/countries/bangladesh.json';
 import { countryData, countryIndex, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
 import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
@@ -225,6 +226,7 @@ const schema = [
           <h2>What will the population of Bangladesh be in 2050?</h2>
           <p>About {millions(y[2050].population)}, according to the UN's medium projection. Growth is slowing but has not stopped, and density would reach {int(y[2050].densityPerKm2)} people per km². Because other countries are growing faster, Bangladesh is projected to slip from {ord(c.worldRank!)} to {ord(y[2050].worldRank!)} place in the world population ranking.</p>
         </div>
+        <RelatedPages iso3={bd.iso3} name={bd.name} />
       </section>
 
       <section class="panel" data-panel="data" aria-label="Data">

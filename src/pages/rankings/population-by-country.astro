@@ -1,0 +1,208 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/population-by-country.json';
+import { worldData, byYear, assertClaim, int, pct, ord, people, dec, CURRENT_YEAR } from '../../lib/figures';
+import { byPopulation, rankIn, UN_REGIONS } from '../../lib/popRankings';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/, WPP 2024 + interim update).
+const PAGE = '/rankings/population-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = worldData.meta.sourceUrl;
+const LICENCE = { name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' };
+const checkedOn = (meta.verification as any)?.checkedOn as string | undefined;
+const Y = CURRENT_YEAR;
+
+const ranked = byPopulation();
+const N = ranked.length;
+const w = byYear(worldData.years);
+const world = w[Y].population;
+const at = (i: number) => ranked[i];
+const by = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const share = (v: number) => (v / world) * 100;
+const top10 = ranked.slice(0, 10).reduce((a, r) => a + r.now.population, 0);
+const indChn = at(0).now.population + at(1).now.population;
+let cum = 0;
+const halfCount = ranked.findIndex((r) => (cum += r.now.population) > world / 2) + 1;
+const over100 = ranked.filter((r) => r.now.population > 100e6);
+const regionPop = (reg: string) => ranked.filter((r) => r.region === reg).reduce((a, r) => a + r.now.population, 0);
+const regionsBySize = [...UN_REGIONS].sort((a, b) => regionPop(b) - regionPop(a));
+const passYear = by('IND').yearOf(2015).population < by('CHN').yearOf(2015).population
+  ? Array.from({ length: 30 }, (_, i) => 2010 + i).find((yy) => by('IND').yearOf(yy).population > by('CHN').yearOf(yy).population)!
+  : 0;
+const big1m = ranked.filter((r) => r.now.population > 1e6);
+const fast = [...big1m].sort((a, b) => b.now.growthRatePct - a.now.growthRatePct);
+const shrinking = ranked.filter((r) => r.now.change < 0);
+const top2050 = rankIn(ranked, 2050).slice(0, 10).map((r) => r.iso3);
+const top2026 = ranked.slice(0, 10).map((r) => r.iso3);
+const newIn2050 = top2050.filter((x) => !top2026.includes(x));
+const outIn2050 = top2026.filter((x) => !top2050.includes(x));
+const smallest = ranked.slice(-5).reverse();
+const worldPeak = worldData.years.reduce((a, b) => (b.population > a.population ? b : a));
+const bd = by('BGD');
+
+assertClaim(at(0).iso3 === 'IND' && at(1).iso3 === 'CHN' && at(2).iso3 === 'USA', 'India, China, United States top three');
+assertClaim(passYear === 2022, 'India first larger than China in the 2022 mid-year estimate');
+assertClaim(halfCount === 7, 'seven most populous hold more than half of humanity');
+assertClaim(share(top10) > 56 && share(top10) < 57, 'top ten hold about 57%');
+assertClaim(over100.length === 16, '16 countries above 100 million');
+assertClaim(regionsBySize.join(',') === 'Asia,Africa,Europe,Latin America and the Caribbean,Northern America,Oceania', 'continents in this order');
+assertClaim(fast.slice(0, 4).map((r) => r.iso3).join(',') === 'CAF,SOM,NER,COD', 'fastest growth among countries over one million');
+assertClaim(shrinking.length === 65, '65 countries or areas shrinking');
+assertClaim(fast.at(-1)!.iso3 === 'MDA', 'Moldova steepest fall among countries over one million');
+assertClaim(newIn2050.join(',') === 'COD' && outIn2050.join(',') === 'RUS', 'by 2050 DR Congo joins the top ten and Russia leaves it');
+assertClaim(rankIn(ranked, 2050)[3].iso3 === 'PAK', 'Pakistan fourth in 2050');
+assertClaim(smallest[0].iso3 === 'VAT', 'Holy See smallest');
+assertClaim(worldPeak.year === 2084, 'world population peaks in 2084');
+assertClaim(bd.rank === 8, 'Bangladesh eighth');
+
+const title = `Population by Country ${Y}: All ${N} Countries and Areas Ranked | AtlasFigures`;
+const description = `India leads with ${people(at(0).now.population)} people in mid-${Y}, ahead of China and the United States. All ${N} entries in the UN's data, ranked by population, with growth, density and the 2050 projection.`;
+
+const cards = [
+  { label: 'World population', value: `${(world / 1e9).toFixed(2)}B`, year: Y, note: 'mid-year' },
+  { label: 'Most populous', value: `${(at(0).now.population / 1e9).toFixed(2)}B`, year: Y, note: at(0).name },
+  { label: 'Top 10 share', value: pct(share(top10)), year: Y, note: 'of all people' },
+  { label: 'Above 100 million', value: String(over100.length), year: Y, note: 'countries' },
+];
+
+const top = at(0).now.population;
+const rows = ranked.map((r) => ({
+  rank: r.rank, iso3: r.iso3, name: r.name, site: r.site, href: r.site ? path(r.site) : null, region: r.region,
+  bar: r.now.population / top, value: int(r.now.population),
+  cells: [pct(share(r.now.population)), `${r.now.growthRatePct >= 0 ? '+' : ''}${pct(r.now.growthRatePct)}`, int(r.now.densityPerKm2), int(r.yearOf(2050).population)],
+}));
+
+const faq = [
+  { q: `Which country has the largest population in ${Y}?`, a: `India, with ${people(at(0).now.population)} at mid-${Y} in UN estimates. China follows with ${people(at(1).now.population)} and the United States with ${people(at(2).now.population)}.` },
+  { q: 'When did India overtake China in population?', a: `In the UN's mid-year estimates, India first had more people than China in ${passYear}. By ${Y} the gap is about ${people(at(0).now.population - at(1).now.population)}.` },
+  { q: 'How many countries have more than 100 million people?', a: `${over100.length} in ${Y}, from India down to ${over100.at(-1)!.name}.` },
+  { q: 'What share of the world\'s people live in Asia?', a: `${pct(share(regionPop('Asia')))} in ${Y}. Africa is next with ${pct(share(regionPop('Africa')))}.` },
+  { q: 'Where does Bangladesh rank by population?', a: `${ord(bd.rank)} of ${N}, with ${people(bd.now.population)} at mid-${Y}.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Population by country ${Y}: ${N} countries and areas ranked`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'CreativeWork', name: 'World Population Prospects 2024', url: WPP_URL, publisher: { '@type': 'Organization', name: 'United Nations, Department of Economic and Social Affairs, Population Division' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `Population by country, ${Y}`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Population by country, ${Y}`,
+    description: `Mid-${Y} population of all ${N} countries and areas in UN World Population Prospects 2024, ranked, with share of the world, growth rate, people per km² and the UN medium-variant projection for 2050.`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WPP_URL], temporalCoverage: `${Y}/2050`,
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['Population (mid-year)', 'Share of world population (%)', 'Growth rate (%)', 'People per km²', 'Population 2050 (UN projection)'],
+    dateModified: iso(UPDATED), license: LICENCE.url,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/population-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+const chartYears = worldData.years.filter((r) => r.year % 5 === 0 || r.year === Y);
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="Population by country" back="/population/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Population by country', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>Population by country, {Y}</h1>
+    <p class="answer"><strong>India</strong> is the most populous country, with <strong>{people(at(0).now.population)}</strong> people at mid-{Y}, followed by China ({people(at(1).now.population)}) and the United States ({people(at(2).now.population)}). The world total is {people(world)}, spread across the {N} countries and areas in the UN's data.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`World population ranking, ${Y}`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`Countries and areas by population, ${Y}`}
+        subtitle="Mid-year population, UN estimate. Names with a link open that country's own population page."
+        valueLabel="Population"
+        cols={[{ label: 'Share of world', cls: 'c-hide-m' }, { label: 'Growth', cls: 'c-hide-m' }, { label: 'Per km²', cls: 'c-hide-m' }, { label: '2050, UN projection', cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={UN_REGIONS}
+        source={WPP} sourceUrl={WPP_URL} checkedOn={checkedOn}
+        csv={path('/data/population-by-country.csv')} csvName="population-by-country.csv"
+        licence={LICENCE}
+      />
+      <p class="note">All {N} countries and areas for which the UN publishes estimates are ranked, including territories. Regions are the UN's six geographic regions. See also <a href={path('/rankings/population-density-by-country/')}>population density by country</a>.</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>Which countries have the most people?</h2>
+        <p>India and China, by a wide margin: between them they hold {pct(share(indChn))} of the world's population. The ten largest account for {pct(share(top10))}, and just {halfCount} countries are home to more than half of humanity. India's count first exceeded China's in the UN's {passYear} estimate; {over100.length} countries now have over 100 million inhabitants.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>How is the world's population split between continents?</h2>
+        <p>Asia holds {pct(share(regionPop('Asia')))} of everyone alive, Africa {pct(share(regionPop('Africa')))} and Europe {pct(share(regionPop('Europe')))}. Latin America and the Caribbean follows with {pct(share(regionPop('Latin America and the Caribbean')))}, Northern America with {pct(share(regionPop('Northern America')))}, and Oceania with {pct(share(regionPop('Oceania')))}. Use the region buttons above the table to see each group on its own.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Where is population growing fastest, and where is it falling?</h2>
+        <p>Among countries above one million people, the Central African Republic ({pct(fast[0].now.growthRatePct)}), Somalia, Niger and DR Congo grow fastest in {Y}. At the other end, {shrinking.length} of the {N} countries and areas have fewer people this year than last, with Moldova's {pct(fast.at(-1)!.now.growthRatePct)} the steepest fall among those above one million. The UN figures measure the change without explaining it.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>How will the top ten change by 2050?</h2>
+        <p>Only slightly, in the UN medium projection. DR Congo enters the top ten and Russia drops out, while Pakistan climbs to fourth. India stays first at {people(by('IND').yearOf(2050).population)}; China falls to {people(by('CHN').yearOf(2050).population)}. The world as a whole reaches {people(w[2050].population)} in 2050 and peaks in {worldPeak.year} at {people(worldPeak.population)}.</p>
+      </div>
+      <LineChart
+        title="World population, 1950–2100"
+        subtitle="UN mid-year estimates, then the medium projection (dashed), which peaks in the 2080s."
+        points={chartYears.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+        format="millions" highlight={Y}
+        source={WPP} sourceUrl={WPP_URL} checkedOn={checkedOn}
+      />
+
+      <div class="story-block prose">
+        <h2>Which countries and areas have the fewest people?</h2>
+        <p>The Holy See is the smallest, with about {int(smallest[0].now.population)} residents in the UN estimate, followed by {smallest[1].name}, {smallest[2].name}, {smallest[3].name} and {smallest[4].name}, all with fewer than {int(Math.ceil(smallest[4].now.population / 1000) * 1000)} people. Bangladesh, by comparison, ranks {ord(bd.rank)}, home to {people(bd.now.population)}.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Population ranking: short answers</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (original data files, medium variant, with the UN's interim update of 19 January 2026): mid-year population, growth rate, density, the 2050 projection and the world total. Licence CC BY 3.0 IGO.</li>
+        </ul>
+        <p class="note">The ranking covers every country or area in the UN file for {Y}. The UN's estimates run to 2023; figures for {Y} and 2050 come from its medium projection; the live counters on our country pages start from the same mid-year numbers. Regions are the UN's geographic regions; names follow the UN list in their common English form, and disputed areas are listed as the UN lists them. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Population by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+  /* long UN names and region labels ("Latin America and the Caribbean") must wrap on phones so the value column stays in view */
+  @media (max-width: 767px) { .rank-page :global(table.ranking .c-name), .rank-page :global(table.ranking .c-name .reg) { white-space: normal; overflow-wrap: anywhere; } }
+</style>

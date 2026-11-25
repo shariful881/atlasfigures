@@ -6,6 +6,7 @@ import LineChart from '../../components/LineChart.astro';
 import DataTable from '../../components/DataTable.astro';
 import SourceBadge from '../../components/SourceBadge.astro';
 import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
 import sa from '../../data/countries/saudi-arabia.json';
 import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
 import { countrySchema } from '../../lib/countrySchema';
@@ -183,6 +184,7 @@ const schema = countrySchema({
           <h2>Will Saudi Arabia's population keep growing to 2100?</h2>
           <p>In the UN's medium variant it grows every single year and roughly doubles to {millions(y[2100].population)} by 2100, moving from {ord(c.worldRank!)} to {ord(y[2100].worldRank!)} in the world. It is a thinly settled country, {int(c.densityPerKm2)} people per km², yet {pct(c.urbanPct!)} of Saudis are urban dwellers by the kingdom's own definition.</p>
         </div>
+        <RelatedPages iso3={sa.iso3} name={sa.name} />
       </section>
 
       <section class="panel" data-panel="data" aria-label="Data">

@@ -6,6 +6,7 @@ import LineChart from '../../components/LineChart.astro';
 import DataTable from '../../components/DataTable.astro';
 import SourceBadge from '../../components/SourceBadge.astro';
 import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
 import tz from '../../data/countries/tanzania.json';
 import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
 import { countrySchema } from '../../lib/countrySchema';
@@ -177,6 +178,7 @@ const schema = countrySchema({
           <div><span class="y">{CURRENT_YEAR}</span><div class="v">{pct(c.urbanPct!)}</div><span class="d">Rising</span></div>
           <div><span class="y">2050, UN projection</span><div class="v">{pct(y[2050].urbanPct!)}</div><span class="d">Majority urban</span></div>
         </div>
+        <RelatedPages iso3={tz.iso3} name={tz.name} />
       </section>
 
       <section class="panel" data-panel="data" aria-label="Data">

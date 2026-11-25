@@ -1,0 +1,189 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/population-density-by-country.json';
+import { worldData, byYear, assertClaim, int, ord, people, CURRENT_YEAR } from '../../lib/figures';
+import { byDensity, UN_REGIONS } from '../../lib/popRankings';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Density = UN population ÷ land area (UN WPP).
+const PAGE = '/rankings/population-density-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = worldData.meta.sourceUrl;
+const LICENCE = { name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' };
+const checkedOn = (meta.verification as any)?.checkedOn as string | undefined;
+const Y = CURRENT_YEAR;
+
+const ranked = byDensity();
+const N = ranked.length;
+const w = byYear(worldData.years);
+const dens = (r: any, y = Y) => r.yearOf(y).densityPerKm2;
+const at = (i: number) => ranked[i];
+const by = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const top5 = ranked.slice(0, 5);
+const over1000 = ranked.filter((r) => r.now.densityPerKm2 > 1000);
+const big10 = ranked.filter((r) => r.now.population > 10e6);
+const big100 = ranked.filter((r) => r.now.population > 100e6);
+const big1 = ranked.filter((r) => r.now.population > 1e6);
+const emptiest = ranked.at(-1)!;
+const underOne = ranked.filter((r) => r.now.densityPerKm2 < 1);
+const sparse1m = big1.at(-1)!;
+const bd = by('BGD');
+
+assertClaim(top5.map((r) => r.iso3).join(',') === 'MCO,MAC,SGP,HKG,GIB', 'Monaco, Macao, Singapore, Hong Kong, Gibraltar most crowded');
+assertClaim(over1000.length === 13, '13 countries or areas above 1,000 per km²');
+assertClaim(big10[0].iso3 === 'BGD' && bd.now.densityPerKm2 > 2 * big10[1].now.densityPerKm2, 'Bangladesh most crowded country above ten million, more than twice the next');
+assertClaim(big100.length === 16, 'sixteen countries above 100 million');
+assertClaim(big100[0].iso3 === 'BGD' && big100[1].iso3 === 'IND', 'Bangladesh then India among countries above 100 million');
+assertClaim(bd.rank === 9, 'Bangladesh ninth overall');
+assertClaim(emptiest.iso3 === 'GRL' && underOne.map((r) => r.iso3).sort().join(',') === 'FLK,GRL', 'Greenland emptiest; only Greenland and the Falklands below one per km²');
+assertClaim(sparse1m.iso3 === 'MNG' && big1.at(-2)!.iso3 === 'AUS', 'Mongolia then Australia least dense among countries over one million');
+assertClaim(big1.slice(0, 4).map((r) => r.iso3).join(',') === 'SGP,HKG,BHR,BGD', 'only four places over a million people are above 1,000 per km²');
+assertClaim(w[Y].densityPerKm2 / w[1950].densityPerKm2 > 3 && w[Y].densityPerKm2 / w[1950].densityPerKm2 < 4 && w[2050].densityPerKm2 - w[Y].densityPerKm2 > 9 && w[2050].densityPerKm2 - w[Y].densityPerKm2 < 11.5, 'world density more than tripled since 1950; roughly ten more by 2050');
+assertClaim(big1.slice(-4).map((r) => r.iso3).join(',') === 'CAN,NAM,AUS,MNG', 'Mongolia, Australia, Namibia, Canada least dense among countries over one million');
+assertClaim(bd.yearOf(1950).densityPerKm2 > 300 && bd.yearOf(1950).densityPerKm2 < 330, 'Bangladesh about 317 in 1950');
+
+const title = `Population Density by Country ${Y}: People per km², All ${N} Ranked | AtlasFigures`;
+const description = `Monaco is the most crowded place on Earth at ${int(at(0).now.densityPerKm2)} people per km²; among countries above ten million, Bangladesh leads with ${int(bd.now.densityPerKm2)}. UN figures for all ${N} countries and areas.`;
+
+const cards = [
+  { label: 'World average', value: `${int(w[Y].densityPerKm2)}/km²`, year: Y, note: 'land area' },
+  { label: 'Most crowded', value: int(at(0).now.densityPerKm2), year: Y, note: at(0).name },
+  { label: 'Densest large country', value: int(bd.now.densityPerKm2), year: Y, note: 'Bangladesh' },
+  { label: 'Above 1,000 per km²', value: String(over1000.length), year: Y, note: 'countries or areas' },
+];
+
+const top = at(0).now.densityPerKm2;
+const rows = ranked.map((r) => ({
+  rank: r.rank, iso3: r.iso3, name: r.name, site: r.site, href: r.site ? path(r.site) : null, region: r.region,
+  bar: Math.sqrt(r.now.densityPerKm2 / top), value: int(r.now.densityPerKm2),
+  cells: [int(r.now.population), int(r.landAreaKm2), int(dens(r, 2050))],
+}));
+
+const faq = [
+  { q: 'Which country has the most people per km²?', a: `Monaco, with ${int(at(0).now.densityPerKm2)} people per km² in ${Y}. Macao, Singapore and Hong Kong come next; all four are cities rather than large countries.` },
+  { q: 'Which big country is the most crowded?', a: `Bangladesh, at ${int(bd.now.densityPerKm2)} per km²; none of the other countries above ten million inhabitants comes close, and it is ${ord(bd.rank)} on the full list.` },
+  { q: 'Which country has the lowest population density?', a: `Greenland, with fewer than one person per km². Of the countries with over a million inhabitants, Mongolia has the fewest: ${int(sparse1m.now.densityPerKm2)} per km².` },
+  { q: 'What is the average population density of the world?', a: `About ${int(w[Y].densityPerKm2)} per km² in ${Y}, up from ${int(w[1950].densityPerKm2)} in 1950.` },
+  { q: 'How is population density calculated here?', a: 'It is the UN\'s own figure: mid-year population divided by the area the UN uses for each country or area. Values are rounded to whole people per km².' },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Population density by country ${Y}: people per km² in ${N} countries and areas`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'CreativeWork', name: 'World Population Prospects 2024', url: WPP_URL, publisher: { '@type': 'Organization', name: 'United Nations, Department of Economic and Social Affairs, Population Division' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `Population density by country, ${Y}`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Population density by country, ${Y}`,
+    description: `People per km² of land in all ${N} countries and areas in UN World Population Prospects 2024 for mid-${Y}, ranked, with population, land area and the UN medium-variant density for 2050.`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WPP_URL], temporalCoverage: `${Y}/2050`,
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['People per km² of land', 'Population (mid-year)', 'Land area (km²)', 'People per km² 2050 (UN projection)'],
+    dateModified: iso(UPDATED), license: LICENCE.url,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/population-density-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+const bdYears = bd.yearOf ? [1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020, Y, 2030, 2040, 2050, 2075, 2100].map((yy) => bd.yearOf(yy)) : [];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="Population density" back="/population/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Population density by country', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>Population density by country, {Y}</h1>
+    <p class="answer">The world as a whole has <strong>{int(w[Y].densityPerKm2)} people per km²</strong>, but the spread is enormous: <strong>Monaco</strong> packs in {int(at(0).now.densityPerKm2)}, while Greenland has fewer than one. Among sizeable countries, <strong>Bangladesh</strong> is the most crowded at {int(bd.now.densityPerKm2)} per km².</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`Population density ranking, ${Y}`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`Countries and areas by people per km², ${Y}`}
+        subtitle="Residents per km², mid-year. Bars use a square-root scale so smaller values stay visible."
+        valueLabel="People per km²"
+        cols={[{ label: 'Population', cls: 'c-hide-m' }, { label: 'Land, km²', cls: 'c-hide-m' }, { label: '2050, UN projection', cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={UN_REGIONS}
+        source={WPP} sourceUrl={WPP_URL} checkedOn={checkedOn}
+        csv={path('/data/population-density-by-country.csv')} csvName="population-density-by-country.csv"
+        licence={LICENCE}
+      />
+      <p class="note">The list runs from city-states to Greenland and leaves nothing out of the UN file. Density uses the land area behind the UN's own figures, which can differ from other published areas. See also <a href={path('/rankings/population-by-country/')}>population by country</a>.</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>Which places are the most crowded?</h2>
+        <p>City-states and territories fill the top of the list. Monaco has {int(at(0).now.densityPerKm2)} people per km², Macao {int(at(1).now.densityPerKm2)}, Singapore {int(at(2).now.densityPerKm2)} and Hong Kong {int(at(3).now.densityPerKm2)}. In all, {over1000.length} countries or areas exceed 1,000 per km², but only four of them have more than a million people: Singapore, Hong Kong, Bahrain and Bangladesh.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Which large country is the most densely populated?</h2>
+        <p>Bangladesh, by far. With {people(bd.now.population)} people on {int(bd.landAreaKm2)} km² of land, it averages {int(bd.now.densityPerKm2)} per km², more than twice any other country of over ten million. Of the sixteen countries above 100 million, India is a distant second at {int(by('IND').now.densityPerKm2)}, the United States has {int(by('USA').now.densityPerKm2)} and Russia {int(by('RUS').now.densityPerKm2)}.</p>
+      </div>
+      <LineChart
+        title="People per km² in Bangladesh, 1950–2100"
+        subtitle="Residents per km² by year: UN figures to 2023, projected values dashed after that."
+        points={bdYears.map((r) => ({ x: r.year, y: r.densityPerKm2, projection: r.projection }))}
+        unit="people per km²" highlight={Y}
+        source={WPP} sourceUrl={WPP_URL} checkedOn={checkedOn}
+      />
+
+      <div class="story-block prose">
+        <h2>Where are the fewest people per square kilometre?</h2>
+        <p>Greenland and the Falkland Islands are the only places with fewer than one person per km². Of the countries with over a million inhabitants, Mongolia is the emptiest at {int(sparse1m.now.densityPerKm2)} per km², followed by Australia ({int(by('AUS').now.densityPerKm2)}), Namibia and Canada.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>How has the world's population density changed since 1950?</h2>
+        <p>It has more than tripled, from {int(w[1950].densityPerKm2)} per km² in 1950 to {int(w[Y].densityPerKm2)} today. The UN medium projection adds roughly ten more by 2050 ({int(w[2050].densityPerKm2)}) and {int(w[2100].densityPerKm2)} by 2100. Bangladesh shows the same change at a larger scale: about {int(bd.yearOf(1950).densityPerKm2)} per km² in 1950, {int(bd.now.densityPerKm2)} now and {int(bd.yearOf(2050).densityPerKm2)} projected for 2050.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Population density: common questions</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (original data files, medium variant, with the UN's interim update of 19 January 2026): population density (people per km² of land), mid-year population and the 2050 projection. Licence CC BY 3.0 IGO.</li>
+        </ul>
+        <p class="note">Land area is the UN's population divided by its density, which recovers the area the UN uses. The UN's estimates run to 2023; {Y} and 2050 values come from its medium projection. Names follow the UN list in their common English form, and disputed areas are listed as the UN lists them. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Population density by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+  /* long UN names and region labels ("Latin America and the Caribbean") must wrap on phones so the value column stays in view */
+  @media (max-width: 767px) { .rank-page :global(table.ranking .c-name), .rank-page :global(table.ranking .c-name .reg) { white-space: normal; overflow-wrap: anywhere; } }
+</style>

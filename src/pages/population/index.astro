@@ -39,6 +39,7 @@ const schema = [
 >
   <h1>Population by country</h1>
   <p class="answer">Each country has its own page, written around what makes its population story different, with figures from the UN's World Population Prospects 2024. New countries are added every week.</p>
+  <p class="note hub-rank">Every country and area in one list: <a href={path('/rankings/population-by-country/')}>population by country</a> · <a href={path('/rankings/population-density-by-country/')}>population density by country</a></p>
   <div class="filters" role="group" aria-label="Filter by continent">
     {['All', 'Asia', 'Africa', 'Europe', 'Americas', 'Oceania'].map((r, i) => (
       <button type="button" class={i === 0 ? 'on' : ''} aria-pressed={i === 0 ? 'true' : 'false'} data-region={r}>{r}</button>

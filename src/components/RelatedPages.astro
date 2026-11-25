@@ -1,0 +1,92 @@
+---
+// "Related pages" block at the end of every country page's story (design guide §3.3; CLAUDE.md Quality):
+// 3–5 countries from the same UN subregion, closest in population size, that have their own population page (topped up from the same UN
+// region, closest in size, when the subregion has fewer than five), plus the country's other pages, related rankings and the hub.
+// Fixed site UI: the same labels on every page, so it sits in a <nav> (excluded from the uniqueness check).
+// Desktop: titled card with a grid of country cards. Mobile: list rows at the end of the Story tab.
+import Flag from './Flag.astro';
+import index from '../data/wpp/index.json';
+import { people, ord } from '../lib/figures';
+import { pagesOf } from '../lib/names';
+import { path } from '../site';
+
+interface Props { iso3: string; name: string }
+const { iso3, name } = Astro.props;
+
+const pageCountries = (Object.values(import.meta.glob('../data/countries/*.json', { eager: true, import: 'default' })) as any[]);
+const all = (index as any).countries as any[];
+const self = all.find((c) => c.iso3 === iso3);
+const withPage = pageCountries
+  .filter((p) => p.iso3 !== iso3)
+  .map((p) => ({ ...p, un: all.find((c) => c.iso3 === p.iso3) }))
+  .filter((p) => p.un);
+// closest in population size first, so small and large countries both get linked from their neighbours
+const gap = (p: any) => Math.abs(Math.log(p.un.population / self.population));
+const byPop = (a: any, b: any) => gap(a) - gap(b);
+const sameSub = withPage.filter((p) => p.un.subregion === self.subregion).sort(byPop);
+const sameRegion = withPage.filter((p) => p.un.region === self.region && p.un.subregion !== self.subregion).sort(byPop);
+const MAX = 5;
+// In each group the largest country comes first (the regional anchor, so no big page is left unlinked),
+// then the countries closest in size.
+const anchored = (list: any[], n: number) => {
+  if (!list.length || n <= 0) return [];
+  const anchor = [...list].sort((a, b) => b.un.population - a.un.population)[0];
+  return [anchor, ...list.filter((p) => p !== anchor)].slice(0, n);
+};
+const picks = anchored(sameSub, MAX);
+picks.push(...anchored(sameRegion, MAX - picks.length));
+picks.sort((a, b) => b.un.population - a.un.population); // shown largest first
+const onlySub = picks.every((p) => p.un.subregion === self.subregion);
+const heading = onlySub ? `More countries in ${self.subregion}` : `More countries in ${self.region}`;
+
+const own = pagesOf(iso3);
+const more = [
+  own.economy && { href: own.economy, label: `${name}'s economy` },
+  { href: '/rankings/population-by-country/', label: 'Population by country' },
+  { href: '/rankings/population-density-by-country/', label: 'Population density by country' },
+  { href: '/rankings/gdp-by-country/', label: 'GDP by country' },
+  { href: '/population/', label: 'Population of every country' },
+].filter(Boolean) as { href: string; label: string }[];
+---
+<nav class="related-pages" aria-labelledby="related-h" data-region={self.region} data-subregion={self.subregion}>
+  <h2 id="related-h">{heading}</h2>
+  <ul class="rp-countries">
+    {picks.map((p) => (
+      <li>
+        <a href={path(`/population/${p.slug}/`)} data-iso3={p.iso3}>
+          <Flag code={p.code} class="rp-flag" />
+          <span class="rp-name">{p.name}</span>
+          <span class="rp-meta">{people(p.un.population)} · {ord(p.un.worldRank)}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+  <h3>Related pages</h3>
+  <ul class="rp-more">
+    {more.map((m) => (<li><a href={path(m.href)}>{m.label}</a></li>))}
+  </ul>
+</nav>
+
+<style>
+  .related-pages { margin: 32px 0 8px; padding: 20px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related-pages h2 { font-size: 1.05rem; margin: 0 0 14px; }
+  .related-pages h3 { font-size: .9rem; margin: 18px 0 8px; color: var(--text-2); font-weight: 600; }
+  .rp-countries { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+  .rp-countries a { display: grid; grid-template-columns: 30px 1fr; grid-template-rows: auto auto; column-gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; text-decoration: none; color: inherit; min-height: 48px; }
+  .rp-countries a:hover, .rp-countries a:focus-visible { border-color: currentColor; }
+  .related-pages :global(.rp-flag) { grid-row: 1 / span 2; width: 30px; height: 18px; border-radius: 3px; box-shadow: 0 0 0 1px rgba(0,0,0,.08); }
+  .rp-name { font-weight: 600; line-height: 1.2; }
+  .rp-meta { font-size: .82rem; color: var(--text-2); }
+  .rp-more { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; }
+  .rp-more a { display: inline-block; padding: 6px 0; }
+  @media (max-width: 767px) {
+    .related-pages { border: 0; padding: 16px 18px; box-shadow: 0 1px 2px rgba(18,59,90,.06); }
+    .rp-countries { grid-template-columns: 1fr; gap: 0; }
+    .rp-countries li + li a { border-top: 0; border-radius: 0; }
+    .rp-countries a { border-radius: 0; border-left: 0; border-right: 0; padding: 12px 2px; }
+    .rp-countries li:first-child a { border-top: 0; }
+    .rp-countries li:last-child a { border-bottom: 0; }
+    .rp-more { flex-direction: column; gap: 0; }
+    .rp-more a { padding: 10px 0; min-height: 44px; }
+  }
+</style>

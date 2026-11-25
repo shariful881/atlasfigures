@@ -6,6 +6,7 @@ import LineChart from '../../components/LineChart.astro';
 import DataTable from '../../components/DataTable.astro';
 import SourceBadge from '../../components/SourceBadge.astro';
 import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
 import kr from '../../data/countries/south-korea.json';
 import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
 import { countrySchema } from '../../lib/countrySchema';
@@ -184,6 +185,7 @@ const schema = countrySchema({
           <h2>Could South Korea's population halve by 2100?</h2>
           <p>On current trends, more than halve. The UN's medium projection reaches {millions(y[2100].population)} in 2100, {pct(keep * 100)} of today's total and fewer people than lived there in 1960. The country would fall from {ord(c.worldRank!)} to {ord(y[2100].worldRank!)} in the world ranking. Even a recovery in births would take decades to show up, because the generation of future parents has already been born.</p>
         </div>
+        <RelatedPages iso3={kr.iso3} name={kr.name} />
       </section>
 
       <section class="panel" data-panel="data" aria-label="Data">

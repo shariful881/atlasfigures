@@ -6,6 +6,7 @@ import LineChart from '../../components/LineChart.astro';
 import DataTable from '../../components/DataTable.astro';
 import SourceBadge from '../../components/SourceBadge.astro';
 import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
 import ae from '../../data/countries/united-arab-emirates.json';
 import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
 import { countrySchema } from '../../lib/countrySchema';
@@ -186,6 +187,7 @@ const schema = countrySchema({
           <h2>How large could the UAE become by 2100?</h2>
           <p>About {millions(y[2100].population)}, in the medium variant, which shows it still growing in 2100 and climbing to {ord(y[2100].worldRank!)} worldwide from {ord(c.worldRank!)}. Density, {int(c.densityPerKm2)} people per km² today, would reach {int(y[2100].densityPerKm2)}. The Emirates count {pct(c.urbanPct!)} of residents as urban, and the median age is {dec(c.medianAge, 1)}.</p>
         </div>
+        <RelatedPages iso3={ae.iso3} name={ae.name} />
       </section>
 
       <section class="panel" data-panel="data" aria-label="Data">
