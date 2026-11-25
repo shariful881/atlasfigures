@@ -23,6 +23,7 @@ Every new page, section or change must follow all three. Summary:
 - Pass `breadcrumbs` and `schema` to `Base` (it adds Organization + WebSite + BreadcrumbList). Show Published/Updated dates on the page and use the same dates in the Article schema. Add every indexable page to `src/pages/sitemap.xml.ts`.
 - Country pages: Article + about Country + Dataset (with real CSV) + FAQPage. Hubs: CollectionPage + ItemList.
   Time/city pages: WebPage + about City. Never Event schema for holidays; never schema for content not shown.
+- JSON-LD dates are full ISO datetimes with time zone (e.g. 2026-11-25T12:00:00+06:00). UN WPP data licence = CC BY 3.0 IGO (verified); add `license` to Dataset only when verified.
 - Thin or "coming soon" pages: `noindex`. Staging (github.io) is noindex until launch on atlasfigures.com.
 - Do not add llms.txt, chunked "AI" pages, or nosnippet.
 - Before publishing: build, check JSON-LD, Lighthouse mobile ≥ 90 (Performance/SEO/Accessibility), screenshots at 1280px and 390px.
