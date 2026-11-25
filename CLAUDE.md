@@ -69,8 +69,11 @@ Every new page, section or change must follow all of them. Summary:
   comes from UN WUP 2025 F15 in `data/raw/un-wup-2025/` ("Fetch UN urbanization data (dev)" workflow) — cite it as
   World Urbanization Prospects 2025, never as WPP. Helpers and number style: `src/lib/figures.ts` (`int`, `dec`,
   `millions`, `pct`, `ord`, `displayRows`); every sentence that depends on the data gets an `assertClaim(...)` so
-  the build fails if it stops being true. Per-country verification script: `scripts/verify/<slug>.py`.
-  TODO (task 2): automated number test page = JSON = JSON-LD for every page.
+  the build fails if it stops being true. Per-country verification script: `scripts/verify/<slug>.py` (manual,
+  independent). Automatic: `scripts/check-site.mjs` (in `npm run check` and CI; blocks merging to `main`) checks
+  generated data = original UN files (every country, every year), page = data = JSON-LD = CSV for every country page,
+  number style in prose (mark exact counts like census totals with `data-exact`), schema types/dates/FAQ,
+  internal links and #anchors, live-counter label, closed FAQ/Sources, "Report an error", sitemap vs noindex.
 - New UN WPP revision → update and re-verify ALL pages together. Current: WPP 2024.
 - Number style: prose millions 1 decimal ("177.8 million"), billions 1–2 decimals, percent 1 decimal, density
   whole number; tables/Key facts/CSV full numbers with commas; dates "25 November 2026".
@@ -116,4 +119,4 @@ Every new page, section or change must follow all of them. Summary:
 - JSON-LD dates are full ISO datetimes with time zone (e.g. 2026-11-25T12:00:00+06:00). UN WPP data licence = CC BY 3.0 IGO (verified); add `license` to Dataset only when verified.
 - Thin or "coming soon" pages: `noindex`. Staging (github.io) is noindex until launch on atlasfigures.com.
 - Do not add llms.txt, chunked "AI" pages, or nosnippet.
-- Before publishing: `npm run check` (build + uniqueness), check JSON-LD, Lighthouse mobile ≥ 90 (Performance/SEO/Accessibility), screenshots at 1280px and 390px.
+- Before publishing: `npm run check` (build + uniqueness + site check), check JSON-LD, Lighthouse mobile ≥ 90 (Performance/SEO/Accessibility), screenshots at 1280px and 390px.

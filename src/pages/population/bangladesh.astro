@@ -212,7 +212,7 @@ const schema = [
 
         <div class="story-block prose">
           <h2>How many people in Bangladesh live in cities?</h2>
-          <p>About {pct(c.urbanPct!)} in {CURRENT_YEAR}, or {millions(urbanPeople)} people, up from {pct(y[1960].urbanPct!)} in 1960, counting urban areas the way Bangladesh itself defines them. The UN projects that more than half of Bangladeshis will live in urban areas from {urbanMajorityYear}, and {pct(y[2050].urbanPct!)} by 2050. Dhaka's two city corporations alone counted {int(bd.census2022.dhakaCityCorporations)} residents in the 2022 census by the Bangladesh Bureau of Statistics.</p>
+          <p>About {pct(c.urbanPct!)} in {CURRENT_YEAR}, or {millions(urbanPeople)} people, up from {pct(y[1960].urbanPct!)} in 1960, counting urban areas the way Bangladesh itself defines them. The UN projects that more than half of Bangladeshis will live in urban areas from {urbanMajorityYear}, and {pct(y[2050].urbanPct!)} by 2050. Dhaka's two city corporations alone counted <span data-exact>{int(bd.census2022.dhakaCityCorporations)}</span> residents in the 2022 census by the Bangladesh Bureau of Statistics.</p>
         </div>
 
         <div class="story-block prose">
