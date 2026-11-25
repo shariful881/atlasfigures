@@ -1,0 +1,225 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import ug from '../../data/countries/uganda.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: a small, crowded country by African standards, very young, about seven births per death, set to overtake Kenya and double by the late 2060s.
+const PAGE = '/population/uganda/';
+const un = countryData(ug.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (ug.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const dense = wpp.filter((d: any) => d.region === 'Africa' && at(d).population > 10e6).sort((a: any, b: any) => at(b).densityPerKm2 - at(a).densityPerKm2).map((d: any) => d.iso3);
+assertClaim(dense.slice(0, 4).join(',') === 'RWA,BDI,NGA,UGA', 'fourth-densest African country over 10 million, after Rwanda, Burundi and Nigeria');
+const perDeath = c.births / c.deaths;
+assertClaim(perDeath > 7 && perDeath < 7.2, 'about seven births per death');
+const young = wpp.filter((d: any) => at(d).population > 10e6).sort((a: any, b: any) => at(a).medianAge - at(b).medianAge).map((d: any) => d.iso3);
+assertClaim(young.indexOf('UGA') < 10 && c.medianAge < 17.5, 'among the ten youngest countries over 10 million');
+const ken = wpp.find((d: any) => d.iso3 === 'KEN');
+const passKen = un.years.find((r) => r.year > CURRENT_YEAR && r.population > at(ken, r.year).population)!.year;
+assertClaim(passKen === 2046, 'overtakes Kenya in 2046');
+const dbl = un.years.find((r) => r.population >= 2 * c.population)!.year;
+assertClaim(dbl === 2068, 'double by 2068');
+assertClaim(y[2100].growthRatePct < 0.05 && y[2100].growthRatePct > 0 && un.years.every((r) => r.change > 0), 'growth almost zero by 2100 but never negative');
+const tfrMax = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+const below = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(tfrMax.year === 1975 && below === 2076, 'fertility peak 1975; under 2.1 from 2076');
+const est = un.years.filter((r) => !r.projection);
+const inTop = est.reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+assertClaim(inTop.year === 2016 && [2017, 2018, 2019, 2020, 2021].every((yr) => y[yr].netMigrants > 0) && un.years.filter((r) => r.year >= 2022).every((r) => r.netMigrants < 0), 'net inflow 2016–2021 (largest 2016); net outflow every year from 2022, projections included');
+const east = wpp.filter((d: any) => d.subregion === 'Eastern Africa').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(east.indexOf('UGA') === 3, 'fourth in Eastern Africa');
+const times = c.population / y[1950].population;
+assertClaim(times > 9.1 && times < 9.2, 'just over nine times 1950');
+
+assertClaim(ken.years.reduce((a: any, b: any) => (b.population > a.population ? b : a)).year < 2100 && Math.round(y[1950].densityPerKm2) === 29 && y[2100].densityPerKm2 > 600 && y[2100].densityPerKm2 > 2 * c.densityPerKm2, 'Kenya peaks before 2100; density 29 in 1950, over 600 and more than double today by 2100');
+const title = `Uganda: ${(c.population / 1e6).toFixed(1)} Million People at ${int(c.densityPerKm2)} per km² (${CURRENT_YEAR}) | AtlasFigures`;
+const description = `At mid-${CURRENT_YEAR} Uganda had ${millions(c.population)} people living at ${int(c.densityPerKm2)} per km², one of Africa's highest densities. With about seven births per death, Uganda should pass Kenya in ${passKen}, on UN projections.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: ug.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'People per km²', value: int(c.densityPerKm2) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+];
+
+const rows = displayRows(un.years, ug.tableYears);
+
+const faq = [
+  { q: 'How many Ugandans are there today?', a: `UN estimates for mid-${CURRENT_YEAR} give ${millions(c.population)}, ranking ${ord(c.worldRank!)} worldwide and fourth in Eastern Africa.` },
+  { q: 'Is Uganda densely populated?', a: `For Africa, yes: ${int(c.densityPerKm2)} people per km², fourth among African states with populations over ten million, after Rwanda, Burundi and Nigeria. The projected 2100 figure is ${int(y[2100].densityPerKm2)}.` },
+  { q: 'Will Uganda have more people than Kenya?', a: `From ${passKen}, the UN projects. Uganda doubles today's total by ${dbl} and reaches ${millions(y[2100].population)} in 2100.` },
+  { q: 'Are Ugandan families still large?', a: `Ugandan women average ${dec(c.fertility, 2)} children now; at the ${tfrMax.year} peak it was ${dec(tfrMax.fertility, 2)}. A rate below 2.1 is not expected until ${below}.` },
+  { q: 'Do more people move to Uganda or leave it?', a: `Recently more leave, in net terms: about ${int(Math.round(-c.netMigrants / 1000))} thousand in ${CURRENT_YEAR}. Between 2016 and 2021 the balance was positive, peaking in ${inTop.year}.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: ug.slug, name: ug.name, wikipedia: ug.wikipedia,
+  headline: `Uganda: ${millions(c.population)} people at ${int(c.densityPerKm2)} per km² in ${CURRENT_YEAR}`,
+  description,
+  datasetName: 'Uganda population, density, births, migration and urban share, 1950–2100',
+  datasetDescription: `Mid-year population of Uganda for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: ug.published, updated: ug.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Uganda"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Uganda', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Uganda: young, crowded and set to pass Kenya</h1>
+        <LiveCounter
+          label="Uganda: the population right now (estimate)"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} point, up by roughly ${int(c.change / 365)} people daily`}
+        />
+        <p class="answer">
+          Uganda's {CURRENT_YEAR} population, about <strong>{millions(c.population)}</strong> by mid-year ({ord(c.worldRank!)} worldwide), is crowded at <strong>{int(c.densityPerKm2)} people per km²</strong>. Births outnumber deaths about seven to one, and Uganda is projected to overtake Kenya in {passKen}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={ug.updated}>{longDate(ug.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Uganda" code="ug" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Is Uganda one of Africa's most crowded countries?</h2>
+          <p>Very, by African standards: {int(c.densityPerKm2)} people for each km² of land in {CURRENT_YEAR}, behind only Rwanda, Burundi and Nigeria among Africa's countries above ten million. In 1950 the figure was {int(y[1950].densityPerKm2)}; the UN projection reaches {int(y[2050].densityPerKm2)} in 2050 and {int(y[2100].densityPerKm2)} in 2100.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="People per km² in Uganda">
+          <div><span class="y">1950</span><div class="v">{int(y[1950].densityPerKm2)}</div><span class="d">People per km²</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{int(c.densityPerKm2)}</div><span class="d">Fourth in Africa</span></div>
+          <div><span class="y">2100, UN projection</span><div class="v">{int(y[2100].densityPerKm2)}</div><span class="d">More than double</span></div>
+        </div>
+        <LineChart
+          title="Uganda's population, 1950–2100: rising until the very end"
+          subtitle="Mid-year values from the UN; the dashed medium projection flattens just above 120 million."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>What drives Uganda's rapid growth?</h2>
+          <p>Births far outpace deaths: roughly {millions(c.births)} babies a year versus {int(Math.round(c.deaths / 1000))} thousand deaths, around seven to one. Half of Ugandans are under {dec(c.medianAge, 1)}, among the ten lowest medians of any nation above ten million. Fertility, {dec(tfrMax.fertility, 2)} at its {tfrMax.year} peak, is {dec(c.fertility, 2)} today.</p>
+        </div>
+        <LineChart
+          title="Ugandan fertility, 1950 to 2050"
+          subtitle="Uganda's fertility rate by year (UN), projection dashed, with 2.1 marked."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: '2.1 level drawn' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>When will Uganda overtake Kenya?</h2>
+          <p>In {passKen} under the medium variant. Uganda is projected to double its current population by {dbl} and to reach {millions(y[2100].population)} by 2100 ({ord(y[2100].worldRank!)} in the world), with growth slowing to almost nothing by then. Kenya, by contrast, peaks before the century ends.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Is migration adding to or subtracting from Uganda's population?</h2>
+          <p>Subtracting, slightly, in the UN's current figures: the net outflow is roughly {int(Math.round(-c.netMigrants / 1000))} thousand in {CURRENT_YEAR}, small next to natural growth of {millions(c.naturalChange)}. From 2016 to 2021 the balance was positive, with the largest net inflow in {inTop.year}. Uganda's urban share, by its own definition, is {pct(c.urbanPct!)}; in 1950 it was {pct(y[1950].urbanPct!)}.</p>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Uganda in numbers, 1950–2100"
+          subtitle="The density column climbs from 29 in 1950 to over 600 by the 2100 projection."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${ug.slug}-population.csv`)}
+          csvName={`${ug.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Ugandan population facts people look up</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{ug.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={ug.published}>{longDate(ug.published)}</time> · Updated <time datetime={ug.updated}>{longDate(ug.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Uganda population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Uganda" code="ug" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
