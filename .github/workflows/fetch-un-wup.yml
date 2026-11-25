@@ -1,0 +1,48 @@
+# Downloads the UN World Urbanization Prospects 2025 file with the percentage urban by
+# NATIONAL definition (POP/DB/WUP/Rev.2025/F15) from population.un.org into
+# data/raw/un-wup-2025/, with URL, download date and SHA-256. Commits to `dev` only.
+# (File link found on https://population.un.org/wup/downloads, tab "Countries and Aggregates".)
+name: Fetch UN urbanization data (dev)
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+      - name: Download F15 from population.un.org
+        run: |
+          set -euo pipefail
+          DIR=data/raw/un-wup-2025
+          mkdir -p "$DIR"
+          NAME=WUP2025-F15-National-Definitions_percPop_by_category.xlsx
+          URL="https://population.un.org/wup/assets/Download/Countries%20and%20Aggregates/$NAME"
+          curl -fSL --retry 3 -A 'AtlasFigures data fetch (github.com/shariful881/atlasfigures)' -o "$DIR/$NAME" "$URL"
+          {
+            echo "# UN World Urbanization Prospects 2025 — original file"
+            echo
+            echo "Downloaded automatically by .github/workflows/fetch-un-wup.yml. Do not edit by hand."
+            echo
+            echo "- Publisher: United Nations, Department of Economic and Social Affairs, Population Division"
+            echo "- Dataset: Percentage urban and rural by national definition (POP/DB/WUP/Rev.2025/F15), 1950–2050"
+            echo "- Licence: CC BY 3.0 IGO (stated in the file's 'info' sheet)"
+            echo "- Downloaded (UTC): $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo
+            echo "| File | URL | Bytes | SHA-256 |"
+            echo "|---|---|---|---|"
+            echo "| $NAME | $URL | $(stat -c %s "$DIR/$NAME") | $(sha256sum "$DIR/$NAME" | cut -d' ' -f1) |"
+          } > "$DIR/SOURCE.md"
+          cat "$DIR/SOURCE.md"
+      - name: Commit to dev
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/raw/un-wup-2025
+          git diff --cached --quiet && { echo 'No change'; exit 0; }
+          git commit -m 'Data: UN WUP 2025 file (percentage urban, national definition)'
+          git push origin HEAD:dev

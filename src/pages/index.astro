@@ -4,6 +4,14 @@ import LiveCounter from '../components/LiveCounter.astro';
 import Contours from '../components/Contours.astro';
 import Icon from '../components/Icon.astro';
 import bd from '../data/countries/bangladesh.json';
+import { worldData, countryData, countryIndex, byYear, billions, millions, CURRENT_YEAR, assertClaim } from '../lib/figures';
+
+const w = byYear(worldData.years)[CURRENT_YEAR];
+const bdNow = byYear(countryData(bd.iso3).years)[CURRENT_YEAR];
+const bdFertility1970 = byYear(countryData(bd.iso3).years)[1970].fertility;
+const densest = countryIndex.countries.filter((x) => x.population > 10e6).sort((a, b) => b.densityPerKm2 - a.densityPerKm2)[0];
+assertClaim(densest.iso3 === bd.iso3, 'Bangladesh is the most densely populated country of more than 10 million people');
+assertClaim(bdFertility1970 > 6.5 && bdNow.fertility < 2.2, 'Bangladesh went from almost seven births per woman to about two');
 import { path } from '../site';
 
 const tiles = [
@@ -19,12 +27,12 @@ const tiles = [
 >
   <section class="hero">
     <h1>Every country, told on its own terms.</h1>
-    <p class="intro">There are about <strong>8.3 billion people</strong> on Earth in 2026, and the UN expects about 69 million more each year. AtlasFigures gives every country its own page, written around what makes its figures different, with every number sourced.</p>
+    <p class="intro">There are about <strong>{billions(w.population)} people</strong> on Earth in {CURRENT_YEAR}, and the UN expects about {millions(w.change)} more this year. AtlasFigures gives every country its own page, written around what makes its figures different, with every number sourced.</p>
     <LiveCounter
       label="People on Earth right now"
-      anchorValue={8305414064}
-      anchorDate="2026-07-26"
-      perYear={69000000}
+      anchorValue={w.population}
+      anchorDate={`${CURRENT_YEAR}-07-01`}
+      perYear={w.change}
       note="Live estimate based on UN World Population Prospects 2024"
     />
   </section>
@@ -45,8 +53,8 @@ const tiles = [
   <a class="feature" href={path('/population/bangladesh/')}>
     <div class="body">
       <h3>Bangladesh</h3>
-      <div class="big num">{(bd.current.population / 1e6).toFixed(1)} million</div>
-      <p>The most crowded large country on Earth, and how it went from nearly seven children per family to two.</p>
+      <div class="big num">{millions(bdNow.population)}</div>
+      <p>The most densely populated country of more than 10 million people, and how it went from almost seven births per woman to about two.</p>
     </div>
     <div class="side"><Contours /></div>
   </a>
