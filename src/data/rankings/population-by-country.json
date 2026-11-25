@@ -1,0 +1,20 @@
+{
+  "slug": "population-by-country",
+  "published": "2026-11-25",
+  "updated": "2026-11-25",
+  "verification": {
+    "checkedOn": "2026-11-25",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/rankings-population.py reads the original UN WPP 2024 file and interim update directly (not the site's generated data) and compares the built pages and CSVs; assertClaim stops the build if a sentence stops being true; scripts/check-pop-rankings.mjs checks page = data = ItemList = CSV on every build; then the text was read by hand",
+    "what": "every table row (237 countries or areas: order, rank, population), every CSV row, and every figure and claim in the answer, cards, story, FAQ, title, description and JSON-LD: top three; India first larger than China in 2022; seven countries hold over half; top-ten share; 16 above 100 million; continent shares; fastest and slowest growth among countries over one million; 65 shrinking; 2050 top-ten changes and Pakistan fourth; world peak 2084; five smallest; Bangladesh eighth",
+    "against": "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…) and interim update zip (eb7846bf…), downloaded 2026-11-25; licence CC BY 3.0 IGO",
+    "result": "All 1,239 independent comparisons across both pages matched; no causes are stated that the UN data do not show; disputed areas use the UN's own names"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-25",
+      "type": "published",
+      "note": "First version: UN World Population Prospects 2024 figures for 2026."
+    }
+  ]
+}
