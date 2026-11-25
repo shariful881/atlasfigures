@@ -22,7 +22,7 @@ const { title, subtitle, points, format = 'plain', unit = '', source, sourceUrl,
 const big = format === 'millions' && Math.max(...Astro.props.points.map((p) => p.y)) >= 1e9;
 const money = (v: number) => `$${Math.round(v).toLocaleString('en-US')}`;
 const short = (v: number) => (format === 'millions' ? (big ? `${Number((v / 1e9).toFixed(1))}B` : `${Math.round(v / 1e6)}M`)
-  : format === 'usdBillions' ? `$${Math.round(v / 1e9)}B` : format === 'percent' ? `${Number(v.toFixed(1))}%` : format === 'usd' ? money(v) : String(Number(v.toFixed(2))));
+  : format === 'usdBillions' ? (v >= 1e12 ? `$${Number((v / 1e12).toFixed(1))}T` : `$${Math.round(v / 1e9)}B`) : format === 'percent' ? `${Number(v.toFixed(1))}%` : format === 'usd' ? money(v) : String(Number(v.toFixed(2))));
 const label = (v: number) => (format === 'millions' ? (big ? `${(v / 1e9).toFixed(2)}B` : `${(v / 1e6).toFixed(1)}M`)
   : format === 'usdBillions' ? `$${(v / 1e9).toFixed(1)}B` : format === 'percent' ? `${v.toFixed(1)}%` : format === 'usd' ? money(v) : String(v));
 const long = (v: number) => (format === 'millions' ? (big ? `${(v / 1e9).toFixed(2)} billion` : `${(v / 1e6).toFixed(1)} million`)
@@ -38,7 +38,7 @@ function niceStep(range: number, n: number) {
 }
 
 function geometry(W: number, H: number, fs: number, nTicks: number, minGap: number) {
-  const L = fs * 3.4, R = fs * 3.2, T = fs * 1.6, B = fs * 2.4;
+  const L = fs * (format === 'usdBillions' || format === 'usd' ? 4.4 : 3.4), R = fs * 3.2, T = fs * 1.6, B = fs * 2.4;
   const step = niceStep(yMaxRaw, nTicks);
   const yMax = Math.ceil((yMaxRaw * 1.08) / step) * step;
   const X = (v: number) => L + ((v - x0) / (x1 - x0)) * (W - L - R);

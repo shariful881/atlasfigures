@@ -1,0 +1,20 @@
+{
+  "slug": "inflation-rate-by-country",
+  "published": "2026-11-25",
+  "updated": "2026-11-25",
+  "verification": {
+    "checkedOn": "2026-11-25",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/rankings-104.py reads the original World Bank zips and API metadata (data/raw/wdi/) and the UN WPP 2024 file, not the site's generated data; then the text was read by hand",
+    "what": "every ranking row (169 economies, order and rate), the CSV, every figure in the answer, cards, story, chart, FAQ, title, description and JSON-LD; claims: top and bottom three, Argentina and the US missing for 2025, world median (World Bank aggregation method) highest since 2008 in 2022, South Asia order",
+    "against": "World Bank WDI bulk files and indicator metadata (update 11 November 2026, CC BY 4.0); UN WPP 2024",
+    "result": "All 1,042 automated comparisons across the three pages matched; one claim corrected before publishing (world median inflation in 2022 was the highest since 2008, not since 2000)"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-25",
+      "type": "published",
+      "note": "First version: World Bank WDI figures (update of 11 November 2026) for 2025."
+    }
+  ]
+}

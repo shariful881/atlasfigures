@@ -1,0 +1,20 @@
+{
+  "slug": "unemployment-rate-by-country",
+  "published": "2026-11-25",
+  "updated": "2026-11-25",
+  "verification": {
+    "checkedOn": "2026-11-25",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/rankings-104.py reads the original World Bank zips and API metadata (data/raw/wdi/) and the UN WPP 2024 file, not the site's generated data; then the text was read by hand",
+    "what": "every ranking row (182 economies), the CSV, every figure in the text, FAQ, title, description and JSON-LD; claims: top and bottom three, seven of the top ten in Sub-Saharan Africa, South Africa above 30% since 2021 and its lowest year since 1991, world rate peak in 2020 and yearly fall since, countries of 100 million+ (UN WPP 2025), Spain vs Germany",
+    "against": "World Bank WDI bulk files and indicator metadata (update 11 November 2026, CC BY 4.0); UN WPP 2024",
+    "result": "All 1,042 automated comparisons across the three pages matched; one claim corrected before publishing (world median inflation in 2022 was the highest since 2008, not since 2000)"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-25",
+      "type": "published",
+      "note": "First version: World Bank WDI figures (update of 11 November 2026) for 2025."
+    }
+  ]
+}
