@@ -65,7 +65,12 @@ Every new page, section or change must follow all of them. Summary:
   `index.json`, `countries/<ISO3>.json` (1950–2100, `projection` flag, rank and world share per year). These are
   generated, git-ignored, never edited by hand. `src/data/countries/<slug>.json` holds only editorial fields
   (name, demonym, capital, iso3, verification, changelog) and pages take every figure from `src/data/wpp/`.
-  The UN interim update (19 Jan 2026, Togo) replaces the original rows. TODO: number test page = JSON = JSON-LD.
+  The UN interim update (19 Jan 2026, Togo) replaces the original rows. Urban share (`urbanPct`, national definition)
+  comes from UN WUP 2025 F15 in `data/raw/un-wup-2025/` ("Fetch UN urbanization data (dev)" workflow) — cite it as
+  World Urbanization Prospects 2025, never as WPP. Helpers and number style: `src/lib/figures.ts` (`int`, `dec`,
+  `millions`, `pct`, `ord`, `displayRows`); every sentence that depends on the data gets an `assertClaim(...)` so
+  the build fails if it stops being true. Per-country verification script: `scripts/verify/<slug>.py`.
+  TODO (task 2): automated number test page = JSON = JSON-LD for every page.
 - New UN WPP revision → update and re-verify ALL pages together. Current: WPP 2024.
 - Number style: prose millions 1 decimal ("177.8 million"), billions 1–2 decimals, percent 1 decimal, density
   whole number; tables/Key facts/CSV full numbers with commas; dates "25 November 2026".

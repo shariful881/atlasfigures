@@ -3,144 +3,44 @@
   "name": "Bangladesh",
   "demonym": "Bangladeshi",
   "capital": "Dhaka",
-  "region": "Southern Asia",
-  "source": "UN DESA Population Division, World Population Prospects 2024 (medium variant)",
-  "sourceUrl": "https://population.un.org/wpp/",
-  "current": {
-    "year": 2026,
-    "population": 177818044,
-    "yearlyChangePct": 1.21,
-    "netChange": 2131144,
-    "densityPerKm2": 1366,
-    "landAreaKm2": 130170,
-    "netMigrants": -371398,
-    "fertility": 2.09,
-    "medianAge": 26.3,
-    "urbanPct": 33.8,
-    "worldSharePct": 2.1,
-    "worldRank": 8
-  },
-  "series": [
-    {
-      "year": 1960,
-      "population": 51828660,
-      "density": 398,
-      "fertility": 6.74,
-      "medianAge": 17.9,
-      "urbanPct": 5.1,
-      "netMigrants": 13580,
-      "rank": 10
-    },
-    {
-      "year": 1970,
-      "population": 69058894,
-      "density": 531,
-      "fertility": 6.84,
-      "medianAge": 16.8,
-      "urbanPct": 7.4,
-      "netMigrants": -73719,
-      "rank": 9
-    },
-    {
-      "year": 1980,
-      "population": 88016432,
-      "density": 676,
-      "fertility": 6.33,
-      "medianAge": 16.5,
-      "urbanPct": 14.7,
-      "netMigrants": -515918,
-      "rank": 8
-    },
-    {
-      "year": 1990,
-      "population": 111633717,
-      "density": 858,
-      "fertility": 4.51,
-      "medianAge": 17.4,
-      "urbanPct": 19.9,
-      "netMigrants": -404105,
-      "rank": 9
-    },
-    {
-      "year": 2000,
-      "population": 134544304,
-      "density": 1034,
-      "fertility": 3.28,
-      "medianAge": 19.7,
-      "urbanPct": 23.3,
-      "netMigrants": -512422,
-      "rank": 8
-    },
-    {
-      "year": 2010,
-      "population": 152201982,
-      "density": 1169,
-      "fertility": 2.38,
-      "medianAge": 21.9,
-      "urbanPct": 27.7,
-      "netMigrants": -1113727,
-      "rank": 8
-    },
-    {
-      "year": 2020,
-      "population": 166298024,
-      "density": 1278,
-      "fertility": 2.18,
-      "medianAge": 24.6,
-      "urbanPct": 31.1,
-      "netMigrants": -1002522,
-      "rank": 8
-    },
-    {
-      "year": 2026,
-      "population": 177818044,
-      "density": 1366,
-      "fertility": 2.09,
-      "medianAge": 26.3,
-      "urbanPct": 33.8,
-      "netMigrants": -371398,
-      "rank": 8
-    },
-    {
-      "year": 2030,
-      "population": 186072407,
-      "density": 1429,
-      "fertility": 2.01,
-      "medianAge": 27.7,
-      "urbanPct": 36.6,
-      "netMigrants": -294833,
-      "rank": 8,
-      "projection": true
-    },
-    {
-      "year": 2040,
-      "population": 202589429,
-      "density": 1556,
-      "fertility": 1.87,
-      "medianAge": 31.7,
-      "urbanPct": 46.3,
-      "netMigrants": -331839,
-      "rank": 8,
-      "projection": true
-    },
-    {
-      "year": 2050,
-      "population": 214709097,
-      "density": 1649,
-      "fertility": 1.81,
-      "medianAge": 35.5,
-      "urbanPct": 59.3,
-      "netMigrants": -308070,
-      "rank": 10,
-      "projection": true
-    }
-  ],
-  "dhakaCensus2022": 10295786,
-  "continent": "Asia",
+  "iso3": "BGD",
   "code": "bd",
+  "continent": "Asia",
+  "published": "2026-11-25",
+  "updated": "2026-11-25",
+  "census2022": {
+    "dhakaCityCorporations": 10295786,
+    "dhakaNorth": 5990723,
+    "dhakaSouth": 4305063,
+    "source": "Bangladesh Bureau of Statistics, Population and Housing Census 2022 (final enumerated count)",
+    "sourceUrl": "https://bbs.portal.gov.bd/"
+  },
   "verification": {
     "checkedOn": "2026-11-25",
-    "against": "UN World Population Prospects 2024, via Our World in Data (population-unwpp, population-with-un-projections, fertility-rate-with-projections, median-age, share-of-population-urban)",
-    "result": "All population, fertility, median-age and urban figures match the UN data to the shown precision"
-  }
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/bangladesh.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD, CSV and home page; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population 1960–2050 (all table years), world rank, share of world, growth rate, yearly change, people per day, density, land area, net migration, emigration peak and since-when, median age, births per woman, 2050 projections",
+      "Urban share 1960, 2026, 2050, urban people, first year above 50%",
+      "Dhaka North and South city corporation populations (2022 census) and their sum",
+      "Home page world population, yearly change and featured Bangladesh figure",
+      "Title, meta description, Article headline and citations, Dataset sources and licence, FAQ answers in JSON-LD"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) — 63 of 63 figures match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file",
+      "BBS Population and Housing Census 2022 final figures for Dhaka North (5,990,723) and Dhaka South (4,305,063), as reported by citypopulation.de (citing BBS) and The Financial Express; BBS original PDF not opened"
+    ],
+    "result": "All figures match. No image alt text on the page (charts carry aria-labels)."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-25",
+      "change": "Page published."
+    },
+    {
+      "date": "2026-11-25",
+      "change": "All UN figures now read directly from the original UN files (WPP 2024 and WUP 2025). Corrected: yearly growth (1.2%, about 2.1 million a year; was shown as 1.21% and 2,131,144), people added per day, the year net emigration peaked (2008, not about 2010), and the source of the urban share (UN World Urbanization Prospects 2025, not WPP 2024). Removed two comparisons that had no source."
+    }
+  ]
 }

@@ -1,12 +1,10 @@
 # Downloads the UN World Urbanization Prospects 2025 file with the percentage urban by
 # NATIONAL definition (POP/DB/WUP/Rev.2025/F15) from population.un.org into
-# data/raw/un-wup-2025/, with URLs, download date and SHA-256. Commits to `dev` only.
+# data/raw/un-wup-2025/, with URL, download date and SHA-256. Commits to `dev` only.
+# (File link found on https://population.un.org/wup/downloads, tab "Countries and Aggregates".)
 name: Fetch UN urbanization data (dev)
 on:
   workflow_dispatch:
-  push:
-    branches: [dev]
-    paths: ['.github/workflows/fetch-un-wup.yml']
 permissions:
   contents: write
 jobs:
@@ -17,59 +15,23 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: dev
-      - name: Find file links on the UN downloads page
+      - name: Download F15 from population.un.org
         run: |
           set -euo pipefail
           DIR=data/raw/un-wup-2025
           mkdir -p "$DIR"
-          UA='AtlasFigures data fetch (github.com/shariful881/atlasfigures)'
-          for u in 'https://population.un.org/wup/downloads' 'https://population.un.org/wup/downloads?tab=Urban%20and%20Rural'; do
-            curl -fsSL -A "$UA" "$u" || true
-          done > /tmp/page.html
-          # Links may sit in HTML or in embedded JSON; collect every WUP2025 file path.
-          grep -oE '(https://population\.un\.org)?/wup/assets/[^"'"'"' <>]+' /tmp/page.html | sed 's#^/wup#https://population.un.org/wup#' | sed 's#\\u0026#\&#g' | sort -u > "$DIR/LINKS.txt" || true
-          grep -oE 'WUP2025-F[0-9]+[^"'"'"' <>]*' /tmp/page.html | sort -u >> "$DIR/LINKS.txt" || true
-          # The other tabs are rendered by Angular: search every script the page loads, and JSON assets they name.
-          for s in $(grep -oE 'src="[^"]+\.js"' /tmp/page.html | sed 's/src="//;s/"$//' | sort -u); do
-            case $s in http*) u=$s;; /*) u="https://population.un.org$s";; *) u="https://population.un.org/wup/$s";; esac
-            curl -fsSL -A "$UA" "$u" >> /tmp/all.js 2>/dev/null || true
-          done
-          echo "scripts bytes: $(wc -c < /tmp/all.js 2>/dev/null || echo 0)"
-          grep -oE '.{0,100}(WUP2025-F1[0-9]|National|national definition|percUrban|Urban_and_Rural)[^"'"'"']{0,100}' /tmp/all.js | head -60 >> /tmp/ctx.txt || true
-          for j in $(grep -oE 'assets/[^"'"'"' ]+\.json' /tmp/all.js | sort -u); do
-            echo "json: $j" >> /tmp/ctx.txt
-            curl -fsSL -A "$UA" "https://population.un.org/wup/$j" -o /tmp/j.json 2>/dev/null && grep -oE '.{0,80}WUP2025-F1[0-9][^"]{0,100}' /tmp/j.json | head -40 >> /tmp/ctx.txt || true
-          done
-          grep -oE '.{0,160}WUP2025-F01[^"'"'"' <>]{0,60}' /tmp/page.html | head -3 >> /tmp/ctx.txt || true
-          echo "--- context ---"; sort -u /tmp/ctx.txt | head -80 | tee "$DIR/CONTEXT.txt"
-          grep -oE 'WUP2025-F[0-9]+[^"'"'"'<>,)]*\.(xlsx|csv|zip)' /tmp/ctx.txt | sort -u >> "$DIR/LINKS.txt" || true
-          grep -oE '"(/[^"]*assets[^"]*)"' /tmp/ctx.txt | tr -d '"' | sort -u >> "$DIR/LINKS.txt" || true
-          echo "--- links found ---"; cat "$DIR/LINKS.txt"
-      - name: Download F15 (percentage urban, national definition)
-        run: |
-          set -euo pipefail
-          DIR=data/raw/un-wup-2025
-          UA='AtlasFigures data fetch (github.com/shariful881/atlasfigures)'
-          URL=$(grep -iE '^https.*F15[^/]*\.(xlsx|csv|zip)' "$DIR/LINKS.txt" | head -1 || true)
-          if [ -z "$URL" ]; then
-            F15=$(grep -oE 'WUP2025-F15[^"'"'"' <>,)]*' "$DIR/LINKS.txt" | grep -E '\.(xlsx|csv|zip)$' | head -1 || true)
-            for pre in 'https://population.un.org/wup/assets/Download/Countries%20and%20Aggregates/' 'https://population.un.org/wup/assets/Download/' 'https://population.un.org/wup/assets/'; do
-              f=$(printf '%s' "$F15" | sed 's/ /%20/g')
-              [ -n "$F15" ] && curl -fsI -A "$UA" "$pre$f" >/dev/null 2>&1 && { URL="$pre$f"; break; }
-            done
-          fi
-          if [ -z "$URL" ]; then echo "F15 link not found on the page; see LINKS.txt"; exit 0; fi
-          NAME=$(basename "${URL%%\?*}" | sed 's/%20/_/g')
-          curl -fSL --retry 3 -A "$UA" -o "$DIR/$NAME" "$URL"
-          NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          NAME=WUP2025-F15-National-Definitions_percPop_by_category.xlsx
+          URL="https://population.un.org/wup/assets/Download/Countries%20and%20Aggregates/$NAME"
+          curl -fSL --retry 3 -A 'AtlasFigures data fetch (github.com/shariful881/atlasfigures)' -o "$DIR/$NAME" "$URL"
           {
             echo "# UN World Urbanization Prospects 2025 — original file"
             echo
             echo "Downloaded automatically by .github/workflows/fetch-un-wup.yml. Do not edit by hand."
             echo
             echo "- Publisher: United Nations, Department of Economic and Social Affairs, Population Division"
-            echo "- Dataset: Percentage urban and rural by national definition (POP/DB/WUP/Rev.2025/F15)"
-            echo "- Downloaded (UTC): $NOW"
+            echo "- Dataset: Percentage urban and rural by national definition (POP/DB/WUP/Rev.2025/F15), 1950–2050"
+            echo "- Licence: CC BY 3.0 IGO (stated in the file's 'info' sheet)"
+            echo "- Downloaded (UTC): $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             echo
             echo "| File | URL | Bytes | SHA-256 |"
             echo "|---|---|---|---|"

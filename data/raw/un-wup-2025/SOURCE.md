@@ -3,7 +3,8 @@
 Downloaded automatically by .github/workflows/fetch-un-wup.yml. Do not edit by hand.
 
 - Publisher: United Nations, Department of Economic and Social Affairs, Population Division
-- Dataset: Percentage urban and rural by national definition (POP/DB/WUP/Rev.2025/F15)
+- Dataset: Percentage urban and rural by national definition (POP/DB/WUP/Rev.2025/F15), 1950–2050
+- Licence: CC BY 3.0 IGO (stated in the file's 'info' sheet)
 - Downloaded (UTC): 2026-11-25T09:00:55Z
 
 | File | URL | Bytes | SHA-256 |
