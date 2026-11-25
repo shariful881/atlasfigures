@@ -6,5 +6,15 @@ WUP2025-F03-Degree-of-Urbanization_Pop_rate_by_category
 WUP2025-F03-Degree-of-Urbanization_Pop_rate_by_category.xlsx
 WUP2025-F04-Degree-of-Urbanization_percPop_rate_by_category
 WUP2025-F04-Degree-of-Urbanization_percPop_rate_by_category.xlsx
-WUP2025-F01-Degree-of-Urbanization_Pop_by_category
 WUP2025-F01-Degree-of-Urbanization_Pop_by_category.xlsx
+WUP2025-F09-Degree-of-Urbanization_BU_km2_by_category.xlsx
+WUP2025-F10-Degree-of-Urbanization_BU_m2_per_capita_by_category.xlsx
+WUP2025-F11-Degree-of-Urbanization_percBU_km2_by_category.xlsx
+WUP2025-F12-Degree-of-Urbanization_BU_km2_rate_by_category.xlsx
+WUP2025-F13-Degree-of-Urbanization_percBU_km2_rate_by_category.xlsx
+WUP2025-F14-National-Definitions_Pop_by_category.xlsx
+WUP2025-F15-National-Definitions_percPop_by_category.xlsx
+WUP2025-F16-National-Definitions_Pop_rate_by_category.xlsx
+WUP2025-F17-National-Definitions_percPop_rate_by_category.xlsx
+WUP2025-F18-DEGURBA-100_Largest_Cities.xlsx
+WUP2025-F19-DEGURBA-100_Largest_Cities_in_2025_by_time.xlsx

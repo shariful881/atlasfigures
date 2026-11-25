@@ -1,2 +1,56 @@
+          <br><br><strong>B. "Urban" based on National Definitions:</strong> the definitions are <strong>generally those used by national statistical offi
+          <br><br><strong>B. Estimation based on national definitions:</strong> In this case, the proportion of the population residing in urban areas for each country 
+ and urban definitions by Country and Area, 1920-2025",url:"assets/Download/WUP2025-M02-DataSources-National-Definitions-UrbanPercentage.xlsx
+ large populations living in towns and semi-dense areas</strong>. This means that relying solely on national definitions may lead to the <strong>underestimation or incomplete representation of urban transformation</stro
+",answer:"When using <strong>national definitions</strong>, there is often an observed correlation between the proportion urban and national income.
+",description:"Population data by urban-rural national definitions for standard aggregates, countries and areas, 1950-2050
+",url:"assets/Download/Countries and Aggregates/WUP2025-DB-National-Definitions-Population-Data.csv.gz
 ">WUP2025-F01-Degree-of-Urbanization_Pop_by_category
+"},{name:"WUP2025-F11-Degree-of-Urbanization_percBU_km2_by_category
+"},{name:"WUP2025-F12-Degree-of-Urbanization_BU_km2_rate_by_category
+"},{name:"WUP2025-F13-Degree-of-Urbanization_percBU_km2_rate_by_category
+"},{name:"WUP2025-F15-National-Definitions_percPop_by_category
+"},{name:"WUP2025-F16-National-Definitions_Pop_rate_by_category
+"},{name:"WUP2025-F17-National-Definitions_percPop_rate_by_category
+"},{name:"WUP2025-F19-DEGURBA-100_Largest_Cities_in_2025_by_time
+"},{term:"Percentage urban",definition:"Urban population based on national definition, or population living in cities and towns (based on DEGURBA) as a percentage of the total populatio
+"}]},{label:"Urbanization - Population - National definitions",files:[{name:"WUP2025-F14-National-Definitions_Pop_by_category
+"}]}]},{label:"Cities",subcategories:[{label:"By Cities",files:[{name:"WUP2025-F18-DEGURBA-100_Largest_Cities
+, Subregion, Country and Area, 1950-2050 (thousands)",url:"assets/Download/Countries and Aggregates/WUP2025-F14-National-Definitions_Pop_by_category.xlsx
+.1</strong>."},{question:"What region has the largest difference between urban populations based on national definitions and the DEGURBA?
 5930672><tr _ngcontent-ng-c1565930672><td _ngcontent-ng-c1565930672><a _ngcontent-ng-c1565930672 target="_blank" href="assets/Download/Countries and Aggregates/WUP2025-F01-Degree-of-Urbanization_Pop_by_category.xlsx
+Degree-of-Urbanization_percPop_rate_by_category.xlsx"}]},{label:"Urbanization - Surface area - International definition
+ational urban definitions?",answer:'Comparison of population estimates for urban areas according to national definitions to those for cities and towns according to the Degree of Urbanization indicates that national defi
+ces</strong> in carrying out the latest available census. These national definitions vary widely based on different criteria like administrative status, population size, population de
+es in 2025 Ranked by Population Size (thousands), 1975-2050 (mid-year)",url:"assets/Download/Cities/WUP2025-F19-DEGURBA-100_Largest_Cities_in_2025_by_time.xlsx
+g>. Any such adjustments are noted in the sources available online. An attempt was also made to use national definitions within a statistical model to improve long-term projections. However, this method did not produce 
+ies and Aggregates";activeSubcategory={"Countries and Aggregates":"Urbanization - Population - International definition
+ion:"The Landsat programme consists of a series of EO satellite missions, jointly managed by the US National Aeronautics and Space Administration (NASA), and the US Geological Survey (USGS). Since 1972, Lands
+json: assets/folders.json
+json: assets/map-files.json
+json: assets/plot-files.json
+lient and sustainable urban areas."},{term:"Percentage rural",definition:"Rural population based on national definition, or population living in rural areas (based on DEGURBA) as a percentage of the total population.
+mericas and Europe the urban figures based on DEGURBA tend to be slightly lower than those based on national definitions.
+n, Subregion, Country and Area, 1950-2050 (per cent)",url:"assets/Download/Countries and Aggregates/WUP2025-F11-Degree-of-Urbanization_percBU_km2_by_category.xlsx
+n, Subregion, Country and Area, 1950-2050 (per cent)",url:"assets/Download/Countries and Aggregates/WUP2025-F12-Degree-of-Urbanization_BU_km2_rate_by_category.xlsx
+n, Subregion, Country and Area, 1950-2050 (per cent)",url:"assets/Download/Countries and Aggregates/WUP2025-F13-Degree-of-Urbanization_percBU_km2_rate_by_category.xlsx
+n, Subregion, Country and Area, 1950-2050 (per cent)",url:"assets/Download/Countries and Aggregates/WUP2025-F15-National-Definitions_percPop_by_category.xlsx
+n, Subregion, Country and Area, 1950-2050 (per cent)",url:"assets/Download/Countries and Aggregates/WUP2025-F16-National-Definitions_Pop_rate_by_category.xlsx
+n, Subregion, Country and Area, 1950-2050 (per cent)",url:"assets/Download/Countries and Aggregates/WUP2025-F17-National-Definitions_percPop_rate_by_category.xlsx
+ng>."},{question:"What implications does the difference between DEGURBA and national definitions have for understanding urbanization and economic growth?
+nistrative status, population size/density and economic and/or functional characteristics."},{term:"National urban policy
+opulation Size (thousands) at Each Point in Time, 1975-2050 (mid-year)",url:"assets/Download/Cities/WUP2025-F18-DEGURBA-100_Largest_Cities.xlsx
+pplementary online resources, including <strong>statistical tables</strong> for DEGURBA results and national definitions, an <strong>interactive data portal</strong> for queries and visualization, and detailed regional 
+rces of data indicate so.`},{question:"How has the methodology for projecting urbanization based on national definitions changed in WUP 2025?
+rding to the harmonized DEGURBA definition, and how does this ranking differ from WUP 2018 based on national definitions?
+rdless of their stage of urbanization. This was often exacerbated by relying on widely inconsistent national definitions of 
+rong>Degree of Urbanization (DEGURBA)</strong> \u2014 to measure urbanization alongside traditional national definitions. The report also features new analyses examining the <strong>built-up area per capita</strong> and
+ry large city, typically defined as having a population of 10 million or more inhabitants."},{term:'National definitions of 
+s along the continuum of cities, towns and rural areas, alongside retaining results based on binary national definitions of urban and rural settlements.
+s"};tabs=[{label:"Countries and Aggregates",subcategories:[{label:"Urbanization - Population - International definition
+ssets/Download/WUP2025-M01-DataSources-Degree-of-Urbanization.xlsx"},{name:"WUP2025-M02-DataSources-National-Definitions-UrbanPercentage.xlsx
+tion methodology."},{term:"Gridded population data",definition:"see Population Grid."},{term:"Gross National Income (GNI) per person
+ubregion, Country and Area, 1950-2050 (square meter)",url:"assets/Download/Countries and Aggregates/WUP2025-F10-Degree-of-Urbanization_BU_m2_per_capita_by_category.xlsx
+untries and Aggregates/WUP2025-DB-DEGURBA-Level2-Population-Surface-Data.csv.gz"},{name:"WUP2025-DB-National-Definitions-Population-Data.csv.gz
+urban and rural populations are provided using a <strong>dual-track approach</strong>: one based on national definitions and one based on the internationally comparable Degree of Urbanization methodology. 
+wnload/Countries and Aggregates/WUP2025-F09-Degree-of-Urbanization_BU_km2_by_category.xlsx"},{name:"WUP2025-F10-Degree-of-Urbanization_BU_m2_per_capita_by_category
