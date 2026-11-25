@@ -1,0 +1,225 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import ng from '../../data/countries/nigeria.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: Africa's giant, young and still adding millions.
+const PAGE = '/population/nigeria/';
+const un = countryData(ng.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (ng.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any) => d.years.find((r: any) => r.year === CURRENT_YEAR);
+const africa = wpp.filter((d: any) => d.region === 'Africa');
+const afShare = (c.population / africa.reduce((a: number, d: any) => a + at(d).population, 0)) * 100;
+assertClaim([...africa].sort((a: any, b: any) => at(b).population - at(a).population)[0].iso3 === 'NGA' && afShare > 14 && afShare < 16, 'largest in Africa, about one African in seven');
+const moreBirths = wpp.filter((d: any) => at(d).births > c.births).map((d: any) => d.iso3).sort();
+assertClaim(JSON.stringify(moreBirths) === '["CHN","IND"]', 'only India and China have more births');
+const lowestLife = [...wpp].sort((a: any, b: any) => at(a).lifeExpectancy - at(b).lifeExpectancy)[0].iso3;
+assertClaim(lowestLife === 'NGA', 'lowest life expectancy of any country or area in the UN data');
+const big = wpp.filter((d: any) => at(d).population > 100e6);
+assertClaim([...big].sort((a: any, b: any) => at(b).infantMortalityPer1000 - at(a).infantMortalityPer1000)[0].iso3 === 'NGA', 'highest infant mortality of countries over 100 million');
+const usa = byYear(countryData('USA').years), idn = byYear(countryData('IDN').years);
+const passIdn = un.years.find((r) => r.population > idn[r.year].population)!.year;
+const passUsa = un.years.find((r) => r.population > usa[r.year].population)!.year;
+assertClaim(un.years.every((r, i, a) => !i || r.population > a[i - 1].population) && y[2100].growthRatePct < 0.1, 'grows to 2100, nearly flat by then');
+const tfrMax = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+const urbanFrom = un.years.find((r) => (r.urbanPct ?? 0) > 50)!.year;
+assertClaim(Math.abs(c.netMigrants) < 0.01 * c.naturalChange && c.population < byYear(countryData('PAK').years)[CURRENT_YEAR].population && c.fertility > 1.9 * 2.1, 'migration cancels; Pakistan larger; fertility about double 2.1');
+const birthsDay = Math.round(c.births / 365 / 1000) * 1000;
+assertClaim(c.medianAge < 19 && y[2050].medianAge < 25, 'median under 19 now and under 25 in 2050');
+
+const title = `Nigeria Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)} Million, Africa's Largest and Still Rising Fast | AtlasFigures`;
+const description = `Nigeria's ${millions(c.population)} people (${CURRENT_YEAR}) make up one African in seven. ${millions(c.births)} births a year, a population whose median is ${dec(c.medianAge, 1)}, and a UN path past the United States in ${passUsa}.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: ng.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'Births a year', value: millionsShort(c.births) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+];
+
+const rows = displayRows(un.years, ng.tableYears);
+
+const faq = [
+  { q: "What is Nigeria's population in 2026?", a: `Around ${millions(c.population)} at mid-year, on UN estimates. That is ${pct(c.worldSharePct)} of the world and makes Nigeria the ${ord(c.worldRank!)} largest country.` },
+  { q: 'Does any African country have more people than Nigeria?', a: `No, none comes close. Nigeria holds about ${pct(afShare)} of the continent's population in ${CURRENT_YEAR}.` },
+  { q: "Is Nigeria's fertility rate falling?", a: `Yes, but from a high level: ${dec(c.fertility, 2)} per woman this year, down from ${dec(tfrMax.fertility, 2)} in ${tfrMax.year}, with ${dec(y[2050].fertility, 2)} expected by 2050.` },
+  { q: "How big will Nigeria's population be in 2100?", a: `The projected total for 2100 is ${millions(y[2100].population)}, reached after Nigeria passes Indonesia in ${passIdn} and the United States in ${passUsa}. By 2100 growth would have almost stopped.` },
+  { q: 'Is Nigeria a young country?', a: `Very. Half of all Nigerians are ${dec(c.medianAge, 1)} or younger in ${CURRENT_YEAR}, which means teenagers or children. Even in 2050 the UN projects a median of only ${dec(y[2050].medianAge, 1)}.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: ng.slug, name: ng.name, wikipedia: ng.wikipedia,
+  headline: `Nigeria's population in ${CURRENT_YEAR}: ${millions(c.population)}, Africa's largest and among the youngest`,
+  description,
+  datasetName: 'Nigeria population, density, fertility, median age and urban share, 1950–2100',
+  datasetDescription: `Mid-year population of Nigeria for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: ng.published, updated: ng.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Nigeria"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Nigeria', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Nigeria, Africa's most populous country</h1>
+        <LiveCounter
+          label="Nigeria's population now (estimate)"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: 1 July ${CURRENT_YEAR} estimate plus about ${int(c.change / 365)} people a day`}
+        />
+        <p class="answer">
+          Africa's most populous country, Nigeria, had a mid-{CURRENT_YEAR} population of some <strong>{millions(c.population)}</strong> and ranks {ord(c.worldRank!)} in the world. It grows by {pct(c.growthRatePct)} a year, and <strong>half its people are under {Math.ceil(c.medianAge)}</strong>.
+        </p>
+        <div class="dates"><span>Updated <time datetime={ng.updated}>{longDate(ng.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Nigeria" code="ng" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Why is Nigeria's population growing so fast?</h2>
+          <p>Births far outnumber deaths. This year brings about {millions(c.births)} births against {millions(c.deaths)} deaths, a natural increase of {millions(c.naturalChange)}, while migration in and out roughly cancels. Women have {dec(c.fertility, 2)} children on average, and because the median Nigerian is just {dec(c.medianAge, 1)}, a very large share of the population is just reaching the age of starting families.</p>
+        </div>
+        <LineChart
+          title="Nigeria's population, 1950–2100, with the UN's projection"
+          subtitle="Mid-year population. The dashed UN projection rises steeply before flattening late in the century."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Which countries have more births than Nigeria?</h2>
+          <p>Only India and China. Nigeria's {millions(c.births)} births a year, about {int(birthsDay)} a day, outnumber those of the United States, Indonesia or Pakistan, all larger or similar in population. Fertility has come down from a peak of {dec(tfrMax.fertility, 2)} in {tfrMax.year}, but slowly; the UN projects {dec(y[2050].fertility, 2)} even in 2050.</p>
+        </div>
+        <LineChart
+          title="Children per Nigerian woman, from almost 7 toward 3"
+          subtitle="UN total fertility rate, still roughly double the 2.1 benchmark; projected values are dashed."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="children per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'Benchmark of 2.1' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>When will Nigeria pass the United States in population?</h2>
+          <p>In {passUsa}, on the UN's medium projection, after overtaking Indonesia in {passIdn}. Nigeria would then rank {ord(y[2100].worldRank!)} in the world, with about {millions(y[2100].population)} people by 2100, by which time its growth would have nearly come to a halt.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>What is life expectancy at birth in Nigeria?</h2>
+          <p>{dec(c.lifeExpectancy, 1)} years in {CURRENT_YEAR}; no country or area in the UN's data has a lower figure. It has risen from {dec(y[1950].lifeExpectancy, 1)} in 1950 and {dec(y[2000].lifeExpectancy, 1)} in 2000. Infant deaths, {dec(c.infantMortalityPer1000, 1)} per 1,000 births, are the highest in any country of over 100 million inhabitants.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Life expectancy in Nigeria">
+          <div><span class="y">1950</span><div class="v">{dec(y[1950].lifeExpectancy, 1)}</div><span class="d">Expected years of life</span></div>
+          <div><span class="y">2000</span><div class="v">{dec(y[2000].lifeExpectancy, 1)}</div><span class="d">Slow gains</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{dec(c.lifeExpectancy, 1)}</div><span class="d">Lowest in the UN data</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Do most Nigerians live in cities?</h2>
+          <p>Yes, on Nigeria's own definition of urban areas: {pct(c.urbanPct!)} in {CURRENT_YEAR}, compared with {pct(y[1950].urbanPct!)} in 1950. Urban residents have been the majority since {urbanFrom}, with {pct(y[2050].urbanPct!)} projected for 2050.</p>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Nigeria's population numbers, 1950–2100"
+          subtitle="Nigeria decade by decade, from the 1950 estimate to the 2100 projection (projected from 2030)."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${ng.slug}-population.csv`)}
+          csvName={`${ng.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Nigeria's population: what to know</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files): population, births, deaths, growth, density, fertility, median age, life expectancy, infant mortality, world rank, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and adds the UN's projected growth for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={ng.published}>{longDate(ng.published)}</time> · Updated <time datetime={ng.updated}>{longDate(ng.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Nigeria population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Nigeria" code="ng" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
