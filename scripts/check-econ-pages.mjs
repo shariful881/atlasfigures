@@ -111,7 +111,10 @@ for (const c of econ) {
 
 // ranking pages
 const RANKINGS = { 'gdp-by-country': { key: 'gdp', cell: (v) => (v / 1e9).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }), csvCol: 'gdp_current_usd' },
-  'gdp-per-capita-by-country': { key: 'gdpPerCapita', cell: whole, csvCol: 'gdp_per_person_current_usd' } };
+  'gdp-per-capita-by-country': { key: 'gdpPerCapita', cell: whole, csvCol: 'gdp_per_person_current_usd' },
+  'inflation-rate-by-country': { key: 'inflationPct', cell: pct, csvCol: 'inflation_consumer_prices_pct' },
+  'unemployment-rate-by-country': { key: 'unemploymentPct', cell: pct, csvCol: 'unemployment_pct_modelled_ilo' },
+  'remittances-by-country': { key: 'remittances', cell: (v) => Math.round(v / 1e6).toLocaleString('en-US'), csvCol: 'remittances_received_current_usd' } };
 const wdiAll = readdirSync('src/data/wdi/countries').map((f) => JSON.parse(readFileSync(join('src/data/wdi/countries', f), 'utf8')));
 const wld = JSON.parse(readFileSync('src/data/wdi/aggregates.json', 'utf8')).aggregates.find((a) => a.code === 'WLD').series;
 for (const [slug, R] of Object.entries(RANKINGS)) {
