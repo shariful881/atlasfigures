@@ -32,6 +32,7 @@ const xs = points.map((p) => p.x);
 const ys = points.map((p) => p.y);
 const x0 = Math.min(...xs), x1 = Math.max(...xs);
 const yMaxRaw = Math.max(...ys, refLine?.y ?? -Infinity);
+const yMinRaw = Math.min(0, ...ys); // below 0 only when a value is negative (e.g. falling prices)
 function niceStep(range: number, n: number) {
   const raw = range / n, mag = Math.pow(10, Math.floor(Math.log10(raw))), k = raw / mag;
   return (k < 1.5 ? 1 : k < 3 ? 2 : k < 7 ? 5 : 10) * mag;
@@ -39,12 +40,13 @@ function niceStep(range: number, n: number) {
 
 function geometry(W: number, H: number, fs: number, nTicks: number, minGap: number) {
   const L = fs * (format === 'usdBillions' || format === 'usd' ? 4.4 : 3.4), R = fs * 3.2, T = fs * 1.6, B = fs * 2.4;
-  const step = niceStep(yMaxRaw, nTicks);
+  const step = niceStep(yMaxRaw - yMinRaw, nTicks);
   const yMax = Math.ceil((yMaxRaw * 1.08) / step) * step;
+  const yMin = yMinRaw < 0 ? Math.floor((yMinRaw * 1.08) / step) * step : 0;
   const X = (v: number) => L + ((v - x0) / (x1 - x0)) * (W - L - R);
-  const Y = (v: number) => T + (1 - v / yMax) * (H - T - B);
+  const Y = (v: number) => T + ((yMax - v) / (yMax - yMin)) * (H - T - B);
   const ticks: number[] = [];
-  for (let v = 0; v <= yMax + 1e-9; v += step) ticks.push(Number(v.toFixed(6)));
+  for (let v = yMin; v <= yMax + 1e-9; v += step) ticks.push(Number(v.toFixed(6)));
   const labels: number[] = [];
   const pri = (x: number) => (x === highlight ? 0 : x === x1 ? 1 : x === x0 ? 2 : 3);
   const order = [...xs].sort((a, b) => pri(a) - pri(b));

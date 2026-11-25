@@ -1,0 +1,159 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/italy.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/italy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const G7 = ['USA', 'GBR', 'DEU', 'JPN', 'FRA', 'ITA', 'CAN'];
+const ranked = rankBy('gdp', L);
+const rus = ranked.find((r) => r.iso3 === 'RUS')!;
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const uPeak = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const slower = G7.filter((x) => x !== c.iso3 && valueIn(econData(x).series.gdpGrowthPct, L)! < growth);
+
+assertClaim(B.gdpRank === 9 && rus.rank === 8 && rus.value - gdp < 2e10, 'ninth, just behind Russia');
+assertClaim(s.gdp.every(([y, x]) => y === L || x < gdp) && s.gdpPerCapita.every(([y, x]) => y === L || x < perHead), 'record dollar GDP and GDP per person');
+assertClaim(slower.join() === 'DEU' && growth < 1, 'second-slowest growth in the G7, after Germany');
+assertClaim([2012, 2013, 2014].every((y) => g(y) < 0) && worst[0] === 2020 && s.gdpGrowthPct[0][0] === 1961, 'three-year downturn 2012-14; 2020 the worst since 1961');
+assertClaim(Math.max(...s.unemploymentPct.filter(([y, x]) => y < L && x < unemp!).map(([y]) => y)) === 2007 && uPeak[0] === 2014, 'unemployment lowest since 2007, peak 2014');
+assertClaim(Math.max(...s.inflationPct.filter(([y, x]) => y < 2022 && x > i(2022)).map(([y]) => y)) === 1985 && infl.year === L && infl.value < 2, '2022 inflation highest since 1985; now under 2%');
+
+const title = `Italian Economy ${L}: Ninth in the World, Growth Near Zero | AtlasFigures`;
+const description = `At ${usd(gdp)} in ${L}, Italy has the world's ninth-largest economy, a whisker behind Russia. It barely grew (${pct(growth)}), yet unemployment at ${pct(unemp!)} is Italy's lowest since 2007.`;
+
+const faq = [
+  { q: 'Is Italy\'s economy bigger than Russia\'s?', a: `Not quite in ${L}: Italy's ${usd(gdp)} put it ninth, just behind Russia's ${usd(rus.value)}.` },
+  { q: 'Is Italy\'s economy growing more slowly than its G7 partners?', a: `Mostly, yes. Italian output rose ${pct(growth)} in ${L}; Germany was the only G7 member that grew less.` },
+  { q: 'Are more Italians in work now?', a: `Yes. Italy's jobless rate (ILO model) came down to ${pct(unemp!)} for ${L}, about half its 2014 level of ${pct(uPeak[1])} and the best reading since 2007.` },
+  { q: 'What happened to Italy\'s economy in 2020?', a: `It shrank ${pct(Math.abs(worst[1]))}, the deepest fall since 1961, then rebounded by ${pct(g(2021))} in 2021.` },
+  { q: 'What is Italy\'s GDP per capita?', a: `A record ${usdWhole(perHead)} in ${L}, ${ord(B.pcRank!)} in the world; with prices adjusted (PPP), ${intDollars(ppp!)}.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Italy's economy ${L}: ninth-largest, barely growing, unemployment at its lowest since 2007`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Italian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Italy', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Italy's economy: ninth-largest, growing slowly</h1>
+        <p class="answer">
+          Ninth in the world, Italy's economy reached <strong>{usd(gdp)}</strong> in {L} but grew by only <strong>{pct(growth)}</strong>. Joblessness slid to {pct(unemp!)}, under any year since 2007.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Italy economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Italy" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Italy's economy is larger than ever in dollars yet hardly growing in real terms, while its job market keeps improving.</p>
+
+        <div class="story-block prose">
+          <h2>Where does Italy rank in the world economy?</h2>
+          <p>Ninth. In {L} the Italian total of {usd(gdp)} set a dollar record, and only Russia's {usd(rus.value)} separated Italy from eighth place. Output per person, {usdWhole(perHead)}, also set a record.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Why is Italy's growth so slow?</h2>
+          <p>These figures measure the pace rather than its causes. Real GDP was up {pct(growth)} in {L} after {pct(g(2024))} in 2024 and {pct(g(2023))} in 2023. Germany alone in the G7 did worse in {L}. Italy's record includes a three-year slump in 2012–2014 and its deepest contraction, {signedPct(worst[1])}, in 2020.</p>
+        </div>
+        <LineChart
+          title={`Italy's dollar GDP over six decades`}
+          subtitle="Dollar output at five-year steps, then every year from 2019."
+          points={s.gdp.filter(([y]) => y % 5 === 0 || y >= 2019).map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Why is unemployment in Italy at its lowest since 2007?</h2>
+          <p>The data show the fall without explaining it: Italy's ILO-modelled jobless rate halved from {pct(uPeak[1])} (2014) to {pct(unemp!)} ({L}); not since 2007 has it been this low.</p>
+        </div>
+        <LineChart
+          title={`Unemployment in Italy, 1991–${L}`}
+          subtitle="Share of Italy's workforce without a job (ILO model), per cent."
+          points={s.unemploymentPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Is inflation under control in Italy?</h2>
+          <p>Yes, on the latest figures. Italy's inflation hit {pct(i(2022))} in 2022, a level unseen since 1985, then {pct(i(2023))} in 2023. By {L} the rate was down to {pct(infl.value)}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Italy and Europe: more to read</h2>
+          <ul>
+            <li><a href={path('/population/italy/')}>Italy's population</a></li>
+            <li><a href={path('/economy/france/')}>France's economy</a></li>
+            <li><a href={path('/economy/germany/')}>Germany's economy</a></li>
+            <li><a href={path('/economy/spain/')}>Spain's economy</a></li>
+            <li><a href={path('/rankings/gdp-by-country/')}>Full GDP ranking</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Italian economy in selected years, 1960–${L}`}
+          subtitle="With 2007, 2009, 2012 and 2014 plus recent years; the CSV lists every year."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/italy-economy.csv')} csvName="italy-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Italy's economy: answers in brief</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">"G7" means Canada, France, Germany, Italy, Japan, the United Kingdom and the United States. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Italian economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Italy" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>
