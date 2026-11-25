@@ -71,7 +71,7 @@ const schema = [
   </div>
 
   <h2 class="hub-h">Economy rankings</h2>
-  <div class="list">
+  <div class="list rank-links">
     <a class="row" href={path('/rankings/gdp-by-country/')}><span><span class="name">GDP by country</span><br /><span class="meta">Every economy ranked by size, {L}</span></span><span class="chev"><Icon name="chevron" /></span></a>
     <a class="row" href={path('/rankings/gdp-per-capita-by-country/')}><span><span class="name">GDP per capita by country</span><br /><span class="meta">From richest to poorest per person, with PPP</span></span><span class="chev"><Icon name="chevron" /></span></a>
     <a class="row" href={path('/rankings/inflation-rate-by-country/')}><span><span class="name">Inflation rate by country</span><br /><span class="meta">Where consumer prices rose fastest, and where they fell</span></span><span class="chev"><Icon name="chevron" /></span></a>
@@ -107,4 +107,7 @@ const schema = [
 <style>
   .hub-h { font-size: 1.15rem; margin: 20px 0 10px; }
   .tcard { margin-top: 28px; }
+  /* Ranking links have no flag: two columns (text, chevron) instead of the country-row grid. */
+  .rank-links .row { grid-template-columns: 1fr 20px; }
+  .rank-links .chev svg { width: 20px; height: 20px; }
 </style>
