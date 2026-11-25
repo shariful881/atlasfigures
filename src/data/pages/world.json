@@ -1,0 +1,50 @@
+{
+  "slug": "world",
+  "name": "World",
+  "published": "2026-11-25",
+  "updated": "2026-11-25",
+  "wikipedia": "https://en.wikipedia.org/wiki/World_population",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    2000,
+    2010,
+    2020,
+    2026,
+    2030,
+    2040,
+    2050,
+    2060,
+    2070,
+    2080,
+    2084,
+    2090,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-25",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/world.py reads the original UN files directly (WPP World totals and every country; WUP World row, LocID 900), not the site's generated data, and compares them with the built page, JSON-LD and CSV; the build fails if any sentence-level claim (assertClaim) stops being true; scripts/check-pop-rankings.mjs checks page = data on every build; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "World population 1950–2100 (table and CSV), growth, yearly change, births and deaths per day, density, median age, fertility, life expectancy, urban share; live counter anchor/rate/date",
+      "Growth peak 1963 and the largest yearly addition in 1990; 8, 9 and 10 billion first reached in 2022, 2037, 2061; births peak 2012; fertility 1963 high, under 2.1 from 2050; peak 2084 and lower by 2100",
+      "Countries adding most (India, Nigeria, Pakistan, DR Congo, Ethiopia) and losing most (China, Japan) in 2026; Africa's share 1950/2026/2100; life-expectancy dip 2019–2021 and recovery",
+      "Title, meta description, headline, FAQ JSON-LD"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 80 of 80 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…), World row; licence CC BY 3.0 IGO"
+    ],
+    "result": "All figures match. No causes are stated that the UN data do not show."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-25",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
