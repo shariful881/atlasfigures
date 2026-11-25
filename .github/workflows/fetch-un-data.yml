@@ -1,0 +1,60 @@
+# Downloads the original UN World Population Prospects 2024 files straight from
+# population.un.org into data/raw/un-wpp-2024/ and commits them to `dev` with the
+# download date, URLs and SHA-256 checksums. Never touches `main`.
+name: Fetch UN data (dev)
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev]
+    paths: ['.github/workflows/fetch-un-data.yml']
+permissions:
+  contents: write
+jobs:
+  fetch:
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+      - name: Download from population.un.org
+        run: |
+          set -euo pipefail
+          DIR=data/raw/un-wpp-2024
+          mkdir -p "$DIR"
+          BASE='https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)'
+          dl() { curl -fSL --retry 3 -A 'AtlasFigures data fetch (github.com/shariful881/atlasfigures)' -o "$DIR/$2" "$1"; }
+          dl "$BASE/CSV_FILES/WPP2024_Demographic_Indicators_Medium.csv.gz" WPP2024_Demographic_Indicators_Medium.csv.gz
+          dl "$BASE/WPP2024_CSV_files_update.zip" WPP2024_CSV_files_update.zip
+          NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          {
+            echo "# UN World Population Prospects 2024 — original files"
+            echo
+            echo "Downloaded automatically by .github/workflows/fetch-un-data.yml. Do not edit these files by hand."
+            echo
+            echo "- Publisher: United Nations, Department of Economic and Social Affairs, Population Division"
+            echo "- Licence: CC BY 3.0 IGO (https://creativecommons.org/licenses/by/3.0/igo/)"
+            echo "- Downloaded (UTC): $NOW"
+            echo
+            echo "| File | URL | Bytes | SHA-256 |"
+            echo "|---|---|---|---|"
+            for f in WPP2024_Demographic_Indicators_Medium.csv.gz WPP2024_CSV_files_update.zip; do
+              case $f in *update.zip) u="$BASE/$f";; *) u="$BASE/CSV_FILES/$f";; esac
+              echo "| $f | $u | $(stat -c %s "$DIR/$f") | $(sha256sum "$DIR/$f" | cut -d' ' -f1) |"
+            done
+            echo
+            echo "## Contents of the interim update zip"
+            echo
+            echo '```'
+            unzip -l "$DIR/WPP2024_CSV_files_update.zip"
+            echo '```'
+          } > "$DIR/SOURCE.md"
+          cat "$DIR/SOURCE.md"
+      - name: Commit to dev
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/raw/un-wpp-2024
+          git diff --cached --quiet && { echo 'No change'; exit 0; }
+          git commit -m 'Data: original UN WPP 2024 files from population.un.org'
+          git push origin HEAD:dev
