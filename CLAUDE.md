@@ -1,5 +1,10 @@
 # AtlasFigures — rules for every change
 
+## ⚠️ Going live (owner's rule — never skip)
+- Never publish directly. Pushing to `main` deploys the live site, so work ONLY on the `dev` branch.
+- When work is done: show the owner what changed (screenshots at 1280px and 390px + a short list). Do not merge.
+- Merge `dev` → `main` (go live) ONLY after the owner explicitly says to make it live. One approval covers only that piece of work.
+
 Full guides live in the claude.ai Project "World Meters":
 `claude/atlasfigures-plan.md`, `claude/atlasfigures-design-guide.md`, `claude/atlasfigures-seo-guide.md`.
 Every new page, section or change must follow all three. Summary:
