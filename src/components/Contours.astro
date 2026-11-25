@@ -1,0 +1,15 @@
+---
+// Topographic contour lines — the site's one decorative signature, used only
+// behind live counters and the featured-country panel.
+const rings = [0, 1, 2, 3, 4, 5, 6, 7];
+---
+<svg class="contours" viewBox="0 0 600 260" preserveAspectRatio="xMaxYMid slice" aria-hidden="true">
+  {rings.map((i) => {
+    const s = 1 + i * 0.32;
+    return <path transform={`translate(470 120) scale(${s})`} d="M-60 -8 C-58 -38 -22 -52 8 -46 C40 -40 66 -22 62 6 C58 34 30 50 -2 48 C-36 46 -62 22 -60 -8 Z" />;
+  })}
+  {[0, 1, 2, 3].map((i) => {
+    const s = 1 + i * 0.45;
+    return <path transform={`translate(560 250) scale(${s})`} d="M-40 0 C-40 -24 -16 -36 6 -32 C30 -28 44 -12 40 6 C36 24 14 32 -6 30 C-28 28 -40 18 -40 0 Z" />;
+  })}
+</svg>

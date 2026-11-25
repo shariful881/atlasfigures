@@ -1,6 +1,7 @@
 ---
-// Server-rendered SVG line chart. Points marked `projection: true` are drawn
-// dashed, so the reader sees at a glance where measurement ends and forecast begins.
+// Server-rendered SVG line chart, drawn twice from the same data:
+// a wide desktop version and a compact mobile version with larger type.
+// Projections are dashed over a water-tinted band. Hover or drag a finger to read a point.
 interface Point { x: number; y: number; projection?: boolean }
 interface Props {
   title: string;
@@ -8,28 +9,9 @@ interface Props {
   points: Point[];
   format?: 'millions' | 'number' | 'pct' | 'plain';
   source?: string;
-  highlight?: number; // x value to mark
+  highlight?: number;
 }
 const { title, subtitle, points, format = 'plain', source, highlight } = Astro.props;
-
-const W = 720, H = 300, L = 56, R = 20, T = 16, B = 34;
-const xs = points.map((p) => p.x);
-const ys = points.map((p) => p.y);
-const x0 = Math.min(...xs), x1 = Math.max(...xs);
-const yMaxRaw = Math.max(...ys);
-const yMinRaw = Math.min(0, Math.min(...ys));
-
-function niceStep(range: number) {
-  const raw = range / 5;
-  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
-  const n = raw / mag;
-  return (n < 1.5 ? 1 : n < 3 ? 2 : n < 7 ? 5 : 10) * mag;
-}
-const step = niceStep(yMaxRaw - yMinRaw);
-const yMax = Math.ceil(yMaxRaw / step) * step;
-const yMin = Math.floor(yMinRaw / step) * step;
-const X = (v: number) => L + ((v - x0) / (x1 - x0)) * (W - L - R);
-const Y = (v: number) => T + (1 - (v - yMin) / (yMax - yMin)) * (H - T - B);
 
 const fmt = (v: number) => {
   if (format === 'millions') return `${Math.round(v / 1e6)}M`;
@@ -37,43 +19,100 @@ const fmt = (v: number) => {
   if (format === 'number') return v.toLocaleString('en-US');
   return String(v);
 };
+const fmtLong = (v: number) => (format === 'millions' ? `${(v / 1e6).toFixed(1)} million` : fmt(v));
 
-const ticks: number[] = [];
-for (let v = yMin; v <= yMax + 1e-9; v += step) ticks.push(Number(v.toFixed(6)));
+const xs = points.map((p) => p.x);
+const ys = points.map((p) => p.y);
+const x0 = Math.min(...xs), x1 = Math.max(...xs);
+const yMaxRaw = Math.max(...ys);
+const yMinRaw = Math.min(0, Math.min(...ys));
+function niceStep(range: number, n: number) {
+  const raw = range / n;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const k = raw / mag;
+  return (k < 1.5 ? 1 : k < 3 ? 2 : k < 7 ? 5 : 10) * mag;
+}
 
-const measured = points.filter((p) => !p.projection);
-const lastMeasured = measured[measured.length - 1];
-const projected = [lastMeasured, ...points.filter((p) => p.projection)];
-const path = (ps: Point[]) => ps.map((p, i) => `${i ? 'L' : 'M'}${X(p.x).toFixed(1)} ${Y(p.y).toFixed(1)}`).join(' ');
-const hasProjection = projected.length > 1;
+function geometry(W: number, H: number, fs: number, nTicks: number, minGap: number) {
+  const L = fs * 3.6, R = 14, T = fs + 8, B = fs * 2.4;
+  const step = niceStep(yMaxRaw - yMinRaw, nTicks);
+  const yMax = Math.ceil(yMaxRaw / step) * step;
+  const yMin = Math.floor(yMinRaw / step) * step;
+  const X = (v: number) => L + ((v - x0) / (x1 - x0)) * (W - L - R);
+  const Y = (v: number) => T + (1 - (v - yMin) / (yMax - yMin)) * (H - T - B);
+  const ticks: number[] = [];
+  for (let v = yMin; v <= yMax + 1e-9; v += step) ticks.push(Number(v.toFixed(6)));
+  // x labels: keep the highlight, drop any label that would collide with the one before it
+  const labels: number[] = [];
+  const order = [...xs].sort((a, b) => (a === highlight ? -1 : b === highlight ? 1 : 0));
+  for (const x of order) if (labels.every((l) => Math.abs(X(l) - X(x)) >= minGap)) labels.push(x);
+  const measured = points.filter((p) => !p.projection);
+  const last = measured[measured.length - 1];
+  const projected = [last, ...points.filter((p) => p.projection)];
+  const path = (ps: Point[]) => ps.map((p, i) => `${i ? 'L' : 'M'}${X(p.x).toFixed(1)} ${Y(p.y).toFixed(1)}`).join(' ');
+  return {
+    W, H, L, R, T, B, fs, X, Y, ticks, labels, last,
+    measuredPath: path(measured),
+    projPath: projected.length > 1 ? path(projected) : '',
+    data: points.map((p) => ({ x: X(p.x), y: Y(p.y), label: `${p.x}${p.projection ? ' (projection)' : ''}: ${fmtLong(p.y)}` })),
+  };
+}
+const variants = [
+  { cls: 'chart-d', g: geometry(720, 300, 12, 5, 34) },
+  { cls: 'chart-m', g: geometry(360, 250, 13, 4, 34) },
+];
+const hl = points.find((p) => p.x === highlight);
+const id = `ch${Math.random().toString(36).slice(2, 8)}`;
 ---
-<figure class="figure">
+<figure class="figure" id={id}>
   <p class="fig-title">{title}</p>
   {subtitle && <p class="fig-sub">{subtitle}</p>}
-  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={title}>
-    {ticks.map((t) => (
-      <g>
-        <line x1={L} x2={W - R} y1={Y(t)} y2={Y(t)} stroke="#ebe7df" />
-        <text x={L - 8} y={Y(t) + 4} text-anchor="end" font-size="11" fill="#8a94a3" font-family="JetBrains Mono, monospace">{fmt(t)}</text>
+  <div class="readout num" aria-live="polite">{hl ? `${hl.x}: ${fmtLong(hl.y)}` : ''}</div>
+  {variants.map(({ cls, g }) => (
+    <svg class={cls} viewBox={`0 0 ${g.W} ${g.H}`} role="img" aria-label={title} font-family="Schibsted Grotesk, system-ui, sans-serif" data-points={JSON.stringify(g.data)} data-w={g.W}>
+      {g.ticks.map((t) => (
+        <g>
+          <line x1={g.L} x2={g.W - g.R} y1={g.Y(t)} y2={g.Y(t)} stroke="#e6edf0" />
+          <text x={g.L - 6} y={g.Y(t) + g.fs / 3} text-anchor="end" font-size={g.fs} fill="#8696a2">{fmt(t)}</text>
+        </g>
+      ))}
+      {g.labels.map((x) => (
+        <text x={g.X(x)} y={g.H - g.fs * 0.8} text-anchor="middle" font-size={g.fs} fill={x === highlight ? '#123b5a' : '#8696a2'} font-weight={x === highlight ? 700 : 400}>{x}</text>
+      ))}
+      {g.projPath && <rect x={g.X(g.last.x)} y={g.T} width={g.W - g.R - g.X(g.last.x)} height={g.H - g.T - g.B} fill="#eef5f7" />}
+      {g.projPath && <text x={g.W - g.R - 6} y={g.T + g.fs + 2} text-anchor="end" font-size={g.fs * 0.92} fill="#5d6c78">UN projection</text>}
+      <path d={g.measuredPath} fill="none" stroke="#2e7d5b" stroke-width="3" stroke-linejoin="round" />
+      {g.projPath && <path d={g.projPath} fill="none" stroke="#2e7d5b" stroke-width="3" stroke-dasharray="7 6" />}
+      {points.map((p) => <circle cx={g.X(p.x)} cy={g.Y(p.y)} r="3.5" fill="#fff" stroke="#2e7d5b" stroke-width="2" />)}
+      {hl && <circle cx={g.X(hl.x)} cy={g.Y(hl.y)} r="6" fill="#123b5a" />}
+      <g class="cursor" style="display:none">
+        <line y1={g.T} y2={g.H - g.B} stroke="#123b5a" stroke-width="1" stroke-dasharray="3 3" />
+        <circle r="6" fill="#123b5a" />
       </g>
-    ))}
-    {xs.filter((x) => x === highlight || highlight === undefined || Math.abs(X(x) - X(highlight)) > 36).map((x) => (
-      <text x={X(x)} y={H - 12} text-anchor="middle" font-size="11" fill="#8a94a3" font-family="JetBrains Mono, monospace">{x}</text>
-    ))}
-    {hasProjection && (
-      <rect x={X(lastMeasured.x)} y={T} width={W - R - X(lastMeasured.x)} height={H - T - B} fill="#f4f1ea" />
-    )}
-    {hasProjection && (
-      <text x={X(lastMeasured.x) + 8} y={T + 14} font-size="11" fill="#8a94a3">UN projection</text>
-    )}
-    <path d={path(measured)} fill="none" stroke="#0e7c6b" stroke-width="2.5" />
-    {hasProjection && <path d={path(projected)} fill="none" stroke="#0e7c6b" stroke-width="2.5" stroke-dasharray="6 5" />}
-    {points.map((p) => (
-      <circle cx={X(p.x)} cy={Y(p.y)} r={p.x === highlight ? 5 : 3} fill={p.x === highlight ? '#c2622d' : '#0e7c6b'} />
-    ))}
-    {highlight !== undefined && points.filter((p) => p.x === highlight).map((p) => (
-      <text x={X(p.x)} y={Y(p.y) - 12} text-anchor="middle" font-size="12" font-weight="600" fill="#16202e">{fmt(p.y)}</text>
-    ))}
-  </svg>
+      <rect class="hit" x={g.L} y={0} width={g.W - g.L - g.R} height={g.H} fill="transparent" />
+    </svg>
+  ))}
   {source && <div class="fig-src">Source: {source}</div>}
 </figure>
+<script is:inline define:vars={{ id }}>
+  (function () {
+    var fig = document.getElementById(id); if (!fig) return;
+    var out = fig.querySelector('.readout'), initial = out.textContent;
+    fig.querySelectorAll('svg').forEach(function (svg) {
+      var data = JSON.parse(svg.dataset.points), W = Number(svg.dataset.w);
+      var hit = svg.querySelector('.hit'), cur = svg.querySelector('.cursor');
+      var line = cur.querySelector('line'), dot = cur.querySelector('circle');
+      function at(clientX) {
+        var r = svg.getBoundingClientRect(); var x = (clientX - r.left) * (W / r.width);
+        var best = data[0]; data.forEach(function (d) { if (Math.abs(d.x - x) < Math.abs(best.x - x)) best = d; });
+        cur.style.display = ''; line.setAttribute('x1', best.x); line.setAttribute('x2', best.x);
+        dot.setAttribute('cx', best.x); dot.setAttribute('cy', best.y); out.textContent = best.label;
+      }
+      function reset() { cur.style.display = 'none'; out.textContent = initial; }
+      hit.addEventListener('pointermove', function (e) { at(e.clientX); });
+      hit.addEventListener('pointerdown', function (e) { at(e.clientX); });
+      hit.addEventListener('pointerleave', reset);
+      hit.addEventListener('pointercancel', reset);
+    });
+  })();
+</script>

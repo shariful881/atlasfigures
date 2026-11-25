@@ -1,43 +1,54 @@
 ---
 import Base from '../layouts/Base.astro';
 import LiveCounter from '../components/LiveCounter.astro';
+import Contours from '../components/Contours.astro';
+import Icon from '../components/Icon.astro';
+import Flag from '../components/Flag.astro';
+import bd from '../data/countries/bangladesh.json';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const tiles = [
+  { key: 'population' as const, title: 'Population', text: 'Every country: how many people, how crowded, and where it is heading by 2050.', live: true },
+  { key: 'time' as const, title: 'Time', text: 'Local time in every city, time differences and a meeting planner.', live: false },
+  { key: 'economy' as const, title: 'Economy', text: 'GDP, income and inflation, with long-run charts and country comparisons.', live: false },
+  { key: 'rankings' as const, title: 'Rankings', text: 'Countries ranked on hundreds of measures, each list sourced and explained.', live: false },
+];
 ---
 <Base
-  title="AtlasFigures — World Population, Countries & Global Statistics"
-  description="Live world population, and the story behind the numbers for every country: population, time, economy and rankings, with every figure sourced."
+  title="AtlasFigures: World Population, Countries and Global Statistics"
+  description="Live world population and the story behind the numbers for every country: population, time, economy and rankings, with every figure sourced."
 >
   <section class="hero">
-    <div class="kicker">The world in figures</div>
-    <h1>Every country, told on its own terms.</h1>
     <LiveCounter
-      label="World population, live estimate"
+      label="People on Earth right now"
       anchorValue={8305414064}
       anchorDate="2026-07-26"
       perYear={69000000}
-      note="Estimate based on UN World Population Prospects 2024; about 69 million more people each year"
+      note="Estimate based on UN World Population Prospects 2024, which puts growth at about 69 million people a year"
     />
-    <p class="lead">AtlasFigures gives every country its own page — not the same template with the numbers swapped, but the story that makes that country's figures different. Every number names its source.</p>
+    <h1>Every country, told on its own terms.</h1>
+    <p class="intro">Each country gets its own page, written around what makes its figures different, never the same template with the numbers swapped. Every number names its source.</p>
   </section>
 
   <h2>Explore</h2>
-  <div class="grid-cards">
-    <a class="card" href={`${base}/population/`}>
-      <span class="tag">Live</span>
-      <h3>Population</h3>
-      <p>Country by country: size, density, families, cities and where each is heading by 2050.</p>
-    </a>
-    <div class="card soon"><span class="tag">Coming soon</span><h3>Time &amp; time zones</h3><p>Local time in every city, time differences and a meeting planner.</p></div>
-    <div class="card soon"><span class="tag">Coming soon</span><h3>Economy</h3><p>GDP, income, inflation and how countries compare, with long-run charts.</p></div>
-    <div class="card soon"><span class="tag">Coming soon</span><h3>Rankings</h3><p>Countries ranked on hundreds of measures — each list sourced and explained.</p></div>
+  <div class="section-grid swipe">
+    {tiles.map((t) => (
+      <a class="tile" href={`${base}/${t.key}/`}>
+        <span class="ico"><Icon name={t.key} /></span>
+        <h3>{t.title}</h3>
+        <p>{t.text}</p>
+        <span class={t.live ? 'state on' : 'state'}>{t.live ? 'Open now' : 'Coming soon'}</span>
+      </a>
+    ))}
   </div>
 
   <h2>Featured country</h2>
-  <div class="grid-cards">
-    <a class="card" href={`${base}/population/bangladesh/`}>
-      <span class="tag">Southern Asia</span>
+  <a class="feature" href={`${base}/population/bangladesh/`}>
+    <div class="body">
       <h3>Bangladesh</h3>
-      <p>The most crowded large country on Earth — and how it went from nearly seven children per family to two.</p>
-    </a>
-  </div>
+      <div class="big num">{(bd.current.population / 1e6).toFixed(1)} million</div>
+      <p>The most crowded large country on Earth, and how it went from nearly seven children per family to two.</p>
+    </div>
+    <div class="side"><Contours /></div>
+  </a>
 </Base>

@@ -1,26 +1,27 @@
 ---
-// A live population estimate: starts from a mid-year figure and adds the
-// yearly net change spread evenly across the year, ticking in the browser.
-// For slow-growing places the main number changes only every few seconds,
-// so we also show counters that visibly move every second: people added
-// today, added this year, and a countdown to the next +1.
+// Live population estimate: a mid-year figure plus the yearly net change spread
+// evenly through the year. "Added today", "Added this year" and "Next +1 in"
+// move every second so the counter visibly feels live even for slow-growing places.
+// If the page has a #mini-counter (mobile app bar), it mirrors the main number.
+import Contours from './Contours.astro';
 interface Props {
   label: string;
-  anchorValue: number;   // population on anchorDate
-  anchorDate: string;    // ISO date, e.g. "2026-07-01"
-  perYear: number;       // net change per year
+  anchorValue: number;
+  anchorDate: string;
+  perYear: number;
   note?: string;
 }
 const { label, anchorValue, anchorDate, perYear, note } = Astro.props;
 const id = `c${Math.random().toString(36).slice(2, 8)}`;
 ---
 <div class="counter" id={id} data-anchor={anchorValue} data-date={anchorDate} data-rate={perYear}>
+  <Contours />
   <div class="label"><span class="pulse" aria-hidden="true"></span>{label}</div>
-  <div class="value" data-k="total">{anchorValue.toLocaleString('en-US')}</div>
+  <div class="value" data-k="total" aria-live="off">{anchorValue.toLocaleString('en-US')}</div>
   <div class="ticks">
-    <div><span class="tk">Added today</span><span class="tv num" data-k="today">—</span></div>
-    <div><span class="tk">Added this year</span><span class="tv num" data-k="year">—</span></div>
-    <div><span class="tk">Next +1 in</span><span class="tv num" data-k="next">—</span></div>
+    <div class="chip"><span class="k">Added today</span><span class="v" data-k="today">–</span></div>
+    <div class="chip"><span class="k">This year</span><span class="v" data-k="year">–</span></div>
+    <div class="chip"><span class="k">Next +1 in</span><span class="v" data-k="next">–</span></div>
   </div>
   {note && <div class="sub">{note}</div>}
 </div>
@@ -30,11 +31,12 @@ const id = `c${Math.random().toString(36).slice(2, 8)}`;
     if (!root) return;
     var q = function (k) { return root.querySelector('[data-k="' + k + '"]'); };
     var total = q('total'), today = q('today'), year = q('year'), next = q('next');
+    var mini = document.getElementById('mini-counter');
     var anchor = Number(root.dataset.anchor);
     var t0 = Date.parse(root.dataset.date);
     var perMs = Number(root.dataset.rate) / (365.25 * 24 * 3600 * 1000);
     var last = null;
-    function fmt(n) { return Math.floor(n).toLocaleString('en-US'); }
+    var fmt = function (n) { return Math.floor(n).toLocaleString('en-US'); };
     function tick() {
       var now = Date.now();
       var exact = anchor + (now - t0) * perMs;
@@ -43,27 +45,15 @@ const id = `c${Math.random().toString(36).slice(2, 8)}`;
       var startDay = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
       var startYear = new Date(d.getFullYear(), 0, 1).getTime();
       total.textContent = fmt(v);
-      if (last !== null && v !== last) {
-        total.classList.remove('bump'); void total.offsetWidth; total.classList.add('bump');
-      }
+      if (mini) mini.textContent = fmt(v);
+      if (last !== null && v !== last) { total.classList.remove('bump'); void total.offsetWidth; total.classList.add('bump'); }
       last = v;
       today.textContent = '+' + fmt((now - startDay) * perMs);
       year.textContent = '+' + fmt((now - startYear) * perMs);
-      var secs = Math.ceil((1 - (exact - v)) / perMs / 1000);
-      next.textContent = secs + 's';
+      var secs = Math.max(1, Math.ceil((1 - (exact - v)) / perMs / 1000));
+      next.textContent = secs < 60 ? secs + 's' : Math.ceil(secs / 60) + 'm';
     }
     tick();
     setInterval(tick, 250);
   })();
 </script>
-<style>
-  .counter .label { display: flex; align-items: center; gap: 8px; }
-  .pulse { width: 8px; height: 8px; border-radius: 50%; background: #d64545; box-shadow: 0 0 0 0 rgba(214,69,69,.6); animation: pulse 1.6s infinite; }
-  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(214,69,69,.55); } 70% { box-shadow: 0 0 0 8px rgba(214,69,69,0); } 100% { box-shadow: 0 0 0 0 rgba(214,69,69,0); } }
-  .value.bump { animation: bump .6s ease-out; }
-  @keyframes bump { 0% { color: #0e7c6b; } 100% { color: inherit; } }
-  .ticks { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 8px 0 6px; font-size: .85rem; }
-  .ticks > div { display: flex; flex-direction: column; }
-  .tk { color: #8a94a3; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; }
-  .tv { font-weight: 600; color: #0e7c6b; font-size: 1.05rem; }
-</style>

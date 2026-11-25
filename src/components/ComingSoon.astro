@@ -1,0 +1,16 @@
+---
+import Base from '../layouts/Base.astro';
+interface Props { section: 'time' | 'economy' | 'rankings'; title: string; lead: string; items: string[] }
+const { section, title, lead, items } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<Base title={`${title} | AtlasFigures`} description={lead} section={section} appTitle={title}>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href={`${base}/`}>Home</a> / {title}</nav>
+  <h1>{title}</h1>
+  <div class="soon-box">
+    <p>{lead}</p>
+    <p>What this section will include:</p>
+    <ul>{items.map((i) => <li>{i}</li>)}</ul>
+    <p><a href={`${base}/population/`}>Explore population by country while you wait</a></p>
+  </div>
+</Base>

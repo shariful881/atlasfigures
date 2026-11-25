@@ -1,14 +1,34 @@
 ---
-// The same Key Facts box sits in the same place on every country page,
-// so moving between countries always feels like the same site.
+// Key facts in two forms from one list:
+// desktop = sticky box beside the story; mobile = 2-column tiles + "All facts" bottom sheet.
+import Icon from './Icon.astro';
 interface Fact { label: string; value: string }
-interface Props { facts: Fact[]; source: string; sourceUrl?: string }
-const { facts, source, sourceUrl } = Astro.props;
+interface Props { facts: Fact[]; source: string; sourceUrl?: string; tiles?: number; variant: 'box' | 'mobile' }
+const { facts, source, sourceUrl, tiles = 4, variant } = Astro.props;
+const sheetId = 'facts-sheet';
 ---
-<aside class="keyfacts" aria-label="Key facts">
-  <h2>Key facts</h2>
-  <dl>
-    {facts.map((f) => (<><dt>{f.label}</dt><dd class="num">{f.value}</dd></>))}
-  </dl>
-  <div class="src">Source: {sourceUrl ? <a href={sourceUrl}>{source}</a> : source}</div>
-</aside>
+{variant === 'box' && (
+  <aside class="facts" aria-label="Key facts">
+    <h2>Key facts</h2>
+    <dl>{facts.map((f) => (<><dt>{f.label}</dt><dd>{f.value}</dd></>))}</dl>
+    <div class="src">Source: {sourceUrl ? <a href={sourceUrl}>{source}</a> : source}</div>
+  </aside>
+)}
+{variant === 'mobile' && (
+  <>
+    <div class="fact-tiles">
+      {facts.slice(0, tiles).map((f) => (<div><span class="k">{f.label}</span><span class="v">{f.value}</span></div>))}
+    </div>
+    <button class="sheet-trigger" type="button" data-open={sheetId}>All {facts.length} key facts <Icon name="sheet" /></button>
+    <dialog class="sheet" id={sheetId} aria-label="Key facts">
+      <div class="grab"></div>
+      <div class="sheet-body">
+        <div class="sheet-head"><h2>Key facts</h2><button class="close" type="button" data-close>Done</button></div>
+        <div class="facts" style="display:block;position:static;border:0;padding:0">
+          <dl>{facts.map((f) => (<><dt>{f.label}</dt><dd>{f.value}</dd></>))}</dl>
+          <div class="src">Source: {sourceUrl ? <a href={sourceUrl}>{source}</a> : source}</div>
+        </div>
+      </div>
+    </dialog>
+  </>
+)}

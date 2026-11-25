@@ -1,24 +1,45 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Flag from '../../components/Flag.astro';
+import Icon from '../../components/Icon.astro';
 import bd from '../../data/countries/bangladesh.json';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const countries = [bd];
+const countries = [{ ...bd, code: 'bd' }];
 ---
 <Base
   title="Population of Every Country | AtlasFigures"
   description="Population, density, fertility and the story behind the numbers for every country in the world."
   section="population"
+  appTitle="Population"
 >
-  <div class="crumbs"><a href={`${base}/`}>Home</a> / Population</div>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href={`${base}/`}>Home</a> / Population</nav>
   <h1>Population by country</h1>
-  <p class="lead">Every country gets its own page, written around what makes its population story different. We are adding countries every week.</p>
-  <div class="grid-cards">
-    {countries.map((c) => (
-      <a class="card" href={`${base}/population/${c.slug}/`}>
-        <span class="tag">{c.region}</span>
-        <h3>{c.name}</h3>
-        <p><span class="num">{(c.current.population / 1e6).toFixed(1)}M</span> people · #{c.current.worldRank} in the world</p>
-      </a>
+  <p class="answer">Each country has its own page, written around what makes its population story different. New countries are added every week.</p>
+  <div class="filters" role="group" aria-label="Filter by continent">
+    {['All', 'Asia', 'Africa', 'Europe', 'Americas', 'Oceania'].map((r, i) => (
+      <button type="button" class={i === 0 ? 'on' : ''} aria-pressed={i === 0 ? 'true' : 'false'} data-region={r}>{r}</button>
     ))}
   </div>
+  <div class="list">
+    {countries.map((c) => (
+      <a class="row" href={`${base}/population/${c.slug}/`} data-continent={c.continent}>
+        <Flag code={c.code} class="flag" />
+        <span><span class="name">{c.name}</span><br /><span class="meta">{c.region}</span></span>
+        <span class="rank">#{c.current.worldRank} in the world</span>
+        <span class="val">{(c.current.population / 1e6).toFixed(1)}M</span>
+        <span class="chev"><Icon name="chevron" /></span>
+      </a>
+    ))}
+    <p class="empty note" hidden style="padding:16px 18px;margin:0">No countries from this continent yet. They are on the way.</p>
+  </div>
+  <script is:inline>
+    (function () {
+      var btns = document.querySelectorAll('.filters button'), rows = document.querySelectorAll('.list .row'), empty = document.querySelector('.list .empty');
+      btns.forEach(function (b) { b.addEventListener('click', function () {
+        btns.forEach(function (x) { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        var n = 0; rows.forEach(function (r) { var ok = b.dataset.region === 'All' || r.dataset.continent === b.dataset.region; r.hidden = !ok; if (ok) n++; });
+        empty.hidden = n > 0;
+      }); });
+    })();
+  </script>
 </Base>

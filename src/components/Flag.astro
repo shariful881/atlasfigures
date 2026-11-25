@@ -1,0 +1,8 @@
+---
+// Simple national flags, drawn as SVG. Add a case when a country page is added.
+interface Props { code: string; class?: string }
+const { code, class: cls } = Astro.props;
+---
+<svg class={cls} viewBox="0 0 30 18" role="img" aria-label={`${code.toUpperCase()} flag`} preserveAspectRatio="xMidYMid slice">
+  {code === 'bd' && (<><rect width="30" height="18" fill="#006a4e"/><circle cx="13.5" cy="9" r="6" fill="#f42a41"/></>)}
+</svg>

@@ -20,17 +20,121 @@
     "worldRank": 8
   },
   "series": [
-    { "year": 1960, "population": 51828660, "density": 398, "fertility": 6.74, "medianAge": 17.9, "urbanPct": 5.1, "netMigrants": 13580, "rank": 10 },
-    { "year": 1970, "population": 69058894, "density": 531, "fertility": 6.84, "medianAge": 16.8, "urbanPct": 7.4, "netMigrants": -73719, "rank": 9 },
-    { "year": 1980, "population": 88016432, "density": 676, "fertility": 6.33, "medianAge": 16.5, "urbanPct": 14.7, "netMigrants": -515918, "rank": 8 },
-    { "year": 1990, "population": 111633717, "density": 858, "fertility": 4.51, "medianAge": 17.4, "urbanPct": 19.9, "netMigrants": -404105, "rank": 9 },
-    { "year": 2000, "population": 134544304, "density": 1034, "fertility": 3.28, "medianAge": 19.7, "urbanPct": 23.3, "netMigrants": -512422, "rank": 8 },
-    { "year": 2010, "population": 152201982, "density": 1169, "fertility": 2.38, "medianAge": 21.9, "urbanPct": 27.7, "netMigrants": -1113727, "rank": 8 },
-    { "year": 2020, "population": 166298024, "density": 1278, "fertility": 2.18, "medianAge": 24.6, "urbanPct": 31.1, "netMigrants": -1002522, "rank": 8 },
-    { "year": 2026, "population": 177818044, "density": 1366, "fertility": 2.09, "medianAge": 26.3, "urbanPct": 33.8, "netMigrants": -371398, "rank": 8 },
-    { "year": 2030, "population": 186072407, "density": 1429, "fertility": 2.01, "medianAge": 27.7, "urbanPct": 36.6, "netMigrants": -294833, "rank": 8, "projection": true },
-    { "year": 2040, "population": 202589429, "density": 1556, "fertility": 1.87, "medianAge": 31.7, "urbanPct": 46.3, "netMigrants": -331839, "rank": 8, "projection": true },
-    { "year": 2050, "population": 214709097, "density": 1649, "fertility": 1.81, "medianAge": 35.5, "urbanPct": 59.3, "netMigrants": -308070, "rank": 10, "projection": true }
+    {
+      "year": 1960,
+      "population": 51828660,
+      "density": 398,
+      "fertility": 6.74,
+      "medianAge": 17.9,
+      "urbanPct": 5.1,
+      "netMigrants": 13580,
+      "rank": 10
+    },
+    {
+      "year": 1970,
+      "population": 69058894,
+      "density": 531,
+      "fertility": 6.84,
+      "medianAge": 16.8,
+      "urbanPct": 7.4,
+      "netMigrants": -73719,
+      "rank": 9
+    },
+    {
+      "year": 1980,
+      "population": 88016432,
+      "density": 676,
+      "fertility": 6.33,
+      "medianAge": 16.5,
+      "urbanPct": 14.7,
+      "netMigrants": -515918,
+      "rank": 8
+    },
+    {
+      "year": 1990,
+      "population": 111633717,
+      "density": 858,
+      "fertility": 4.51,
+      "medianAge": 17.4,
+      "urbanPct": 19.9,
+      "netMigrants": -404105,
+      "rank": 9
+    },
+    {
+      "year": 2000,
+      "population": 134544304,
+      "density": 1034,
+      "fertility": 3.28,
+      "medianAge": 19.7,
+      "urbanPct": 23.3,
+      "netMigrants": -512422,
+      "rank": 8
+    },
+    {
+      "year": 2010,
+      "population": 152201982,
+      "density": 1169,
+      "fertility": 2.38,
+      "medianAge": 21.9,
+      "urbanPct": 27.7,
+      "netMigrants": -1113727,
+      "rank": 8
+    },
+    {
+      "year": 2020,
+      "population": 166298024,
+      "density": 1278,
+      "fertility": 2.18,
+      "medianAge": 24.6,
+      "urbanPct": 31.1,
+      "netMigrants": -1002522,
+      "rank": 8
+    },
+    {
+      "year": 2026,
+      "population": 177818044,
+      "density": 1366,
+      "fertility": 2.09,
+      "medianAge": 26.3,
+      "urbanPct": 33.8,
+      "netMigrants": -371398,
+      "rank": 8
+    },
+    {
+      "year": 2030,
+      "population": 186072407,
+      "density": 1429,
+      "fertility": 2.01,
+      "medianAge": 27.7,
+      "urbanPct": 36.6,
+      "netMigrants": -294833,
+      "rank": 8,
+      "projection": true
+    },
+    {
+      "year": 2040,
+      "population": 202589429,
+      "density": 1556,
+      "fertility": 1.87,
+      "medianAge": 31.7,
+      "urbanPct": 46.3,
+      "netMigrants": -331839,
+      "rank": 8,
+      "projection": true
+    },
+    {
+      "year": 2050,
+      "population": 214709097,
+      "density": 1649,
+      "fertility": 1.81,
+      "medianAge": 35.5,
+      "urbanPct": 59.3,
+      "netMigrants": -308070,
+      "rank": 10,
+      "projection": true
+    }
   ],
-  "dhakaCensus2022": 10295786
+  "dhakaCensus2022": 10295786,
+  "continent": "Asia",
+  "code": "bd"
 }
