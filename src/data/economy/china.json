@@ -1,0 +1,42 @@
+{
+  "slug": "china",
+  "name": "China",
+  "demonym": "Chinese",
+  "capital": "Beijing",
+  "iso3": "CHN",
+  "code": "cn",
+  "continent": "Asia",
+  "wikipedia": "https://en.wikipedia.org/wiki/China",
+  "published": "2026-11-25",
+  "updated": "2026-11-25",
+  "tableYears": [
+    1960,
+    1978,
+    1990,
+    2000,
+    2007,
+    2010,
+    2015,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "verification": {
+    "checkedOn": "2026-11-25",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/econ-batch1.py reads the original World Bank zips (data/raw/wdi/) and the UN WPP 2024 file, not the site's generated data; then the text was read by hand",
+    "what": "Every figure in the direct answer, indicator cards, Key facts, story, comparison figures, table, CSV, FAQ, title, description and JSON-LD, and the claim behind each sentence (records, 'since' years, rank positions, comparisons with other countries)",
+    "against": "World Bank WDI bulk files (update 11 November 2026, CC BY 4.0); UN WPP 2024",
+    "result": "All 3,175 automated comparisons across the five pages matched; unsourced cause statements and a forecast-like sentence removed before publishing"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-25",
+      "type": "published",
+      "note": "First version: World Bank WDI figures (update of 11 November 2026)."
+    }
+  ]
+}

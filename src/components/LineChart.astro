@@ -24,9 +24,9 @@ const money = (v: number) => `$${Math.round(v).toLocaleString('en-US')}`;
 const short = (v: number) => (format === 'millions' ? (big ? `${Number((v / 1e9).toFixed(1))}B` : `${Math.round(v / 1e6)}M`)
   : format === 'usdBillions' ? (v >= 1e12 ? `$${Number((v / 1e12).toFixed(1))}T` : `$${Math.round(v / 1e9)}B`) : format === 'percent' ? `${Number(v.toFixed(1))}%` : format === 'usd' ? money(v) : String(Number(v.toFixed(2))));
 const label = (v: number) => (format === 'millions' ? (big ? `${(v / 1e9).toFixed(2)}B` : `${(v / 1e6).toFixed(1)}M`)
-  : format === 'usdBillions' ? `$${(v / 1e9).toFixed(1)}B` : format === 'percent' ? `${v.toFixed(1)}%` : format === 'usd' ? money(v) : String(v));
+  : format === 'usdBillions' ? (v >= 1e12 ? `$${(v / 1e12).toFixed(2)}T` : `$${(v / 1e9).toFixed(1)}B`) : format === 'percent' ? `${v.toFixed(1)}%` : format === 'usd' ? money(v) : String(v));
 const long = (v: number) => (format === 'millions' ? (big ? `${(v / 1e9).toFixed(2)} billion` : `${(v / 1e6).toFixed(1)} million`)
-  : format === 'usdBillions' ? `$${(v / 1e9).toFixed(1)} billion` : format === 'percent' ? `${v.toFixed(1)}%` : format === 'usd' ? money(v) : `${v}${unit ? ` ${unit}` : ''}`);
+  : format === 'usdBillions' ? (v >= 1e12 ? `$${(v / 1e12).toFixed(2)} trillion` : `$${(v / 1e9).toFixed(1)} billion`) : format === 'percent' ? `${v.toFixed(1)}%` : format === 'usd' ? money(v) : `${v}${unit ? ` ${unit}` : ''}`);
 
 const xs = points.map((p) => p.x);
 const ys = points.map((p) => p.y);

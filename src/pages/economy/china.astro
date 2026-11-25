@@ -1,0 +1,172 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/china.json';
+import { econData, econMeta, aggregate, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/china/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, net, share } = B;
+const us = econData('USA').series;
+const worldPc = valueIn(aggregate('WLD').series.gdpPerCapita, L)!;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const ratio = (y: number) => (v('gdp', y)! / valueIn(us.gdp, y)!) * 100;
+const times2000 = gdp / v('gdp', 2000)!;
+
+assertClaim(B.gdpRank === 2 && times2000 > 15 && times2000 < 16.5, 'second largest; almost 16 times its 2000 size');
+assertClaim(s.gdpGrowthPct.filter(([y, x]) => y > 1992 && x >= g(2007)).map(([y]) => y).join() === '2007' && g(1992) > g(2007), '2007 growth fastest since 1992');
+assertClaim(s.gdpGrowthPct.filter(([y, x]) => y > 1976 && x < 0).length === 0 && g(1976) < 0, 'no contraction since 1976');
+assertClaim(ratio(2021) > ratio(L) + 10, 'gap with the US widened since 2021');
+assertClaim([2023, 2024, L].every((y) => i(y) < 0.3 && i(y) >= 0) && s.inflationPct.filter(([y]) => y > 2009 && y < L).every(([, x]) => x > i(L)) && i(2009) < 0, 'inflation under 0.3% three years running; latest lowest since 2009');
+assertClaim(perHead < worldPc && perHead / worldPc > 0.95, 'GDP per person just under the world average');
+assertClaim(g(2020) > 0 && g(2020) < 3, 'still grew in 2020');
+const bigGrowth = rankBy('gdp', L).filter((r) => r.value > 1e12).map((r) => ({ iso3: r.iso3, x: r.value / (valueIn(econData(r.iso3).series.gdp, 2000) ?? Infinity) }));
+assertClaim(bigGrowth.every((b) => b.iso3 === c.iso3 || b.x < times2000), 'no trillion-dollar economy grew as much since 2000');
+assertClaim(g(L).toFixed(1) === g(L - 1).toFixed(1) && [2023, 2024, L].every((y) => g(y) > 4.5 && g(y) < 5.5), 'growth around 5%, same as the year before');
+assertClaim(s.inflationPct.filter(([y, x]) => y >= 2013 && y <= 2022 && x >= 1 && x <= 3).length >= 8, 'inflation mostly 1–3% in 2013–2022');
+const u10 = s.unemploymentPct.filter(([y]) => y >= 2015).map(([, x]) => x);
+assertClaim(Math.max(...u10) - Math.min(...u10) < 1, 'unemployment barely changed in a decade');
+
+const title = `China Economy ${L}: GDP, Growth and Prices | AtlasFigures`;
+const description = `At ${usd(gdp)} in ${L}, China's economy is ${pct(share)} of the world total and almost 16 times its 2000 size. Growth of ${pct(growth)}, prices barely rising, and income per person close to the global average.`;
+
+const faq = [
+  { q: 'How big is China\'s GDP compared with the world?', a: `${usd(gdp)} in ${L}, or ${pct(share)} of world GDP, second only to the United States.` },
+  { q: `What was China's GDP growth rate in ${L}?`, a: `${pct(growth)} in real terms, the same pace as in ${L - 1}. The fastest year of the last three decades was 2007, at ${pct(g(2007))}.` },
+  { q: 'Does China have deflation?', a: `Not on the World Bank's yearly figures: the consumer price index edged up ${pct(i(L))} in ${L}, ${pct(i(2024))} in 2024 and ${pct(i(2023))} in 2023. The last full year of falling prices in the series was 2009.` },
+  { q: 'Is China a rich country?', a: `Not yet by income per head: output per resident came to ${usdWhole(perHead)} in ${L}, a little below the world average of ${usdWhole(worldPc)}, and the World Bank classes China as ${B.e.incomeGroup!.toLowerCase()}.` },
+  { q: 'Do China\'s figures include Hong Kong and Macao?', a: 'No. The World Bank reports Hong Kong SAR and Macao SAR as separate economies, so their output is not in these numbers.' },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `China's economy ${L}: GDP of ${usd(gdp)}, growth, prices and income`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="China's economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'China', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>China's economy in numbers</h1>
+        <p class="answer">
+          China generated <strong>{usd(gdp)}</strong> of GDP in {L}, second only to the United States and {pct(share)} of the global economy. It grew <strong>{pct(growth)}</strong>, while consumer prices hardly moved at all.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`China economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="China" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">No other trillion-dollar economy has grown as much as China's since 2000. The numbers now tell a calmer story: steady growth around 5%, almost no inflation and a dollar gap with America that has stopped closing.</p>
+
+        <div class="story-block prose">
+          <h2>How much has China's economy grown since 2000?</h2>
+          <p>Almost sixteen-fold in current dollars, from {usd(v('gdp', 2000)!)} in 2000 to {usd(gdp)} in {L}. Real growth peaked at {pct(g(2007))} in 2007, the strongest since 1992, and the economy has not contracted in any year since 1976; even in 2020 it grew {pct(g(2020))}.</p>
+        </div>
+        <LineChart
+          title={`China's GDP, 1960–${L}`}
+          subtitle="Annual output in current US dollars."
+          points={s.gdp.filter(([y]) => y % 5 === 0 || y >= 2019).map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Will China's economy overtake America's?</h2>
+          <p>On current-dollar figures the two have drifted apart since 2021. China's output equalled {pct(ratio(2021))} of the American total that year and {pct(ratio(L))} in {L}, so the US lead is wider than it was. The <a href={path('/economy/united-states/')}>US economy page</a> and our <a href={path('/rankings/gdp-by-country/')}>GDP ranking</a> show the comparison from the other side; nothing in this data forecasts the future.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Are prices falling in China?</h2>
+          <p>Close to standing still. The consumer price index climbed just {pct(i(L))} in {L}, following {pct(i(2024))} and {pct(i(2023))} in the two prior years, the weakest run since prices last fell outright in 2009. Over the decade before that, inflation mostly ran between 1% and 3%.</p>
+        </div>
+        <LineChart
+          title={`China's yearly price rises, 2010–${L}`}
+          subtitle="Change in consumer prices over each year."
+          points={s.inflationPct.filter(([y]) => y >= 2010).map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How rich is the average Chinese person?</h2>
+          <p>Each resident's share of output came to {usdWhole(perHead)} in {L}, just under the world average of {usdWhole(worldPc)} and about {Math.round((perHead / valueIn(us.gdpPerCapita, L)!) * 100)}% of the American level. Adjusted for prices it reaches {intDollars(ppp!)}. In 2000 the dollar figure was {usdWhole(v('gdpPerCapita', 2000)!)}.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How connected is China?</h2>
+          <p>{pct(net!.value)} of the population was online in {net!.year}. Joblessness stood at {pct(unemp!)} (ILO modelled), barely different from a decade earlier.</p>
+        </div>
+
+        <nav class="related" aria-label="Related pages">
+          <h2>More about China and its neighbours</h2>
+          <ul>
+            <li><a href={path('/population/china/')}>China's population</a></li>
+            <li><a href={path('/population/japan/')}>Japan's population</a></li>
+            <li><a href={path('/population/south-korea/')}>South Korea's population</a></li>
+            <li><a href={path('/economy/india/')}>India's economy</a></li>
+            <li><a href={path('/rankings/gdp-per-capita-by-country/')}>GDP per person, all countries</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Six decades of China's economy, 1960–${L}`}
+          subtitle="Including 1978, 2000 and the peak-growth year of 2007; all years are in the CSV."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/china-economy.csv')} csvName="china-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Short answers on China's economy</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), remittances, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">World Bank figures for China do not include Hong Kong SAR or Macao SAR, which are listed separately (World Bank country notes). Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("China's economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="China" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>
