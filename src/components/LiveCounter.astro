@@ -1,59 +1,76 @@
 ---
-// Live population estimate: a mid-year figure plus the yearly net change spread
-// evenly through the year. "Added today", "Added this year" and "Next +1 in"
-// move every second so the counter visibly feels live even for slow-growing places.
-// If the page has a #mini-counter (mobile app bar), it mirrors the main number.
+// Live population estimate styled like a live ticker:
+// LIVE pill + ticking local clock, odometer digits that roll when they change,
+// a progress bar filling until the next +1, and today / this-year counters.
+// Estimate = UN mid-year figure + UN yearly net change spread evenly over the year.
+// If the page has #mini-counter (mobile app bar), it mirrors the number.
 import Contours from './Contours.astro';
 interface Props {
   label: string;
   anchorValue: number;
-  anchorDate: string;
+  anchorDate: string;   // ISO date of the anchor figure
   perYear: number;
   note?: string;
 }
 const { label, anchorValue, anchorDate, perYear, note } = Astro.props;
 const id = `c${Math.random().toString(36).slice(2, 8)}`;
+const perDay = Math.round(perYear / 365);
 ---
-<div class="counter" id={id} data-anchor={anchorValue} data-date={anchorDate} data-rate={perYear}>
+<section class="live" id={id} data-anchor={anchorValue} data-date={anchorDate} data-rate={perYear} aria-label={label}>
   <Contours />
-  <div class="label"><span class="pulse" aria-hidden="true"></span>{label}</div>
-  <div class="value" data-k="total" aria-live="off">{anchorValue.toLocaleString('en-US')}</div>
-  <div class="ticks">
-    <div class="chip"><span class="k">Added today</span><span class="v" data-k="today">–</span></div>
-    <div class="chip"><span class="k">This year</span><span class="v" data-k="year">–</span></div>
-    <div class="chip"><span class="k">Next +1 in</span><span class="v" data-k="next">–</span></div>
+  <div class="live-top">
+    <span class="live-pill"><span class="pulse" aria-hidden="true"></span>LIVE</span>
+    <span class="live-label">{label}</span>
+    <span class="live-clock" aria-hidden="true">as of <span data-k="clock">--:--:--</span></span>
   </div>
-  {note && <div class="sub">{note}</div>}
-</div>
+  <div class="odo" data-k="total" aria-hidden="true">{anchorValue.toLocaleString('en-US')}</div>
+  <p class="visually-hidden">Estimated {label.toLowerCase()}: about {anchorValue.toLocaleString('en-US')} at {anchorDate}, rising by about {perDay.toLocaleString('en-US')} a day.</p>
+  <div class="next" aria-hidden="true">
+    <div class="next-bar"><span data-k="bar"></span></div>
+    <span class="next-txt">Next +1 in <b data-k="next">–</b></span>
+  </div>
+  <div class="live-stats">
+    <div><span class="k">Added today</span><span class="v" data-k="today">–</span></div>
+    <div><span class="k">Added this year</span><span class="v" data-k="year">–</span></div>
+    <div><span class="k">Per day</span><span class="v">+{perDay.toLocaleString('en-US')}</span></div>
+  </div>
+  {note && <p class="live-note">{note}</p>}
+</section>
 <script is:inline define:vars={{ id }}>
   (function () {
-    var root = document.getElementById(id);
-    if (!root) return;
+    var root = document.getElementById(id); if (!root) return;
     var q = function (k) { return root.querySelector('[data-k="' + k + '"]'); };
-    var total = q('total'), today = q('today'), year = q('year'), next = q('next');
+    var odo = q('total'), today = q('today'), year = q('year'), next = q('next'), bar = q('bar'), clock = q('clock');
     var mini = document.getElementById('mini-counter');
-    var anchor = Number(root.dataset.anchor);
-    var t0 = Date.parse(root.dataset.date);
+    var anchor = Number(root.dataset.anchor), t0 = Date.parse(root.dataset.date);
     var perMs = Number(root.dataset.rate) / (365.25 * 24 * 3600 * 1000);
-    var last = null;
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var shown = '';
     var fmt = function (n) { return Math.floor(n).toLocaleString('en-US'); };
-    function tick() {
-      var now = Date.now();
-      var exact = anchor + (now - t0) * perMs;
-      var v = Math.floor(exact);
-      var d = new Date(now);
-      var startDay = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-      var startYear = new Date(d.getFullYear(), 0, 1).getTime();
-      total.textContent = fmt(v);
-      if (mini) mini.textContent = fmt(v);
-      if (last !== null && v !== last) { total.classList.remove('bump'); void total.offsetWidth; total.classList.add('bump'); }
-      last = v;
-      today.textContent = '+' + fmt((now - startDay) * perMs);
-      year.textContent = '+' + fmt((now - startYear) * perMs);
-      var secs = Math.max(1, Math.ceil((1 - (exact - v)) / perMs / 1000));
-      next.textContent = secs < 60 ? secs + 's' : Math.ceil(secs / 60) + 'm';
+    function render(str) {
+      if (str.length !== shown.length) {
+        odo.innerHTML = '';
+        for (var i = 0; i < str.length; i++) { var s = document.createElement('span'); s.className = str[i] === ',' ? 'sep' : 'dg'; s.textContent = str[i]; odo.appendChild(s); }
+      } else {
+        for (var j = 0; j < str.length; j++) {
+          if (str[j] !== shown[j]) {
+            var el = odo.children[j]; el.textContent = str[j];
+            if (!reduce) { el.classList.remove('roll'); void el.offsetWidth; el.classList.add('roll'); }
+          }
+        }
+      }
+      shown = str;
     }
-    tick();
-    setInterval(tick, 250);
+    function tick() {
+      var now = Date.now(), exact = anchor + (now - t0) * perMs, v = Math.floor(exact), d = new Date(now);
+      var str = fmt(v); render(str); if (mini) mini.textContent = str;
+      today.textContent = '+' + fmt((now - new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()) * perMs);
+      year.textContent = '+' + fmt((now - new Date(d.getFullYear(), 0, 1).getTime()) * perMs);
+      var frac = exact - v, secs = Math.max(1, Math.ceil((1 - frac) / perMs / 1000));
+      next.textContent = secs < 60 ? secs + 's' : Math.ceil(secs / 60) + 'm';
+      bar.style.width = (frac * 100).toFixed(1) + '%';
+      clock.textContent = d.toLocaleTimeString('en-GB');
+    }
+    tick(); setInterval(tick, 200);
   })();
 </script>

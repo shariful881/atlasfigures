@@ -3,6 +3,8 @@ import Base from '../../layouts/Base.astro';
 import KeyFacts from '../../components/KeyFacts.astro';
 import LiveCounter from '../../components/LiveCounter.astro';
 import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
 import bd from '../../data/countries/bangladesh.json';
 import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER } from '../../site';
 
@@ -24,17 +26,30 @@ const urbanPeople = Math.round(c.population * c.urbanPct / 100);
 const title = `Bangladesh Population 2026: ${(c.population / 1e6).toFixed(1)} Million | AtlasFigures`;
 const description = `Bangladesh has about ${m(c.population)} people in 2026, ${fmt(c.densityPerKm2)} per km². How it tripled since 1960, cut births from 6.8 to 2.1 per woman, and what the UN projects for 2050.`;
 
-const facts = [
-  { label: 'Population 2026', value: `${(c.population / 1e6).toFixed(1)}M` },
+const checkedOn = bd.verification.checkedOn;
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: fmt(c.population), note: 'mid-2026 estimate' },
+    { label: 'World rank', value: `${c.worldRank}th` },
+    { label: 'Share of world', value: `${c.worldSharePct}%` },
+    { label: 'Growth per year', value: `+${c.yearlyChangePct}%`, note: `+${fmt(c.netChange)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${fmt(c.landAreaKm2)} km²` },
+    { label: 'People per km²', value: fmt(c.densityPerKm2) },
+    { label: 'Capital', value: bd.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${c.medianAge} years` },
+    { label: 'Births per woman', value: `${c.fertility}` },
+    { label: 'Living in cities', value: `${c.urbanPct}%` },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: `${(c.population / 1e6).toFixed(1)}M` },
   { label: 'World rank', value: `${c.worldRank}th` },
   { label: 'People per km²', value: fmt(c.densityPerKm2) },
-  { label: 'Growth per year', value: `+${c.yearlyChangePct}%` },
-  { label: 'Share of world', value: `${c.worldSharePct}%` },
-  { label: 'Land area', value: `${fmt(c.landAreaKm2)} km²` },
-  { label: 'Median age', value: `${c.medianAge} years` },
-  { label: 'Births per woman', value: `${c.fertility}` },
-  { label: 'Living in cities', value: `${c.urbanPct}%` },
-  { label: 'Capital', value: bd.capital },
+  { label: 'Median age', value: `${c.medianAge}` },
 ];
 
 const faq = [
@@ -113,8 +128,8 @@ const schema = [
         <p class="answer">
           Bangladesh has about <strong>{m(c.population)} people</strong> in 2026, the world's {c.worldRank}th largest population, on less land than many single US states. At <strong>{fmt(c.densityPerKm2)} people per km²</strong>, it is the most crowded large country on Earth.
         </p>
-        <p class="dates">Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · Data: {src}</p>
-        <KeyFacts variant="mobile" facts={facts} source={src} sourceUrl={bd.sourceUrl} />
+        <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={src} url={bd.sourceUrl} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Bangladesh" code="bd" year={2026} groups={factGroups} highlights={highlights} source={src} sourceUrl={bd.sourceUrl} checkedOn={checkedOn} />
       </header>
 
       <div class="segments" role="tablist" aria-label="Page sections">
@@ -139,6 +154,8 @@ const schema = [
           format="millions"
           highlight={2026}
           source={src}
+          sourceUrl={bd.sourceUrl}
+          checkedOn={checkedOn}
         />
 
         <div class="story-block prose">
@@ -149,8 +166,12 @@ const schema = [
           title="Births per woman in Bangladesh, 1960–2050"
           subtitle="Total fertility rate. About 2.1 means each generation replaces itself."
           points={bd.series.map((r) => ({ x: r.year, y: r.fertility, projection: proj(r) }))}
+          unit="births per woman"
           highlight={2026}
+          refLine={{ y: 2.1, label: 'Replacement level, 2.1' }}
           source={src}
+          sourceUrl={bd.sourceUrl}
+          checkedOn={checkedOn}
         />
 
         <div class="story-block prose">
@@ -179,34 +200,26 @@ const schema = [
         </div>
       </section>
 
-      <section class="panel" data-panel="data" aria-labelledby="data-h">
-        <h2 id="data-h">Bangladesh population by year (1960–2050)</h2>
-        <div class="table-scroll">
-          <table class="data">
-            <caption class="visually-hidden">Population of Bangladesh by year with density, births per woman, median age, urban share and world rank. Source: {src}.</caption>
-            <thead><tr><th scope="col">Year</th><th scope="col">Population</th><th scope="col">People/km²</th><th scope="col">Births per woman</th><th scope="col">Median age</th><th scope="col">Urban</th><th scope="col">World rank</th></tr></thead>
-            <tbody>
-              {bd.series.map((r) => (
-                <tr class={proj(r) ? 'proj' : ''}>
-                  <th scope="row">{r.year}{proj(r) ? ' (UN projection)' : ''}</th>
-                  <td>{fmt(r.population)}</td>
-                  <td>{fmt(r.density)}</td>
-                  <td>{r.fertility}</td>
-                  <td>{r.medianAge}</td>
-                  <td>{r.urbanPct}%</td>
-                  <td>{r.rank}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <p class="download"><a href={path('/data/bangladesh-population.csv')} download>Download this table as CSV</a> · Data licence: <a href="https://creativecommons.org/licenses/by/3.0/igo/">CC BY 3.0 IGO</a> (UN). Please credit "AtlasFigures, based on UN World Population Prospects 2024"</p>
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Bangladesh population by year, 1960–2050"
+          subtitle="Mid-year population with density, births per woman, median age, urban share and world rank. 2030–2050 are UN projections."
+          rows={bd.series as any}
+          current={2026}
+          source={src}
+          sourceUrl={bd.sourceUrl}
+          checkedOn={checkedOn}
+          csv={path('/data/bangladesh-population.csv')}
+          csvName="bangladesh-population.csv"
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
       </section>
 
       <section class="panel" data-panel="faq" aria-labelledby="faq-h">
         <h2 id="faq-h">Quick answers about Bangladesh's population</h2>
         <div class="faq">
-          {faq.map((f, i) => (<details open={i === 0}><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
         </div>
       </section>
 
@@ -223,7 +236,7 @@ const schema = [
       </details>
     </article>
 
-    <KeyFacts variant="box" facts={facts} source={src} sourceUrl={bd.sourceUrl} />
+    <KeyFacts variant="box" country="Bangladesh" code="bd" year={2026} groups={factGroups} highlights={highlights} source={src} sourceUrl={bd.sourceUrl} checkedOn={checkedOn} />
   </div>
 
   <script is:inline>

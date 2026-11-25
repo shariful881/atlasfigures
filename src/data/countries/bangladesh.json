@@ -136,5 +136,10 @@
   ],
   "dhakaCensus2022": 10295786,
   "continent": "Asia",
-  "code": "bd"
+  "code": "bd",
+  "verification": {
+    "checkedOn": "2026-11-25",
+    "against": "UN World Population Prospects 2024, via Our World in Data (population-unwpp, population-with-un-projections, fertility-rate-with-projections, median-age, share-of-population-urban)",
+    "result": "All population, fertility, median-age and urban figures match the UN data to the shown precision"
+  }
 }

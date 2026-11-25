@@ -1,34 +1,64 @@
 ---
-// Key facts in two forms from one list:
-// desktop = sticky box beside the story; mobile = 2-column tiles + "All facts" bottom sheet.
+// Key facts card, same place and labels on every country page.
+// desktop = sticky titled card with grouped rows; mobile = titled tile grid + "All facts" bottom sheet.
 import Icon from './Icon.astro';
-interface Fact { label: string; value: string }
-interface Props { facts: Fact[]; source: string; sourceUrl?: string; tiles?: number; variant: 'box' | 'mobile' }
-const { facts, source, sourceUrl, tiles = 4, variant } = Astro.props;
+import Flag from './Flag.astro';
+import SourceBadge from './SourceBadge.astro';
+interface Fact { label: string; value: string; note?: string }
+interface Group { title: string; facts: Fact[] }
+interface Props {
+  country: string; code: string; year: number;
+  groups: Group[]; highlights: Fact[];
+  source: string; sourceUrl?: string; checkedOn?: string;
+  variant: 'box' | 'mobile';
+}
+const { country, code, year, groups, highlights, source, sourceUrl, checkedOn, variant } = Astro.props;
+const total = groups.reduce((n, g) => n + g.facts.length, 0);
 const sheetId = 'facts-sheet';
 ---
 {variant === 'box' && (
-  <aside class="facts" aria-label="Key facts">
-    <h2>Key facts</h2>
-    <dl>{facts.map((f) => (<><dt>{f.label}</dt><dd>{f.value}</dd></>))}</dl>
-    <div class="src">Source: {sourceUrl ? <a href={sourceUrl}>{source}</a> : source}</div>
+  <aside class="facts" aria-labelledby="kf-title">
+    <div class="facts-head">
+      <Flag code={code} class="facts-flag" />
+      <div>
+        <h2 id="kf-title">{country} at a glance</h2>
+        <span class="facts-sub">Key facts, {year}</span>
+      </div>
+    </div>
+    {groups.map((g) => (
+      <section class="facts-group" aria-label={g.title}>
+        <h3>{g.title}</h3>
+        <dl>{g.facts.map((f) => (<div class="frow"><dt>{f.label}</dt><dd>{f.value}{f.note && <small>{f.note}</small>}</dd></div>))}</dl>
+      </section>
+    ))}
+    <SourceBadge source={source} url={sourceUrl} checkedOn={checkedOn} variant="footer" />
   </aside>
 )}
 {variant === 'mobile' && (
-  <>
-    <div class="fact-tiles">
-      {facts.slice(0, tiles).map((f) => (<div><span class="k">{f.label}</span><span class="v">{f.value}</span></div>))}
+  <section class="facts-m" aria-labelledby="kfm-title">
+    <div class="facts-m-head">
+      <Flag code={code} class="facts-flag" />
+      <h2 id="kfm-title">{country} at a glance</h2>
+      <span class="facts-sub">{year}</span>
     </div>
-    <button class="sheet-trigger" type="button" data-open={sheetId}>All {facts.length} key facts <Icon name="sheet" /></button>
-    <dialog class="sheet" id={sheetId} aria-label="Key facts">
+    <div class="fact-tiles">
+      {highlights.map((f) => (<div><span class="k">{f.label}</span><span class="v">{f.value}</span></div>))}
+    </div>
+    <button class="sheet-trigger" type="button" data-open={sheetId}>See all {total} key facts <Icon name="sheet" /></button>
+    <dialog class="sheet" id={sheetId} aria-label={`${country} key facts`}>
       <div class="grab"></div>
       <div class="sheet-body">
-        <div class="sheet-head"><h2>Key facts</h2><button class="close" type="button" data-close>Done</button></div>
-        <div class="facts" style="display:block;position:static;border:0;padding:0">
-          <dl>{facts.map((f) => (<><dt>{f.label}</dt><dd>{f.value}</dd></>))}</dl>
-          <div class="src">Source: {sourceUrl ? <a href={sourceUrl}>{source}</a> : source}</div>
+        <div class="sheet-head"><h2>{country} at a glance</h2><button class="close" type="button" data-close>Done</button></div>
+        <div class="facts facts-in-sheet">
+          {groups.map((g) => (
+            <section class="facts-group" aria-label={g.title}>
+              <h3>{g.title}</h3>
+              <dl>{g.facts.map((f) => (<div class="frow"><dt>{f.label}</dt><dd>{f.value}{f.note && <small>{f.note}</small>}</dd></div>))}</dl>
+            </section>
+          ))}
+          <SourceBadge source={source} url={sourceUrl} checkedOn={checkedOn} variant="footer" />
         </div>
       </div>
     </dialog>
-  </>
+  </section>
 )}

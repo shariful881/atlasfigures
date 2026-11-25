@@ -13,6 +13,20 @@ Every new page, section or change must follow all three. Summary:
 - Sources section is ALWAYS a collapsed `<details>` accordion (like FAQ) on desktop and mobile, containing
   the source list, methodology link and Published/Updated dates.
 - Projections are always labelled "UN projection".
+- FAQ: every question starts CLOSED (no `open` attribute), desktop and mobile.
+- "Verified" badge (`SourceBadge` with `checkedOn`) only after the figures were actually checked against the
+  named source; record the check in the country JSON under `verification` (date, what was checked, against what).
+  Without a check, pass no `checkedOn` (plain "Source:" line, no badge).
+
+## Components (use these, don't hand-roll)
+- `LiveCounter`: LIVE pill + local clock, rolling odometer digits, "Next +1" progress bar, today / this year / per day.
+- `KeyFacts`: titled "<Country> at a glance" card with flag and grouped rows (People / Land / Society);
+  mobile = titled tiles + bottom sheet. Verified badge in the footer.
+- `LineChart`: title, subtitle, legend, area fill, labelled first / now / last points, dashed UN projection band,
+  optional reference line, hover/touch readout, verified badge footer. Separate desktop and mobile SVGs.
+- `DataTable`: titled card, CSV button, inline population bars, "Now" row highlight, "UN projections" band,
+  verified badge + licence footer.
+- Tabular figures only in table cells and the odometer; never on numbers containing "." inside running text or chips.
 
 ## Design (two designs, one URL)
 - < 768px: mobile app shell (app bar, bottom tab bar, segment tabs, bottom sheets). >= 768px: website layout.

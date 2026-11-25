@@ -1,0 +1,76 @@
+---
+// Professional yearly data table: titled card, inline population bars,
+// highlighted current year, separate "UN projections" band, verified source + CSV in the footer.
+import SourceBadge from './SourceBadge.astro';
+interface Row { year: number; population: number; density: number; fertility: number; medianAge: number; urbanPct: number; rank: number; projection?: boolean }
+interface Props {
+  id: string; title: string; subtitle: string; rows: Row[]; current: number;
+  source: string; sourceUrl?: string; checkedOn?: string; csv: string; csvName: string; licence?: { name: string; url: string };
+}
+const { id, title, subtitle, rows, current, source, sourceUrl, checkedOn, csv, csvName, licence } = Astro.props;
+const max = Math.max(...rows.map((r) => r.population));
+const est = rows.filter((r) => !r.projection);
+const proj = rows.filter((r) => r.projection);
+const fmt = (n: number) => n.toLocaleString('en-US');
+---
+<section class="tcard" aria-labelledby={id}>
+  <header class="tcard-head">
+    <div>
+      <h2 id={id}>{title}</h2>
+      <p class="tcard-sub">{subtitle}</p>
+    </div>
+    <a class="btn-ghost" href={csv} download={csvName}>
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m0 0-3.5-3.5M10 12l3.5-3.5M4 15.5h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      CSV
+    </a>
+  </header>
+  <div class="table-scroll">
+    <table class="data">
+      <caption class="visually-hidden">{title}. {subtitle}</caption>
+      <thead>
+        <tr>
+          <th scope="col">Year</th>
+          <th scope="col" class="c-pop">Population</th>
+          <th scope="col">People per km²</th>
+          <th scope="col">Births per woman</th>
+          <th scope="col">Median age</th>
+          <th scope="col">Urban</th>
+          <th scope="col">World rank</th>
+        </tr>
+      </thead>
+      <tbody>
+        {est.map((r) => (
+          <tr class={r.year === current ? 'is-current' : ''}>
+            <th scope="row">{r.year}{r.year === current && <span class="now-tag">Now</span>}</th>
+            <td class="c-pop"><span class="bar" style={`--w:${(r.population / max).toFixed(3)}`} aria-hidden="true"></span><span class="n">{fmt(r.population)}</span></td>
+            <td>{fmt(r.density)}</td>
+            <td>{r.fertility}</td>
+            <td>{r.medianAge}</td>
+            <td>{r.urbanPct}%</td>
+            <td>{r.rank}</td>
+          </tr>
+        ))}
+      </tbody>
+      {proj.length > 0 && (
+        <tbody class="proj-band">
+          <tr class="band-label"><th scope="rowgroup" colspan="7">UN projections (medium variant)</th></tr>
+          {proj.map((r) => (
+            <tr class="proj">
+              <th scope="row">{r.year}</th>
+              <td class="c-pop"><span class="bar bar-proj" style={`--w:${(r.population / max).toFixed(3)}`} aria-hidden="true"></span><span class="n">{fmt(r.population)}</span></td>
+              <td>{fmt(r.density)}</td>
+              <td>{r.fertility}</td>
+              <td>{r.medianAge}</td>
+              <td>{r.urbanPct}%</td>
+              <td>{r.rank}</td>
+            </tr>
+          ))}
+        </tbody>
+      )}
+    </table>
+  </div>
+  <footer class="tcard-foot">
+    <SourceBadge source={source} url={sourceUrl} checkedOn={checkedOn} variant="footer" />
+    {licence && <span class="lic">Licence: <a href={licence.url}>{licence.name}</a></span>}
+  </footer>
+</section>
