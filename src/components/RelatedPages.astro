@@ -42,8 +42,9 @@ const heading = onlySub ? `More countries in ${self.subregion}` : `More countrie
 const own = pagesOf(iso3);
 const more = [
   own.economy && { href: own.economy, label: `${name}'s economy` },
+  { href: '/rankings/population-by-country/', label: 'Population by country' },
+  { href: '/rankings/population-density-by-country/', label: 'Population density by country' },
   { href: '/rankings/gdp-by-country/', label: 'GDP by country' },
-  { href: '/rankings/gdp-per-capita-by-country/', label: 'GDP per person by country' },
   { href: '/population/', label: 'Population of every country' },
 ].filter(Boolean) as { href: string; label: string }[];
 ---

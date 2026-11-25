@@ -67,6 +67,8 @@ const pages: { path: string; lastmod: string }[] = [
   { path: '/economy/japan/', lastmod: '2026-11-25' },
   { path: '/economy/south-korea/', lastmod: '2026-11-25' },
   { path: '/economy/france/', lastmod: '2026-11-25' },
+  { path: '/rankings/population-by-country/', lastmod: '2026-11-25' },
+  { path: '/rankings/population-density-by-country/', lastmod: '2026-11-25' },
   { path: '/rankings/gdp-by-country/', lastmod: '2026-11-25' },
   { path: '/rankings/gdp-per-capita-by-country/', lastmod: '2026-11-25' },
   { path: '/rankings/inflation-rate-by-country/', lastmod: '2026-11-25' },

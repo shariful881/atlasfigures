@@ -8,7 +8,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "check:unique": "node scripts/check-unique.mjs",
-    "check": "npm run build && node scripts/check-unique.mjs && node scripts/check-site.mjs && node scripts/check-wdi.mjs && node scripts/check-econ-pages.mjs",
+    "check": "npm run build && node scripts/check-unique.mjs && node scripts/check-site.mjs && node scripts/check-wdi.mjs && node scripts/check-econ-pages.mjs && node scripts/check-pop-rankings.mjs",
     "data": "node scripts/build-data.mjs && node scripts/build-wdi.mjs",
     "prebuild": "node scripts/build-data.mjs && node scripts/build-wdi.mjs",
     "check:site": "node scripts/check-site.mjs",
