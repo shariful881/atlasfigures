@@ -1,0 +1,57 @@
+{
+  "slug": "poland",
+  "name": "Poland",
+  "demonym": "Polish",
+  "capital": "Warsaw",
+  "iso3": "POL",
+  "code": "pl",
+  "continent": "Europe",
+  "wikipedia": "https://en.wikipedia.org/wiki/Poland",
+  "unName": "Poland",
+  "published": "2026-11-25",
+  "updated": "2026-11-25",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    2000,
+    2010,
+    2020,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026,
+    2030,
+    2040,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-25",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/poland.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population 1950–2100 (every year from 2022), rank 2026/2050/2100, share, growth, density, land area; 2023 peak and about half by 2100; third in Eastern Europe",
+      "More deaths than births every year since 2018; births and deaths 2026; births 1957 peak",
+      "Net migration 2021, 2022 (Poland's highest; second in Europe after Germany), outflows every year 2023–2026",
+      "Fertility under 2.1 since 1989, 2003 low, now; median age 2000/2026/2050; urban share second-lowest among European countries over 10 million after Romania",
+      "Title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 77 of 77 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Comparisons name their size group and region; no causes are stated that the UN data do not show. No image alt text on the page (the flag and charts carry aria-labels)."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-25",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
