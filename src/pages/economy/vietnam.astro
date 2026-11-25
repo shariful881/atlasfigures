@@ -1,0 +1,161 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/vietnam.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/vietnam/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const idn = econData('IDN').series.gdpPerCapita;
+const ahead = s.gdpPerCapita.filter(([y, x]) => (valueIn(idn, y) ?? Infinity) < x).map(([y]) => y);
+const t100 = s.gdp.find(([, x]) => x >= 1e11)![0];
+const pInfl = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+
+assertClaim(B.gdpRank === 31 && s.gdp.every(([y, x]) => y === L || x < gdp), '31st, record dollar GDP');
+assertClaim(t100 === 2009 && gdp / v('gdp', 2009)! > 4.5 && gdp / v('gdp', 2009)! < 5.5, 'passed one hundred billion dollars in 2009, about five times bigger now');
+assertClaim(ahead.join() === `1987,${L}`, 'GDP per person above Indonesia for the first time since 1987');
+assertClaim(s.gdpGrowthPct[0][0] === 1985 && s.gdpGrowthPct.every(([, x]) => x > 0), 'no year of decline since 1985');
+assertClaim(growth >= 8 && Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < L && x > growth).map(([y]) => y)) === 2022, 'growth the fastest since 2022');
+assertClaim(pInfl[0] === 2008 && s.inflationPct[0][0] === 1996 && infl.year === L && infl.value < 4, 'inflation peak 2008, now under 4%');
+assertClaim(unemp! < 2 && rem!.year === 2004 && net!.value > 80, 'low unemployment; remittance data end in 2004; internet above 80%');
+
+const idnRatio = valueIn(econData('IDN').series.gdp, L)! / gdp;
+assertClaim(idnRatio > 2.6 && idnRatio < 3, 'Indonesia almost three times larger');
+
+const title = `Vietnam Economy ${L}: 8% Growth, GDP and Income per Head | AtlasFigures`;
+const description = `Vietnam's economy grew ${pct(growth)} in ${L} to ${usd(gdp)}. With no year of decline in World Bank figures since 1985, its output per person reached ${usdWhole(perHead)} and edged past Indonesia for the first time since 1987.`;
+
+const faq = [
+  { q: 'What is Vietnam\'s latest growth figure?', a: `${pct(growth)} in ${L}, Vietnam's best result since 2022 (${pct(g(2022))}).` },
+  { q: 'Has Vietnam had a recession?', a: `Not in the World Bank's yearly series, beginning in 1985. The slowest years were 2020 (${pct(g(2020))}) and 2021 (${pct(g(2021))}).` },
+  { q: 'Is Vietnam richer than Indonesia now?', a: `Only just, per person: ${usdWhole(perHead)} against ${usdWhole(valueIn(idn, L)!)} in ${L}. Vietnam last came out ahead in 1987. Indonesia's total economy is far larger.` },
+  { q: 'How large is Vietnam\'s GDP in dollars?', a: `${usd(gdp)} in ${L} (${ord(B.gdpRank!)} worldwide), about five times the 2009 total, the year it first crossed one hundred billion dollars.` },
+  { q: 'Does the World Bank have remittance data for Vietnam?', a: `Its latest figure is for ${rem!.year}: ${usd(rem!.value)}. There is no more recent World Bank value, so we do not rank Vietnam on remittances.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Vietnam's economy ${L}: ${pct(growth)} growth and no shrinking year since 1985`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Vietnam's economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Vietnam', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Vietnam's economy: no shrinking year since 1985</h1>
+        <p class="answer">
+          Vietnam's GDP grew <strong>{pct(growth)}</strong> in {L} to <strong>{usd(gdp)}</strong>. The World Bank's records since 1985 show no year in which output fell.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Vietnam economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Vietnam" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Fast, uninterrupted growth runs through Vietnam's numbers; in {L} it carried output per person just past Indonesia's, for the first time since 1987.</p>
+
+        <div class="story-block prose">
+          <h2>Is Vietnam's growth speeding up?</h2>
+          <p>Yes. Real GDP rose {pct(growth)} in {L}, up from {pct(g(2024))} in 2024 and the strongest result since 2022. There has not been a single shrinking year since World Bank data begin in 1985; the softest results came in 2020 ({pct(g(2020))}) and 2021 ({pct(g(2021))}).</p>
+        </div>
+        <LineChart
+          title={`Vietnam's real GDP growth, 1985–${L}`}
+          subtitle="Annual change in GDP at constant prices, per cent."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How big is Vietnam's economy now?</h2>
+          <p>Bigger than ever: {usd(gdp)} for {L}, which places Vietnam {ord(B.gdpRank!)} worldwide. GDP crossed the one-hundred-billion-dollar mark back in 2009 and has since roughly quintupled.</p>
+        </div>
+        <LineChart
+          title={`Vietnam's GDP in current dollars, 1985–${L}`}
+          subtitle="Dollar output each year, according to the World Bank."
+          points={s.gdp.map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Has Vietnam overtaken Indonesia?</h2>
+          <p>On output per person, narrowly: {usdWhole(perHead)} against {usdWhole(valueIn(idn, L)!)} in {L}, the first time Vietnam has been ahead since 1987. Indonesia's economy as a whole remains almost three times larger. At purchasing power parity Vietnam's figure is {intDollars(ppp!)}. See the <a href={path('/economy/indonesia/')}>Indonesia economy page</a>.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>What about prices, jobs and the internet in Vietnam?</h2>
+          <p>Inflation was {pct(infl.value)} in {L}, far below the 2008 peak of {pct(pInfl[1])}. The ILO models unemployment at just {pct(unemp!)}, and {pct(net!.value)} of Vietnamese were online in {net!.year}. The World Bank's latest remittance figure for Vietnam dates from {rem!.year}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Vietnam and Southeast Asia: more pages</h2>
+          <ul>
+            <li><a href={path('/population/vietnam/')}>Vietnam's population</a></li>
+            <li><a href={path('/economy/indonesia/')}>Indonesia's economy</a></li>
+            <li><a href={path('/economy/philippines/')}>The Philippine economy</a></li>
+            <li><a href={path('/economy/china/')}>China's economy</a></li>
+            <li><a href={path('/rankings/gdp-per-capita-by-country/')}>GDP per head, all economies</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Vietnam's economy since 1985, selected years`}
+          subtitle="From 1985, when World Bank GDP data for Vietnam begin; includes 2004 and 2009. The CSV has every year."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/vietnam-economy.csv')} csvName="vietnam-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Vietnam's economy: your questions</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">The World Bank lists the country as "Viet Nam"; we use its common English name. Its consumer price data start in 1996. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Vietnam's economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Vietnam" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>
