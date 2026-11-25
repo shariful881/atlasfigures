@@ -87,7 +87,11 @@ Every new page, section or change must follow all of them. Summary:
 ## Quality
 - URLs never change once published (301 via Cloudflare only if unavoidable, after launch).
 - Each country page links to its hub, 3–5 same-region countries that have pages, and related rankings; no orphans.
-- "Report an error" link in every Sources accordion + a Corrections policy page (in footer).
+- "Report an error" link in every Sources accordion (`reportErrorUrl()` in `src/site.ts`, pre-filled GitHub issue) +
+  Corrections page `/corrections/`, built automatically from every country JSON `changelog` entry with
+  `"type": "correction"` and from `src/data/site-corrections.json` (non-country pages). Log every correction there.
+- Trust pages are listed once in `INFO_LINKS` (`src/site.ts`): desktop footer + mobile "More" screen (`/more/`,
+  noindex, opened by the ⋯ button in the app bar). Add new trust pages there, not by hand.
 
 ## Components (use these, don't hand-roll)
 - `LiveCounter`: LIVE pill + local clock, rolling odometer digits, "Next +1" progress bar, today / this year / per day.

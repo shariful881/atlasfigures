@@ -1,9 +1,10 @@
 ---
 import InfoPage from '../components/InfoPage.astro';
+import { path } from '../site';
 ---
 <InfoPage title="Contact" heading="Contact" slug="contact" type="ContactPage" updated="2026-11-25"
   description="How to contact AtlasFigures to report an error, suggest a country or ask about our data.">
   <p>We welcome corrections, suggestions for countries and topics, and questions about our data.</p>
   <h2>Report an error or suggest a page</h2>
-  <p>Open an issue on our public project page: <a href="https://github.com/shariful881/atlasfigures/issues">github.com/shariful881/atlasfigures/issues</a>. Please include the page link and, for corrections, the source of the correct figure.</p>
+  <p>Open an issue on our public project page: <a href="https://github.com/shariful881/atlasfigures/issues">github.com/shariful881/atlasfigures/issues</a>. Please include the page link and, for corrections, the source of the correct figure. Each country page also has a <strong>Report an error</strong> link that fills in the page for you; see how we handle reports on our <a href={path('/corrections/')}>corrections page</a>.</p>
 </InfoPage>

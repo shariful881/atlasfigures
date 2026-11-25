@@ -36,11 +36,18 @@
   "changelog": [
     {
       "date": "2026-11-25",
+      "type": "published",
       "change": "Page published."
     },
     {
       "date": "2026-11-25",
-      "change": "All UN figures now read directly from the original UN files (WPP 2024 and WUP 2025). Corrected: yearly growth (1.2%, about 2.1 million a year; was shown as 1.21% and 2,131,144), people added per day, the year net emigration peaked (2008, not about 2010), and the source of the urban share (UN World Urbanization Prospects 2025, not WPP 2024). Removed two comparisons that had no source."
+      "type": "correction",
+      "change": "Yearly growth corrected to 1.2% and 2,123,011 people a year (shown before as 1.21% and 2,131,144), and people added per day to 5,816 (was 5,839). The year net emigration peaked corrected to 2008 (was given as about 2010). The urban share is now credited to its real source, UN World Urbanization Prospects 2025 (it was credited to World Population Prospects 2024; the figures did not change). Four statements without a source were removed (a comparison with US states, a claim about other countries taking a century, the main destinations of workers abroad, and an \"unusually large\" working-age share)."
+    },
+    {
+      "date": "2026-11-25",
+      "type": "update",
+      "change": "All UN figures are now read directly from the original UN files and re-checked."
     }
   ]
 }

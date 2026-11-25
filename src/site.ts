@@ -41,3 +41,21 @@ export const breadcrumbList = (crumbs: Crumb[]) => ({
 /** Human-readable date, e.g. "25 November 2026". */
 export const longDate = (iso: string) =>
   new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+
+/** Public issue tracker, used for error reports until the owner sets a contact email. */
+export const ISSUES_URL = 'https://github.com/shariful881/atlasfigures/issues';
+/** Pre-filled "report an error" form for one page. */
+export const reportErrorUrl = (pageName: string, pagePath: string) =>
+  `${ISSUES_URL}/new?title=${encodeURIComponent(`Error on: ${pageName}`)}&body=${encodeURIComponent(
+    `Page: ${abs(pagePath)}\n\nWhat is wrong:\n\nWhat it should say, with a link to the source:\n`,
+  )}`;
+
+/** Trust pages, in the order they appear in the footer and on the mobile "More" page. */
+export const INFO_LINKS: { label: string; href: string; text: string }[] = [
+  { label: 'About AtlasFigures', href: '/about/', text: 'Who makes this site and how' },
+  { label: 'Methodology', href: '/methodology/', text: 'How figures and live counters are made' },
+  { label: 'Sources', href: '/sources/', text: 'Every data source we use' },
+  { label: 'Corrections', href: '/corrections/', text: 'How we fix errors, and what we fixed' },
+  { label: 'Contact', href: '/contact/', text: 'Questions and suggestions' },
+  { label: 'Privacy', href: '/privacy/', text: 'What we collect and why' },
+];

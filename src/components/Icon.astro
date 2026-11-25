@@ -1,6 +1,6 @@
 ---
 // Line icons used in the mobile tab bar, app bar and section tiles.
-interface Props { name: 'home' | 'population' | 'time' | 'economy' | 'rankings' | 'back' | 'share' | 'search' | 'chevron' | 'sheet' }
+interface Props { name: 'home' | 'population' | 'time' | 'economy' | 'rankings' | 'back' | 'share' | 'search' | 'chevron' | 'sheet' | 'more' }
 const { name } = Astro.props;
 ---
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -14,4 +14,5 @@ const { name } = Astro.props;
   {name === 'search' && (<><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></>)}
   {name === 'chevron' && (<><path d="m9 6 6 6-6 6"/></>)}
   {name === 'sheet' && (<><path d="M6 9l6 6 6-6"/></>)}
+  {name === 'more' && (<><circle cx="5.5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="18.5" cy="12" r="1.6" fill="currentColor"/></>)}
 </svg>
