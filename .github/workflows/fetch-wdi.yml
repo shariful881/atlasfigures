@@ -1,0 +1,67 @@
+# Downloads World Bank World Development Indicators (WDI) as the original bulk CSV zips published by
+# api.worldbank.org (one zip per indicator: data + country metadata + indicator metadata), plus each
+# indicator's API metadata (licence, source). Writes data/raw/wdi/ with SOURCE.md (URLs, download time,
+# bytes, SHA-256, licence per indicator). Fails if any indicator is not licensed CC BY-4.0.
+# Runs on the `dev-data` branch only (second work tab: economy and other data, tasks 101+).
+name: Fetch World Bank data (dev-data)
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev-data]
+    paths:
+      - data/wdi-indicators.txt
+      - .github/workflows/fetch-wdi.yml
+permissions:
+  contents: write
+jobs:
+  fetch:
+    if: github.ref == 'refs/heads/dev-data'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev-data
+      - name: Download WDI zips and metadata from api.worldbank.org
+        run: |
+          set -euo pipefail
+          DIR=data/raw/wdi
+          rm -rf "$DIR"; mkdir -p "$DIR"
+          UA='AtlasFigures data fetch (github.com/shariful881/atlasfigures)'
+          CODES=$(grep -v '^\s*#' data/wdi-indicators.txt | grep -v '^\s*$')
+          ROWS=""
+          for C in $CODES; do
+            ZURL="https://api.worldbank.org/v2/en/indicator/$C?downloadformat=csv"
+            MURL="https://api.worldbank.org/v2/sources/2/series/$C/metadata?format=json"
+            curl -fSL --retry 3 -A "$UA" -o "$DIR/$C.zip" "$ZURL"
+            curl -fSL --retry 3 -A "$UA" -o "$DIR/$C.metadata.json" "$MURL"
+            unzip -tq "$DIR/$C.zip"
+            LIC=$(jq -r '.source[0].concept[0].variable[0].metatype[] | select(.id=="License_Type") | .value' "$DIR/$C.metadata.json")
+            NAME=$(jq -r '.source[0].concept[0].variable[0].metatype[] | select(.id=="IndicatorName") | .value' "$DIR/$C.metadata.json")
+            UPD=$(unzip -p "$DIR/$C.zip" "API_*" | grep -m1 'Last Updated Date' | sed -E 's/.*"Last Updated Date","([^"]+)".*/\1/')
+            if [ "$LIC" != "CC BY-4.0" ]; then echo "::error::$C licence is '$LIC', not CC BY-4.0"; exit 1; fi
+            ROWS="$ROWS| $C | $NAME | $LIC | $UPD | $ZURL | $(stat -c %s "$DIR/$C.zip") | $(sha256sum "$DIR/$C.zip" | cut -d' ' -f1) |"$'\n'
+          done
+          {
+            echo "# World Bank World Development Indicators — original files"
+            echo
+            echo "Downloaded automatically by .github/workflows/fetch-wdi.yml. Do not edit by hand."
+            echo
+            echo "- Publisher: The World Bank"
+            echo "- Dataset: World Development Indicators (https://datacatalog.worldbank.org/search/dataset/0037712)"
+            echo "- Licence: CC BY 4.0 (checked per indicator in the World Bank API metadata, field License_Type)"
+            echo "- Terms: https://www.worldbank.org/ext/en/legal/terms-conditions/datasets — must not imply World Bank endorsement"
+            echo "- Downloaded (UTC): $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo
+            echo "| Code | Indicator | Licence | WDI last updated | URL | Bytes | SHA-256 |"
+            echo "|---|---|---|---|---|---|---|"
+            printf '%s' "$ROWS"
+          } > "$DIR/SOURCE.md"
+          cat "$DIR/SOURCE.md"
+      - name: Commit to dev-data
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/raw/wdi
+          git diff --cached --quiet && { echo 'No change'; exit 0; }
+          git commit -m 'Data: World Bank WDI files (economy indicators)'
+          git push origin HEAD:dev-data

@@ -7,6 +7,19 @@
 - `main` is protected by a GitHub ruleset ("Protect main (live site)"): no direct pushes, no force push, no deletion;
   changes reach `main` only through a pull request from `dev`, and the `check` job must pass first.
 
+## Second work tab: economy and other data (owner's decision, 25 Nov 2026)
+- Population work continues on `dev` (work list `claude/atlasfigures-worklist.md`, tasks 1–30). Economy and other
+  data topics run in parallel on the `dev-data` branch (made from `main`), work list
+  `claude/atlasfigures-worklist-data.md`, tasks 101+. Task 29 moved there (101–104).
+- `dev-data` follows EVERY rule in this file and in all Project guides exactly like `dev`: one numbered task at a
+  time, show the owner (screenshots 1280px + 390px), go live only after "live koro" via PR `dev-data` → `main`
+  with `check` passing (rebase on the latest `main` first). World Bank data rules: `claude/atlasfigures-data-guide-wdi.md`.
+- Keep edits to shared files (`check-site.mjs`, `figures.ts`, `package.json`, CI, header/nav, sitemap) small;
+  put new topics in their own files (`build-wdi.mjs`, `check-wdi.mjs`, `econ.ts`). Each tab updates only its own
+  work list and guide file.
+- Economy/other pages get the same automatic checks as country pages (uniqueness, page = data = JSON-LD = CSV,
+  closed FAQ/Sources, Report an error, links, sitemap) — extend the checks when the first such page is added.
+
 ## Tools: no laptop needed for normal work
 - Push, pull requests, merges, CI status: do it from this workspace with `git` and `gh api` (authenticated as
   shariful881; ignore `gh auth status` saying the token is invalid). Example go-live:

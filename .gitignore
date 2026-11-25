@@ -6,5 +6,7 @@ dist/
 
 # Generated from data/raw by scripts/build-data.mjs (npm run data / prebuild)
 src/data/wpp/
+# Generated from data/raw/wdi by scripts/build-wdi.mjs
+src/data/wdi/
 .tmp/
 __pycache__/
