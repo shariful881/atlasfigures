@@ -7,6 +7,15 @@
 - `main` is protected by a GitHub ruleset ("Protect main (live site)"): no direct pushes, no force push, no deletion;
   changes reach `main` only through a pull request from `dev`, and the `check` job must pass first.
 
+## Tools: no laptop needed for normal work
+- Push, pull requests, merges, CI status: do it from this workspace with `git` and `gh api` (authenticated as
+  shariful881; ignore `gh auth status` saying the token is invalid). Example go-live:
+  `gh api repos/shariful881/atlasfigures/pulls -f head=dev -f base=main -f title=... -f body=...` then
+  `gh api -X PUT repos/shariful881/atlasfigures/pulls/<n>/merge` after the `check` job passed.
+- UN data downloads: the "Fetch UN data (dev)" workflow. Screenshots/Lighthouse: Playwright + local Chrome here.
+- The owner's laptop (Chrome) only for things that need the owner's own login: domain/Cloudflare, Search Console,
+  AdSense, GitHub identity prompts. Tell the owner beforehand so the laptop is on.
+
 ## Work list (owner's rule)
 - All tasks are numbered in the Project doc `claude/atlasfigures-worklist.md`. Do ONLY the task number the owner
   names, one at a time; never start the next one on your own. When done: call the owner (changes + screenshots),
