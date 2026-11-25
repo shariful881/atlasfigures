@@ -81,3 +81,5 @@ EUROPE = {'923', '924', '925', '926'}
 def countries(y=2026, min_pop=0, parents=None):
     return [k for k in raw if k != 'WORLD' and P(k, y) > min_pop and (parents is None or raw[k][2026]['ParentID'] in parents)]
 k1 = lambda n: f"{round(n / 1000)} thousand"
+AFRICA = {'910', '911', '912', '913', '914'}   # Eastern, Middle, Northern, Southern, Western Africa
+mf = lambda k, yr=2026: f(k, yr, 'TPopulationMale1July') / f(k, yr, 'TPopulationFemale1July') * 100

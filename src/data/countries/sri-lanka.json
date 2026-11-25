@@ -1,0 +1,54 @@
+{
+  "slug": "sri-lanka",
+  "name": "Sri Lanka",
+  "demonym": "Sri Lankan",
+  "capital": "Sri Jayewardenepura Kotte",
+  "iso3": "LKA",
+  "code": "lk",
+  "continent": "Asia",
+  "wikipedia": "https://en.wikipedia.org/wiki/Sri_Lanka",
+  "unName": "Sri Lanka",
+  "published": "2026-11-25",
+  "updated": "2026-11-25",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    2000,
+    2010,
+    2020,
+    2026,
+    2030,
+    2040,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-25",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/sri-lanka.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population 1950–2100, rank, share, growth, density (eleventh among countries over 10 million), land area",
+      "Urban share lowest in Southern Asia, fourth-lowest among countries over 10 million, between 14% and 23% in every year 1950–2050",
+      "Life expectancy 1950/2026/2100, third in Southern Asia after the Maldives and Iran; median age above most of the region",
+      "Net outflow every year since 2002, record 1984; males per 100 females 1950 and now; fertility highest 1950, under 2.1 since 2015; births 1979 peak",
+      "Peak 2051 (25 years ahead), decline every year after, natural loss from 2058; capital checked against Encyclopaedia Britannica 'Sri Jayewardenepura Kotte' (fetched 2026-11-25); title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 61 of 61 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file",
+      "Encyclopaedia Britannica, 'Sri Jayewardenepura Kotte' (britannica.com/place/Sri-Jayewardenepura-Kotte), fetched 2026-11-25: legislative capital; Colombo the commercial capital"
+    ],
+    "result": "All figures match. Comparisons name their size group and region; no causes are stated that the UN data do not show. No image alt text on the page (the flag and charts carry aria-labels)."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-25",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}

@@ -1,0 +1,236 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import iq from '../../data/countries/iraq.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: nearly a million more people a year, eightfold growth since 1950, projected to pass Turkey and reach about 100 million by 2100.
+const PAGE = '/population/iraq/';
+const un = countryData(iq.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (iq.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const tur = wpp.find((d: any) => d.iso3 === 'TUR');
+const passTur = un.years.find((r) => r.population > at(tur, r.year).population)!.year;
+assertClaim(passTur === 2067, 'projected to overtake Turkey in 2067');
+assertClaim(un.years.filter((r) => r.year >= 2067).every((r) => wpp.filter((d: any) => d.subregion === 'Western Asia').sort((a: any, b: any) => at(b, r.year).population - at(a, r.year).population).map((d: any) => d.iso3).slice(0, 2).join(',') === 'YEM,IRQ'), 'from 2067 second in Western Asia behind Yemen');
+const west = wpp.filter((d: any) => d.subregion === 'Western Asia');
+assertClaim(west.slice().sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3).slice(0, 2).join(',') === 'TUR,IRQ', 'second in Western Asia after Turkey today');
+assertClaim(c.change > 950e3 && c.change < 1e6, 'adds just under 1 million people this year');
+const times = c.population / y[1950].population;
+assertClaim(times > 8.4 && times < 8.6, 'about eight and a half times 1950');
+const dbl = un.years.find((r) => r.population >= 2 * c.population)!.year;
+assertClaim(dbl === 2085 && un.years.filter((r) => r.year > CURRENT_YEAR).every((r) => r.change > 0), 'double by 2085; growth in every projected year');
+const est = un.years.filter((r) => !r.projection);
+const falls = est.filter((r) => r.change < 0).map((r) => r.year);
+assertClaim(falls.join(',') === '1990,2006,2007' && falls.every((yr) => y[yr].netMigrants < 0), 'declines in 1990, 2006, 2007, each with net outflow');
+const outTop = est.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+assertClaim(outTop.year === 2006, 'largest net outflow in 2006');
+const tfrMax = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+const below = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(tfrMax.year === 1969 && below === 2075, 'fertility peak 1969; projected under 2.1 from 2075');
+const youngW = west.filter((d: any) => at(d).population > 1e6).sort((a: any, b: any) => at(a).medianAge - at(b).medianAge).map((d: any) => d.iso3);
+assertClaim(youngW.indexOf('IRQ') === 2, 'third-lowest median age in Western Asia (countries over 1 million)');
+const decs = [];
+for (let k = 1960; k <= 2100; k += 10) decs.push({ k, d: y[k].population - y[k - 10].population });
+assertClaim(decs.reduce((a, b) => (b.d > a.d ? b : a)).k === 2020 && Math.abs(decs.find((x) => x.k === 2020)!.d / 1e6 - 11) < 0.2, '2010s added about 11 million, the most of any decade');
+assertClaim(c.naturalChange > c.change && Math.abs(c.netMigrants) < c.change / 20, 'almost all growth natural');
+const turPeak = tur.years.reduce((a: any, b: any) => (b.population > a.population ? b : a)).year;
+assertClaim(turPeak >= 2040 && turPeak < 2050, 'Turkey peaks in the 2040s');
+assertClaim(Math.abs(c.urbanPct! / y[1950].urbanPct! - 2) < 0.05, 'urban share double 1950');
+assertClaim(c.births > 1.15e6 && c.births < 1.25e6, 'about 1.2 million births');
+
+const title = `Iraq's Population Heads Toward 100 Million: ${(c.population / 1e6).toFixed(1)} Million in ${CURRENT_YEAR} | AtlasFigures`;
+const description = `Iraq's ${millions(c.population)} people (mid-${CURRENT_YEAR}) grow by almost a million a year. The UN projects it will overtake Turkey in ${passTur} and reach ${millions(y[2100].population)} by 2100.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: iq.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Added this year', value: int(c.change) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+];
+
+const rows = displayRows(un.years, iq.tableYears);
+
+const faq = [
+  { q: 'How big is Iraq\'s population today?', a: `By the UN's estimate for the middle of the year, ${millions(c.population)}, ${ord(c.worldRank!)} in the world and second in Western Asia after Turkey.` },
+  { q: "Will Iraq's population double?", a: `On the UN medium projection it reaches twice today's size in ${dbl} and keeps growing to ${millions(y[2100].population)} in 2100.` },
+  { q: 'Will Iraq have more people than Turkey?', a: `The projections say yes, from ${passTur}. By then, though, Yemen is projected to be the largest country in Western Asia, with Iraq second.` },
+  { q: 'Is Iraq one of the youngest countries in its region?', a: `Half of Iraqis are under ${dec(c.medianAge, 1)}, the third-lowest median in Western Asia among countries of more than 1 million. It is projected at ${dec(y[2050].medianAge, 1)} in 2050.` },
+  { q: 'What is the annual number of births in Iraq?', a: `Roughly ${millions(c.births)} this year; deaths are near ${int(Math.round(c.deaths / 1000))} thousand. The fertility rate stands at ${dec(c.fertility, 2)}.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: iq.slug, name: iq.name, wikipedia: iq.wikipedia,
+  headline: `Iraq at ${millions(c.population)}, adding almost a million people a year`,
+  description,
+  datasetName: 'Iraq population, births, fertility, migration and urban share, 1950–2100',
+  datasetDescription: `Mid-year population of Iraq for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: iq.published, updated: iq.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Iraq"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Iraq', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Iraq adds almost a million people a year</h1>
+        <LiveCounter
+          label="Iraq: population estimate, updating live"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} level, increasing around ${int(c.change / 365)} people every day`}
+        />
+        <p class="answer">
+          Iraq counts around <strong>{millions(c.population)}</strong> people as of mid-{CURRENT_YEAR}, ranking {ord(c.worldRank!)} worldwide, and grows by {pct(c.growthRatePct)}, <strong>close to a million people a year</strong>. The UN projects it will pass Turkey in {passTur}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={iq.updated}>{longDate(iq.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Iraq" code="iq" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>How much does Iraq's population grow each year?</h2>
+          <p>By {int(Math.round(c.change / 1000))} thousand or so in {CURRENT_YEAR}, a rate of {pct(c.growthRatePct)}. Almost all of it is natural increase, with births of around {millions(c.births)} far above the {int(Math.round(c.deaths / 1000))} thousand deaths. Since 1950, when it had {millions(y[1950].population)}, the population has multiplied about eight and a half times.</p>
+        </div>
+        <LineChart
+          title="Iraq's population, 1950–2100: a long climb toward 100 million"
+          subtitle="UN mid-year population, the medium projection dashed; it rises in every projected year."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Will Iraq overtake Turkey's population?</h2>
+          <p>Yes: the UN medium variant puts the crossover in {passTur}. Turkey is now the most populous country in Western Asia and Iraq the second; Turkey is projected to peak in the 2040s, while Iraq keeps growing. By 2050 Iraq would have {millions(y[2050].population)} ({ord(y[2050].worldRank!)} in the world) and by 2100 {millions(y[2100].population)} ({ord(y[2100].worldRank!)}).</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Is Iraq's birth rate coming down?</h2>
+          <p>Slowly. Fertility, {dec(tfrMax.fertility, 2)} children per woman at its {tfrMax.year} high, is {dec(c.fertility, 2)} now and projected to fall below 2.1 only in {below}. The median age, {dec(c.medianAge, 1)}, is the third-lowest in Western Asia for countries over 1 million people.</p>
+        </div>
+        <LineChart
+          title="Iraqi fertility, 1950 to 2050"
+          subtitle="Iraqi fertility, estimates then medium projection (dashed), set against 2.1."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: '2.1 marker' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+        <div class="age-row" role="group" aria-label="Median age in Iraq">
+          <div><span class="y">1950</span><div class="v">{dec(y[1950].medianAge, 1)}</div><span class="d">Median age</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{dec(c.medianAge, 1)}</div><span class="d">Very young</span></div>
+          <div><span class="y">2100, UN projection</span><div class="v">{dec(y[2100].medianAge, 1)}</div><span class="d">Late thirties</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Has Iraq's population ever shrunk?</h2>
+          <p>In three years of the UN series: 1990, 2006 and 2007, each coinciding with net emigration. The net outflow was largest in {outTop.year}, about {millions(-outTop.netMigrants)}. Apart from those years, growth has been continuous since 1950.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How much of Iraq is urban?</h2>
+          <p>About {pct(c.urbanPct!)} of the population, as Iraq defines urban areas, double the {pct(y[1950].urbanPct!)} of 1950, with {pct(y[2050].urbanPct!)} projected for 2050 in World Urbanization Prospects. Density averages {int(c.densityPerKm2)} people per km².</p>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Iraqi population across 15 decades"
+          subtitle="The 2010s added about 11 million people, the most of any decade in the UN series."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${iq.slug}-population.csv`)}
+          csvName={`${iq.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Iraq's population: things people want to know</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{iq.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share and its projection to 2050.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={iq.published}>{longDate(iq.published)}</time> · Updated <time datetime={iq.updated}>{longDate(iq.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Iraq population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Iraq" code="iq" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
