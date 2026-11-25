@@ -1,0 +1,12 @@
+# World Bank World Development Indicators fetched by .github/workflows/fetch-wdi.yml.
+# One indicator code per line. Adding a code here and pushing to dev-data re-fetches everything.
+# Each indicator's licence is read from the World Bank API metadata; the fetch fails unless it is CC BY-4.0.
+NY.GDP.MKTP.CD
+NY.GDP.PCAP.CD
+NY.GDP.PCAP.PP.CD
+NY.GDP.MKTP.KD.ZG
+FP.CPI.TOTL.ZG
+SL.UEM.TOTL.ZS
+BX.TRF.PWKR.CD.DT
+BX.TRF.PWKR.DT.GD.ZS
+IT.NET.USER.ZS
