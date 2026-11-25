@@ -1,0 +1,29 @@
+---
+// Economy headline indicators (design guide §3.6): a row of cards on desktop, swipe cards on mobile.
+// Fixed site UI: the labels repeat across pages; values come from the data, the year is always shown.
+interface Card { label: string; value: string; year: number; note?: string }
+interface Props { cards: Card[]; label: string }
+const { cards, label } = Astro.props;
+---
+<div class="ind-cards" role="list" aria-label={label}>
+  {cards.map((c) => (
+    <div class="ind-card" role="listitem">
+      <span class="k">{c.label}</span>
+      <span class="v">{c.value}</span>
+      <span class="y">{c.year}{c.note && ` · ${c.note}`}</span>
+    </div>
+  ))}
+</div>
+<style>
+  .ind-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 16px 0 20px; }
+  .ind-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 14px 16px; min-width: 0; }
+  .ind-card .k { display: block; font-size: .8rem; color: var(--text-2); }
+  .ind-card .v { display: block; font-size: 1.45rem; font-weight: 800; color: var(--ocean); line-height: 1.2; margin: 2px 0; }
+  .ind-card .y { display: block; font-size: .76rem; color: var(--text-3); }
+  @media (max-width: 767px) {
+    .ind-cards { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; margin: 12px -16px 16px; padding: 0 16px 4px; scroll-padding-inline: 16px; scrollbar-width: none; }
+    .ind-cards::-webkit-scrollbar { display: none; }
+    .ind-card { flex: 0 0 62%; scroll-snap-align: start; border: 0; }
+    .ind-card .v { font-size: 1.3rem; }
+  }
+</style>
