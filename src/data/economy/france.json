@@ -1,0 +1,42 @@
+{
+  "slug": "france",
+  "name": "France",
+  "demonym": "French",
+  "capital": "Paris",
+  "iso3": "FRA",
+  "code": "fr",
+  "continent": "Europe",
+  "wikipedia": "https://en.wikipedia.org/wiki/France",
+  "published": "2026-11-25",
+  "updated": "2026-11-25",
+  "tableYears": [
+    1960,
+    1975,
+    1990,
+    2000,
+    2009,
+    2015,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "verification": {
+    "checkedOn": "2026-11-25",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/econ-batch2.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; then the rendered text was read by hand",
+    "what": "Every figure in the direct answer, indicator cards, Key facts, story, comparison figures, table, CSV, FAQ, title, description and JSON-LD, and the claim behind each sentence (records, 'since' years, rank positions, G7 comparisons)",
+    "against": "World Bank WDI bulk files (update 11 November 2026, CC BY 4.0)",
+    "result": "All 3,164 automated comparisons across the five pages matched; build-time assertions caught and corrected two wrong 'since' claims (Japan inflation: since 1981, not 1991; Australia income peak: 2013, not 2012) before publishing"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-25",
+      "type": "published",
+      "note": "First version: World Bank WDI figures (update of 11 November 2026)."
+    }
+  ]
+}
