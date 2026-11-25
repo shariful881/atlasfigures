@@ -4,6 +4,8 @@
 - Never publish directly. Pushing to `main` deploys the live site, so work ONLY on the `dev` branch.
 - When work is done: show the owner what changed (screenshots at 1280px and 390px + a short list). Do not merge.
 - Merge `dev` → `main` (go live) ONLY after the owner explicitly says to make it live. One approval covers only that piece of work.
+- `main` is protected by a GitHub ruleset ("Protect main (live site)"): no direct pushes, no force push, no deletion;
+  changes reach `main` only through a pull request from `dev`, and the `check` job must pass first.
 
 Full guides live in the claude.ai Project "World Meters":
 `claude/atlasfigures-plan.md`, `claude/atlasfigures-design-guide.md`, `claude/atlasfigures-components-guide.md`,
