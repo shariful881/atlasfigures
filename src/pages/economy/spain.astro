@@ -1,0 +1,157 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/spain.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/spain/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const PEERS = ['DEU', 'FRA', 'ITA', 'NLD'];
+const peer = (x: string) => valueIn(econData(x).series.gdpGrowthPct, L)!;
+const uPeak = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+
+assertClaim(B.gdpRank === 12 && s.gdp.every(([y, x]) => y === L || x < gdp), 'twelfth, record dollar GDP');
+assertClaim(PEERS.every((x) => peer(x) < growth) && growth > 2.5, 'faster growth than Germany, France, Italy and the Netherlands');
+assertClaim(uPeak[0] === 2013 && uPeak[1] > 26 && Math.max(...s.unemploymentPct.filter(([y, x]) => y < L && x < unemp!).map(([y]) => y)) === 2007 && unemp! > 10, 'unemployment down from 26% in 2013 to the lowest since 2007, still above 10%');
+assertClaim([2021, 2022, 2023, 2024].every((y) => u(y) > u(y + 1)), 'unemployment down five years running');
+assertClaim(worst[0] === 2020 && worst[1] < -10 && s.gdpGrowthPct[0][0] === 1961, '2020 the worst year since 1961');
+assertClaim(Math.max(...s.inflationPct.filter(([y, x]) => y < 2022 && x > i(2022)).map(([y]) => y)) === 1986 && infl.year === L && infl.value < 3, '2022 inflation highest since 1986');
+
+const title = `Spain Economy ${L}: Fast Growth, Falling Unemployment | AtlasFigures`;
+const description = `With ${pct(growth)} real growth in ${L}, Spain outpaced Germany, France and Italy and reached ${usd(gdp)}. Its jobless rate, ${pct(unemp!)}, is the best since 2007 though still above one in ten.`;
+
+const faq = [
+  { q: 'Is Spain outgrowing Germany and France?', a: `Yes, by a clear margin in ${L}: ${pct(growth)} real growth in Spain, against ${pct(peer('DEU'))} in Germany, ${pct(peer('FRA'))} in France and ${pct(peer('ITA'))} in Italy.` },
+  { q: 'What is Spain\'s unemployment rate?', a: `About one worker in ten: ${pct(unemp!)} for ${L} under the ILO model, Spain's best since 2007, compared with ${pct(uPeak[1])} at the 2013 peak.` },
+  { q: 'How much did Spain\'s economy shrink in 2020?', a: `By ${pct(Math.abs(worst[1]))}, the sharpest fall since at least 1961. Growth of ${pct(g(2021))} and ${pct(g(2022))} followed.` },
+  { q: 'Where does Spain rank by GDP?', a: `${ord(B.gdpRank!)}, with ${usd(gdp)} in ${L}, its largest total in dollars.` },
+  { q: 'How wealthy is Spain per person?', a: `${usdWhole(perHead)} in ${L}, ${ord(B.pcRank!)} worldwide, or ${intDollars(ppp!)} in PPP terms.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Spain's economy ${L}: growth ahead of Europe's other big economies, unemployment at its lowest since 2007`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Spanish economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Spain', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Spain's economy: outgrowing its big neighbours</h1>
+        <p class="answer">
+          Spain grew <strong>{pct(growth)}</strong> in {L}, faster than Germany, France or Italy, lifting GDP to <strong>{usd(gdp)}</strong>. Unemployment dropped to {pct(unemp!)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Spain economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Spain" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">In 2013 more than a quarter of Spain's workforce had no job; in {L} its economy grew faster than Germany's, France's, Italy's or the Netherlands'.</p>
+
+        <div class="story-block prose">
+          <h2>Is Spain growing faster than Germany, France and Italy?</h2>
+          <p>Yes, on {L} figures. Spanish real GDP rose {pct(growth)}, well ahead of Germany ({pct(peer('DEU'))}), France ({pct(peer('FRA'))}), Italy ({pct(peer('ITA'))}) and the Netherlands ({pct(peer('NLD'))}). It followed {pct(g(2024))} in 2024. See the <a href={path('/economy/germany/')}>German</a> and <a href={path('/economy/france/')}>French</a> pages.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How far has unemployment in Spain fallen?</h2>
+          <p>A long way. From a peak of {pct(uPeak[1])} in 2013, Spain's ILO-modelled jobless rate has dropped year after year since 2020, reaching {pct(unemp!)} for {L}, its best figure since 2007. It is nonetheless still above one in ten.</p>
+        </div>
+        <LineChart
+          title={`Spain's unemployment rate, 1991–${L}`}
+          subtitle="Share of Spaniards in the labour force without work, per cent (ILO); 2013 tops 26%."
+          points={s.unemploymentPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How big is Spain's GDP?</h2>
+          <p>{usd(gdp)} in {L}, the {ord(B.gdpRank!)} largest in the world and a record in dollars. Spread across residents, that is {usdWhole(perHead)}; PPP-adjusted, {intDollars(ppp!)}.</p>
+        </div>
+        <LineChart
+          title={`Spanish GDP, 1960–${L}`}
+          subtitle="Current US dollars every five years, then yearly from 2019."
+          points={s.gdp.filter(([y]) => y % 5 === 0 || y >= 2019).map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How did 2020 and the 2022 price spike hit Spain?</h2>
+          <p>Spain's economy contracted {pct(Math.abs(worst[1]))} in 2020, the worst year in the World Bank data from 1961. Prices then climbed {pct(i(2022))} in 2022, the most since 1986, before easing to {pct(infl.value)} in {L}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Spain and its neighbours: further pages</h2>
+          <ul>
+            <li><a href={path('/population/spain/')}>Spain's population</a></li>
+            <li><a href={path('/economy/italy/')}>Italy's economy</a></li>
+            <li><a href={path('/economy/france/')}>France's economy</a></li>
+            <li><a href={path('/economy/netherlands/')}>The Dutch economy</a></li>
+            <li><a href={path('/rankings/unemployment-rate-by-country/')}>Unemployment rates compared</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Spain's economic record, 1960–${L}`}
+          subtitle="Highlights 2007, 2009 and 2013 alongside recent years; every year is downloadable as CSV."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/spain-economy.csv')} csvName="spain-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Spanish economy in brief</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Comparisons with Germany, France, Italy and the Netherlands use the same World Bank indicator for each country. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Spanish economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Spain" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>
