@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import LineChart from '../../components/LineChart.astro';
 import RankingTable from '../../components/RankingTable.astro';
+import WorldMap from '../../components/WorldMap.astro';
 import IndicatorCards from '../../components/IndicatorCards.astro';
 import SourceBadge from '../../components/SourceBadge.astro';
 import PageTabs from '../../components/PageTabs.astro';
@@ -67,6 +68,8 @@ const rows = ranked.map((r) => {
     cells: [then == null ? '–' : pct(then), r.incomeGroup ?? '–'],
   };
 });
+const mapFmt = (v: number) => pct(v);
+const mapRows = ranked.map((r) => ({ iso3: r.iso3, name: name(r.iso3), rank: r.rank, raw: r.value, value: mapFmt(r.value) }));
 const regions = [...new Set(ranked.map((r) => r.region))].sort();
 
 const faq = [
@@ -118,10 +121,19 @@ const schema = [
 
     <div class="segments" role="tablist" aria-label="Page sections">
       <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="map">Map</button>
       <button role="tab" aria-selected="false" data-panel="story">Story</button>
       <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
     </div>
 
+    <section class="panel" data-panel="map" aria-label="Map" hidden-mobile>
+      <WorldMap
+        id="map-h" title={`Jobless rates on the world map, ${L}`}
+        subtitle="Modelled ILO unemployment rate; dark shades mark the highest rates. Each of the five shades groups about a fifth of the economies."
+        rows={mapRows} fmt={mapFmt}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+    </section>
     <section class="panel" data-panel="data" aria-label="Ranking">
       <RankingTable
         id="rank-h"

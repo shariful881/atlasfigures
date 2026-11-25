@@ -7,6 +7,7 @@
 // text is shown on the page; FAQ in schema = FAQ shown; Article + Dataset + FAQPage; Dataset licence CC BY 4.0;
 // CSV = World Bank values exactly; Updated = dateModified = sitemap lastmod; number style in prose.
 // Hub: lists every economy page, ItemList = list shown.
+// Ranking pages: order, values, ItemList, CSV, flags (file exists) and world map (rank, shade order, legend).
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -133,6 +134,31 @@ for (const [slug, R] of Object.entries(RANKINGS)) {
     ok(tr.getAttribute('data-iso3') === w.iso3 && Number(tr.getAttribute('data-rank')) === i + 1, where, `row ${i + 1}: ${tr.getAttribute('data-iso3')} ≠ ${w.iso3}`);
     ok(textOf(tr.querySelector('td.c-val')) === R.cell(w.v), where, `row ${w.iso3}: value ${textOf(tr.querySelector('td.c-val'))} ≠ ${R.cell(w.v)}`);
   });
+  // Flags (task 107): every row shows a flag file that exists in the build, or an empty placeholder.
+  trs.forEach((tr) => {
+    const img = tr.querySelector('th.c-name img.flag'), none = tr.querySelector('th.c-name .flag-none');
+    if (!ok(img || none, where, `row ${tr.getAttribute('data-iso3')}: no flag`) || !img) return;
+    const src = img.getAttribute('src') ?? '';
+    ok(src.startsWith(BASE + '/') && existsSync(join(DIST, src.slice(BASE.length))) && img.getAttribute('alt') === '' && img.getAttribute('width') && img.getAttribute('height'), where, `row ${tr.getAttribute('data-iso3')}: flag file missing or img without alt=""/size`);
+  });
+  // Map (task 107): each shaded country/dot is a ranked economy, once, with its table rank; shades never get
+  // lighter as values rise; legend counts add up to the ranking.
+  const mapEl = root.querySelector('[data-worldmap]');
+  if (ok(mapEl, where, 'ranking page has no world map')) {
+    const swatches = mapEl.querySelectorAll('.map-legend .sw:not(.nd)').map((s) => (s.getAttribute('style') ?? '').replace('background:', '').trim());
+    const items = mapEl.querySelectorAll('[data-iso3]');
+    const rankOf = new Map(want.map((w, i) => [w.iso3, i + 1])), valOf = new Map(want.map((w) => [w.iso3, w.v]));
+    const seen = new Set();
+    for (const it of items) {
+      const iso = it.getAttribute('data-iso3');
+      ok(!seen.has(iso) && rankOf.get(iso) === Number(it.getAttribute('data-r')), where, `map ${iso}: duplicate or rank ≠ table`);
+      seen.add(iso);
+    }
+    const shade = [...items].map((it) => ({ v: valOf.get(it.getAttribute('data-iso3')), c: swatches.indexOf(it.getAttribute('fill')) })).sort((a, b) => a.v - b.v);
+    ok(shade.every((s, i) => s.c >= 0 && (i === 0 || s.c >= shade[i - 1].c)), where, 'map shades are not in value order');
+    const counts = mapEl.querySelectorAll('.map-legend .ct').map((c) => Number(textOf(c).replace(/[()]/g, '')));
+    ok(counts.reduce((a, b) => a + b, 0) === want.length && items.length >= want.length * 0.95, where, 'map legend counts ≠ ranking, or too few economies on the map');
+  }
   const n = nodes(root);
   const art = n.find((x) => x['@type'] === 'Article'), il = n.find((x) => x['@type'] === 'ItemList'), ds = n.find((x) => x['@type'] === 'Dataset'), fq = n.find((x) => x['@type'] === 'FAQPage');
   if (!ok(art && il && ds && fq, where, 'ranking page needs Article + ItemList + Dataset + FAQPage')) continue;

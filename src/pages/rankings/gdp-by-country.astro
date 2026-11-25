@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import LineChart from '../../components/LineChart.astro';
 import RankingTable from '../../components/RankingTable.astro';
+import WorldMap from '../../components/WorldMap.astro';
 import IndicatorCards from '../../components/IndicatorCards.astro';
 import SourceBadge from '../../components/SourceBadge.astro';
 import PageTabs from '../../components/PageTabs.astro';
@@ -79,6 +80,9 @@ const rows = ranked.map((r) => {
     cells: [pct(share(r.value)), g == null ? '–' : signedPct(g), pc == null ? '–' : usdWhole(pc)],
   };
 });
+const usdFmt = (v: number) => usd(v);
+const mapFmt = usdFmt;
+const mapRows = ranked.map((r) => ({ iso3: r.iso3, name: name(r.iso3), rank: r.rank, raw: r.value, value: mapFmt(r.value) }));
 const regions = [...new Set(ranked.map((r) => r.region))].sort();
 
 const faq = [
@@ -127,10 +131,19 @@ const schema = [
 
     <div class="segments" role="tablist" aria-label="Page sections">
       <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="map">Map</button>
       <button role="tab" aria-selected="false" data-panel="story">Story</button>
       <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
     </div>
 
+    <section class="panel" data-panel="map" aria-label="Map" hidden-mobile>
+      <WorldMap
+        id="map-h" title={`Where the world's output is produced, ${L}`}
+        subtitle="Darker green means a larger GDP in current US dollars. Five shades, each holding about a fifth of the ranked economies."
+        rows={mapRows} fmt={mapFmt}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+    </section>
     <section class="panel" data-panel="data" aria-label="Ranking">
       <RankingTable
         id="rank-h"

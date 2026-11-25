@@ -15,6 +15,11 @@
       "date": "2026-11-25",
       "type": "published",
       "note": "First version: World Bank WDI figures (update of 11 November 2026) for 2025."
+    },
+    {
+      "date": "2026-11-25",
+      "type": "update",
+      "note": "Added a world map of the ranking (Natural Earth outlines, same World Bank figures as the table) and country flags in the table."
     }
   ]
 }
