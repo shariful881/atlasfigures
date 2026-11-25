@@ -6,6 +6,7 @@ import LineChart from '../../components/LineChart.astro';
 import DataTable from '../../components/DataTable.astro';
 import SourceBadge from '../../components/SourceBadge.astro';
 import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
 import ind from '../../data/countries/india.json';
 import { countryData, byYear, displayRows, assertClaim, int, dec, millions, people, pct, ord, CURRENT_YEAR } from '../../lib/figures';
 import { countrySchema } from '../../lib/countrySchema';
@@ -194,6 +195,7 @@ const schema = countrySchema({
           <h2>How young is India's population?</h2>
           <p>Half of all Indians are younger than {dec(c.medianAge, 1)}. That is about ten years below the median in the United States or China, and it explains why India keeps growing even with fewer children per family. The median is projected to reach {dec(y[2050].medianAge, 1)} by 2050 and {dec(y[2100].medianAge, 1)} by 2100.</p>
         </div>
+        <RelatedPages iso3={ind.iso3} name={ind.name} />
       </section>
 
       <section class="panel" data-panel="data" aria-label="Data">

@@ -6,6 +6,7 @@ import LineChart from '../../components/LineChart.astro';
 import DataTable from '../../components/DataTable.astro';
 import SourceBadge from '../../components/SourceBadge.astro';
 import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
 import ru from '../../data/countries/russia.json';
 import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
 import { countrySchema } from '../../lib/countrySchema';
@@ -177,6 +178,7 @@ const schema = countrySchema({
           <h2>Does Russia have Europe's largest population?</h2>
           <p>Yes, as the UN groups countries; it also has the largest land area of any country, about {millions(un.landAreaKm2)} km², so density is only {dec(c.densityPerKm2, 1)} people per km². Three in four Russians, {pct(c.urbanPct!)}, are urban residents by the national definition. In 1950 Russia ranked {ord(y[1950].worldRank!)} by population worldwide; it is {ord(c.worldRank!)} now and is projected to be {ord(y[2100].worldRank!)} in 2100.</p>
         </div>
+        <RelatedPages iso3={ru.iso3} name={ru.name} />
       </section>
 
       <section class="panel" data-panel="data" aria-label="Data">

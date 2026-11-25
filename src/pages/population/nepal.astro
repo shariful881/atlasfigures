@@ -6,6 +6,7 @@ import LineChart from '../../components/LineChart.astro';
 import DataTable from '../../components/DataTable.astro';
 import SourceBadge from '../../components/SourceBadge.astro';
 import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
 import np from '../../data/countries/nepal.json';
 import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
 import { countrySchema } from '../../lib/countrySchema';
@@ -185,6 +186,7 @@ const schema = countrySchema({
           <h2>Will Nepal's population start to shrink?</h2>
           <p>Eventually. The medium variant has Nepal growing slowly to {millions(peak.population)} around {peak.year}, with natural decrease from {natLoss}, and ending the century at {millions(y[2100].population)}. Half of Nepalis are younger than {dec(c.medianAge, 1)} today; by 2100 the median is projected at {dec(y[2100].medianAge, 1)}. Nepal's own urban definition now covers {pct(c.urbanPct!)} of residents.</p>
         </div>
+        <RelatedPages iso3={np.iso3} name={np.name} />
       </section>
 
       <section class="panel" data-panel="data" aria-label="Data">

@@ -6,6 +6,7 @@ import LineChart from '../../components/LineChart.astro';
 import DataTable from '../../components/DataTable.astro';
 import SourceBadge from '../../components/SourceBadge.astro';
 import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
 import nz from '../../data/countries/new-zealand.json';
 import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
 import { countrySchema } from '../../lib/countrySchema';
@@ -183,6 +184,7 @@ const schema = countrySchema({
           <h2>Until when will New Zealand's population grow?</h2>
           <p>Late in the century. From {natLoss} deaths are expected to top births, but continued net migration keeps the total rising to about {millions(peak.population)} in {peak.year}; it is {millions(y[2100].population)} in 2100. Along the way New Zealand passes Norway, in {passNor}. Today's total is about {dec(times, 1)} times the 1950 level ({millions(y[1950].population)}); the country averages {int(c.densityPerKm2)} people per km², and is {pct(c.urbanPct!)} urban by its national definition.</p>
         </div>
+        <RelatedPages iso3={nz.iso3} name={nz.name} />
       </section>
 
       <section class="panel" data-panel="data" aria-label="Data">
