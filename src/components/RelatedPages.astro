@@ -1,7 +1,8 @@
 ---
 // "Related pages" block at the end of every country page's story (design guide §3.3; CLAUDE.md Quality):
 // 3–5 countries from the same UN subregion, closest in population size, that have their own population page (topped up from the same UN
-// region, closest in size, when the subregion has fewer than five), plus the country's other pages, related rankings and the hub.
+// region, closest in size, when the subregion has fewer than five; orphan repair in src/lib/related.ts), plus the country's other pages,
+// related rankings and the hub.
 // Fixed site UI: the same labels on every page, so it sits in a <nav> (excluded from the uniqueness check).
 // Desktop: titled card with a grid of country cards. Mobile: list rows at the end of the Story tab.
 import Flag from './Flag.astro';
@@ -9,33 +10,14 @@ import index from '../data/wpp/index.json';
 import { people, ord } from '../lib/figures';
 import { pagesOf } from '../lib/names';
 import { path } from '../site';
+import { relatedCountries } from '../lib/related';
 
 interface Props { iso3: string; name: string }
 const { iso3, name } = Astro.props;
 
-const pageCountries = (Object.values(import.meta.glob('../data/countries/*.json', { eager: true, import: 'default' })) as any[]);
 const all = (index as any).countries as any[];
 const self = all.find((c) => c.iso3 === iso3);
-const withPage = pageCountries
-  .filter((p) => p.iso3 !== iso3)
-  .map((p) => ({ ...p, un: all.find((c) => c.iso3 === p.iso3) }))
-  .filter((p) => p.un);
-// closest in population size first, so small and large countries both get linked from their neighbours
-const gap = (p: any) => Math.abs(Math.log(p.un.population / self.population));
-const byPop = (a: any, b: any) => gap(a) - gap(b);
-const sameSub = withPage.filter((p) => p.un.subregion === self.subregion).sort(byPop);
-const sameRegion = withPage.filter((p) => p.un.region === self.region && p.un.subregion !== self.subregion).sort(byPop);
-const MAX = 5;
-// In each group the largest country comes first (the regional anchor, so no big page is left unlinked),
-// then the countries closest in size.
-const anchored = (list: any[], n: number) => {
-  if (!list.length || n <= 0) return [];
-  const anchor = [...list].sort((a, b) => b.un.population - a.un.population)[0];
-  return [anchor, ...list.filter((p) => p !== anchor)].slice(0, n);
-};
-const picks = anchored(sameSub, MAX);
-picks.push(...anchored(sameRegion, MAX - picks.length));
-picks.sort((a, b) => b.un.population - a.un.population); // shown largest first
+const picks = relatedCountries(iso3);
 const onlySub = picks.every((p) => p.un.subregion === self.subregion);
 const heading = onlySub ? `More countries in ${self.subregion}` : `More countries in ${self.region}`;
 
