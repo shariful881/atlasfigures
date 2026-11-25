@@ -1,0 +1,160 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/egypt.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/egypt/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const remRank = rankBy('remittances', rem!.year).find((r) => r.iso3 === c.iso3)!.rank;
+const NORTH_AFRICA = ['DZA', 'EGY', 'LBY', 'MAR', 'TUN'];
+const africa = rankBy('gdp', L).filter((r) => r.region === 'Sub-Saharan Africa' || NORTH_AFRICA.includes(r.iso3));
+const peak = s.gdp.reduce((a, b) => (b[1] > a[1] ? b : a));
+const negs = s.gdpGrowthPct.filter(([, x]) => x < 0).map(([y]) => y);
+const pInfl = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+
+assertClaim(africa[0].iso3 === 'ZAF' && africa[1].iso3 === c.iso3 && africa[2].iso3 === 'NGA', 'second in Africa, between South Africa and Nigeria');
+assertClaim(peak[0] === 2022 && [2023, 2024, L].every((y) => v('gdp', y)! < v('gdp', y - 1)!), 'dollar GDP peaked in 2022 and fell three years running');
+assertClaim([2023, 2024, L].every((y) => g(y) > 0), 'real growth positive in each of those years');
+assertClaim(negs.join() === '1968' && s.gdpGrowthPct[0][0] === 1961, 'only one year of decline since 1961');
+assertClaim(pInfl[0] === 2023 && s.inflationPct[0][0] === 1960 && infl.year === L && infl.value < i(2024) && i(2022) < infl.value, '2023 inflation the series high; latest lowest since 2022');
+assertClaim(remRank === 5 && rem!.year === L && rem!.value > 2 * v('remittances', 2023)! && s.remittances.every(([y, x]) => y === L || x < rem!.value), 'remittances fifth, a record, more than double 2023');
+assertClaim(remPct!.value > 11 && remPct!.value < 12, 'remittances above a tenth of GDP');
+
+const title = `Egypt Economy ${L}: Remittances, Inflation and GDP | AtlasFigures`;
+const description = `Egypt's ${L} GDP of ${usd(gdp)} ranks second in Africa. Remittances more than doubled in two years to ${usd(rem!.value)}, and inflation eased to ${pct(infl.value)} from a record ${pct(pInfl[1])} in 2023.`;
+
+const faq = [
+  { q: 'Is Egypt the second-largest economy in Africa?', a: `Yes, on ${L} World Bank figures: ${usd(gdp)}, behind South Africa (${usd(africa[0].value)}) and ahead of Nigeria (${usd(africa[2].value)}).` },
+  { q: 'Why has Egypt\'s GDP in dollars fallen since 2022?', a: `From ${usd(peak[1])} (2022) it fell to ${usd(gdp)} by ${L}, even though real output grew every year. How many dollars an Egyptian pound buys matters for that total, not only how much the country produces.` },
+  { q: 'How high did inflation go in Egypt?', a: `To ${pct(pInfl[1])} in 2023, the highest in World Bank data from 1960. It was ${pct(i(2024))} in 2024 and ${pct(infl.value)} in ${L}.` },
+  { q: 'How much do Egyptians working abroad send home?', a: `${usd(rem!.value)} in ${L}, up from ${usd(v('remittances', 2023)!)} in 2023. Egypt ranked ${ord(remRank)} worldwide, and the inflow equalled ${pct(remPct!.value)} of GDP.` },
+  { q: 'Has Egypt ever had a recession?', a: `On yearly figures, real GDP has fallen only once since 1961, in 1968 (${signedPct(g(1968))}). Growth in ${L} was ${pct(growth)}.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Egypt's economy ${L}: second in Africa, remittances doubled, inflation down from its 2023 peak`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Egypt's economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Egypt', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Egypt's economy: Africa's number two</h1>
+        <p class="answer">
+          Egypt ranks second among African economies, its GDP reaching <strong>{usd(gdp)}</strong> in {L}. Transfers from abroad set a record of <strong>{usd(rem!.value)}</strong>, while inflation slowed to {pct(infl.value)} after peaking at {pct(pInfl[1])} in 2023.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Egypt economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Egypt" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Egypt's recent numbers show a sharp swing: a price surge and a sinking dollar GDP, followed by easing inflation and a flood of remittances.</p>
+
+        <div class="story-block prose">
+          <h2>Is Egypt one of Africa's biggest economies?</h2>
+          <p>Yes, the second biggest. Egypt's {L} total of {usd(gdp)} trails only South Africa ({usd(africa[0].value)}) and is {ord(B.gdpRank!)} in the world. Per person it comes to {usdWhole(perHead)}, or {intDollars(ppp!)} once local prices are factored in.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Why is Egypt's dollar GDP smaller than in 2022?</h2>
+          <p>Measured in dollars, output hit its high of {usd(peak[1])} in 2022; each later year was lower, down to {usd(gdp)} in {L}. Real GDP, which strips out price and currency effects, kept rising: {pct(g(2023))} in 2023, {pct(g(2024))} in 2024 and {pct(growth)} in {L}. Since 1961 it has declined in a single year, 1968.</p>
+        </div>
+        <LineChart
+          title={`Egyptian GDP in dollars, 1960–${L}`}
+          subtitle="Current-dollar GDP every fifth year, then annually from 2019; the 2022 high stands out."
+          points={s.gdp.filter(([y]) => y % 5 === 0 || y >= 2019).map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Has inflation in Egypt peaked?</h2>
+          <p>On the World Bank figures, yes. Egypt's price index shot up {pct(pInfl[1])} in 2023, a high for any year since records start in 1960, followed by {pct(i(2024))} in 2024. In {L} the rate fell to {pct(infl.value)}, its lowest since 2022.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Have remittances to Egypt recovered?</h2>
+          <p>Strongly. Egyptians abroad and other senders transferred {usd(rem!.value)} in {L}, an all-time high, against {usd(v('remittances', 2023)!)} in 2023. Egypt is the {ord(remRank)} largest recipient in the world, and the money equals {pct(remPct!.value)} of GDP.</p>
+        </div>
+        <LineChart
+          title={`Remittances to Egypt, 1977–${L}`}
+          subtitle="Dollars received each year; note the 2023 dip and the jump that followed."
+          points={s.remittances.filter(([y]) => y % 5 === 0 || y >= 2019).map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <nav class="related" aria-label="Related pages">
+          <h2>Egypt and Africa: further reading</h2>
+          <ul>
+            <li><a href={path('/population/egypt/')}>Egypt's population</a></li>
+            <li><a href={path('/economy/nigeria/')}>Nigeria's economy</a></li>
+            <li><a href={path('/population/ethiopia/')}>Ethiopia's population</a></li>
+            <li><a href={path('/population/saudi-arabia/')}>Saudi Arabia's population</a></li>
+            <li><a href={path('/rankings/inflation-rate-by-country/')}>Inflation rates worldwide</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Egypt's economy, 1960–${L}`}
+          subtitle="1968, 2016 and the years from 2019 are shown here; the CSV contains the rest."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/egypt-economy.csv')} csvName="egypt-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Egypt's economy: short answers</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">"Africa" here means the World Bank's Sub-Saharan Africa region plus Algeria, Egypt, Libya, Morocco and Tunisia. Egypt's national accounts follow a July–June fiscal year from 1980; for 1965–2021 the World Bank converts them to dollars with an alternative conversion factor because several exchange rates were in use, and constant-price figures now use 2022 as the base year. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Egypt's economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Egypt" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>
