@@ -29,6 +29,15 @@ jobs:
           # Links may sit in HTML or in embedded JSON; collect every WUP2025 file path.
           grep -oE '(https://population\.un\.org)?/wup/assets/[^"'"'"' <>]+' /tmp/page.html | sed 's#^/wup#https://population.un.org/wup#' | sed 's#\\u0026#\&#g' | sort -u > "$DIR/LINKS.txt" || true
           grep -oE 'WUP2025-F[0-9]+[^"'"'"' <>]*' /tmp/page.html | sort -u >> "$DIR/LINKS.txt" || true
+          # The other tabs are rendered by JavaScript: search the page's script bundles too.
+          for js in $(grep -oE '/_next/static/[^"'"'"' <>]+\.js' /tmp/page.html | sort -u); do
+            curl -fsSL -A "$UA" "https://population.un.org/wup$js" -o /tmp/b.js 2>/dev/null || curl -fsSL -A "$UA" "https://population.un.org$js" -o /tmp/b.js 2>/dev/null || continue
+            grep -oE '.{0,120}WUP2025-F[0-9]+[^"'"'"' <>]{0,80}' /tmp/b.js >> /tmp/ctx.txt || true
+          done
+          grep -oE '.{0,160}WUP2025-F01[^"'"'"' <>]{0,60}' /tmp/page.html | head -3 >> /tmp/ctx.txt || true
+          echo "--- context ---"; sort -u /tmp/ctx.txt | head -80 | tee "$DIR/CONTEXT.txt"
+          grep -oE 'WUP2025-F[0-9]+[^"'"'"' <>,)]*' /tmp/ctx.txt | sort -u >> "$DIR/LINKS.txt" || true
+          grep -oE '"(/[^"]*assets[^"]*)"' /tmp/ctx.txt | tr -d '"' | sort -u >> "$DIR/LINKS.txt" || true
           echo "--- links found ---"; cat "$DIR/LINKS.txt"
       - name: Download F15 (percentage urban, national definition)
         run: |
@@ -36,6 +45,12 @@ jobs:
           DIR=data/raw/un-wup-2025
           UA='AtlasFigures data fetch (github.com/shariful881/atlasfigures)'
           URL=$(grep -iE '^https.*F15[^/]*\.(xlsx|csv|zip)' "$DIR/LINKS.txt" | head -1 || true)
+          if [ -z "$URL" ]; then
+            F15=$(grep -oE 'WUP2025-F15[^"'"'"' <>,)]*' "$DIR/LINKS.txt" | grep -E '\.(xlsx|csv|zip)$' | head -1 || true)
+            for pre in 'https://population.un.org/wup/assets/Download/' 'https://population.un.org/wup/assets/' 'https://population.un.org/wup/Download/Files/'; do
+              [ -n "$F15" ] && curl -fsI -A "$UA" "$pre$F15" >/dev/null 2>&1 && { URL="$pre$F15"; break; }
+            done
+          fi
           if [ -z "$URL" ]; then echo "F15 link not found on the page; see LINKS.txt"; exit 0; fi
           NAME=$(basename "${URL%%\?*}" | sed 's/%20/_/g')
           curl -fSL --retry 3 -A "$UA" -o "$DIR/$NAME" "$URL"
