@@ -75,3 +75,9 @@ def run(slug, iso, exp, ld_keys, table_years):
     bad += not live; print('OK  ' if live else 'MISS', 'live counter anchor/rate/date')
     print(f'\nRESULT {slug}:', 'ALL MATCH' if not bad else f'{bad} mismatches', f'({len(exp) + len(ld_keys) + 2 * len(table_years) + 1} checks)')
     return bad
+
+# UN subregion LocIDs: 923 Eastern, 924 Northern, 925 Southern, 926 Western Europe.
+EUROPE = {'923', '924', '925', '926'}
+def countries(y=2026, min_pop=0, parents=None):
+    return [k for k in raw if k != 'WORLD' and P(k, y) > min_pop and (parents is None or raw[k][2026]['ParentID'] in parents)]
+k1 = lambda n: f"{round(n / 1000)} thousand"
