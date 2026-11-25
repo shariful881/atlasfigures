@@ -1,0 +1,228 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import tr from '../../data/countries/turkey.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: a peak in the 2040s and one of the steepest projected falls after it.
+const PAGE = '/population/turkey/';
+const un = countryData(tr.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (tr.verification as any).checkedOn as string | undefined;
+
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+const natLoss = un.years.find((r) => r.naturalChange < 0)!.year;
+assertClaim(peak.year === 2047 && natLoss === 2049, 'peak 2047, deaths above births from 2049');
+const fall = (1 - y[2100].population / c.population) * 100;
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const falls = wpp.filter((d: any) => at(d).population > 50e6).sort((a: any, b: any) => at(a, 2100).population / at(a).population - at(b, 2100).population / at(b).population).map((d: any) => d.iso3);
+const fallRank = falls.indexOf('TUR') + 1;
+assertClaim(fallRank === 6, 'sixth-steepest projected fall to 2100 among countries over 50 million');
+const backTo = un.years.find((r) => r.population >= y[2100].population)!.year;
+const lastAbove = un.years.filter((r) => r.fertility >= 2.1).reduce((a, b) => (b.year > a.year ? b : a));
+const sub = lastAbove.year + 1;
+assertClaim(sub === 2017, 'below 2.1 every year from 2017');
+const tfrMax = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+const est = un.years.filter((r) => !r.projection);
+const migTop = est.reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+assertClaim(migTop.year === 2015 && y[2014].netMigrants > 1e6 && y[2015].netMigrants > 1e6, 'net migration above 1 million in 2014 and 2015');
+const outSince = est.map((r) => r.year).find((yr) => est.every((r) => r.year < yr || r.netMigrants < 0))!;
+assertClaim(outSince === 2022 && c.netMigrants < 0, 'net outflow since 2022');
+assertClaim(c.births < y[2015].births * 0.8, 'births at least a fifth below 2015');
+assertClaim(c.births / y[2015].births > 0.72 && c.births / y[2015].births < 0.78 && Math.abs(y[2100].population / 1e6 - 65) < 1, 'births down about a quarter since 2015; about 65 million in 2100');
+const wasia = wpp.filter((d: any) => d.subregion === 'Western Asia').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(wasia[0] === 'TUR' && un.region === 'Asia', 'UN places Turkey in Western Asia, where it is the most populous country');
+
+const title = `Turkey (Türkiye) Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)} Million, Peak Expected in ${peak.year} | AtlasFigures`;
+const description = `Listed by the UN as Türkiye, Turkey had ${millions(c.population)} inhabitants at mid-${CURRENT_YEAR}. Births are falling fast; a peak in ${peak.year} and a drop to ${millions(y[2100].population)} by 2100 are projected.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: tr.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+];
+
+const rows = displayRows(un.years, tr.tableYears);
+
+const faq = [
+  { q: "What is Turkey's population this year?", a: `The mid-${CURRENT_YEAR} UN estimate, filed under the name Türkiye, is ${millions(c.population)}, the ${ord(c.worldRank!)}-largest of any country.` },
+  { q: "Is Turkey's population getting smaller?", a: `Not yet: it grows ${pct(c.growthRatePct)} in ${CURRENT_YEAR}. The UN expects the first year of decline after a ${peak.year} peak, and a steady fall from then on.` },
+  { q: "How high will Turkey's population go?", a: `The medium-variant high is about ${millions(peak.population)}, reached in ${peak.year}. By 2100 it would be ${millions(y[2100].population)}, roughly the size Turkey was in ${backTo}.` },
+  { q: 'Are Turkish women having fewer children?', a: `Yes: ${dec(c.fertility, 2)} per woman in ${CURRENT_YEAR}, compared with ${dec(lastAbove.fertility, 2)} in ${lastAbove.year}. About ${millions(c.births)} babies are born this year, against ${millions(y[2015].births)} in 2015.` },
+  { q: 'Is Turkey counted in Europe or Asia in UN statistics?', a: `In Asia: the UN places Turkey in Western Asia, where it is the most populous country.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: tr.slug, name: tr.name, wikipedia: tr.wikipedia,
+  headline: `Turkey's population in ${CURRENT_YEAR}: ${millions(c.population)}, with a peak due in ${peak.year}`,
+  description,
+  datasetName: 'Turkey (Türkiye) population, density, fertility, median age and urban share, 1950–2100',
+  datasetDescription: `Mid-year population of Turkey (listed by the UN as Türkiye) for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: tr.published, updated: tr.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Turkey"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Turkey', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Turkey's population nears its peak</h1>
+        <LiveCounter
+          label="Turkey: population estimate right now"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} level, climbing by about ${int(c.change / 365)} people a day`}
+        />
+        <p class="answer">
+          Turkey (Türkiye in UN listings) had roughly <strong>{millions(c.population)}</strong> inhabitants at mid-{CURRENT_YEAR}, {ord(c.worldRank!)} worldwide. Growth is down to {pct(c.growthRatePct)} a year; a <strong>peak in {peak.year}</strong> and a steep decline are projected to follow.
+        </p>
+        <div class="dates"><span>Updated <time datetime={tr.updated}>{longDate(tr.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Turkey" code="tr" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>How much will Turkey's population fall after its peak?</h2>
+          <p>A lot, if the UN's medium variant holds. After reaching {millions(peak.population)} in {peak.year}, with deaths exceeding births from {natLoss}, the total shrinks to {millions(y[2100].population)} by 2100: {pct(fall)} below today, back to about the level of {backTo}. Among countries with over 50 million people, only five face a steeper relative fall, and Turkey would drop from {ord(c.worldRank!)} to {ord(y[2100].worldRank!)} in the world.</p>
+        </div>
+        <LineChart
+          title="Turkey's population, 1950–2100: rise to the 2040s, then decline"
+          subtitle="Mid-year totals. The UN projection, dashed, peaks in 2047 and falls to around 65 million."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How far have births fallen in Turkey?</h2>
+          <p>By about a quarter in just over a decade. Births numbered {millions(y[2015].births)} in 2015 and about {millions(c.births)} in {CURRENT_YEAR}. Fertility hovered around 2.1 for years; {lastAbove.year} was the last year above it, at {dec(lastAbove.fertility, 2)} children per woman, and the figure is {dec(c.fertility, 2)} now. In {tfrMax.year} it was {dec(tfrMax.fertility, 2)}.</p>
+        </div>
+        <LineChart
+          title="Turkish fertility, 1950 to 2050"
+          subtitle="UN total fertility rate; below 2.1 since 2017. Projected values appear as a dashed line."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: '2.1 mark' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How has migration changed Turkey's population?</h2>
+          <p>It swung sharply. The UN's estimates show net migration of more than 1 million in both 2014 and 2015, the latter the highest at {millions(migTop.netMigrants)}. Since {outSince} the flow has reversed: the net outflow is about {int(Math.round(Math.abs(c.netMigrants) / 1000))} thousand people this year, which helps explain why growth is now only {pct(c.growthRatePct)}.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How old will Turkey's population be by 2100?</h2>
+          <p>Very old. Half of Turks are older than {dec(c.medianAge, 1)} today, up from {dec(y[1950].medianAge, 1)} in 1950, and the projected median climbs to {dec(y[2050].medianAge, 1)} in 2050 and {dec(y[2100].medianAge, 1)} in 2100. A baby born now can expect {dec(c.lifeExpectancy, 1)} years, against {dec(y[1950].lifeExpectancy, 1)} in 1950.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Median age in Turkey">
+          <div><span class="y">1950</span><div class="v">{dec(y[1950].medianAge, 1)}</div><span class="d">Median age</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{dec(c.medianAge, 1)}</div><span class="d">Nearly 34</span></div>
+          <div><span class="y">2100, UN projection</span><div class="v">{dec(y[2100].medianAge, 1)}</div><span class="d">Over fifty</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Is Turkey part of Europe or Asia in population statistics?</h2>
+          <p>The UN counts it in Western Asia, where it has the largest population. Turkey's own urban definition covers {pct(c.urbanPct!)} of the population, and the average density is {int(c.densityPerKm2)} per km².</p>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Turkish population statistics, 1950–2100"
+          subtitle="Figures the UN publishes for Türkiye, decade by decade; 2030 onward are projections."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${tr.slug}-population.csv`)}
+          csvName={`${tr.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Turkey's population explained briefly</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{tr.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and adds the UN's projected growth for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={tr.published}>{longDate(tr.published)}</time> · Updated <time datetime={tr.updated}>{longDate(tr.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Turkey population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Turkey" code="tr" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
