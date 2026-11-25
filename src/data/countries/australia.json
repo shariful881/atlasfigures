@@ -1,0 +1,53 @@
+{
+  "slug": "australia",
+  "name": "Australia",
+  "demonym": "Australian",
+  "capital": "Canberra",
+  "iso3": "AUS",
+  "code": "au",
+  "continent": "Oceania",
+  "wikipedia": "https://en.wikipedia.org/wiki/Australia",
+  "unName": "Australia",
+  "published": "2026-11-25",
+  "updated": "2026-11-25",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    2000,
+    2010,
+    2020,
+    2026,
+    2030,
+    2040,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-25",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/australia.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population 1950–2100, rank 1950/2026/2100, share, growth, density, land area and land rank",
+      "Births above deaths every year 1950–2100 (build check); natural increase and net migration 2026, migration share",
+      "Net migration 2019, 2020, 2022 and growth 2020",
+      "Least dense country over 20 million (build check); fertility peak and below 2.1 since 1976; life expectancy and third place among countries over 10 million (build check); median age",
+      "Title, meta description, Article headline, FAQ answers in JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 70 of 70 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. No image alt text on the page (the flag and charts carry aria-labels)."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-25",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
