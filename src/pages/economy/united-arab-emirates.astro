@@ -1,0 +1,150 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/united-arab-emirates.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+import { rankingYear } from '../../lib/econ';
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/united-arab-emirates/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+// The World Bank has no GDP figure for the UAE for the latest ranking year yet; this page uses its latest year.
+const RY = rankingYear('gdp');
+const pcPeak = s.gdpPerCapita.reduce((a, b) => (b[1] > a[1] ? b : a));
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const infLow = Math.max(...s.inflationPct.filter(([y, x]) => y < infl.year && x < infl.value).map(([y]) => y));
+
+assertClaim(L === RY - 1 && valueIn(s.gdp, RY) == null, 'latest GDP is one year behind the ranking year');
+assertClaim(B.gdpRank === 27 && B.pcRank === 27, '27th by GDP and per person in its latest year');
+assertClaim(s.gdp.every(([y, x]) => y === L || x < gdp) && pcPeak[0] === 2013 && perHead < pcPeak[1], 'record dollar GDP; per person below the 2013 peak');
+assertClaim(growth > 3.5 && g(L - 1) > growth && worst[0] === 1986 && g(2020) < -8, 'growth about 4%, 1986 the worst year, 2020 above 8% down');
+assertClaim(infl.year === RY && infl.value < 1.5 && infLow === 2021 && unemp! < 2.5 && net!.value === 100 && !rem, 'inflation lowest since 2021; low unemployment; internet 100%; no remittance data');
+
+const title = `UAE Economy ${L}: Record GDP, Latest World Bank Figures | AtlasFigures`;
+const description = `The UAE's latest World Bank GDP figure, ${usd(gdp)} for ${L}, is a record. Real growth was ${pct(growth)}; GDP per person (${usdWhole(perHead)}) is still under its 2013 high.`;
+
+const faq = [
+  { q: 'What is the GDP of the UAE?', a: `${usd(gdp)} in ${L}, the most recent year the World Bank has published, ranking ${ord(B.gdpRank!)} among economies with a ${L} figure. There is no ${RY} value yet.` },
+  { q: 'Why is the UAE missing from the ' + RY + ' GDP ranking?', a: `Our rankings use only figures for one year, ${RY}, and the World Bank has not yet published the UAE's ${RY} GDP.` },
+  { q: 'Is the UAE richer per person than in the past?', a: `Not in dollars: each resident's share of output, ${usdWhole(perHead)} in ${L}, is lower than the ${usdWhole(pcPeak[1])} of 2013 (PPP: ${intDollars(ppp!)}).` },
+  { q: 'How much did the UAE economy shrink in 2020?', a: `By ${pct(Math.abs(g(2020)))}. Growth of ${pct(g(2021))}, ${pct(g(2022))}, ${pct(g(2023))} and ${pct(growth)} followed.` },
+  { q: 'What is inflation in the UAE?', a: `Low: ${pct(infl.value)} in ${infl.year}, the gentlest rate since 2021.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `The UAE economy: ${usd(gdp)} in ${L}, a record, with income per head below its 2013 peak`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="UAE economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'United Arab Emirates', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>The UAE economy: record output, income below its peak</h1>
+        <p class="answer">
+          For {L}, the latest year the World Bank has published, Emirati GDP reached a record <strong>{usd(gdp)}</strong>. Growth was <strong>{pct(growth)}</strong>, and inflation in {infl.year} was {pct(infl.value)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`United Arab Emirates economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="United Arab Emirates" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">The Emirates' total output keeps setting records in dollars, while output per resident has yet to regain its 2013 level.</p>
+
+        <div class="story-block prose">
+          <h2>How big is the UAE's economy?</h2>
+          <p>{usd(gdp)} in {L}, the latest year for which the World Bank has published Emirati GDP, and the highest so far. Among economies with a {L} figure it ranks {ord(B.gdpRank!)}. Because there is no {RY} number yet, the UAE is left out of our {RY} <a href={path('/rankings/gdp-by-country/')}>GDP ranking</a>.</p>
+        </div>
+        <LineChart
+          title={`UAE GDP, 1970–${L}`}
+          subtitle="Current US dollars; five-year steps, then each year from 2019."
+          points={s.gdp.filter(([y]) => y % 5 === 0 || y >= 2019).map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Has income per person in the UAE recovered?</h2>
+          <p>Not fully. GDP per resident was {usdWhole(perHead)} in {L}, {ord(B.pcRank!)} among economies with figures for that year, but short of the {usdWhole(pcPeak[1])} high set in 2013. Converted at purchasing-power rates instead, it is {intDollars(ppp!)}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How has the Emirati economy grown since 2020?</h2>
+          <p>After an {pct(Math.abs(g(2020)))} fall in 2020, real output grew {pct(g(2021))} in 2021, {pct(g(2022))} in 2022, {pct(g(2023))} in 2023 and {pct(growth)} in {L}. The UAE's sharpest contraction on record was in 1986 ({signedPct(worst[1])}).</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Are Emirati prices and jobs stable?</h2>
+          <p>Yes. The Emirati price index went up {pct(infl.value)} in {infl.year}, the mildest increase since 2021, and the ILO models unemployment at {pct(unemp!)}. Internet use stands at {pct(net!.value)} in the ITU's data. The World Bank publishes no remittance-inflow figures for the UAE.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>The UAE and the Gulf: related pages</h2>
+          <ul>
+            <li><a href={path('/population/united-arab-emirates/')}>The UAE's population</a></li>
+            <li><a href={path('/economy/saudi-arabia/')}>Saudi Arabia's economy</a></li>
+            <li><a href={path('/economy/india/')}>India's economy</a></li>
+            <li><a href={path('/economy/pakistan/')}>Pakistan's economy</a></li>
+            <li><a href={path('/rankings/gdp-per-capita-by-country/')}>GDP per person by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`UAE economic data, 1975–${L}`}
+          subtitle="Includes 1986, 2013 and 2017 plus the most recent years; the CSV has every year."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/united-arab-emirates-economy.csv')} csvName="united-arab-emirates-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">UAE economy: questions answered</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">The latest World Bank GDP figure for the UAE is for the year shown; inflation and unemployment are available one year later. Ranks on this page compare economies with figures for the same year. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("UAE economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="United Arab Emirates" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

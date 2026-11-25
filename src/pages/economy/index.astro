@@ -62,7 +62,7 @@ const schema = [
     {countries.map((c) => (
       <a class="row" href={path(`/economy/${c.slug}/`)}>
         <Flag code={c.code} class="flag" />
-        <span><span class="name">{c.name}</span><br /><span class="meta">{c.region}</span></span>
+        <span><span class="name">{c.name}</span><br /><span class="meta">{c.region}{c.gdp.year !== L ? ` · ${c.gdp.year} figures` : ''}</span></span>
         <span class="rank">{usdWhole(c.perHead.value)} per person</span>
         <span class="val">{usd(c.gdp.value).replace(' billion', 'B').replace(' trillion', 'T')}</span>
         <span class="chev"><Icon name="chevron" /></span>
