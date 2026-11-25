@@ -11,6 +11,13 @@ Every new page, section or change must follow all three. Summary:
 
 ## Content
 - No content templates. Each country/topic page is its own `.astro` file written around that place's own story.
+- **No two country pages may share wording (owner's rule).** Not a sentence, not a heading, not an FAQ question,
+  not the title or meta description — even with the country name and numbers swapped. Each page picks its own
+  story sections, its own question headings (from what people actually search about that country), its own
+  FAQ questions and its own chart/table titles. Only fixed site UI (live counter, Key facts labels, tabs,
+  table cells, badges, the Sources accordion's citations, header/footer) may repeat.
+- Enforced by `npm run check` (build + `scripts/check-unique.mjs`, also run by CI on `dev`). A page that fails
+  is rewritten, never published. Country JSON must have `name`, `demonym` and `capital` for the check.
 - Every number has a source; numbers in JSON-LD must equal numbers on the page.
 - Page order: H1 → live counter (if relevant) → 1–2 sentence direct answer → Key facts → story sections
   (H2 phrased as the question people search, first sentence answers it) → charts (same numbers also in an HTML table)
