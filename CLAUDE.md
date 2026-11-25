@@ -6,8 +6,9 @@
 - Merge `dev` → `main` (go live) ONLY after the owner explicitly says to make it live. One approval covers only that piece of work.
 
 Full guides live in the claude.ai Project "World Meters":
-`claude/atlasfigures-plan.md`, `claude/atlasfigures-design-guide.md`, `claude/atlasfigures-seo-guide.md`.
-Every new page, section or change must follow all three. Summary:
+`claude/atlasfigures-plan.md`, `claude/atlasfigures-design-guide.md`, `claude/atlasfigures-components-guide.md`,
+`claude/atlasfigures-seo-guide.md`, `claude/atlasfigures-data-guide.md`.
+Every new page, section or change must follow all of them. Summary:
 
 ## Content
 - No content templates. Each country/topic page is its own `.astro` file written around that place's own story.
@@ -29,6 +30,38 @@ Every new page, section or change must follow all three. Summary:
 - "Verified" badge (`SourceBadge` with `checkedOn`) only after the figures were actually checked against the
   named source; record the check in the country JSON under `verification` (date, what was checked, against what).
   Without a check, pass no `checkedOn` (plain "Source:" line, no badge).
+
+## Google safety (spam / AI-content policies)
+- Before publishing, check every claim and number by hand against the source, INCLUDING title, meta description,
+  JSON-LD and image alt text (Google generative-AI guidance, Oct 2026). Record it in `verification`
+  (`checkedOn`, `checkedBy`, `what`, `against`).
+- Every page has at least one section that is only about that country. Publish slowly: 3–5 countries a day.
+- Dates: Published never changes. Updated changes only for real changes (new data, new/rewritten section,
+  correction), never for typos/style/code. Updated = Article dateModified = sitemap lastmod. Log the reason in
+  the country JSON `changelog`.
+- During a Google core update, don't react to ranking moves; wait until rollout ends + 1 week.
+
+## Data
+- No hand-typed numbers in `.astro`: raw source files in `data/raw/<source>/` (with download date + URL), a script
+  builds `src/data/countries/<slug>.json`, pages read only from JSON. A test must check page = JSON = JSON-LD.
+  (TODO before the top-50 batch: raw data folder, build script, number test.)
+- New UN WPP revision → update and re-verify ALL pages together. Current: WPP 2024.
+- Number style: prose millions 1 decimal ("177.8 million"), billions 1–2 decimals, percent 1 decimal, density
+  whole number; tables/Key facts/CSV full numbers with commas; dates "25 November 2026".
+- Country list per UN WPP; titles/H1/URL use the common English name, UN official name in Key facts/Sources.
+  Disputed areas: neutral factual wording, "country or area", no side taken.
+- Every live counter shows "Estimate based on UN projections".
+
+## Ads & privacy (before AdSense goes on)
+- Google-certified IAB TCF CMP for EEA/UK/Switzerland; Privacy policy updated.
+- Ad slots reserve their height (CLS ≤ 0.1); never before H1/live counter/direct answer; mobile max one ad per
+  screen, between cards; no sticky ads over the tab bar/app bar.
+- Analytics: cookieless only (Cloudflare Web Analytics). No other tracking without the owner's OK.
+
+## Quality
+- URLs never change once published (301 via Cloudflare only if unavoidable, after launch).
+- Each country page links to its hub, 3–5 same-region countries that have pages, and related rankings; no orphans.
+- "Report an error" link in every Sources accordion + a Corrections policy page (in footer).
 
 ## Components (use these, don't hand-roll)
 - `LiveCounter`: LIVE pill + local clock, rolling odometer digits, "Next +1" progress bar, today / this year / per day.
@@ -52,4 +85,4 @@ Every new page, section or change must follow all three. Summary:
 - JSON-LD dates are full ISO datetimes with time zone (e.g. 2026-11-25T12:00:00+06:00). UN WPP data licence = CC BY 3.0 IGO (verified); add `license` to Dataset only when verified.
 - Thin or "coming soon" pages: `noindex`. Staging (github.io) is noindex until launch on atlasfigures.com.
 - Do not add llms.txt, chunked "AI" pages, or nosnippet.
-- Before publishing: build, check JSON-LD, Lighthouse mobile ≥ 90 (Performance/SEO/Accessibility), screenshots at 1280px and 390px.
+- Before publishing: `npm run check` (build + uniqueness), check JSON-LD, Lighthouse mobile ≥ 90 (Performance/SEO/Accessibility), screenshots at 1280px and 390px.
