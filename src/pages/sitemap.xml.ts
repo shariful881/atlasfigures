@@ -41,6 +41,8 @@ const pages: { path: string; lastmod: string }[] = [
   { path: '/population/afghanistan/', lastmod: '2026-11-25' },
   { path: '/population/iran/', lastmod: '2026-11-25' },
   { path: '/population/iraq/', lastmod: '2026-11-25' },
+  { path: '/economy/', lastmod: '2026-11-25' },
+  { path: '/economy/bangladesh/', lastmod: '2026-11-25' },
   { path: '/about/', lastmod: '2026-11-25' },
   { path: '/methodology/', lastmod: '2026-11-25' },
   { path: '/sources/', lastmod: '2026-11-25' },

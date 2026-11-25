@@ -1,8 +1,101 @@
 ---
-import ComingSoon from '../../components/ComingSoon.astro';
+import Base from '../../layouts/Base.astro';
+import Flag from '../../components/Flag.astro';
+import Icon from '../../components/Icon.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import { abs, path, longDate, WEBSITE_ID } from '../../site';
+import { econData, econMeta, aggregate, latest, valueIn, usd, usdWhole, signedPct } from '../../lib/econ';
+import { assertClaim } from '../../lib/figures';
+
+const PAGE = '/economy/';
+const UPDATED = '2026-11-25';
+const WDI = 'World Bank, World Development Indicators';
+const files = import.meta.glob('../../data/economy/*.json', { eager: true }) as Record<string, { default: any }>;
+const countries = Object.values(files).map((m) => m.default).map((c) => {
+  const e = econData(c.iso3);
+  return { ...c, region: e.region, gdp: latest(e.series.gdp)!, perHead: latest(e.series.gdpPerCapita)! };
+}).sort((a, b) => b.gdp.value - a.gdp.value);
+
+const world = aggregate('WLD').series;
+const L = latest(world.gdp)!.year;
+const groups = [['WLD', 'World'], ['HIC', 'High income'], ['UMC', 'Upper middle income'], ['LMC', 'Lower middle income'], ['LIC', 'Low income']].map(([code, label]) => {
+  const a = aggregate(code).series;
+  return { code, label, gdp: valueIn(a.gdp, L)!, perHead: valueIn(a.gdpPerCapita, L)!, growth: valueIn(a.gdpGrowthPct, L)! };
+});
+const [w, hic, , , lic] = groups;
+assertClaim(groups.slice(1).every((g) => g.gdp < w.gdp), 'income groups are parts of the world total');
+assertClaim(lic.growth > hic.growth && hic.perHead / lic.perHead > 50, 'poorer groups grow faster; high-income GDP per person more than 50 times low-income');
+const highShare = (hic.gdp / w.gdp) * 100;
+assertClaim(highShare > 60, 'high-income economies produce most of world GDP');
+
+const schema = [
+  {
+    '@type': 'CollectionPage',
+    '@id': abs(`${PAGE}#page`),
+    name: 'Economy by country',
+    url: abs(PAGE),
+    isPartOf: { '@id': WEBSITE_ID },
+    dateModified: `${UPDATED}T12:00:00+06:00`,
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListOrder: 'https://schema.org/ItemListOrderDescending',
+      numberOfItems: countries.length,
+      itemListElement: countries.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: `${c.name} economy`, url: abs(`/economy/${c.slug}/`) })),
+    },
+  },
+];
 ---
-<ComingSoon section="economy" title="Economy" lead="Each country's economy explained with long-run data, coming soon." items={[
-  'GDP, income per person, inflation and unemployment for every country',
-  'Charts going back to 1960',
-  'Side-by-side country comparisons',
-]} />
+<Base
+  title={`Economy by Country: GDP, Income and Inflation, ${L} | AtlasFigures`}
+  description={`The world economy produced ${usd(w.gdp)} in ${L}, ${usdWhole(w.perHead)} per person. Country pages explain each economy with World Bank data: GDP, income per person, growth, inflation and remittances.`}
+  section="economy"
+  appTitle="Economy"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: PAGE }]}
+  schema={schema}
+>
+  <h1>Economy by country</h1>
+  <p class="answer">The world economy produced <strong>{usd(w.gdp)}</strong> of goods and services in {L}, or {usdWhole(w.perHead)} per person, and grew {(w.growth).toFixed(1)}% in real terms. Each country page below tells its own economic story with World Bank figures; more countries are added every week.</p>
+  <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WDI} url={econMeta.sourceUrl} checkedOn="2026-11-25" /></div>
+
+  <h2 class="hub-h">Country economies</h2>
+  <div class="list">
+    {countries.map((c) => (
+      <a class="row" href={path(`/economy/${c.slug}/`)}>
+        <Flag code={c.code} class="flag" />
+        <span><span class="name">{c.name}</span><br /><span class="meta">{c.region}</span></span>
+        <span class="rank">{usdWhole(c.perHead.value)} per person</span>
+        <span class="val">{usd(c.gdp.value).replace(' billion', 'B').replace(' trillion', 'T')}</span>
+        <span class="chev"><Icon name="chevron" /></span>
+      </a>
+    ))}
+  </div>
+
+  <section class="tcard" aria-labelledby="groups-h">
+    <header class="tcard-head">
+      <div>
+        <h2 id="groups-h">World economy by income group, {L}</h2>
+        <p class="tcard-sub">High-income economies produce {highShare.toFixed(1)}% of world GDP. Poorer groups are growing faster from a far lower base.</p>
+      </div>
+    </header>
+    <div class="table-scroll">
+      <table class="data">
+        <caption class="visually-hidden">World economy by World Bank income group, {L}: GDP, GDP per person and real growth.</caption>
+        <thead><tr><th scope="col">Group</th><th scope="col">GDP in US$ billion</th><th scope="col">GDP per person</th><th scope="col">GDP growth</th></tr></thead>
+        <tbody>
+          {groups.map((g) => (
+            <tr class={g.code === 'WLD' ? 'is-current' : ''}><th scope="row">{g.label}</th><td>{(g.gdp / 1e9).toLocaleString('en-US', { maximumFractionDigits: 0 })}</td><td>{usdWhole(g.perHead)}</td><td>{signedPct(g.growth)}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <footer class="tcard-foot">
+      <SourceBadge source={`${WDI} (World Bank aggregates and income groups)`} url={econMeta.sourceUrl} variant="footer" />
+      <span class="lic">Licence: <a href={econMeta.licenceUrl}>CC BY 4.0 (World Bank data)</a></span>
+    </footer>
+  </section>
+  <p class="note">Figures are in current US dollars, as published in the World Bank's World Development Indicators (update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}). Growth is in constant prices. The World Bank does not endorse this site. See our <a href={path('/methodology/')}>methodology</a> and <a href={path('/sources/')}>sources</a>.</p>
+</Base>
+<style>
+  .hub-h { font-size: 1.15rem; margin: 20px 0 10px; }
+  .tcard { margin-top: 28px; }
+</style>

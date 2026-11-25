@@ -1,0 +1,36 @@
+{
+  "slug": "bangladesh",
+  "name": "Bangladesh",
+  "demonym": "Bangladeshi",
+  "capital": "Dhaka",
+  "iso3": "BGD",
+  "code": "bd",
+  "continent": "Asia",
+  "published": "2026-11-25",
+  "updated": "2026-11-25",
+  "fiscalYear": "July to June",
+  "tableYears": [1975, 1980, 1990, 2000, 2005, 2010, 2015, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
+  "compareWith": "IND",
+  "ldc": {
+    "originalDate": "2026-11-24",
+    "newDate": "2029-11-24",
+    "decided": "UN General Assembly resolution A/81/L.8, adopted without a vote at its 81st session (October 2026)",
+    "sources": [
+      { "name": "Dhaka Tribune", "url": "https://www.dhakatribune.com/amp/bangladesh/development/423253/bangladesh-wins-three-more-years-before-ldc" },
+      { "name": "bdnews24.com, 30 October 2026", "url": "https://bdnews24.com/economy/qro0l7696k" },
+      { "name": "The Daily Star (Bangladesh)", "url": "https://www.thedailystar.net/news/bangladesh/news/ldc-graduation-bangladesh-sets-reform-targets-eu-un-watch-4312371" },
+      { "name": "The Kathmandu Post, 30 October 2026", "url": "https://kathmandupost.com/national/2026/10/30/un-extends-nepal-s-ldc-graduation-preparatory-period-until-november-2029" }
+    ]
+  },
+  "verification": {
+    "checkedOn": "2026-11-25",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/econ-bangladesh.py reads the original World Bank zips (data/raw/wdi/) and the original UN WPP 2024 file, not the site's generated data; then the text was read by hand",
+    "what": "Every figure in the direct answer, indicator cards, Key facts, story, comparison tiles, charts, table, FAQ, title, meta description, JSON-LD and CSV; the claims behind each sentence (no contraction since 1975, 1971-72 deepest falls, slowest growth since 2020, ahead of India 2019-2024, inflation highest since 2011, record remittances, internet above half); hub world figures",
+    "against": "World Bank WDI bulk files (update 11 November 2026, CC BY 4.0); UN WPP 2024 (populations of Bangladesh and Pakistan, 2025); LDC dates and EU preference: Dhaka Tribune, bdnews24.com, The Daily Star, The Kathmandu Post (UN General Assembly resolution A/81/L.8, October 2026)",
+    "result": "All 653 automated comparisons matched; no hand-check problems after rewording three sentences"
+  },
+  "changelog": [
+    { "date": "2026-11-25", "type": "published", "note": "First version: World Bank WDI figures (updated 11 November 2026) for 1972–2025." }
+  ]
+}

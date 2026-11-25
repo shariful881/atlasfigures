@@ -1,0 +1,60 @@
+---
+// Yearly economy table (World Bank WDI): same card as DataTable — title, CSV button, inline GDP bars,
+// highlighted latest year, verified source + licence footer. Rows hold the World Bank values; the table
+// shows them rounded the way the site writes money (data guide, World Bank part §4). Empty = "–".
+import SourceBadge from './SourceBadge.astro';
+interface Row { year: number; gdp: number | null; gdpPerCapita: number | null; growth: number | null; inflation: number | null; remittancesPctGdp: number | null }
+interface Props {
+  id: string; title: string; subtitle: string; rows: Row[]; latest: number;
+  source: string; sourceUrl?: string; checkedOn?: string; csv: string; csvName: string; licence: { name: string; url: string };
+}
+const { id, title, subtitle, rows, latest, source, sourceUrl, checkedOn, csv, csvName, licence } = Astro.props;
+const max = Math.max(...rows.map((r) => r.gdp ?? 0));
+const dash = '–';
+const bn = (v: number | null) => (v == null ? dash : (v / 1e9).toFixed(1));
+const usd = (v: number | null) => (v == null ? dash : `$${Math.round(v).toLocaleString('en-US')}`);
+const p = (v: number | null, signed = false) => (v == null ? dash : `${signed && Number(v.toFixed(1)) > 0 ? '+' : ''}${v.toFixed(1)}%`);
+---
+<section class="tcard" aria-labelledby={id}>
+  <header class="tcard-head">
+    <div>
+      <h2 id={id}>{title}</h2>
+      <p class="tcard-sub">{subtitle}</p>
+    </div>
+    <a class="btn-ghost" href={csv} download={csvName}>
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m0 0-3.5-3.5M10 12l3.5-3.5M4 15.5h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      CSV
+    </a>
+  </header>
+  <div class="table-scroll">
+    <table class="data econ">
+      <caption class="visually-hidden">{title}. {subtitle}</caption>
+      <thead>
+        <tr>
+          <th scope="col">Year</th>
+          <th scope="col" class="c-pop">GDP in US$ billion</th>
+          <th scope="col">GDP per person</th>
+          <th scope="col">GDP growth</th>
+          <th scope="col">Inflation</th>
+          <th scope="col">Remittances, % of GDP</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr class={r.year === latest ? 'is-current' : ''} data-year={r.year}>
+            <th scope="row">{r.year}{r.year === latest && <span class="now-tag">Latest</span>}</th>
+            <td class="c-pop"><span class="bar" style={`--w:${((r.gdp ?? 0) / max).toFixed(3)}`} aria-hidden="true"></span><span class="n">{bn(r.gdp)}</span></td>
+            <td>{usd(r.gdpPerCapita)}</td>
+            <td>{p(r.growth, true)}</td>
+            <td>{p(r.inflation)}</td>
+            <td>{p(r.remittancesPctGdp)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <footer class="tcard-foot">
+    <SourceBadge source={source} url={sourceUrl} checkedOn={checkedOn} variant="footer" />
+    <span class="lic">Licence: <a href={licence.url}>{licence.name}</a></span>
+  </footer>
+</section>
