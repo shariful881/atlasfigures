@@ -9,7 +9,8 @@
 
 ## Work list (owner's rule)
 - All tasks are numbered in the Project doc `claude/atlasfigures-worklist.md`. Do ONLY the task number the owner
-  names, one at a time; never start the next one on your own. When done: show the owner, mark it 👀, wait.
+  names, one at a time; never start the next one on your own. When done: call the owner (changes + screenshots),
+  ask whether to make it live, mark it 👀, and propose the next task number with a one-line reason. Wait.
   After "live koro" → PR dev → main, merge, mark ✅ with the date. Update the work list after every task.
 
 Full guides live in the claude.ai Project "World Meters":
