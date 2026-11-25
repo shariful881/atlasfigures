@@ -54,3 +54,24 @@ export const signedPct = (v: number) => {
   const r = Number(v.toFixed(1));
   return r === 0 ? '0.0%' : `${r > 0 ? '+' : ''}${r.toFixed(1)}%`;
 };
+
+// ---------- rankings ----------
+export type Ranked = { rank: number; iso3: string; region: string; incomeGroup: string | null; value: number };
+/** Every World Bank economy with a value for `year`, largest first. Economies without a value that year are not
+ *  ranked (no carrying forward of older years); see `notRanked`. */
+export function rankBy(key: IndicatorKey, year: number): Ranked[] {
+  return Object.values(files)
+    .map((d) => ({ iso3: d.iso3, region: d.region, incomeGroup: d.incomeGroup, value: valueIn(d.series[key], year) }))
+    .filter((x): x is Omit<Ranked, 'rank'> => x.value != null)
+    .sort((a, b) => b.value - a.value)
+    .map((x, i) => ({ ...x, rank: i + 1 }));
+}
+/** Economies left out of a ranking for `year`, with their latest year (null = never published). */
+export function notRanked(key: IndicatorKey, year: number) {
+  return Object.values(files)
+    .filter((d) => valueIn(d.series[key], year) == null)
+    .map((d) => ({ iso3: d.iso3, latestYear: latest(d.series[key])?.year ?? null }))
+    .sort((a, b) => a.iso3.localeCompare(b.iso3));
+}
+/** Latest year for which a ranking is complete enough: the newest year in which the World total has a value. */
+export const rankingYear = (key: IndicatorKey) => latest(aggregate('WLD').series[key])!.year;

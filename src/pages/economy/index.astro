@@ -58,7 +58,7 @@ const schema = [
   <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WDI} url={econMeta.sourceUrl} checkedOn="2026-11-25" /></div>
 
   <h2 class="hub-h">Country economies</h2>
-  <div class="list">
+  <div class="list" id="countries">
     {countries.map((c) => (
       <a class="row" href={path(`/economy/${c.slug}/`)}>
         <Flag code={c.code} class="flag" />
@@ -68,6 +68,12 @@ const schema = [
         <span class="chev"><Icon name="chevron" /></span>
       </a>
     ))}
+  </div>
+
+  <h2 class="hub-h">Economy rankings</h2>
+  <div class="list">
+    <a class="row" href={path('/rankings/gdp-by-country/')}><span><span class="name">GDP by country</span><br /><span class="meta">Every economy ranked by size, {L}</span></span><span class="chev"><Icon name="chevron" /></span></a>
+    <a class="row" href={path('/rankings/gdp-per-capita-by-country/')}><span><span class="name">GDP per capita by country</span><br /><span class="meta">From richest to poorest per person, with PPP</span></span><span class="chev"><Icon name="chevron" /></span></a>
   </div>
 
   <section class="tcard" aria-labelledby="groups-h">

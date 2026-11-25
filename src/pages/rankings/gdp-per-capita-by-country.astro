@@ -1,0 +1,204 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/gdp-per-capita-by-country.json';
+import { econData, econMeta, aggregate, valueIn, rankBy, notRanked, rankingYear, usdWhole, intDollars } from '../../lib/econ';
+import { assertClaim, pct, ord, byYear, countryData } from '../../lib/figures';
+import { commonName, pagesOf } from '../../lib/names';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/); populations from UN WPP 2024.
+const PAGE = '/rankings/gdp-per-capita-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = meta.verification?.checkedOn;
+
+const L = rankingYear('gdpPerCapita');
+const ranked = rankBy('gdpPerCapita', L);
+const ppp = rankBy('gdpPerCapitaPpp', L);
+const missing = notRanked('gdpPerCapita', L);
+const N = ranked.length;
+const name = commonName;
+const W = aggregate('WLD').series.gdpPerCapita;
+const worldAvg = valueIn(W, L)!;
+const first = ranked[0], last = ranked[N - 1];
+const byIso = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const pppRank = (x: string) => ppp.find((r) => r.iso3 === x)?.rank;
+
+// People: UN WPP 2024 mid-year population for the same year (countries or areas with a UN figure).
+const people = (x: string) => { try { return byYear(countryData(x).years)[L]?.population ?? 0; } catch { return 0; } };
+const above = ranked.filter((r) => r.value > worldAvg);
+const popRanked = ranked.reduce((a, r) => a + people(r.iso3), 0);
+const popBelow = ranked.filter((r) => r.value < worldAvg).reduce((a, r) => a + people(r.iso3), 0);
+const shareBelow = (popBelow / popRanked) * 100;
+const large = ranked.filter((r) => people(r.iso3) > 20e6);
+const cn = econData('CHN').series.gdpPerCapita;
+
+assertClaim(first.iso3 === 'LUX' && ranked[1].iso3 === 'IRL' && ranked[2].iso3 === 'CHE', 'Luxembourg, Ireland, Switzerland lead');
+assertClaim(last.iso3 === 'BDI', 'Burundi lowest');
+assertClaim(first.value / last.value > 600, 'gap of more than 600 times');
+assertClaim(large[0].iso3 === 'USA' && byIso('USA').rank === 7, 'US highest among countries of 20 million+, 7th overall');
+assertClaim(above.length < N / 2 && shareBelow > 80, 'fewer than half of economies, and more than 80% of people, below the world average');
+assertClaim(ppp[0].iso3 === 'SGP', 'Singapore first at PPP');
+assertClaim(pppRank('BGD')! < byIso('BGD').rank, 'Bangladesh ranks higher at PPP');
+assertClaim(valueIn(cn, L)! < worldAvg && valueIn(cn, L)! / worldAvg > 0.9 && valueIn(cn, 2000)! / valueIn(W, 2000)! < 0.2, 'China just below the world average now, under a fifth in 2000');
+assertClaim(missing.some((m) => m.iso3 === 'MCO') && missing.some((m) => m.iso3 === 'LIE'), 'Monaco and Liechtenstein not ranked');
+const latestPc = (x: string) => { const s = econData(x).series.gdpPerCapita; return s.at(-1)![1]; };
+assertClaim(latestPc('MCO') > ranked[2].value && latestPc('LIE') > ranked[2].value, 'Monaco and Liechtenstein latest figures would be near the top');
+assertClaim(['IRL', 'CHE', 'SGP', 'ISL'].every((x, i) => ranked[i + 1].iso3 === x), 'Ireland, Switzerland, Singapore, Iceland follow Luxembourg');
+assertClaim(ranked[N - 2].iso3 === 'CAF' && ranked[N - 3].iso3 === 'MDG', 'Central African Republic and Madagascar just above Burundi');
+assertClaim(ranked.slice(-20).filter((r) => r.region === 'Sub-Saharan Africa').length > 10, 'most of the bottom twenty in Sub-Saharan Africa');
+
+const title = `GDP per Capita by Country ${L}: Richest and Poorest | AtlasFigures`;
+const description = `Luxembourg had the highest GDP per person in ${L} at ${usdWhole(first.value)}; Burundi the lowest at ${usdWhole(last.value)}. ${N} economies ranked against the world average of ${usdWhole(worldAvg)}, with PPP figures.`;
+
+const cards = [
+  { label: 'World average', value: usdWhole(worldAvg), year: L, note: 'GDP per person' },
+  { label: 'Highest', value: usdWhole(first.value), year: L, note: name(first.iso3) },
+  { label: 'Lowest', value: usdWhole(last.value), year: L, note: name(last.iso3) },
+  { label: 'Above world average', value: `${above.length} of ${N}`, year: L },
+];
+
+const top = first.value;
+const rows = ranked.map((r) => {
+  const s = econData(r.iso3).series;
+  const pp = valueIn(s.gdpPerCapitaPpp, L);
+  const pg = pagesOf(r.iso3);
+  const site = pg.economy ?? pg.population;
+  return {
+    rank: r.rank, iso3: r.iso3, name: name(r.iso3), site, href: site ? path(site) : null, region: r.region,
+    bar: r.value / top, value: usdWhole(r.value),
+    cells: [pp == null ? '–' : intDollars(pp), pppRank(r.iso3) ? String(pppRank(r.iso3)) : '–', r.incomeGroup ?? '–'],
+  };
+});
+const regions = [...new Set(ranked.map((r) => r.region))].sort();
+const wYears = W.filter(([y]) => y >= 1960 && y <= L);
+
+const faq = [
+  { q: 'Which country has the highest GDP per capita?', a: `Luxembourg, at ${usdWhole(first.value)} per person in ${L}. Ireland (${usdWhole(ranked[1].value)}) and Switzerland (${usdWhole(ranked[2].value)}) come next.` },
+  { q: 'Which country has the lowest GDP per capita?', a: `Burundi, at ${usdWhole(last.value)} per person in ${L}, about ${Math.round(first.value / last.value)} times less than Luxembourg.` },
+  { q: 'What is the world average GDP per capita?', a: `${usdWhole(worldAvg)} in ${L}. Only ${above.length} of the ${N} economies ranked are above it, and they are home to less than a fifth of the people in those economies.` },
+  { q: 'What does GDP per capita PPP mean?', a: `It divides GDP by population after adjusting for what money buys in each country (purchasing power parity), in international dollars. On that basis Singapore leads at ${intDollars(ppp[0].value)}.` },
+  { q: 'What is the GDP per capita of Bangladesh?', a: `${usdWhole(byIso('BGD').value)} in ${L}, ${ord(byIso('BGD').rank)} of ${N}; at purchasing power parity it ranks ${ord(pppRank('BGD')!)}.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `GDP per capita by country ${L}: ${N} economies from richest to poorest`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [
+      { '@type': 'CreativeWork', name: 'World Development Indicators', url: WDI_URL, publisher: { '@type': 'Organization', name: 'The World Bank' } },
+      { '@type': 'CreativeWork', name: 'World Population Prospects 2024', url: 'https://population.un.org/wpp/', publisher: { '@type': 'Organization', name: 'United Nations, Department of Economic and Social Affairs, Population Division' } },
+    ],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `GDP per capita by country, ${L}`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `GDP per capita by country, ${L} (current US$ and PPP)`,
+    description: `GDP per person of ${N} economies in ${L} in current US dollars, ranked, with GDP per person at purchasing power parity (current international dollars), its rank, and the World Bank income group, from the World Development Indicators (update of ${longDate(econMeta.indicators.gdp.wdiLastUpdated)}).`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WDI_URL], temporalCoverage: String(L),
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['GDP per person (current US$)', 'GDP per person, PPP (current international $)', 'World Bank income group'],
+    dateModified: iso(UPDATED), license: econMeta.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/gdp-per-capita-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="GDP per capita" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'GDP per capita by country', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>GDP per capita by country, {L}</h1>
+    <p class="answer"><strong>Luxembourg</strong> had the highest GDP per person in {L}, at <strong>{usdWhole(first.value)}</strong>, and <strong>Burundi</strong> the lowest, at {usdWhole(last.value)}. The world average was {usdWhole(worldAvg)}, and only {above.length} of the {N} economies ranked were above it.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`GDP per person ranking, ${L}`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`Economies ranked by GDP per person, ${L}`}
+        subtitle="GDP divided by population, in current US dollars, next to the same measure adjusted for living costs (PPP)."
+        valueLabel="GDP per person"
+        cols={[{ label: 'At PPP', cls: 'c-hide-m' }, { label: 'PPP rank', cls: 'c-hide-m' }, { label: 'Income group', cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={regions}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        csv={path('/data/gdp-per-capita-by-country.csv')} csvName="gdp-per-capita-by-country.csv"
+        licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+      />
+      <p class="note">Left out: {missing.length} economies with no {L} figure from the World Bank yet, including {name('MCO')} and {name('LIE')}, which usually sit near the very top, and {name('ARE')}. No older figure is carried forward.</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>Which country is the richest per person?</h2>
+        <p>Luxembourg, with {usdWhole(first.value)} of GDP for every resident, followed by Ireland, Switzerland, Singapore and Iceland. Small, open economies dominate the top: the United States is the best placed of the large nations (those above 20 million inhabitants), {ord(byIso('USA').rank)} overall at {usdWhole(byIso('USA').value)}. GDP counts what is produced inside a country, including by people who commute in from abroad and by foreign-owned firms, so it can run well ahead of what residents themselves earn.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Which countries are the poorest by GDP per capita?</h2>
+        <p>Burundi, at {usdWhole(last.value)} a person, is last, after the Central African Republic ({usdWhole(ranked[N - 2].value)}) and Madagascar ({usdWhole(ranked[N - 3].value)}). Output per person in Luxembourg is about {Math.round(first.value / last.value)} times Burundi's. Most of the bottom twenty are in Sub-Saharan Africa.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>How many people live below the world average?</h2>
+        <p>Roughly {Math.round(shareBelow)} in every 100. Worldwide, output per person came to {usdWhole(worldAvg)} in {L}, yet the {N - above.length} economies below that line are home to {pct(shareBelow)} of the people in the economies ranked, counting UN population figures. China sits just under the average, at {usdWhole(valueIn(cn, L)!)}; in 2000 it was at {usdWhole(valueIn(cn, 2000)!)}, under a fifth of the world figure then.</p>
+      </div>
+      <LineChart
+        title={`World GDP per person, 1960–${L}`}
+        subtitle="World Bank World total, current US dollars."
+        points={wYears.map(([x, y]) => ({ x, y }))}
+        format="usd" highlight={L} estimateLabel="World Bank data"
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+
+      <div class="story-block prose">
+        <h2>How does the ranking change at purchasing power parity?</h2>
+        <p>Adjusting for what money buys moves cheaper countries up. Singapore takes first place at {intDollars(ppp[0].value)}, and <a href={path('/economy/bangladesh/')}>Bangladesh</a> climbs from {ord(byIso('BGD').rank)} at market exchange rates to {ord(pppRank('BGD')!)} at PPP. India ranks {ord(byIso('IND').rank)} in US dollars and {ord(pppRank('IND')!)} at PPP.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Quick answers about GDP per capita</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP per person in current US$ (NY.GDP.MKTP.CD divided by population, published as NY.GDP.PCAP.CD), GDP per person at PPP (NY.GDP.PCAP.PP.CD, International Comparison Program), income groups and World total. Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          <li><a href="https://population.un.org/wpp/">UN DESA Population Division, World Population Prospects 2024</a>: populations used to count people above and below the world average.</li>
+        </ul>
+        <p class="note">Only economies with a World Bank figure for {L} are ranked; nothing is estimated or carried forward. Country names follow the UN list in their common English form. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('GDP per capita by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+</style>

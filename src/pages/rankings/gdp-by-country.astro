@@ -1,0 +1,206 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/gdp-by-country.json';
+import { econData, econMeta, aggregate, valueIn, rankBy, notRanked, rankingYear, usd, usdWhole, signedPct } from '../../lib/econ';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { commonName, pagesOf } from '../../lib/names';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/rankings/gdp-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = meta.verification?.checkedOn;
+
+const L = rankingYear('gdp');
+const ranked = rankBy('gdp', L);
+const missing = notRanked('gdp', L);
+const world = valueIn(aggregate('WLD').series.gdp, L)!;
+const N = ranked.length;
+const at = (i: number) => ranked[i];
+const byIso = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const name = commonName;
+const share = (v: number) => (v / world) * 100;
+const top10 = ranked.slice(0, 10).reduce((a, r) => a + r.value, 0);
+const usCn = at(0).value + at(1).value;
+const trillionClub = ranked.filter((r) => r.value >= 1e12);
+const us = econData('USA').series.gdp, cn = econData('CHN').series.gdp;
+const ratio = (y: number) => (valueIn(cn, y)! / valueIn(us, y)!) * 100;
+const ratioYears = us.map(([y]) => y).filter((y) => y >= 1990 && y <= L && valueIn(cn, y) != null);
+const peak = ratioYears.reduce((a, y) => (ratio(y) > ratio(a) ? y : a));
+
+// Ranks in 2000 vs now, among economies with figures for both years.
+const both = ranked.filter((r) => valueIn(econData(r.iso3).series.gdp, 2000) != null);
+const rank2000 = new Map([...both].sort((a, b) => valueIn(econData(b.iso3).series.gdp, 2000)! - valueIn(econData(a.iso3).series.gdp, 2000)!).map((r, i) => [r.iso3, i + 1]));
+const rankNowBoth = new Map(both.map((r, i) => [r.iso3, i + 1]));
+const moved = (x: string) => ({ then: rank2000.get(x)!, now: rankNowBoth.get(x)! });
+
+// Africa: World Bank regions Sub-Saharan Africa plus the North African economies of its Middle East region.
+const NORTH_AFRICA = ['DZA', 'EGY', 'LBY', 'MAR', 'TUN'];
+const africa = ranked.filter((r) => r.region === 'Sub-Saharan Africa' || NORTH_AFRICA.includes(r.iso3));
+const bd = byIso('BGD');
+
+assertClaim(at(0).iso3 === 'USA' && at(1).iso3 === 'CHN', 'United States first, China second');
+assertClaim(['DEU', 'JPN', 'GBR', 'IND'].every((x, i) => at(i + 2).iso3 === x), 'Germany, Japan, the UK and India follow in that order');
+assertClaim(share(top10) > 66 && share(top10) < 67, 'top 10 produce about two-thirds of world GDP');
+assertClaim(share(usCn) > 40, 'US and China together more than 40%');
+assertClaim(peak === 2021 && ratio(L) < ratio(peak) - 10 && ratio(2000) < 15, 'China/US peaked in 2021 and has fallen back');
+assertClaim(moved('IND').then === 13 && moved('IND').now === 6 && moved('CHN').then === 6 && moved('IDN').then - moved('IDN').now >= 10, 'India 13th to 6th, China 6th to 2nd, Indonesia up 10+ places');
+assertClaim(africa[0].iso3 === 'ZAF' && africa[1].iso3 === 'EGY' && africa[2].iso3 === 'NGA' && africa[3].iso3 === 'DZA', 'South Africa, Egypt, Nigeria, then Algeria lead Africa');
+assertClaim(['CUB', 'SYR', 'YEM'].every((x) => missing.some((m) => m.iso3 === x)), 'Cuba, Syria, Yemen not ranked');
+assertClaim(at(N - 1).iso3 === 'TUV', 'Tuvalu smallest');
+assertClaim(missing.some((m) => m.iso3 === 'ARE' && m.latestYear === L - 1), 'UAE has no figure yet for the latest year');
+
+const title = `GDP by Country ${L}: Largest Economies in the World | AtlasFigures`;
+const description = `The United States had the world's largest GDP in ${L} at ${usd(at(0).value)}, ahead of China at ${usd(at(1).value)}. All ${N} economies ranked with World Bank figures, plus who has climbed since 2000.`;
+
+const cards = [
+  { label: 'World GDP', value: usd(world).replace(' trillion', 'T'), year: L },
+  { label: 'Largest economy', value: usd(at(0).value).replace(' trillion', 'T'), year: L, note: 'United States' },
+  { label: 'Top 10 share', value: pct(share(top10)), year: L, note: 'of world GDP' },
+  { label: 'Trillion-dollar economies', value: String(trillionClub.length), year: L },
+];
+
+const top = at(0).value;
+const rows = ranked.map((r) => {
+  const s = econData(r.iso3).series;
+  const g = valueIn(s.gdpGrowthPct, L), pc = valueIn(s.gdpPerCapita, L);
+  const pg = pagesOf(r.iso3);
+  return {
+    rank: r.rank, iso3: r.iso3, name: name(r.iso3), site: pg.economy ?? pg.population, href: (pg.economy ?? pg.population) ? path((pg.economy ?? pg.population)!) : null, region: r.region,
+    bar: r.value / top, value: (r.value / 1e9).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+    cells: [pct(share(r.value)), g == null ? '–' : signedPct(g), pc == null ? '–' : usdWhole(pc)],
+  };
+});
+const regions = [...new Set(ranked.map((r) => r.region))].sort();
+
+const faq = [
+  { q: 'Which country has the biggest economy in the world?', a: `The United States, with GDP of ${usd(at(0).value)} in ${L}, or ${pct(share(at(0).value))} of the world total. China is second at ${usd(at(1).value)}.` },
+  { q: `Which countries are in the top 10 economies in ${L}?`, a: `${ranked.slice(0, 10).map((r) => name(r.iso3)).join(', ')}. Together they produce ${pct(share(top10))} of world GDP.` },
+  { q: 'Is China\'s economy bigger than America\'s?', a: `Not in US dollars: China's GDP was ${pct(ratio(L))} of the US figure in ${L}, down from ${pct(ratio(peak))} in ${peak}.` },
+  { q: 'What is the largest economy in Africa?', a: `South Africa, at ${usd(africa[0].value)} in ${L}, just ahead of Egypt (${usd(africa[1].value)}) and Nigeria (${usd(africa[2].value)}).` },
+  { q: 'Where does Bangladesh rank by GDP?', a: `${ord(bd.rank)} of ${N} economies in ${L}, with ${usd(bd.value)}.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `GDP by country ${L}: all ${N} economies ranked`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'CreativeWork', name: 'World Development Indicators', url: WDI_URL, publisher: { '@type': 'Organization', name: 'The World Bank' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `GDP by country, ${L}`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `GDP by country, ${L} (current US$)`,
+    description: `Gross domestic product of ${N} economies in ${L} in current US dollars, ranked, with share of world GDP, real GDP growth and GDP per person, from the World Bank's World Development Indicators (update of ${longDate(econMeta.indicators.gdp.wdiLastUpdated)}).`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WDI_URL], temporalCoverage: String(L),
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['GDP (current US$)', 'Share of world GDP (%)', 'GDP growth (%)', 'GDP per person (current US$)'],
+    dateModified: iso(UPDATED), license: econMeta.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/gdp-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="GDP by country" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'GDP by country', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>GDP by country, {L}</h1>
+    <p class="answer">The <strong>United States</strong> has the world's largest economy, with GDP of <strong>{usd(at(0).value)}</strong> in {L}, followed by China at {usd(at(1).value)}. The world as a whole produced {usd(world)}, and the ten biggest economies accounted for {pct(share(top10))} of it.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`World GDP ranking, ${L}`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`World economies ranked by GDP, ${L}`}
+        subtitle="Gross domestic product in billions of current US dollars. Tap a name to open that country's page where we have one."
+        valueLabel="GDP, US$ billion"
+        cols={[{ label: 'Share of world', cls: 'c-hide-m' }, { label: 'Real growth', cls: 'c-hide-m' }, { label: 'Per person', cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={regions}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        csv={path('/data/gdp-by-country.csv')} csvName="gdp-by-country.csv"
+        licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+      />
+      <p class="note">Not ranked: {missing.length} economies without a World Bank GDP figure for {L} yet, among them {name('ARE')} (latest figure {L - 1}), {name('CUB')}, {name('SYR')} and {name('YEM')}. We rank only one year at a time rather than mixing in older figures.</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>Which countries have the largest economies?</h2>
+        <p>The United States ({usd(at(0).value)}) and China ({usd(at(1).value)}) are in a league of their own: together they make up {pct(share(usCn))} of world output. Germany, Japan, the United Kingdom and India follow, each between {usd(at(5).value)} and {usd(at(2).value)}. In all, {trillionClub.length} economies passed one trillion dollars in {L}.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Is China catching up with the United States?</h2>
+        <p>It was, quickly, until 2021. China's GDP was {pct(ratio(2000))} of America's in 2000 and reached {pct(ratio(peak))} in {peak}; by {L} it had dropped back to {pct(ratio(L))}. Because both are measured in current US dollars, the gap moves with prices and exchange rates as well as with real growth.</p>
+      </div>
+      <LineChart
+        title={`China's GDP as a share of US GDP, 1990–${L}`}
+        subtitle="Both in current US dollars. 100% would mean the two economies are the same size."
+        points={ratioYears.map((y) => ({ x: y, y: ratio(y) }))}
+        format="percent" highlight={L} estimateLabel="World Bank data"
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+
+      <div class="story-block prose">
+        <h2>Which economies have climbed the ranking since 2000?</h2>
+        <p>Among the {both.length} economies with figures for both years, China rose from {ord(moved('CHN').then)} to {ord(moved('CHN').now)} and India from {ord(moved('IND').then)} to {ord(moved('IND').now)}. Indonesia moved up {moved('IDN').then - moved('IDN').now} places to {ord(moved('IDN').now)} and Russia from {ord(moved('RUS').then)} to {ord(moved('RUS').now)}, while Japan slipped from {ord(moved('JPN').then)} to {ord(moved('JPN').now)} and Mexico from {ord(moved('MEX').then)} to {ord(moved('MEX').now)}.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>What are the biggest economies in Africa?</h2>
+        <p>South Africa ({usd(africa[0].value)}), Egypt ({usd(africa[1].value)}) and Nigeria ({usd(africa[2].value)}) top the continent, with Algeria close behind at {usd(africa[3].value)}. Even the largest ranks only {ord(africa[0].rank)} in the world, a reminder of how much of global output sits in a few places.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Where do South Asian economies rank?</h2>
+        <p>India is {ord(byIso('IND').rank)}, by far the largest in the region. <a href={path('/economy/bangladesh/')}>Bangladesh</a> is {ord(bd.rank)} at {usd(bd.value)}, and Pakistan {ord(byIso('PAK').rank)} at {usd(byIso('PAK').value)}. At the other end of the list sit small island states: Tuvalu, the smallest economy ranked, produced {usd(at(N - 1).value)}.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Quick answers about GDP by country</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP in current US$ (NY.GDP.MKTP.CD), GDP growth (NY.GDP.MKTP.KD.ZG), GDP per person (NY.GDP.PCAP.CD), World total and regions. Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+        </ul>
+        <p class="note">The ranking covers every World Bank economy with a GDP figure for {L}; nothing is estimated or carried forward from earlier years. Shares are of the World Bank's World total. "Africa" here means the World Bank's Sub-Saharan Africa region plus Algeria, Egypt, Libya, Morocco and Tunisia. Country names follow the UN list in their common English form. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('GDP by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+</style>

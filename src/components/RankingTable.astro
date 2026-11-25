@@ -1,0 +1,110 @@
+---
+// Ranking list (design guide §3.7): desktop = titled table card with value bars; mobile = leaderboard
+// (rank · name · value bar) with a "Top 10 / All" toggle and region chips. Same HTML for both, every row is in
+// the page (the toggle only hides rows on screen). Verified source + licence + CSV in the card.
+import SourceBadge from './SourceBadge.astro';
+interface Col { label: string; cls?: string }
+interface Row { rank: number; iso3: string; name: string; href: string | null; region: string; bar: number; value: string; cells: string[] }
+interface Props {
+  id: string; title: string; subtitle: string; valueLabel: string; cols: Col[]; rows: Row[]; regions: string[];
+  source: string; sourceUrl?: string; checkedOn?: string; csv: string; csvName: string; licence: { name: string; url: string };
+}
+const { id, title, subtitle, valueLabel, cols, rows, regions, source, sourceUrl, checkedOn, csv, csvName, licence } = Astro.props;
+---
+<section class="tcard rank-card" aria-labelledby={id} data-ranking>
+  <header class="tcard-head">
+    <div>
+      <h2 id={id}>{title}</h2>
+      <p class="tcard-sub">{subtitle}</p>
+    </div>
+    <a class="btn-ghost" href={csv} download={csvName}>
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m0 0-3.5-3.5M10 12l3.5-3.5M4 15.5h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      CSV
+    </a>
+  </header>
+  <div class="rank-tools">
+    <div class="seg2" role="group" aria-label="How many to show">
+      <button type="button" aria-pressed="true" data-show="10">Top 10</button>
+      <button type="button" aria-pressed="false" data-show="all">All {rows.length}</button>
+    </div>
+    <div class="chips" role="group" aria-label="Filter by region">
+      <button type="button" aria-pressed="true" data-region="">All regions</button>
+      {regions.map((r) => <button type="button" aria-pressed="false" data-region={r}>{r}</button>)}
+    </div>
+  </div>
+  <div class="table-scroll">
+    <table class="data ranking">
+      <caption class="visually-hidden">{title}. {subtitle}</caption>
+      <thead>
+        <tr>
+          <th scope="col" class="c-rank">Rank</th>
+          <th scope="col" class="c-name">Country or area</th>
+          <th scope="col" class="c-val">{valueLabel}</th>
+          {cols.map((c) => <th scope="col" class={c.cls}>{c.label}</th>)}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr data-iso3={r.iso3} data-rank={r.rank} data-region={r.region} class={r.rank > 10 ? 'beyond' : ''}>
+            <td class="c-rank">{r.rank}</td>
+            <th scope="row" class="c-name">{r.href ? <a href={r.href}>{r.name}</a> : r.name}<span class="reg">{r.region}</span></th>
+            <td class="c-pop c-val"><span class="bar" style={`--w:${r.bar.toFixed(3)}`} aria-hidden="true"></span><span class="n">{r.value}</span></td>
+            {r.cells.map((c, i) => <td class={cols[i].cls}>{c}</td>)}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p class="rank-empty note" hidden>No economies from this region in the top 10. Choose "All" to see them.</p>
+  <footer class="tcard-foot">
+    <SourceBadge source={source} url={sourceUrl} checkedOn={checkedOn} variant="footer" />
+    <span class="lic">Licence: <a href={licence.url}>{licence.name}</a></span>
+  </footer>
+</section>
+<script is:inline>
+  (function () {
+    document.querySelectorAll('[data-ranking]').forEach(function (card) {
+      var rows = card.querySelectorAll('tbody tr'), empty = card.querySelector('.rank-empty');
+      var state = { show: '10', region: '' };
+      function apply() {
+        var n = 0;
+        rows.forEach(function (r) {
+          var ok = (state.region === '' || r.dataset.region === state.region) && (state.show === 'all' || Number(r.dataset.rank) <= 10);
+          r.hidden = !ok; if (ok) n++;
+        });
+        empty.hidden = n > 0;
+      }
+      card.querySelectorAll('[data-show]').forEach(function (b) { b.addEventListener('click', function () {
+        state.show = b.dataset.show; card.querySelectorAll('[data-show]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); apply();
+      }); });
+      card.querySelectorAll('[data-region]').forEach(function (b) { if (b.tagName !== 'BUTTON') return; b.addEventListener('click', function () {
+        state.region = b.dataset.region; if (state.region) state.show = 'all';
+        card.querySelectorAll('[data-show]').forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.show === state.show ? 'true' : 'false'); });
+        card.querySelectorAll('button[data-region]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); apply();
+      }); });
+      apply();
+    });
+  })();
+</script>
+<style>
+  .rank-tools { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; padding: 12px 22px; border-bottom: 1px solid var(--line); }
+  .seg2 { display: inline-flex; background: var(--water); border-radius: 999px; padding: 3px; }
+  .seg2 button, .chips button { border: 0; font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; min-height: 36px; }
+  .seg2 button { background: none; color: var(--ocean-2); padding: 6px 14px; border-radius: 999px; }
+  .seg2 button[aria-pressed="true"] { background: var(--surface); color: var(--ocean); box-shadow: 0 1px 3px rgba(18,59,90,.15); }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chips button { background: var(--surface); border: 1px solid var(--line); color: var(--text-2); padding: 4px 12px; border-radius: 999px; }
+  .chips button[aria-pressed="true"] { background: var(--ocean); border-color: var(--ocean); color: #fff; }
+  table.ranking .c-rank { width: 3.5em; text-align: right; color: var(--text-2); }
+  table.ranking .c-name { text-align: left; font-weight: 600; }
+  table.ranking .c-name .reg { display: block; font-weight: 400; font-size: .76rem; color: var(--text-3); }
+  table.ranking .c-val { min-width: 9em; }
+  table.ranking tr[hidden] { display: none; }
+  .rank-empty { padding: 14px 22px; margin: 0; }
+  @media (max-width: 767px) {
+    .rank-tools { padding: 10px 14px; }
+    .chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-right: -14px; padding-right: 14px; }
+    .chips button { white-space: nowrap; }
+    table.ranking .c-hide-m { display: none; }
+  }
+</style>

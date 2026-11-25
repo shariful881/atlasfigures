@@ -1,0 +1,20 @@
+{
+  "slug": "gdp-by-country",
+  "published": "2026-11-25",
+  "updated": "2026-11-25",
+  "verification": {
+    "checkedOn": "2026-11-25",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/rankings-gdp.py reads the original World Bank zips (data/raw/wdi/) and UN WPP 2024 file, not the site's generated data; then the text was read by hand",
+    "what": "every ranking row (186 economies, order and GDP), the CSV, every figure in the answer, cards, story, chart, FAQ, title, description and JSON-LD; claims: top six order, China/US peak in 2021, rank changes since 2000, Africa order, smallest economy, economies not ranked",
+    "against": "World Bank WDI bulk files (update 11 November 2026, CC BY 4.0); UN WPP 2024",
+    "result": "All automated comparisons matched (793 across both pages); wording that could not be sourced was removed"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-25",
+      "type": "published",
+      "note": "First version: World Bank WDI figures (update of 11 November 2026) for 2025."
+    }
+  ]
+}
