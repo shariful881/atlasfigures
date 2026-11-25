@@ -3,7 +3,7 @@ import '@fontsource-variable/schibsted-grotesk/wght.css';
 import fontUrl from '@fontsource-variable/schibsted-grotesk/files/schibsted-grotesk-latin-wght-normal.woff2?url';
 import '../styles/global.css';
 import Icon from '../components/Icon.astro';
-import { SITE_NAME, abs, path, organization, website, breadcrumbList, type Crumb } from '../site';
+import { SITE_NAME, abs, path, organization, website, breadcrumbList, INFO_LINKS, ISSUES_URL, type Crumb } from '../site';
 
 type Section = 'home' | 'population' | 'time' | 'economy' | 'rankings' | 'about';
 interface Props {
@@ -82,6 +82,7 @@ const mark = `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16
       )}
       {back && <div class="title">{appTitle ?? title}</div>}
       {miniCounter && <div class="mini num" id="mini-counter" aria-hidden="true"></div>}
+      {sitePath !== '/more/' && <a class="icon-btn" href={path('/more/')} aria-label="More: about, sources, corrections, contact"><Icon name="more" /></a>}
       <button class="icon-btn" type="button" id="share-btn" aria-label="Share this page"><Icon name="share" /></button>
     </div>
 
@@ -122,11 +123,8 @@ const mark = `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16
         <div>
           <h2 class="foot-h">About</h2>
           <ul>
-            <li><a href={path('/about/')}>About AtlasFigures</a></li>
-            <li><a href={path('/methodology/')}>Methodology</a></li>
-            <li><a href={path('/sources/')}>Sources</a></li>
-            <li><a href={path('/contact/')}>Contact</a></li>
-            <li><a href={path('/privacy/')}>Privacy</a></li>
+            {INFO_LINKS.map((l) => <li><a href={path(l.href)}>{l.label}</a></li>)}
+            <li><a href={`${ISSUES_URL}/new`}>Report an error</a></li>
           </ul>
         </div>
       </div>

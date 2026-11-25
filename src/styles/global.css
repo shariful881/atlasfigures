@@ -491,3 +491,17 @@ a.tile:hover { border-color: var(--contour); color: var(--text); }
 
 /* Keep proportional figures where punctuation sits inside small numbers */
 .facts dd, .fact-tiles .v, .live-stats .v, .live-clock, .next-txt b, .counter .chip .v, .age-row .v { font-variant-numeric: normal; }
+
+/* Mobile "More" screen and corrections log */
+.more-list { margin-top: 8px; }
+.more-row { display: grid; grid-template-columns: 1fr 20px; align-items: center; gap: 14px; min-height: 64px; padding: 12px 18px; text-decoration: none; color: var(--text); border-bottom: 1px solid var(--line); }
+.more-row:last-child { border-bottom: 0; }
+.more-row .name { font-weight: 700; color: var(--ocean); }
+.more-row .meta { font-size: .85rem; color: var(--text-3); }
+.more-row .chev { color: var(--text-3); }
+.more-row .chev svg { width: 18px; height: 18px; }
+.more-row:active { background: var(--water); }
+.corr-log { list-style: none; padding: 0; }
+.corr-log li { border-top: 1px solid var(--line); padding: 12px 0; }
+.corr-log .corr-meta { margin: 0 0 4px; font-size: .9rem; color: var(--text-2); }
+.report-error { margin-top: 10px; }

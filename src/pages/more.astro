@@ -1,0 +1,22 @@
+---
+// Mobile "More" screen: the trust pages that sit in the website footer on wide screens.
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { path, INFO_LINKS, ISSUES_URL } from '../site';
+---
+<Base title="More | AtlasFigures" description="About AtlasFigures, our methodology and sources, corrections, contact and privacy."
+  section="about" appTitle="More" back="/" noindex breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'More', href: '/more/' }]}>
+  <h1>More</h1>
+  <nav class="list more-list" aria-label="About AtlasFigures">
+    {INFO_LINKS.map((l) => (
+      <a class="more-row" href={path(l.href)}>
+        <span><span class="name">{l.label}</span><br /><span class="meta">{l.text}</span></span>
+        <span class="chev"><Icon name="chevron" /></span>
+      </a>
+    ))}
+    <a class="more-row" href={`${ISSUES_URL}/new`}>
+      <span><span class="name">Report an error</span><br /><span class="meta">Tell us about a wrong figure or sentence</span></span>
+      <span class="chev"><Icon name="chevron" /></span>
+    </a>
+  </nav>
+</Base>

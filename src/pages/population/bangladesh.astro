@@ -7,7 +7,7 @@ import DataTable from '../../components/DataTable.astro';
 import SourceBadge from '../../components/SourceBadge.astro';
 import bd from '../../data/countries/bangladesh.json';
 import { countryData, countryIndex, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
-import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER } from '../../site';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
 
 // Every figure below comes from the original UN files (via src/data/wpp/) or from bd.census2022.
 const PUBLISHED = bd.published;
@@ -259,6 +259,7 @@ const schema = [
           </ul>
           <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and adds the UN's projected growth for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
           <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Bangladesh population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
         </div>
       </details>
     </article>

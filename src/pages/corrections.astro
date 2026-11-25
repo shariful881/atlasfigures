@@ -1,0 +1,43 @@
+---
+import InfoPage from '../components/InfoPage.astro';
+import siteCorrections from '../data/site-corrections.json';
+import { path, longDate, ISSUES_URL } from '../site';
+
+// Every correction on the site, newest first: from each country page's changelog
+// (entries with type "correction") and from site-corrections.json for other pages.
+const countryFiles = import.meta.glob<any>('../data/countries/*.json', { eager: true, import: 'default' });
+const fromCountries = Object.values(countryFiles).flatMap((c: any) =>
+  (c.changelog ?? []).filter((e: any) => e.type === 'correction')
+    .map((e: any) => ({ date: e.date, page: `/population/${c.slug}/`, pageName: `${c.name} population`, change: e.change })));
+const corrections = [...fromCountries, ...siteCorrections]
+  .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : a.pageName.localeCompare(b.pageName)));
+const updated = corrections[0]?.date ?? '2026-11-25';
+---
+<InfoPage title="Corrections Policy and Log" heading="Corrections" slug="corrections" updated={updated}
+  description="How to report an error on AtlasFigures, what we do with each report, and every correction we have made so far.">
+  <p>We want every figure on AtlasFigures to match its source. When one does not, we fix it and say so here.</p>
+
+  <h2>How to report an error</h2>
+  <p>Use the <strong>Report an error</strong> link in the Sources section of any country page, or <a href={`${ISSUES_URL}/new`}>open a report on our public project page</a>. Tell us the page, what is wrong and, if you can, a link to the source with the correct figure. You can also reach us through the <a href={path('/contact/')}>contact page</a>.</p>
+
+  <h2>What happens next</h2>
+  <ul>
+    <li>We check the report against the original source named on the page, not against another website.</li>
+    <li>If our figure or sentence is wrong, we correct the page, change its Updated date and record the change in the page's change log.</li>
+    <li>Every correction is listed below with its date, the page and what changed.</li>
+    <li>If our figure matches the source but the source itself is disputed, we say so on the page rather than change the number.</li>
+    <li>Errors we find ourselves are handled the same way.</li>
+  </ul>
+
+  <h2>Corrections log</h2>
+  {corrections.length === 0 ? <p>No corrections yet.</p> : (
+    <ul class="corr-log">
+      {corrections.map((c) => (
+        <li>
+          <p class="corr-meta"><time datetime={c.date}>{longDate(c.date)}</time> · <a href={path(c.page)}>{c.pageName}</a></p>
+          <p>{c.change}</p>
+        </li>
+      ))}
+    </ul>
+  )}
+</InfoPage>
