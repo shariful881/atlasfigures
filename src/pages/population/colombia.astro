@@ -6,6 +6,7 @@ import LineChart from '../../components/LineChart.astro';
 import DataTable from '../../components/DataTable.astro';
 import SourceBadge from '../../components/SourceBadge.astro';
 import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
 import co from '../../data/countries/colombia.json';
 import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
 import { countrySchema } from '../../lib/countrySchema';
@@ -175,6 +176,7 @@ const schema = countrySchema({
           <h2>Is Colombia mostly urban?</h2>
           <p>Yes: {pct(c.urbanPct!)} under the national definition, compared with {pct(y[1950].urbanPct!)} in 1950, with {pct(y[2050].urbanPct!)} projected for 2050. Colombia is the second most populous country in South America, after Brazil, and has about four and a half times its 1950 population.</p>
         </div>
+        <RelatedPages iso3={co.iso3} name={co.name} />
       </section>
 
       <section class="panel" data-panel="data" aria-label="Data">

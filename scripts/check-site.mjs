@@ -106,6 +106,7 @@ const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc><lastmod>([^<]+)<\/
 const ids = new Map(pages.map((f) => [urlOf(f), new Set([...readFileSync(f, 'utf8').matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]))]));
 const countries = readdirSync('src/data/countries').map((f) => JSON.parse(readFileSync(join('src/data/countries', f), 'utf8')));
 
+const inbound = new Map(); // country page → number of other country pages whose related block links to it
 for (const file of pages) {
   const url = urlOf(file);
   const html = readFileSync(file, 'utf8');
@@ -113,6 +114,7 @@ for (const file of pages) {
   const where = `page ${url}`;
   const noindex = root.querySelector('html')?.getAttribute('data-page-noindex') === 'true';
   const visible = parse(html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, ''));
+  visible.querySelectorAll('nav.related-pages').forEach((el) => el.remove()); // other countries' figures must not satisfy this page's checks
   const text = textOf(visible);
 
   // 4. Schema
@@ -164,6 +166,25 @@ for (const file of pages) {
     ok(Number(liveEl.getAttribute('data-anchor')) === now.population, where, 'live counter anchor ≠ UN mid-year population');
     ok(Number(liveEl.getAttribute('data-rate')) === now.change, where, 'live counter rate ≠ UN yearly change');
     ok(liveEl.getAttribute('data-date') === `${CURRENT_YEAR}-07-01`, where, 'live counter does not start on 1 July');
+  }
+  // Related pages (task 6): 3–5 same-region countries that have pages (fewer only when fewer exist), plus the hub
+  const rel = root.querySelector('nav.related-pages');
+  if (ok(rel, where, 'no "Related pages" block (nav.related-pages)')) {
+    const idx = JSON.parse(readFileSync('src/data/wpp/index.json', 'utf8')).countries;
+    const me = idx.find((x) => x.iso3 === c.iso3);
+    const linked = rel.querySelectorAll('.rp-countries a').map((a) => a.getAttribute('data-iso3'));
+    const others = countries.filter((x) => x.iso3 !== c.iso3).map((x) => idx.find((u) => u.iso3 === x.iso3)).filter(Boolean);
+    const sameSub = others.filter((u) => u.subregion === me.subregion).length;
+    const sameReg = others.filter((u) => u.region === me.region).length;
+    const want = Math.min(5, sameReg); // subregion first, topped up from the region
+    ok(linked.filter((iso) => idx.find((u) => u.iso3 === iso)?.subregion === me.subregion).length === Math.min(5, sameSub), where, 'related pages skip a same-subregion country');
+    ok(linked.length === want, where, `related pages link ${linked.length} countries, expected ${want}`);
+    for (const iso of linked) {
+      const u = idx.find((x) => x.iso3 === iso);
+      ok(u && u.region === me.region && countries.some((x) => x.iso3 === iso) && iso !== c.iso3, where, `related country ${iso} is not a same-region country with a page`);
+    }
+    ok(rel.querySelectorAll('a').some((a) => a.getAttribute('href') === `${BASE}/population/`), where, 'related pages do not link to the Population hub');
+    for (const iso of linked) inbound.set(iso, (inbound.get(iso) ?? 0) + 1);
   }
   // table rows
   for (const tr of root.querySelectorAll('table.data tbody tr')) {
@@ -217,6 +238,9 @@ for (const file of pages) {
   }
   checks += prose.length;
 }
+
+// no orphans: every country page is linked from at least one other country page's related block
+for (const c of countries) ok(inbound.get(c.iso3) > 0 || countries.length < 2, `page /population/${c.slug}/`, 'orphan: no other country page links here in its related block');
 
 // sitemap entries must be real pages
 for (const s of sitemapUrls) {

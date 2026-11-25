@@ -6,6 +6,7 @@ import LineChart from '../../components/LineChart.astro';
 import DataTable from '../../components/DataTable.astro';
 import SourceBadge from '../../components/SourceBadge.astro';
 import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
 import ch from '../../data/countries/switzerland.json';
 import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
 import { countrySchema } from '../../lib/countrySchema';
@@ -194,6 +195,7 @@ const schema = countrySchema({
           <h2>Does Switzerland have a capital city?</h2>
           <p>Not officially. Bern hosts the government and parliament and is called the "federal city", acting as capital in practice, as the <a href={EDA_URL}>Swiss Federal Department of Foreign Affairs</a> explains. Across the country {pct(c.urbanPct!)} of residents live in urban areas by the national definition, up from {pct(y[1950].urbanPct!)} in 1950.</p>
         </div>
+        <RelatedPages iso3={ch.iso3} name={ch.name} />
       </section>
 
       <section class="panel" data-panel="data" aria-label="Data">

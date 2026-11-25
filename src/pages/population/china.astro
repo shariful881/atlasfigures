@@ -6,6 +6,7 @@ import LineChart from '../../components/LineChart.astro';
 import DataTable from '../../components/DataTable.astro';
 import SourceBadge from '../../components/SourceBadge.astro';
 import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
 import cnj from '../../data/countries/china.json';
 import { countryData, byYear, displayRows, assertClaim, int, dec, millions, people, pct, ord, CURRENT_YEAR } from '../../lib/figures';
 import { countrySchema } from '../../lib/countrySchema';
@@ -191,6 +192,7 @@ const schema = countrySchema({
           <div><span class="y">{CURRENT_YEAR}</span><div class="v">{(c.population / 1e9).toFixed(2)}B</div><span class="d">Already falling</span></div>
           <div><span class="y">2100, UN projection</span><div class="v">{Math.round(y[2100].population / 1e6)}M</div><span class="d">Below the 1960 level</span></div>
         </div>
+        <RelatedPages iso3={cnj.iso3} name={cnj.name} />
       </section>
 
       <section class="panel" data-panel="data" aria-label="Data">
