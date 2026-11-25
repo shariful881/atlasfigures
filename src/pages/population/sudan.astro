@@ -1,0 +1,223 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
+import sd from '../../data/countries/sudan.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: a 2023 net outflow second only to Pakistan's
+// that year, which almost halted growth; inflows again in the 2025–2026 estimates; growth all the way to 2100; a
+// young population and an urban share that barely moves. Neutral wording: the UN data give counts, not causes.
+const PAGE = '/population/sudan/';
+const un = countryData(sd.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (sd.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const africa = wpp.filter((d: any) => d.region === 'Africa').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+const north = wpp.filter((d: any) => d.subregion === 'Northern Africa').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(africa.indexOf('SDN') === 7 && north[0] === 'EGY' && north[1] === 'SDN', 'eighth in Africa, second in Northern Africa after Egypt');
+const out23 = wpp.filter((d: any) => at(d, 2023)).sort((a: any, b: any) => at(a, 2023).netMigrants - at(b, 2023).netMigrants).map((d: any) => d.iso3);
+assertClaim(out23[0] === 'PAK' && out23[1] === 'SDN', '2023 net outflow second largest in the world after Pakistan');
+assertClaim(y[2023].change > 0 && y[2023].change < 20000 && y[2023].growthRatePct < 0.1 && y[2022].growthRatePct > 2.5 && y[2025].netMigrants > 0 && c.netMigrants > 0, 'growth almost zero in 2023; net inflow in 2025 and 2026');
+const minMig = un.years.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+assertClaim(minMig.year === 2023, '2023 is the largest net outflow in the series');
+assertClaim(un.years.every((r, i, arr) => i === 0 || r.population > arr[i - 1].population), 'population rises in every year of the series, 1950–2100');
+assertClaim(y[2100].worldRank! === 14 && c.worldRank! === 29, '29th now, 14th by 2100');
+const tfrMax = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(tfrMax.year === 1971 && un.years.every((r) => r.fertility >= 2.1), 'fertility peak 1971; above 2.1 in every year to 2100');
+assertClaim(y[2050].urbanPct! - c.urbanPct! < 1.5 && c.urbanPct! < 40, 'urban share barely changes to 2050');
+const times = c.population / y[1950].population;
+assertClaim(times > 8.4 && times < 8.8, 'about 8.6 times 1950');
+
+const title = `Sudan Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)}M, the 2023 Outflow and UN Outlook to 2100 | AtlasFigures`;
+const description = `Sudan's ${CURRENT_YEAR} headcount, ${millions(c.population)} on UN figures, keeps rising. Departures in 2023 nearly froze growth for a year, yet the medium variant climbs to ${millions(y[2100].population)} in 2100.`;
+const pass100 = un.years.find((r) => r.population > 1e8)!.year;
+assertClaim(pass100 === 2062, 'passes 100 million in 2062, well before 2075');
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: sd.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+  { label: 'In 2100', value: millionsShort(y[2100].population) },
+];
+
+const rows = displayRows(un.years, sd.tableYears);
+
+const faq = [
+  { q: "How big is Sudan's population in " + CURRENT_YEAR + '?', a: `Close to ${millions(c.population)} at mid-year in the UN series, ranking ${ord(c.worldRank!)} globally; seven African countries are larger.` },
+  { q: 'Did Sudan lose population in 2023?', a: `Not quite. Departures exceeded arrivals by roughly ${millions(-y[2023].netMigrants)} that year, but births still slightly outweighed them, leaving the UN's net change for 2023 at a slim plus ${int(Math.round(y[2023].change / 1000))} thousand.` },
+  { q: 'Is Sudan gaining migrants again?', a: `In the latest UN estimates, yes. Arrivals outnumber departures by roughly ${int(Math.round(y[2025].netMigrants / 1000))} thousand for 2025 and ${int(Math.round(c.netMigrants / 1000))} thousand for ${CURRENT_YEAR}; the figures do not say who arrived.` },
+  { q: 'Will Sudan pass 100 million?', a: `Yes. The UN's middle path crosses that mark in ${pass100}; by 2075 it shows ${millions(y[2075].population)}, and ends the century at ${millions(y[2100].population)}, ${ord(y[2100].worldRank!)} on the world list.` },
+  { q: 'Is Sudan mostly urban or rural?', a: `Mostly rural. Just ${pct(c.urbanPct!)} of Sudan's residents are urban by its own definition, and the 2050 projection is a mere ${pct(y[2050].urbanPct!)}.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: sd.slug, name: sd.name, wikipedia: sd.wikipedia,
+  headline: `Sudan's ${millions(c.population)}: the 2023 outflow, growth to 2100 and a young population`,
+  description,
+  datasetName: 'Sudan population, net migration, fertility and urban share, 1950–2100',
+  datasetDescription: `Mid-year population of Sudan for selected years from 1950 to ${CURRENT_YEAR} (every year from 2022), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: sd.published, updated: sd.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Sudan"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Sudan', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Sudan: a sharp break in 2023, then growth resumes</h1>
+        <LiveCounter
+          label="Sudan: running population estimate"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} total, gaining close to ${int(c.change / 365)} people per day`}
+        />
+        <p class="answer">
+          Sudan has roughly <strong>{millions(c.population)}</strong> people this year, {ord(c.worldRank!)} in UN rankings. When some <strong>{millions(-y[2023].netMigrants)}</strong> more people left than arrived in 2023, growth almost halted for a year, but the projection rises without a break to {millions(y[2100].population)} in 2100.
+        </p>
+        <div class="dates"><span>Updated <time datetime={sd.updated}>{longDate(sd.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Sudan" code="sd" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Why did Sudan's growth stall in 2023?</h2>
+          <p>Because departures nearly cancelled births. Some {millions(-y[2023].netMigrants)} more people left than arrived that year in UN figures, the largest in Sudan's record and second only to Pakistan's anywhere in 2023. With about {millions(y[2023].naturalChange)} more births than deaths, the year closed with a rise of just {int(Math.round(y[2023].change / 1000))} thousand, after growth of {pct(y[2022].growthRatePct)} the year before. These are counts; the UN files do not record why people left.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Net migration in Sudan, UN estimates">
+          <div><span class="y">2023</span><div class="v">−{(-y[2023].netMigrants / 1e6).toFixed(1)}M</div><span class="d">Net outflow</span></div>
+          <div><span class="y">2025</span><div class="v">+{int(Math.round(y[2025].netMigrants / 1000))}k</div><span class="d">Net inflow</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">+{int(Math.round(c.netMigrants / 1000))}k</div><span class="d">Net inflow</span></div>
+        </div>
+        <LineChart
+          title="Sudan's population, 1950–2100: upward in every single year"
+          subtitle="UN estimates and the dashed medium projection; the 2023 pause shows as a flat step."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How large will Sudan become?</h2>
+          <p>On the medium projection the population never stops rising this century. Expect {millions(y[2050].population)} by mid-century and {millions(y[2100].population)} at its end, moving from {ord(c.worldRank!)} place today to {ord(y[2100].worldRank!)}. The country has multiplied about {dec(times, 1)}-fold since 1950 ({millions(y[1950].population)} then) and is now second in Northern Africa, after Egypt.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How high is fertility in Sudan?</h2>
+          <p>About {dec(c.fertility, 2)} per woman in {CURRENT_YEAR}, down from {dec(tfrMax.fertility, 2)} at the {tfrMax.year} high. Even in 2100 the projected rate is {dec(y[2100].fertility, 2)}, so it never drops under 2.1 in the UN series. The median Sudanese resident is {dec(c.medianAge, 1)} years old, and the UN expects about {millions(c.births)} births in {CURRENT_YEAR}.</p>
+        </div>
+        <LineChart
+          title="Births per Sudanese woman: estimates since 1950 and projection to 2050"
+          subtitle="UN estimates, then medium-variant projection (dashed); the 2.1 line for comparison."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'the 2.1 line' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Are Sudan's towns and cities growing faster than the countryside?</h2>
+          <p>Barely. The urban share, as Sudan measures it, climbed from {pct(y[1950].urbanPct!)} in 1950 to {pct(c.urbanPct!)} today, and the 2050 value in World Urbanization Prospects ({pct(y[2050].urbanPct!)}) is hardly higher. Life expectancy for a baby born this year: {dec(c.lifeExpectancy, 1)} years.</p>
+        </div>
+        <RelatedPages iso3={sd.iso3} name={sd.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Sudan's population, with every year from 2022"
+          subtitle="The 2023 row shows the near-standstill; projections continue upward to 2100."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${sd.slug}-population.csv`)}
+          csvName={`${sd.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Short answers on Sudan's people</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{sd.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={sd.published}>{longDate(sd.published)}</time> · Updated <time datetime={sd.updated}>{longDate(sd.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Sudan population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Sudan" code="sd" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
