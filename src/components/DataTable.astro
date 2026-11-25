@@ -2,7 +2,7 @@
 // Professional yearly data table: titled card, inline population bars,
 // highlighted current year, separate "UN projections" band, verified source + CSV in the footer.
 import SourceBadge from './SourceBadge.astro';
-interface Row { year: number; population: number; density: number; fertility: number; medianAge: number; urbanPct: number; rank: number; projection?: boolean }
+interface Row { year: number; population: number; density: number; fertility: number; medianAge: number; urbanPct: number | null; rank: number; projection?: boolean }
 interface Props {
   id: string; title: string; subtitle: string; rows: Row[]; current: number;
   source: string; sourceUrl?: string; checkedOn?: string; csv: string; csvName: string; licence?: { name: string; url: string };
@@ -46,7 +46,7 @@ const fmt = (n: number) => n.toLocaleString('en-US');
             <td>{fmt(r.density)}</td>
             <td>{r.fertility}</td>
             <td>{r.medianAge}</td>
-            <td>{r.urbanPct}%</td>
+            <td>{r.urbanPct == null ? '–' : `${r.urbanPct}%`}</td>
             <td>{r.rank}</td>
           </tr>
         ))}
@@ -61,7 +61,7 @@ const fmt = (n: number) => n.toLocaleString('en-US');
               <td>{fmt(r.density)}</td>
               <td>{r.fertility}</td>
               <td>{r.medianAge}</td>
-              <td>{r.urbanPct}%</td>
+              <td>{r.urbanPct == null ? '–' : `${r.urbanPct}%`}</td>
               <td>{r.rank}</td>
             </tr>
           ))}

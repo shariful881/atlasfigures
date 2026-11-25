@@ -153,7 +153,7 @@ for (const file of pages) {
   const y = Object.fromEntries(d.years.map((r) => [r.year, r]));
   const now = y[CURRENT_YEAR];
   const expected = {
-    'population': int(now.population), 'population (millions)': millions(now.population), 'world rank': ord(now.worldRank),
+    'population': int(now.population), 'population (millions)': now.population >= 1e9 ? `${(now.population / 1e9).toFixed(2)} billion` : millions(now.population), 'world rank': ord(now.worldRank),
     'share of world': pct(now.worldSharePct), 'growth rate': pct(now.growthRatePct), 'yearly change': int(now.change),
     'density': int(now.densityPerKm2), 'land area': int(d.landAreaKm2), 'median age': now.medianAge.toFixed(1),
     'births per woman': now.fertility.toFixed(2), 'urban share': now.urbanPct == null ? null : pct(now.urbanPct),

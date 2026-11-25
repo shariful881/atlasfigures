@@ -11,6 +11,7 @@
   --contour: #2e7d5b;
   --contour-2: #e2f0e9;
   --live: #d7263d;
+  --fall: #a4441f;
   --text: #33414d;
   --text-2: #4f5e6a;
   --text-3: #61707c;
@@ -512,3 +513,7 @@ a.tile:hover { border-color: var(--contour); color: var(--text); }
 .live-est strong { color: var(--ocean); font-weight: 700; }
 .live-est a { color: var(--ocean); }
 .live-est + .live-note { margin-top: 4px; }
+
+/* Falling population (e.g. China): the counter counts down, so its changes use a warm "decline" colour */
+.live.falling .live-stats .v, .live.falling .odo .roll, .live.falling .next-txt b { color: var(--fall); }
+.live.falling .next-bar span { background: var(--fall); }

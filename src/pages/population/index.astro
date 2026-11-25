@@ -2,17 +2,17 @@
 import Base from '../../layouts/Base.astro';
 import Flag from '../../components/Flag.astro';
 import Icon from '../../components/Icon.astro';
-import bd from '../../data/countries/bangladesh.json';
 import { abs, path, WEBSITE_ID } from '../../site';
 import { countryData, byYear, CURRENT_YEAR } from '../../lib/figures';
 
 const PAGE = '/population/';
 // Sorted by population, largest first (the order readers scan for).
-const withData = (c: typeof bd) => {
+const files = import.meta.glob('../../data/countries/*.json', { eager: true }) as Record<string, { default: any }>;
+const withData = (c: any) => {
   const un = countryData(c.iso3);
   return { ...c, region: un.subregion, now: byYear(un.years)[CURRENT_YEAR] };
 };
-const countries = [bd].map(withData).sort((a, b) => b.now.population - a.now.population);
+const countries = Object.values(files).map((m) => m.default).map(withData).sort((a, b) => b.now.population - a.now.population);
 const schema = [
   {
     '@type': 'CollectionPage',
@@ -50,7 +50,7 @@ const schema = [
         <Flag code={c.code} class="flag" />
         <span><span class="name">{c.name}</span><br /><span class="meta">{c.region}</span></span>
         <span class="rank">#{c.now.worldRank} in the world</span>
-        <span class="val">{(c.now.population / 1e6).toFixed(1)}M</span>
+        <span class="val">{c.now.population >= 1e9 ? `${(c.now.population / 1e9).toFixed(2)}B` : `${(c.now.population / 1e6).toFixed(1)}M`}</span>
         <span class="chev"><Icon name="chevron" /></span>
       </a>
     ))}

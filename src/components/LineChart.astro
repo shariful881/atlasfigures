@@ -18,9 +18,10 @@ interface Props {
 }
 const { title, subtitle, points, format = 'plain', unit = '', source, sourceUrl, checkedOn, highlight, refLine } = Astro.props;
 
-const short = (v: number) => (format === 'millions' ? `${Math.round(v / 1e6)}M` : String(Number(v.toFixed(2))));
-const label = (v: number) => (format === 'millions' ? `${(v / 1e6).toFixed(1)}M` : String(v));
-const long = (v: number) => (format === 'millions' ? `${(v / 1e6).toFixed(1)} million` : `${v}${unit ? ` ${unit}` : ''}`);
+const big = format === 'millions' && Math.max(...Astro.props.points.map((p) => p.y)) >= 1e9;
+const short = (v: number) => (format === 'millions' ? (big ? `${Number((v / 1e9).toFixed(1))}B` : `${Math.round(v / 1e6)}M`) : String(Number(v.toFixed(2))));
+const label = (v: number) => (format === 'millions' ? (big ? `${(v / 1e9).toFixed(2)}B` : `${(v / 1e6).toFixed(1)}M`) : String(v));
+const long = (v: number) => (format === 'millions' ? (big ? `${(v / 1e9).toFixed(2)} billion` : `${(v / 1e6).toFixed(1)} million`) : `${v}${unit ? ` ${unit}` : ''}`);
 
 const xs = points.map((p) => p.x);
 const ys = points.map((p) => p.y);

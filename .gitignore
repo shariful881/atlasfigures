@@ -6,3 +6,4 @@ dist/
 
 # Generated from data/raw by scripts/build-data.mjs (npm run data / prebuild)
 src/data/wpp/
+.tmp/

@@ -1,0 +1,226 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import uk from '../../data/countries/united-kingdom.json';
+import { countryData, countryIndex, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: births and deaths in balance, growth from migration.
+const PAGE = '/population/united-kingdom/';
+const un = countryData(uk.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (uk.verification as any).checkedOn as string | undefined;
+
+assertClaim(c.naturalChange > 0 && c.naturalChange < 1000, 'births exceed deaths by only a few hundred');
+const naturalLossYears = un.years.filter((r) => !r.projection && r.naturalChange < 0).map((r) => r.year);
+assertClaim(JSON.stringify(naturalLossYears) === '[1976,2020]', 'more deaths than births only in 1976 and 2020 so far');
+assertClaim(un.years.filter((r) => r.year > CURRENT_YEAR).every((r) => r.naturalChange < 0), 'more deaths than births every year from 2027');
+const migShare = (c.netMigrants / c.change) * 100;
+assertClaim(migShare > 99, 'migration accounts for practically all growth');
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+const boomYear = un.years.filter((r) => !r.projection).reduce((a, b) => (b.births > a.births ? b : a));
+assertClaim(boomYear.year === 1964 && un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a)).year === 1964, 'births and fertility both peaked in 1964');
+const subRep = un.years.find((r) => r.year > 1964 && r.fertility < 2.1)!.year;
+assertClaim(un.years.filter((r) => r.year >= subRep).every((r) => r.fertility < 2.1), 'below 2.1 ever since');
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const europe = wpp.filter((d: any) => d.region === 'Europe').map((d: any) => ({ iso3: d.iso3, r: d.years.find((x: any) => x.year === CURRENT_YEAR) }));
+const denser = europe.filter((e) => e.r.population > 10e6).sort((a, b) => b.r.densityPerKm2 - a.r.densityPerKm2).map((e) => e.iso3);
+assertClaim(denser.slice(0, 3).join() === 'NLD,BEL,GBR', 'third most densely populated European country of over 10 million, after the Netherlands and Belgium');
+const bigger = europe.sort((a, b) => b.r.population - a.r.population).map((e) => e.iso3);
+assertClaim(bigger.slice(0, 3).join() === 'RUS,DEU,GBR', 'third most populous in Europe, after Russia and Germany');
+assertClaim(y[1950].worldRank === 9, 'ninth in 1950');
+assertClaim(y[1964].births > y[1960].births && y[1960].births > y[1955].births, 'births rising into the early 1960s');
+void countryIndex;
+
+const title = `UK Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)} Million, With Births and Deaths Now Level | AtlasFigures`;
+const description = `The United Kingdom is home to some ${millions(c.population)} people (${CURRENT_YEAR}). Births now barely outnumber deaths, so migration supplies almost all growth. Plus rank, density and where the UN sees it heading by ${peak.year}.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: uk.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Births minus deaths', value: `+${int(c.naturalChange)}` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'People per km²', value: int(c.densityPerKm2) },
+  { label: 'Net migrants', value: `+${int(Math.round(c.netMigrants / 1000))}k` },
+];
+
+const rows = displayRows(un.years, uk.tableYears);
+
+const faq = [
+  { q: 'What is the current population of the UK?', a: `About ${millions(c.population)} at mid-${CURRENT_YEAR}, on the UN's estimate, ranking the United Kingdom ${ord(c.worldRank!)} in the world and third in Europe after Russia and Germany.` },
+  { q: 'How many births are there in Britain a year?', a: `Roughly ${int(Math.round(c.births / 1000))} thousand in ${CURRENT_YEAR}, compared with about ${millions(boomYear.births)} in ${boomYear.year}, the highest year in the UN series, which starts in 1950. Deaths this year are almost the same, at about ${int(Math.round(c.deaths / 1000))} thousand.` },
+  { q: 'What is net migration to the UK?', a: `The UN's figure for ${CURRENT_YEAR} is about ${int(Math.round(c.netMigrants / 1000))} thousand more people arriving than leaving. It was higher in 2022, at about ${int(Math.round(y[2022].netMigrants / 1000))} thousand.` },
+  { q: 'When will the UK population stop growing?', a: `The UN projects a peak of ${millions(peak.population)} in ${peak.year}, followed by a slow decline to ${millions(y[2100].population)} in 2100. That assumes net migration eases from today's level over the coming decades.` },
+  { q: 'Is the UK the most crowded country in Europe?', a: `No, but it is close. With ${int(c.densityPerKm2)} people per km², it ranks behind the Netherlands and Belgium among European countries with over 10 million inhabitants.` },
+];
+assertClaim(un.years.filter((r) => r.year >= 2030).every((r) => r.netMigrants < c.netMigrants) && y[2100].netMigrants < c.netMigrants / 3, 'projected net migration below today from 2030 on, falling over the decades');
+
+const schema = countrySchema({
+  page: PAGE, slug: uk.slug, name: uk.name, wikipedia: uk.wikipedia,
+  headline: `United Kingdom population in ${CURRENT_YEAR}: ${millions(c.population)}, growing only through migration`,
+  description,
+  datasetName: 'United Kingdom population, density, fertility, median age and urban share, 1950–2100',
+  datasetDescription: `Mid-year population of the United Kingdom for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: uk.published, updated: uk.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="United Kingdom"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'United Kingdom', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>UK population</h1>
+        <LiveCounter
+          label="UK population, estimated live"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} total plus roughly ${int(c.change / 365)} people a day`}
+        />
+        <p class="answer">
+          Around <strong>{millions(c.population)} people</strong> call the United Kingdom home in {CURRENT_YEAR}, {ord(c.worldRank!)} in the world. Births and deaths are now almost exactly in balance, so <strong>net migration supplies nearly all</strong> of the yearly growth of {pct(c.growthRatePct)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={uk.updated}>{longDate(uk.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="United Kingdom" code="gb" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Are more people dying than being born in the UK?</h2>
+          <p>Not quite yet, but it is a near tie. The UN expects <span data-exact>{int(c.births)}</span> births and <span data-exact>{int(c.deaths)}</span> deaths in {CURRENT_YEAR}, a margin of just {int(c.naturalChange)} people. Deaths outnumbered births only twice in the UN's records before now, in {naturalLossYears[0]} and {naturalLossYears[1]}. From {CURRENT_YEAR + 1} the projection has more deaths than births in every single year.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Why is the UK population still growing?</h2>
+          <p>Because more people move in than move out. Net migration of about {int(Math.round(c.netMigrants / 1000))} thousand in {CURRENT_YEAR} accounts for {pct(migShare)} of the increase. The UN assumes that inflow will ease over time, and so projects growth to fade, with the total topping out at {millions(peak.population)} in {peak.year} before edging down.</p>
+        </div>
+        <LineChart
+          title="UK population since 1950 and the UN's view to 2100"
+          subtitle="Mid-year totals for the United Kingdom. The flatter dashed section is the medium projection."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>When did Britain have the most babies?</h2>
+          <p>In {boomYear.year}, at the height of a surge in births through the early 1960s, with about {millions(boomYear.births)} births and fertility of {dec(boomYear.fertility, 2)} — a level not matched in any other year of the UN series. The rate fell under 2.1 in {subRep} and has never climbed back. In {CURRENT_YEAR} it is {dec(c.fertility, 2)}.</p>
+        </div>
+        <LineChart
+          title="Fertility in the United Kingdom, 1950–2050"
+          subtitle="Average children per woman. A rate under 2.1 means each generation is smaller than its parents' without migration."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="children per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: '2.1: replacement' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Why has the UK slipped down the world population ranking?</h2>
+          <p>Because most of the world has grown much faster. The United Kingdom was the {ord(y[1950].worldRank!)} most populous country in 1950 with {millions(y[1950].population)} people; it has added about {millions(c.population - y[1950].population)} since, yet now sits {ord(c.worldRank!)}. The UN projects {ord(y[2050].worldRank!)} place in 2050 and {ord(y[2100].worldRank!)} in 2100.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="UK place in the world population ranking">
+          <div><span class="y">1950</span><div class="v">{ord(y[1950].worldRank!)}</div><span class="d">Place among all countries</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{ord(c.worldRank!)}</div><span class="d">Overtaken as others grew</span></div>
+          <div><span class="y">2100, UN projection</span><div class="v">{ord(y[2100].worldRank!)}</div><span class="d">Still slipping</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How densely populated is the UK compared with the rest of Europe?</h2>
+          <p>It is among the most crowded. With {int(c.densityPerKm2)} people per km² of land, the United Kingdom comes third among European countries with over 10 million inhabitants, behind only the Netherlands and Belgium. It is also Europe's third-largest population after Russia and Germany. {pct(c.urbanPct!)} of residents live in areas the UK classes as urban.</p>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="United Kingdom population table, 1950–2100"
+          subtitle="For each year: the UN's mid-year count, people per km², the fertility rate, half-way age (median), percentage urban as the UK defines it (to 2050) and global rank. 2030 and later are projected."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${uk.slug}-population.csv`)}
+          csvName={`${uk.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">UK population questions, answered</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{uk.unName}", the United Kingdom of Great Britain and Northern Ireland): population, births, deaths, net migration, growth, density, fertility, median age, world rank, comparisons with other European countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and adds the UN's projected growth for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={uk.published}>{longDate(uk.published)}</time> · Updated <time datetime={uk.updated}>{longDate(uk.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('United Kingdom population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="United Kingdom" code="gb" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
