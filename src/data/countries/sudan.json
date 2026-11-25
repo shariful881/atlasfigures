@@ -1,0 +1,57 @@
+{
+  "slug": "sudan",
+  "name": "Sudan",
+  "demonym": "Sudanese",
+  "capital": "Khartoum",
+  "iso3": "SDN",
+  "code": "sd",
+  "continent": "Africa",
+  "wikipedia": "https://en.wikipedia.org/wiki/Sudan",
+  "unName": "Sudan",
+  "published": "2026-11-25",
+  "updated": "2026-11-25",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    2000,
+    2010,
+    2020,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026,
+    2030,
+    2040,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-25",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/sudan.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population 1950–2100, rank, share, growth, density, land area; 8th in Africa and 2nd in Northern Africa after Egypt; about 8.6 times 1950",
+      "2023: net outflow (largest in the series, second worldwide after Pakistan), natural increase and the near-zero net change; 2022 growth; net inflows 2025 and 2026",
+      "Rises in every year 1950–2100; passes 100 million in 2062; 2050, 2075 and 2100 totals and 14th rank in 2100",
+      "Fertility 1971 high, 2100 rate, never below 2.1; births 2026; median age; life expectancy",
+      "Urban share 1950, now and 2050; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 72 of 72 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Migration is described only as counts; the UN files give no causes and the page says so."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-25",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
