@@ -1,0 +1,161 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/australia.json';
+import { econMeta, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/australia/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const falls = s.gdpGrowthPct.filter(([, x]) => x < 0).map(([y]) => y);
+const peak = s.gdpPerCapita.reduce((a, b) => (b[1] > a[1] ? b : a));
+
+assertClaim(B.gdpRank === 15 && B.pcRank === 12, 'GDP rank 15, per person 12');
+assertClaim(falls.join() === '1983,1991,2020' && s.gdpGrowthPct[0][0] === 1961, 'only three years of decline since 1961');
+assertClaim(g(2020) > -0.5 && g(2020) < 0, '2020 a very small fall');
+assertClaim(peak[0] === 2013 && perHead < peak[1], 'GDP per person peaked in 2013, still below');
+assertClaim(s.unemploymentPct[0][0] === 1991 && s.unemploymentPct.every(([y, x]) => y === 2023 || x > u(2023)), '2023 unemployment the lowest since 1991');
+assertClaim(unemp! > u(2023) && unemp! < 4.5, 'unemployment up a little since 2023');
+assertClaim(s.inflationPct.filter(([y]) => y > 1990 && y !== 2022).every(([, x]) => x < i(2022)) && i(1990) > i(2022), '2022 inflation highest since 1990');
+assertClaim(infl.year === L && infl.value < i(2024), 'inflation still easing');
+
+const title = `Australia Economy ${L}: GDP, Income and Jobs | AtlasFigures`;
+const description = `Worth ${usd(gdp)} in ${L}, Australia is the world's ${ord(B.gdpRank!)} largest economy. Output has fallen in only three years since 1961, though dollar income per head is still below its 2013 high.`;
+
+const faq = [
+  { q: 'How many recessions has Australia had?', a: `On yearly World Bank figures, real GDP has fallen in just three years since 1961: 1983, 1991 and 2020, when the drop was only ${pct(Math.abs(g(2020)))}.` },
+  { q: 'Is Australia a rich country per person?', a: `Yes. At ${usdWhole(perHead)} per resident in ${L} it placed ${ord(B.pcRank!)} worldwide; on a PPP basis the figure is ${intDollars(ppp!)}.` },
+  { q: 'Why is Australian income per head lower than in 2013?', a: `The US-dollar figure hit ${usdWhole(peak[1])} in 2013 and was ${usdWhole(perHead)} in ${L}. Converting to dollars brings in currency swings, not just production; real growth has continued in every year except 2020.` },
+  { q: 'Is unemployment in Australia rising?', a: `A little. ${pct(unemp!)} of Australian workers were unemployed in ${L} (ILO model), up from ${pct(u(2023))} in 2023, the lowest since the series began in 1991.` },
+  { q: 'Did Australia have high inflation recently?', a: `Prices rose ${pct(i(2022))} in 2022, the most since 1990, then ${pct(i(2023))} in 2023. By ${L} the rate was ${pct(infl.value)}.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Australia's economy ${L}: ${usd(gdp)} and only three shrinking years since 1961`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Australian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Australia', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Australia's economy: three down years since 1961</h1>
+        <p class="answer">
+          Australian GDP totalled <strong>{usd(gdp)}</strong> in {L}, {ord(B.gdpRank!)} in the world, and <strong>{usdWhole(perHead)}</strong> per person. Since 1961, real output has dropped in just three calendar years.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Australia economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Australia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Real growth has been the rule here for decades; in US dollars, though, income per head is still below where it stood in 2013.</p>
+
+        <div class="story-block prose">
+          <h2>When did Australia last have a recession?</h2>
+          <p>Yearly figures show real GDP falling in 2020, by just {pct(Math.abs(g(2020)))}. Before that the only down years since 1961 were 1983 ({signedPct(g(1983))}) and 1991 ({signedPct(g(1991))}). Growth was {pct(g(2022))} in 2022 and has since eased to {pct(growth)} in {L}.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How rich is Australia per person?</h2>
+          <p>Each Australian accounted for {usdWhole(perHead)} of output in {L}, the {ord(B.pcRank!)} highest level worldwide; with local prices taken into account (PPP) it is {intDollars(ppp!)}. In current US dollars it is still below the high of {usdWhole(peak[1])} set in 2013. The Australian dollar's value against the US dollar shapes that series too.</p>
+        </div>
+        <LineChart
+          title={`Australian GDP per person, 1960–${L}`}
+          subtitle="Current US dollars per resident; the 2013 high is still the record."
+          points={s.gdpPerCapita.filter(([y]) => y % 5 === 0 || y === 2013 || y >= 2019).map(([x, y]) => ({ x, y }))}
+          format="usd" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How low did unemployment in Australia go?</h2>
+          <p>To {pct(u(2023))} in 2023, the lowest in the series that begins in 1991, when it stood at {pct(u(1991))}. The rate has edged up to {pct(unemp!)} in {L}.</p>
+        </div>
+        <LineChart
+          title={`Unemployment rate in Australia, 1991–${L}`}
+          subtitle="Modelled ILO estimates, per cent of the labour force."
+          points={s.unemploymentPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>What is inflation in Australia now?</h2>
+          <p>{pct(infl.value)} in {L}, after {pct(i(2022))} in 2022, the highest reading since 1990, and {pct(i(2024))} in 2024. The country's share of global GDP is {pct(share)}.</p>
+        </div>
+
+        <nav class="related" aria-label="Related pages">
+          <h2>More about Australia and its region</h2>
+          <ul>
+            <li><a href={path('/population/australia/')}>Australia's population</a></li>
+            <li><a href={path('/economy/japan/')}>Japan's economy</a></li>
+            <li><a href={path('/economy/south-korea/')}>South Korea's economy</a></li>
+            <li><a href={path('/economy/china/')}>China's economy</a></li>
+            <li><a href={path('/rankings/gdp-per-capita-by-country/')}>Income per person by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Australian economic data, 1960–${L}`}
+          subtitle="Includes the down years 1983, 1991 and 2020 and the 2013 peak; the CSV holds every year."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/australia-economy.csv')} csvName="australia-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Australian economy: quick answers</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), remittances, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Down years are counted from annual real GDP growth; quarterly data can show other dips. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Australian economy', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Australia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>
