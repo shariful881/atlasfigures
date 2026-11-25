@@ -50,9 +50,13 @@ Every new page, section or change must follow all of them. Summary:
 - During a Google core update, don't react to ranking moves; wait until rollout ends + 1 week.
 
 ## Data
-- No hand-typed numbers in `.astro`: raw source files in `data/raw/<source>/` (with download date + URL), a script
-  builds `src/data/countries/<slug>.json`, pages read only from JSON. A test must check page = JSON = JSON-LD.
-  (TODO before the top-50 batch: raw data folder, build script, number test.)
+- No hand-typed numbers in `.astro`. Original UN files live in `data/raw/un-wpp-2024/` (fetched by the
+  "Fetch UN data (dev)" workflow; `SOURCE.md` has URLs, download date, SHA-256). `scripts/build-data.mjs`
+  (`npm run data`, also runs automatically before every build) turns them into `src/data/wpp/` — `world.json`,
+  `index.json`, `countries/<ISO3>.json` (1950–2100, `projection` flag, rank and world share per year). These are
+  generated, git-ignored, never edited by hand. `src/data/countries/<slug>.json` holds only editorial fields
+  (name, demonym, capital, iso3, verification, changelog) and pages take every figure from `src/data/wpp/`.
+  The UN interim update (19 Jan 2026, Togo) replaces the original rows. TODO: number test page = JSON = JSON-LD.
 - New UN WPP revision → update and re-verify ALL pages together. Current: WPP 2024.
 - Number style: prose millions 1 decimal ("177.8 million"), billions 1–2 decimals, percent 1 decimal, density
   whole number; tables/Key facts/CSV full numbers with commas; dates "25 November 2026".
