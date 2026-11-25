@@ -1,0 +1,184 @@
+---
+// World map for ranking pages (design guide §3.7): every economy shaded by its value, one hue light → dark
+// (5 classes, quantiles of the ranked values). Drawn at build time from Natural Earth outlines (world-atlas,
+// public domain data) with d3-geo, so the page ships plain SVG. Economies too small for the 1:110m outlines
+// get a dot at their 1:50m centroid. Hover / tap shows name, value and rank; +/− and pinch zoom, drag to pan.
+// The table next to it holds the same numbers, so the map is never the only way to read them.
+import { geoNaturalEarth1, geoPath, geoCentroid } from 'd3-geo';
+import { feature } from 'topojson-client';
+import w110 from 'world-atlas/countries-110m.json';
+import w50 from 'world-atlas/countries-50m.json';
+import wpp from '../data/wpp/index.json';
+import SourceBadge from './SourceBadge.astro';
+
+interface Row { iso3: string; name: string; rank: number; raw: number; value: string }
+interface Props {
+  id: string; title: string; subtitle: string; rows: Row[]; fmt: (v: number) => string;
+  source: string; sourceUrl?: string; checkedOn?: string;
+}
+const { id, title, subtitle, rows, fmt, source, sourceUrl, checkedOn } = Astro.props;
+
+// Map ISO3 → ISO numeric (UN M49 code = Natural Earth id). Kosovo has no numeric code in Natural Earth.
+const numeric = new Map<string, string>((wpp as any).countries.map((c: any) => [c.iso3, String(c.locId).padStart(3, '0')]));
+const keyOf = (f: any) => (f.id ? String(f.id) : f.properties?.name === 'Kosovo' ? 'XKX' : null);
+const byKey = new Map(rows.map((r) => [r.iso3 === 'XKX' ? 'XKX' : numeric.get(r.iso3) ?? `x-${r.iso3}`, r]));
+
+// Five classes from quantiles of the ranked values; class 0 lightest.
+const COLORS = ['#d6ece1', '#a3d2b9', '#66ad8a', '#2e7d5b', '#174d37'];
+const sorted = rows.map((r) => r.raw).sort((a, b) => a - b);
+const q = (p: number) => sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))];
+const breaks = [q(0.2), q(0.4), q(0.6), q(0.8)];
+const cls = (v: number) => breaks.filter((b) => v >= b).length;
+const legend = COLORS.map((c, i) => ({
+  color: c,
+  label: i === 0 ? `Under ${fmt(breaks[0])}` : i === 4 ? `${fmt(breaks[3])} or more` : `${fmt(breaks[i - 1])} to under ${fmt(breaks[i])}`,
+  count: rows.filter((r) => cls(r.raw) === i).length,
+}));
+
+const W = 960, H = 480;
+const land = (feature(w110 as any, (w110 as any).objects.countries) as any).features.filter((f: any) => f.id !== '010');
+const projection = geoNaturalEarth1().fitExtent([[4, 4], [W - 4, H - 4]], { type: 'FeatureCollection', features: land } as any);
+const pathOf = geoPath(projection);
+const round = (d: string | null) => (d ?? '').replace(/(\d+\.\d)\d+/g, '$1');
+const shapes = land.map((f: any) => {
+  const r = byKey.get(keyOf(f) ?? '');
+  return { d: round(pathOf(f)), r, fill: r ? COLORS[cls(r.raw)] : null };
+});
+const drawn = new Set(land.map(keyOf));
+const small = (feature(w50 as any, (w50 as any).objects.countries) as any).features
+  .filter((f: any) => !drawn.has(keyOf(f)) && byKey.has(keyOf(f) ?? ''))
+  .map((f: any) => {
+    const [x, y] = projection(geoCentroid(f))!;
+    const r = byKey.get(keyOf(f))!;
+    return { x: x.toFixed(1), y: y.toFixed(1), r, fill: COLORS[cls(r.raw)] };
+  });
+const onMap = shapes.filter((s: any) => s.r).length + small.length;
+---
+<section class="tcard map-card" aria-labelledby={id} data-worldmap>
+  <header class="tcard-head">
+    <div>
+      <h2 id={id}>{title}</h2>
+      <p class="tcard-sub">{subtitle}</p>
+    </div>
+  </header>
+  <div class="map-frame">
+    <div class="map-zoom" role="group" aria-label="Zoom the map">
+      <button type="button" data-zoom="in" aria-label="Zoom in">+</button>
+      <button type="button" data-zoom="out" aria-label="Zoom out">−</button>
+      <button type="button" data-zoom="reset" aria-label="Reset zoom">⟲</button>
+    </div>
+    <svg viewBox={`0 0 ${W} ${H}`} data-w={W} data-h={H} role="img" aria-label={`${title}. The same figures are in the ranking table.`}>
+      <g class="map-shapes">
+        {shapes.map((s: any) => s.r
+          ? <path d={s.d} fill={s.fill} data-n={s.r.name} data-v={s.r.value} data-r={s.r.rank} data-iso3={s.r.iso3} />
+          : <path d={s.d} class="nodata" />)}
+      </g>
+      <g class="map-dots">
+        {small.map((s: any) => <circle cx={s.x} cy={s.y} r="3.2" fill={s.fill} data-n={s.r.name} data-v={s.r.value} data-r={s.r.rank} data-iso3={s.r.iso3} />)}
+      </g>
+    </svg>
+    <div class="map-tip" role="status" aria-live="polite" hidden></div>
+  </div>
+  <ul class="map-legend" aria-label="Map key">
+    {legend.map((l) => <li><span class="sw" style={`background:${l.color}`} aria-hidden="true"></span>{l.label} <span class="ct">({l.count})</span></li>)}
+    <li><span class="sw nd" aria-hidden="true"></span>No figure for this year</li>
+  </ul>
+  <footer class="tcard-foot">
+    <SourceBadge source={source} url={sourceUrl} checkedOn={checkedOn} variant="footer" />
+    <span class="lic">Outlines: <a href="https://www.naturalearthdata.com/">Natural Earth</a> (public domain). Boundaries are shown for reference only and imply no position on any disputed territory. {onMap === rows.length ? `All ${rows.length} ranked economies are on the map.` : `${onMap} of ${rows.length} ranked economies are on the map; the others are too small for this scale and appear only in the table.`}</span>
+  </footer>
+</section>
+
+<style>
+  .map-zoom { position: absolute; top: 10px; right: 10px; z-index: 1; display: flex; flex-direction: column; gap: 6px; }
+  .map-zoom button { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ocean); font: 600 1.05rem/1 var(--font); cursor: pointer; box-shadow: 0 2px 8px rgba(18, 59, 90, 0.1); }
+  .map-zoom button:hover { background: var(--water-2); }
+  .map-frame { position: relative; margin: 4px 16px 0; border-radius: var(--r-md); background: var(--water-2); overflow: hidden; touch-action: pan-y; }
+  .map-frame.zoomed { touch-action: none; }
+  .map-frame svg { display: block; width: 100%; height: auto; cursor: grab; }
+  .map-frame svg.dragging { cursor: grabbing; }
+  .map-shapes path { stroke: #fff; stroke-width: 0.5; vector-effect: non-scaling-stroke; }
+  .map-shapes path.nodata { fill: #e3e8eb; }
+  .map-shapes path[data-n]:hover, .map-shapes path.on { stroke: var(--ocean); stroke-width: 1.5; }
+  .map-dots circle { stroke: #fff; stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .map-dots circle.on, .map-dots circle:hover { stroke: var(--ocean); stroke-width: 2; }
+  .map-tip { position: absolute; left: 12px; bottom: 12px; padding: 8px 12px; border-radius: 10px; background: var(--surface); box-shadow: 0 4px 16px rgba(18, 59, 90, 0.16); font-size: 0.9rem; color: var(--text); pointer-events: none; max-width: calc(100% - 24px); }
+  .map-tip b { color: var(--ocean); }
+  .map-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; list-style: none; margin: 12px 16px 4px; padding: 0; font-size: 0.85rem; color: var(--text-2); }
+  .map-legend li { display: flex; align-items: center; gap: 6px; }
+  .map-legend .sw { width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(18, 59, 90, 0.12); }
+  .map-legend .sw.nd { background: #e3e8eb; }
+  .map-legend .ct { color: var(--text-3); }
+  @media (max-width: 767px) {
+    .map-frame { margin: 4px 12px 0; }
+    .map-zoom { top: 6px; right: 6px; gap: 4px; }
+    .map-zoom button { width: 44px; height: 44px; }
+    .map-legend { margin: 12px 12px 4px; }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    document.querySelectorAll('[data-worldmap]').forEach(function (card) {
+      var svg = card.querySelector('svg'), tip = card.querySelector('.map-tip');
+      var W = Number(svg.dataset.w), H = Number(svg.dataset.h);
+      var vb = { x: 0, y: 0, w: W, h: H };
+      function set() {
+        vb.w = Math.min(W, Math.max(W / 8, vb.w)); vb.h = vb.w * H / W;
+        vb.x = Math.min(W - vb.w, Math.max(0, vb.x)); vb.y = Math.min(H - vb.h, Math.max(0, vb.y));
+        svg.setAttribute('viewBox', vb.x + ' ' + vb.y + ' ' + vb.w + ' ' + vb.h);
+        svg.parentNode.classList.toggle('zoomed', vb.w < W);
+      }
+      function zoom(f, cx, cy) {
+        if (cx == null) { cx = vb.x + vb.w / 2; cy = vb.y + vb.h / 2; }
+        var nw = vb.w / f; vb.x = cx - (cx - vb.x) * nw / vb.w; vb.y = cy - (cy - vb.y) * nw / vb.w; vb.w = nw; set();
+      }
+      function toSvg(e) { var r = svg.getBoundingClientRect(); return { x: vb.x + (e.clientX - r.left) / r.width * vb.w, y: vb.y + (e.clientY - r.top) / r.height * vb.h, k: vb.w / r.width }; }
+      card.querySelectorAll('[data-zoom]').forEach(function (b) { b.addEventListener('click', function () {
+        if (b.dataset.zoom === 'reset') { vb = { x: 0, y: 0, w: W, h: H }; set(); } else zoom(b.dataset.zoom === 'in' ? 1.6 : 1 / 1.6);
+      }); });
+      var on = null;
+      function show(el) {
+        if (on) on.classList.remove('on');
+        if (!el || !el.dataset.n) { tip.hidden = true; on = null; return; }
+        on = el; el.classList.add('on');
+        tip.innerHTML = '<b></b><br><span></span>';
+        tip.querySelector('b').textContent = el.dataset.n;
+        tip.querySelector('span').textContent = el.dataset.v + ' · rank ' + el.dataset.r;
+        tip.hidden = false;
+      }
+      svg.addEventListener('pointerover', function (e) { if (e.pointerType === 'mouse') show(e.target); });
+      svg.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') show(null); });
+      // Drag to pan, two fingers to pinch; a tap without movement selects a country.
+      var pts = new Map(), start = null, moved = false, downEl = null;
+      svg.addEventListener('pointerdown', function (e) {
+        downEl = e.target; svg.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        moved = false; start = { vb: Object.assign({}, vb), p: Array.from(pts.values()).map(function (p) { return Object.assign({}, p); }) };
+      });
+      svg.addEventListener('pointermove', function (e) {
+        if (!pts.has(e.pointerId) || !start) return;
+        pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        var r = svg.getBoundingClientRect(), k = start.vb.w / r.width, now = Array.from(pts.values());
+        if (now.length === 1 && start.p.length === 1) {
+          var dx = now[0].x - start.p[0].x, dy = now[0].y - start.p[0].y;
+          if (Math.abs(dx) + Math.abs(dy) > 4) { moved = true; svg.classList.add('dragging'); }
+          if (moved) { vb.x = start.vb.x - dx * k; vb.y = start.vb.y - dy * k; vb.w = start.vb.w; set(); }
+        } else if (now.length === 2 && start.p.length === 2) {
+          moved = true;
+          var d0 = Math.hypot(start.p[0].x - start.p[1].x, start.p[0].y - start.p[1].y), d1 = Math.hypot(now[0].x - now[1].x, now[0].y - now[1].y);
+          var mx = (start.p[0].x + start.p[1].x) / 2 - r.left, my = (start.p[0].y + start.p[1].y) / 2 - r.top;
+          var cx = start.vb.x + mx * k, cy = start.vb.y + my * k, f = d1 / Math.max(d0, 1);
+          vb.w = start.vb.w / f; vb.x = cx - mx * k / f; vb.y = cy - my * k / f; set();
+        }
+      });
+      function end(e) {
+        if (!pts.has(e.pointerId)) return;
+        pts.delete(e.pointerId); svg.classList.remove('dragging');
+        if (!moved && e.type === 'pointerup') show(downEl);
+        start = pts.size ? { vb: Object.assign({}, vb), p: Array.from(pts.values()).map(function (p) { return Object.assign({}, p); }) } : null;
+      }
+      svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', end);
+      svg.addEventListener('wheel', function (e) { if (!e.ctrlKey && vb.w === W) return; e.preventDefault(); var p = toSvg(e); zoom(e.deltaY < 0 ? 1.25 : 0.8, p.x, p.y); }, { passive: false });
+    });
+  })();
+</script>

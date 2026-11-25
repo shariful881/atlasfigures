@@ -3,6 +3,8 @@
 // (rank · name · value bar) with a "Top 10 / All" toggle and region chips. Same HTML for both, every row is in
 // the page (the toggle only hides rows on screen). Verified source + licence + CSV in the card.
 import SourceBadge from './SourceBadge.astro';
+import { flagUrl } from '../lib/flags';
+import { path } from '../site';
 interface Col { label: string; cls?: string }
 interface Row { rank: number; iso3: string; name: string; href: string | null; region: string; bar: number; value: string; cells: string[] }
 interface Props {
@@ -47,7 +49,7 @@ const { id, title, subtitle, valueLabel, cols, rows, regions, source, sourceUrl,
         {rows.map((r) => (
           <tr data-iso3={r.iso3} data-rank={r.rank} data-region={r.region} class={r.rank > 10 ? 'beyond' : ''}>
             <td class="c-rank">{r.rank}</td>
-            <th scope="row" class="c-name">{r.href ? <a href={r.href}>{r.name}</a> : r.name}<span class="reg">{r.region}</span></th>
+            <th scope="row" class="c-name">{flagUrl(r.iso3) ? <img class="flag" src={flagUrl(r.iso3)} alt="" width="20" height="15" loading="lazy" decoding="async" /> : <span class="flag flag-none" aria-hidden="true"></span>}{r.href ? <a href={r.href}>{r.name}</a> : r.name}<span class="reg">{r.region}</span></th>
             <td class="c-pop c-val"><span class="bar" style={`--w:${r.bar.toFixed(3)}`} aria-hidden="true"></span><span class="n">{r.value}</span></td>
             {r.cells.map((c, i) => <td class={cols[i].cls}>{c}</td>)}
           </tr>
@@ -58,7 +60,7 @@ const { id, title, subtitle, valueLabel, cols, rows, regions, source, sourceUrl,
   <p class="rank-empty note" hidden>No economies from this region in the top 10. Choose "All" to see them.</p>
   <footer class="tcard-foot">
     <SourceBadge source={source} url={sourceUrl} checkedOn={checkedOn} variant="footer" />
-    <span class="lic">Licence: <a href={licence.url}>{licence.name}</a></span>
+    <span class="lic">Licence: <a href={licence.url}>{licence.name}</a> · Flags: <a href="https://github.com/lipis/flag-icons">flag-icons</a> (<a href={path('/licenses/flag-icons-LICENSE.txt')}>MIT</a>)</span>
   </footer>
 </section>
 <script is:inline>
@@ -97,7 +99,9 @@ const { id, title, subtitle, valueLabel, cols, rows, regions, source, sourceUrl,
   .chips button[aria-pressed="true"] { background: var(--ocean); border-color: var(--ocean); color: #fff; }
   table.ranking .c-rank { width: 3.5em; text-align: right; color: var(--text-2); }
   table.ranking .c-name { text-align: left; font-weight: 600; }
-  table.ranking .c-name .reg { display: block; font-weight: 400; font-size: .76rem; color: var(--text-3); }
+  table.ranking .c-name .flag { display: inline-block; width: 20px; height: 15px; margin-right: 8px; vertical-align: -2px; border-radius: 2px; box-shadow: 0 0 0 1px rgba(18, 59, 90, 0.12); object-fit: cover; }
+  table.ranking .c-name .flag-none { background: var(--line); box-shadow: none; }
+  table.ranking .c-name .reg { padding-left: 28px; display: block; font-weight: 400; font-size: .76rem; color: var(--text-3); }
   table.ranking .c-val { min-width: 9em; }
   table.ranking tr[hidden] { display: none; }
   .rank-empty { padding: 14px 22px; margin: 0; }
