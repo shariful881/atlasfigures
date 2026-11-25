@@ -1,0 +1,53 @@
+{
+  "slug": "united-arab-emirates",
+  "name": "United Arab Emirates",
+  "demonym": "Emirati",
+  "capital": "Abu Dhabi",
+  "iso3": "ARE",
+  "code": "ae",
+  "continent": "Asia",
+  "wikipedia": "https://en.wikipedia.org/wiki/United_Arab_Emirates",
+  "unName": "United Arab Emirates",
+  "published": "2026-11-25",
+  "updated": "2026-11-25",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    2000,
+    2010,
+    2020,
+    2026,
+    2030,
+    2040,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-25",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/united-arab-emirates.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population 1950–2100, rank, share, growth, density 2026/2100, land area; 155-fold growth since 1950, largest of any country or area",
+      "Males per 100 females 2000/2026/2050, second after Qatar among countries over 1 million",
+      "Lowest death rate of any country over 1 million (under 1 per 1,000); about ten births per death; natural increase above net migration; fertility below 2.1 since 2006",
+      "2007 record gain, growth rate and net inflow; 2019 the only year of decline, with net outflow",
+      "2100 total and rank; median age; urban share; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 68 of 68 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Comparisons name the size group used (countries over 1, 5 or 50 million) so small territories do not change the ranking. The page explains no causes the UN data do not show. No image alt text on the page (the flag and charts carry aria-labels)."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-25",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
