@@ -1,0 +1,35 @@
+---
+// A live population estimate: starts from a mid-year figure and adds the
+// yearly net change spread evenly across the year, ticking in the browser.
+interface Props {
+  label: string;
+  anchorValue: number;   // population on anchorDate
+  anchorDate: string;    // ISO date, e.g. "2026-07-01"
+  perYear: number;       // net change per year
+  note?: string;
+}
+const { label, anchorValue, anchorDate, perYear, note } = Astro.props;
+const id = `c${Math.random().toString(36).slice(2, 8)}`;
+---
+<div class="counter">
+  <div class="label">{label}</div>
+  <div class="value" id={id} data-anchor={anchorValue} data-date={anchorDate} data-rate={perYear}>
+    {anchorValue.toLocaleString('en-US')}
+  </div>
+  {note && <div class="sub">{note}</div>}
+</div>
+<script is:inline define:vars={{ id }}>
+  (function () {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var anchor = Number(el.dataset.anchor);
+    var t0 = Date.parse(el.dataset.date);
+    var perMs = Number(el.dataset.rate) / (365.25 * 24 * 3600 * 1000);
+    function tick() {
+      var v = Math.round(anchor + (Date.now() - t0) * perMs);
+      el.textContent = v.toLocaleString('en-US');
+    }
+    tick();
+    setInterval(tick, 1000);
+  })();
+</script>

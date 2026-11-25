@@ -1,0 +1,43 @@
+---
+import Base from '../layouts/Base.astro';
+import LiveCounter from '../components/LiveCounter.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<Base
+  title="AtlasFigures — World Population, Countries & Global Statistics"
+  description="Live world population, and the story behind the numbers for every country: population, time, economy and rankings, with every figure sourced."
+>
+  <section class="hero">
+    <div class="kicker">The world in figures</div>
+    <h1>Every country, told on its own terms.</h1>
+    <LiveCounter
+      label="World population, live estimate"
+      anchorValue={8305414064}
+      anchorDate="2026-07-26"
+      perYear={69000000}
+      note="Estimate based on UN World Population Prospects 2024; about 69 million more people each year"
+    />
+    <p class="lead">AtlasFigures gives every country its own page — not the same template with the numbers swapped, but the story that makes that country's figures different. Every number names its source.</p>
+  </section>
+
+  <h2>Explore</h2>
+  <div class="grid-cards">
+    <a class="card" href={`${base}/population/`}>
+      <span class="tag">Live</span>
+      <h3>Population</h3>
+      <p>Country by country: size, density, families, cities and where each is heading by 2050.</p>
+    </a>
+    <div class="card soon"><span class="tag">Coming soon</span><h3>Time &amp; time zones</h3><p>Local time in every city, time differences and a meeting planner.</p></div>
+    <div class="card soon"><span class="tag">Coming soon</span><h3>Economy</h3><p>GDP, income, inflation and how countries compare, with long-run charts.</p></div>
+    <div class="card soon"><span class="tag">Coming soon</span><h3>Rankings</h3><p>Countries ranked on hundreds of measures — each list sourced and explained.</p></div>
+  </div>
+
+  <h2>Featured country</h2>
+  <div class="grid-cards">
+    <a class="card" href={`${base}/population/bangladesh/`}>
+      <span class="tag">Southern Asia</span>
+      <h3>Bangladesh</h3>
+      <p>The most crowded large country on Earth — and how it went from nearly seven children per family to two.</p>
+    </a>
+  </div>
+</Base>

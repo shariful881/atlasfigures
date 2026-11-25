@@ -1,0 +1,14 @@
+---
+// The same Key Facts box sits in the same place on every country page,
+// so moving between countries always feels like the same site.
+interface Fact { label: string; value: string }
+interface Props { facts: Fact[]; source: string; sourceUrl?: string }
+const { facts, source, sourceUrl } = Astro.props;
+---
+<aside class="keyfacts" aria-label="Key facts">
+  <h2>Key facts</h2>
+  <dl>
+    {facts.map((f) => (<><dt>{f.label}</dt><dd class="num">{f.value}</dd></>))}
+  </dl>
+  <div class="src">Source: {sourceUrl ? <a href={sourceUrl}>{source}</a> : source}</div>
+</aside>

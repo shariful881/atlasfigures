@@ -1,0 +1,4 @@
+# Staging: keep search engines out until the site moves to atlasfigures.com.
+# Remove this block (and set INDEXABLE=true) on launch day.
+User-agent: *
+Disallow: /
