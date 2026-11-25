@@ -76,7 +76,8 @@ Every new page, section or change must follow all of them. Summary:
   whole number; tables/Key facts/CSV full numbers with commas; dates "25 November 2026".
 - Country list per UN WPP; titles/H1/URL use the common English name, UN official name in Key facts/Sources.
   Disputed areas: neutral factual wording, "country or area", no side taken.
-- Every live counter shows "Estimate based on UN projections".
+- Every live counter shows "Estimate based on UN projections" — built into `LiveCounter` (with a "How it works" link to
+  `/methodology/#live-counters`), so pages cannot drop it. The `note` prop names the source and daily rate.
 
 ## Ads & privacy (before AdSense goes on)
 - Google-certified IAB TCF CMP for EEA/UK/Switzerland; Privacy policy updated.

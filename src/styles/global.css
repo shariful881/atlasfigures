@@ -505,3 +505,10 @@ a.tile:hover { border-color: var(--contour); color: var(--text); }
 .corr-log li { border-top: 1px solid var(--line); padding: 12px 0; }
 .corr-log .corr-meta { margin: 0 0 4px; font-size: .9rem; color: var(--text-2); }
 .report-error { margin-top: 10px; }
+
+/* Fixed estimate label on every live counter (data guide §6) */
+.live-est { display: flex; align-items: flex-start; gap: 7px; margin: 14px 0 0; font-size: .85rem; color: var(--text-2); position: relative; }
+.live-est svg { width: 16px; height: 16px; flex: none; margin-top: 2px; color: var(--ocean); }
+.live-est strong { color: var(--ocean); font-weight: 700; }
+.live-est a { color: var(--ocean); }
+.live-est + .live-note { margin-top: 4px; }

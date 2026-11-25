@@ -4,7 +4,7 @@ import LiveCounter from '../components/LiveCounter.astro';
 import Contours from '../components/Contours.astro';
 import Icon from '../components/Icon.astro';
 import bd from '../data/countries/bangladesh.json';
-import { worldData, countryData, countryIndex, byYear, billions, millions, CURRENT_YEAR, assertClaim } from '../lib/figures';
+import { worldData, countryData, countryIndex, byYear, billions, millions, int, CURRENT_YEAR, assertClaim } from '../lib/figures';
 
 const w = byYear(worldData.years)[CURRENT_YEAR];
 const bdNow = byYear(countryData(bd.iso3).years)[CURRENT_YEAR];
@@ -33,7 +33,7 @@ const tiles = [
       anchorValue={w.population}
       anchorDate={`${CURRENT_YEAR}-07-01`}
       perYear={w.change}
-      note="Live estimate based on UN World Population Prospects 2024"
+      note={`UN World Population Prospects 2024: figure for 1 July ${CURRENT_YEAR} plus about ${int(w.change / 365)} people a day`}
     />
   </section>
 
