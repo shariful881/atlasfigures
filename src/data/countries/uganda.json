@@ -1,0 +1,53 @@
+{
+  "slug": "uganda",
+  "name": "Uganda",
+  "demonym": "Ugandan",
+  "capital": "Kampala",
+  "iso3": "UGA",
+  "code": "ug",
+  "continent": "Africa",
+  "wikipedia": "https://en.wikipedia.org/wiki/Uganda",
+  "unName": "Uganda",
+  "published": "2026-11-25",
+  "updated": "2026-11-25",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    2000,
+    2010,
+    2020,
+    2026,
+    2030,
+    2040,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-25",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/uganda.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population 1950–2100, rank 2026/2100, share, growth, density 1950/2026/2050/2100, land area; fourth in Eastern Africa",
+      "Density fourth among African countries over 10 million (after Rwanda, Burundi, Nigeria)",
+      "About seven births per death; median age among the ten lowest over 10 million; fertility 1975 peak, now, under 2.1 from 2076",
+      "Passes Kenya in 2046 (Kenya peaks before 2100); doubling by 2068; growth near zero but positive by 2100",
+      "Net inflow 2016–2021 (largest 2016), outflow from 2022; urban share 1950/2026; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 60 of 60 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Comparisons name their size group and region; no causes are stated that the UN data do not show. No image alt text on the page (the flag and charts carry aria-labels)."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-25",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
