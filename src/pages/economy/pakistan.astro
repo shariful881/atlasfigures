@@ -1,0 +1,159 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/pakistan.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/pakistan/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const remRank = rankBy('remittances', rem!.year).find((r) => r.iso3 === c.iso3)!.rank;
+const negs = s.gdpGrowthPct.filter(([, x]) => x < 0).map(([y]) => y);
+const rem2015 = v('remittances', 2015)!;
+const peakInfl = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const lowSince = Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y));
+
+assertClaim(s.gdp.every(([y, x]) => y === L || x < gdp), 'dollar GDP at a record');
+assertClaim(negs.join() === '2020,2023' && s.gdpGrowthPct[0][0] === 1961, 'only two years of decline since 1961');
+assertClaim(peakInfl[0] === 2023 && s.inflationPct[0][0] === 1960, '2023 inflation highest in the series from 1960');
+assertClaim(infl.year === L && lowSince === 2015, 'inflation lowest since 2015');
+assertClaim(remRank === 6 && rem!.year === L && s.remittances.every(([y, x]) => y === L || x < rem!.value), 'remittances sixth and a record');
+assertClaim(rem!.value / rem2015 > 2 && rem!.value / rem2015 < 2.2, 'remittances more than doubled since 2015');
+assertClaim(remPct!.value > 9.5 && remPct!.value < 10, 'remittances almost a tenth of GDP');
+assertClaim(net!.value > 55 && net!.value < 60, 'internet use under 60%');
+
+const title = `Pakistan's Economy in ${L}: Prices, Remittances, Growth | AtlasFigures`;
+const description = `Pakistan's GDP reached ${usd(gdp)} in ${L}. Inflation fell from ${pct(peakInfl[1])} in 2023 to ${pct(infl.value)}, and remittances hit a record ${usd(rem!.value)}, almost a tenth of GDP.`;
+
+const faq = [
+  { q: 'Did inflation in Pakistan come down?', a: `Sharply. The price index jumped ${pct(peakInfl[1])} during 2023, the highest rate in the World Bank series that starts in 1960, then eased to ${pct(i(2024))} (2024) and ${pct(infl.value)} (${L}), a rate last bettered in 2015.` },
+  { q: 'How much do overseas Pakistanis send home?', a: `Personal remittances totalled ${usd(rem!.value)} for ${L}, an all-time high and the ${ord(remRank)} largest amount received by any economy. That equals ${pct(remPct!.value)} of GDP.` },
+  { q: 'How much does Pakistan produce per person?', a: `${usdWhole(perHead)} in ${L}, ${ord(B.pcRank!)} in the world. Using purchasing-power exchange rates instead gives ${intDollars(ppp!)}.` },
+  { q: 'Has Pakistan\'s economy ever shrunk?', a: `Only twice since 1961 on yearly figures: in 2020 (${signedPct(g(2020))}) and in 2023 (${signedPct(g(2023))}). Growth was ${pct(growth)} in ${L}.` },
+  { q: 'How many Pakistanis are online?', a: `Just over half: the ITU puts internet use at ${pct(net!.value)} of the population for ${net!.year}.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Pakistan's economy ${L}: inflation down from its 2023 record, remittances at a new high`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Pakistan's economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Pakistan', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Pakistan's economy: prices calmer, remittances at a record</h1>
+        <p class="answer">
+          Pakistan's output totalled <strong>{usd(gdp)}</strong> in {L}. Inflation, which hit <strong>{pct(peakInfl[1])}</strong> in 2023, fell to {pct(infl.value)}, while remittances from Pakistanis working overseas climbed to a record <strong>{usd(rem!.value)}</strong>.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Pakistan economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Pakistan" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Two figures define Pakistan's recent economic record: a price spike that peaked in 2023, and a steady climb in money sent home by its workers abroad.</p>
+
+        <div class="story-block prose">
+          <h2>What is the size of Pakistan's GDP?</h2>
+          <p>In {L} the country produced {usd(gdp)} worth of goods and services, a record in current dollars, putting it {ord(B.gdpRank!)} among the economies the World Bank ranks. Divided among residents, that comes to {usdWhole(perHead)} each ({ord(B.pcRank!)}); a purchasing-power adjustment raises it to {intDollars(ppp!)}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How high did inflation get in Pakistan?</h2>
+          <p>Higher than ever recorded: {pct(peakInfl[1])} in 2023, after {pct(i(2022))} in 2022. The pace has since cooled quickly: {pct(i(2024))} for 2024 and {pct(infl.value)} for {L}, the gentlest increase in a decade.</p>
+        </div>
+        <LineChart
+          title={`Consumer price inflation in Pakistan, 1960–${L}`}
+          subtitle="Yearly rise in consumer prices, per cent; the 2023 peak is the series high."
+          points={s.inflationPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How important are remittances to Pakistan?</h2>
+          <p>Very. Money sent home from abroad reached {usd(rem!.value)} in {L}, more than twice the {usd(rem2015)} of 2015, and equal to {pct(remPct!.value)} of the economy. Only five economies received more. The figure counts recorded transfers; the World Bank notes that informal channels are missed.</p>
+        </div>
+        <LineChart
+          title={`Money sent home to Pakistan, 2000–${L}`}
+          subtitle="Personal remittances in current US dollars, from World Bank balance-of-payments data."
+          points={s.remittances.filter(([y]) => y >= 2000).map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Is Pakistan's economy growing?</h2>
+          <p>Yes. Real output expanded {pct(growth)} in {L}, following {pct(g(2024))} the year before. Only 2020 ({signedPct(g(2020))}) and 2023 ({signedPct(g(2023))}) saw output shrink in the six decades since 1961. The ILO models joblessness at {pct(unemp!)}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>More on Pakistan and its neighbours</h2>
+          <ul>
+            <li><a href={path('/population/pakistan/')}>Pakistan's population</a></li>
+            <li><a href={path('/economy/india/')}>India's economy</a></li>
+            <li><a href={path('/economy/bangladesh/')}>Bangladesh's economy</a></li>
+            <li><a href={path('/rankings/remittances-by-country/')}>Remittances by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Pakistan year by year: output, prices, remittances (1960–${L})`}
+          subtitle="Decade marks and every year since 2019; the CSV has the full series."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/pakistan-economy.csv')} csvName="pakistan-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Pakistan economy: questions and answers</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">The World Bank places Pakistan in its "Middle East, North Africa, Afghanistan &amp; Pakistan" region. Pakistan's national accounts run on a July–June fiscal year. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Pakistan's economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Pakistan" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

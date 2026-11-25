@@ -1,0 +1,161 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/brazil.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/brazil/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const lac = rankBy('gdp', L).filter((r) => r.region === 'Latin America & Caribbean');
+const peak = s.gdp.reduce((a, b) => (b[1] > a[1] ? b : a));
+const pcPeak = s.gdpPerCapita.reduce((a, b) => (b[1] > a[1] ? b : a));
+const below = (1 - gdp / peak[1]) * 100, pcBelow = (1 - perHead / pcPeak[1]) * 100;
+const uMax = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const hyper = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+
+assertClaim(B.gdpRank === 11 && lac[0].iso3 === c.iso3 && lac[1].iso3 === 'MEX', 'eleventh, largest in Latin America, Mexico second');
+assertClaim(peak[0] === 2011 && pcPeak[0] === 2011 && below > 12 && below < 14 && pcBelow > 19 && pcBelow < 21, 'dollar GDP 13% and per person 20% below 2011');
+assertClaim(s.unemploymentPct[0][0] === 1991 && s.unemploymentPct.every(([y, x]) => y === L || x > unemp!) && uMax[0] === 2020, 'unemployment lowest since 1991, from a 2020 high');
+assertClaim([2021, 2022, 2023, 2024].every((y) => u(y) > u(y + 1)), 'unemployment down every year since 2020');
+assertClaim(g(2015) < 0 && g(2016) < 0 && g(2020) < 0 && s.gdpGrowthPct.filter(([y]) => y > 2016).filter(([, x]) => x < 0).map(([y]) => y).join() === '2020', 'recessions 2015-16 and 2020 only');
+assertClaim(growth < g(2024), 'growth slower than 2024');
+assertClaim(hyper[0] === 1990 && hyper[1] > 2900, 'inflation near 3,000% in 1990');
+assertClaim(infl.year === L && infl.value > i(2024), 'inflation up a little in the latest year');
+
+const title = `Brazilian Economy ${L}: Latin America's Largest, Record-Low Unemployment | AtlasFigures`;
+const description = `Brazil leads Latin America, its GDP worth ${usd(gdp)} in ${L}. Its jobless rate of ${pct(unemp!)} is a record low, yet the dollar value of the economy remains under its 2011 level.`;
+
+const faq = [
+  { q: 'Which country has Latin America\'s biggest economy?', a: `Brazil. Its ${usd(gdp)} in ${L} is ahead of Mexico's ${usd(lac[1].value)}; worldwide Brazil ranks ${ord(B.gdpRank!)}.` },
+  { q: 'Is Brazil\'s jobless rate at a record low?', a: `About ${pct(unemp!)} of Brazilian workers were jobless in ${L} (ILO model), the smallest share recorded since 1991 and under half the ${pct(uMax[1])} reached in 2020.` },
+  { q: 'Is Brazil\'s economy bigger than in 2011?', a: `Not in US dollars. The 2011 high was ${usd(peak[1])}; the ${L} total was about ${Math.round(below)}% lower; per person the gap is about ${Math.round(pcBelow)}%.` },
+  { q: 'When was Brazil\'s last recession?', a: `Real GDP fell in 2020 (${signedPct(g(2020))}). Before that it shrank two years running, in 2015 and 2016.` },
+  { q: 'Is inflation in Brazil high?', a: `Moderate: ${pct(infl.value)} in ${L}, after ${pct(i(2024))} in 2024. The record in the World Bank series came in 1990, at nearly 3,000%.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Brazil's economy ${L}: Latin America's largest, with unemployment at a record low`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Brazil's economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Brazil', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Brazil's economy: Latin America's biggest</h1>
+        <p class="answer">
+          Brazil, Latin America's heavyweight, posted GDP of <strong>{usd(gdp)}</strong> for {L}, placing {ord(B.gdpRank!)} globally. Unemployment dropped to <strong>{pct(unemp!)}</strong>, a record low, while growth slowed to {pct(growth)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Brazil economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Brazil" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Brazil's jobless rate is the lowest on record, even though its economy, counted in dollars, has not regained its 2011 size.</p>
+
+        <div class="story-block prose">
+          <h2>Is Brazil Latin America's largest economy?</h2>
+          <p>Yes. Brazil's {usd(gdp)} for {L} tops the World Bank's Latin America &amp; Caribbean region, with Mexico ({usd(lac[1].value)}) next, and ranks {ord(B.gdpRank!)} on the global list. Output per Brazilian was {usdWhole(perHead)}; on a PPP basis, {intDollars(ppp!)}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Is unemployment in Brazil falling?</h2>
+          <p>Yes, every year since 2020. The jobless rate dropped from {pct(uMax[1])} in 2020 to {pct(unemp!)} in {L}, the lowest in a series that begins in 1991, according to the ILO's modelled estimates.</p>
+        </div>
+        <LineChart
+          title={`Brazilian unemployment rate, 1991–${L}`}
+          subtitle="ILO-modelled jobless rate for Brazil, in per cent; 2020 was the high point."
+          points={s.unemploymentPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Why is Brazil's dollar GDP lower than in 2011?</h2>
+          <p>Counted in dollars, Brazil's high-water mark is 2011, at {usd(peak[1])}. In {L} it was about {Math.round(below)}% smaller, and GDP per person, {usdWhole(perHead)}, was about {Math.round(pcBelow)}% under its 2011 high of {usdWhole(pcPeak[1])}. Swings in the real's exchange rate feed straight into these dollar numbers. In real terms the economy shrank in 2015 ({signedPct(g(2015))}), 2016 ({signedPct(g(2016))}) and 2020 ({signedPct(g(2020))}), and has grown every year since.</p>
+        </div>
+        <LineChart
+          title={`Brazil's output per head in dollars, 1960–${L}`}
+          subtitle="Dollars of GDP per Brazilian, current prices; 2011 marks the top."
+          points={s.gdpPerCapita.filter(([y]) => y % 5 === 0 || y === 2011 || y >= 2019).map(([x, y]) => ({ x, y }))}
+          format="usd" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Are prices rising faster in Brazil again?</h2>
+          <p>Slightly. Brazil's consumer price index climbed {pct(infl.value)} in {L}, a touch above the {pct(i(2024))} of 2024 and well below the {pct(i(2022))} of 2022. Real GDP growth eased to {pct(growth)}, down from {pct(g(2024))} in 2024.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Brazil and its neighbours: more pages</h2>
+          <ul>
+            <li><a href={path('/population/brazil/')}>Brazil's population</a></li>
+            <li><a href={path('/population/argentina/')}>Argentina's population</a></li>
+            <li><a href={path('/population/colombia/')}>Colombia's population</a></li>
+            <li><a href={path('/population/mexico/')}>Mexico's population</a></li>
+            <li><a href={path('/rankings/unemployment-rate-by-country/')}>Jobless rates of every country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Brazil's economy in numbers, 1960–${L}`}
+          subtitle="With the 2011 peak and the 2015–16 downturn; download the CSV for every year."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/brazil-economy.csv')} csvName="brazil-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Brazil's economy, briefly answered</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Regions follow the World Bank's grouping; "Latin America" here means its Latin America &amp; Caribbean region. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Brazil's economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Brazil" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

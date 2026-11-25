@@ -66,7 +66,14 @@ export interface EconSchemaInput {
   headline: string; description: string; published: string; updated: string;
   faq: { q: string; a: string }[]; extraCitations?: { name: string; url: string; publisher?: string }[];
 }
+const ecoFiles = import.meta.glob('../data/economy/*.json', { eager: true, import: 'default' }) as Record<string, { slug: string; iso3: string }>;
+/** First year with any World Bank value for the page's economy (the CSV starts there). */
+const firstYear = (slug: string) => {
+  const iso3 = Object.values(ecoFiles).find((e) => e.slug === slug)!.iso3;
+  return Math.min(...Object.values(econData(iso3).series).filter((s) => s.length).map((s) => s[0][0]));
+};
 export function econSchema(x: EconSchemaInput) {
+  const F = firstYear(x.slug);
   const iso = (d: string) => `${d}T12:00:00+06:00`;
   return [
     {
@@ -82,9 +89,9 @@ export function econSchema(x: EconSchemaInput) {
     },
     {
       '@type': 'Dataset', '@id': abs(`${x.page}#dataset`),
-      name: `${x.name} GDP, GDP per person, growth, inflation, unemployment, remittances and internet use, 1960–${x.L}`,
+      name: `${x.name} GDP, GDP per person, growth, inflation, unemployment, remittances and internet use, ${F}–${x.L}`,
       description: `Yearly World Bank World Development Indicators for ${x.name}, as published (WDI update of ${longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person in current US$, GDP per person at purchasing power parity, real GDP growth, consumer price inflation, unemployment (modelled ILO estimate), personal remittances received and individuals using the internet.`,
-      url: abs(x.page), creator: { '@id': ORG_ID }, isBasedOn: [econMeta.sourceUrl], temporalCoverage: `1960/${x.L}`,
+      url: abs(x.page), creator: { '@id': ORG_ID }, isBasedOn: [econMeta.sourceUrl], temporalCoverage: `${F}/${x.L}`,
       spatialCoverage: { '@type': 'Place', name: x.name },
       variableMeasured: Object.values(econMeta.indicators).map((i: any) => `${i.label} (${i.unit})`),
       dateModified: iso(x.updated), license: econMeta.licenceUrl,
