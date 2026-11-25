@@ -45,11 +45,11 @@ for (const c of econ) {
   // key figures
   const exp = {
     GDP: usd(last(s.gdp)[1]), 'GDP per person': whole(last(s.gdpPerCapita)[1]), 'GDP growth': pct(last(s.gdpGrowthPct)[1]),
-    inflation: pct(last(s.inflationPct)[1]), remittances: usd(last(s.remittances)[1]), 'remittances % of GDP': pct(last(s.remittancesPctGdp)[1]),
+    inflation: pct(last(s.inflationPct)[1]), remittances: s.remittances.length ? usd(last(s.remittances)[1]) : null, 'remittances % of GDP': s.remittancesPctGdp.length ? pct(last(s.remittancesPctGdp)[1]) : null,
     unemployment: pct(last(s.unemploymentPct)[1]), 'internet users': pct(last(s.internetPct)[1]),
     'GDP per person, PPP': `Int$${Math.round(last(s.gdpPerCapitaPpp)[1]).toLocaleString('en-US')}`,
   };
-  for (const [k, v] of Object.entries(exp)) ok(text.includes(v), where, `${k} ${v} (World Bank data) is not on the page`);
+  for (const [k, v] of Object.entries(exp)) if (v != null) ok(text.includes(v), where, `${k} ${v} (World Bank data) is not on the page`);
   ok(text.includes(String(last(s.gdp)[0])), where, 'latest World Bank year not shown');
 
   // table cells
