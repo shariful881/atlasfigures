@@ -4,7 +4,9 @@
 // a progress bar filling until the next +1, and today / this-year counters.
 // Estimate = UN mid-year figure + UN yearly net change spread evenly over the year.
 // If the page has #mini-counter (mobile app bar), it mirrors the number.
+// Every counter always shows the fixed label "Estimate based on UN projections" (data guide §6) — not a prop, so no page can drop it.
 import Contours from './Contours.astro';
+import { path } from '../site';
 interface Props {
   label: string;
   anchorValue: number;
@@ -34,6 +36,10 @@ const perDay = Math.round(perYear / 365);
     <div><span class="k">Added this year</span><span class="v" data-k="year">–</span></div>
     <div><span class="k">Per day</span><span class="v">+{perDay.toLocaleString('en-US')}</span></div>
   </div>
+  <p class="live-est">
+    <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 9v5M10 6.2v.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span><strong>Estimate based on UN projections</strong>, not a real-time count. <a href={path('/methodology/#live-counters')}>How it works</a></span>
+  </p>
   {note && <p class="live-note">{note}</p>}
 </section>
 <script is:inline define:vars={{ id }}>

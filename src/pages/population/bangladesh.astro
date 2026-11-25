@@ -145,11 +145,11 @@ const schema = [
       <header class="country-head">
         <h1>Bangladesh population</h1>
         <LiveCounter
-          label="Live estimate"
+          label="People in Bangladesh right now"
           anchorValue={c.population}
           anchorDate={`${CURRENT_YEAR}-07-01`}
           perYear={c.change}
-          note={`UN mid-${CURRENT_YEAR} figure plus about ${int(perDay)} people a day`}
+          note={`UN World Population Prospects 2024: figure for 1 July ${CURRENT_YEAR} plus about ${int(perDay)} people a day`}
         />
         <p class="answer">
           Bangladesh has about <strong>{millions(c.population)} people</strong> in {CURRENT_YEAR}, the world's {ord(c.worldRank!)} largest population, on {int(un.landAreaKm2)} km² of land. At <strong>{int(c.densityPerKm2)} people per km²</strong>, no other country of more than 10 million people is as densely populated.
