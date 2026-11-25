@@ -41,6 +41,7 @@ const worldShare = (gdp / valueIn(world.gdp, L)!) * 100;
 const pakGdp = valueIn(pak.gdp, L)!;
 const sasGrowth = valueIn(aggregate('SAS').series.gdpGrowthPct, L)!;
 assertClaim(sasGrowth > growth + 2, 'South Asia grew much faster');
+assertClaim(econData('PAK').region !== 'South Asia' && econData('AFG').region !== 'South Asia', 'World Bank South Asia excludes Pakistan and Afghanistan');
 const indPerHead = valueIn(india.gdpPerCapita, L)!, indPpp = valueIn(india.gdpPerCapitaPpp, L)!;
 
 // Story figures, each checked so the sentences stay true for the data.
@@ -221,7 +222,7 @@ const schema = [
 
         <div class="story-block prose">
           <h2>How fast is Bangladesh's economy growing?</h2>
-          <p>Real GDP grew {pct(growth)} in {L}, the third slowdown in a row and the weakest result since the pandemic year of 2020 and well behind the {pct(sasGrowth)} recorded for South Asia as a whole. Through the 2010s growth averaged {pct(avg1019)} a year and peaked at {pct(peak[1])} in 2019. The economy has not shrunk in any year since 1975; the deepest falls on record came in 1971 ({signedPct(g71)}) and 1972 ({signedPct(g72)}), the years of the war of independence and its aftermath.</p>
+          <p>Real GDP grew {pct(growth)} in {L}, the third slowdown in a row and the weakest result since the pandemic year of 2020 and well behind the {pct(sasGrowth)} recorded for the World Bank's South Asia region (which, in the Bank's current grouping, does not include Pakistan or Afghanistan). Through the 2010s growth averaged {pct(avg1019)} a year and peaked at {pct(peak[1])} in 2019. The economy has not shrunk in any year since 1975; the deepest falls on record came in 1971 ({signedPct(g71)}) and 1972 ({signedPct(g72)}), the years of the war of independence and its aftermath.</p>
         </div>
         <LineChart
           title={`Yearly GDP growth in Bangladesh, 1976–${L}`}
@@ -282,6 +283,8 @@ const schema = [
             <li><a href={path('/population/bangladesh/')}>Bangladesh population: density, births and migration</a></li>
             <li><a href={path('/population/india/')}>India's population</a></li>
             <li><a href={path('/population/pakistan/')}>Pakistan's population</a></li>
+            <li><a href={path('/rankings/gdp-by-country/')}>Where Bangladesh ranks by GDP</a></li>
+            <li><a href={path('/rankings/gdp-per-capita-by-country/')}>GDP per person, every country ranked</a></li>
             <li><a href={path('/economy/')}>Economy of every country</a></li>
           </ul>
         </nav>

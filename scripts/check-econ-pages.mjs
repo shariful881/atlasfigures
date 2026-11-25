@@ -109,12 +109,64 @@ for (const c of econ) {
   }
 }
 
+// ranking pages
+const RANKINGS = { 'gdp-by-country': { key: 'gdp', cell: (v) => (v / 1e9).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }), csvCol: 'gdp_current_usd' },
+  'gdp-per-capita-by-country': { key: 'gdpPerCapita', cell: whole, csvCol: 'gdp_per_person_current_usd' } };
+const wdiAll = readdirSync('src/data/wdi/countries').map((f) => JSON.parse(readFileSync(join('src/data/wdi/countries', f), 'utf8')));
+const wld = JSON.parse(readFileSync('src/data/wdi/aggregates.json', 'utf8')).aggregates.find((a) => a.code === 'WLD').series;
+for (const [slug, R] of Object.entries(RANKINGS)) {
+  const url = `/rankings/${slug}/`, where = `page ${url}`;
+  const file = join(DIST, 'rankings', slug, 'index.html');
+  if (!ok(existsSync(file), where, 'page not built')) continue;
+  const html = readFileSync(file, 'utf8'); const root = parse(html);
+  const text = textOf(parse(html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, '')));
+  const m = JSON.parse(readFileSync(`src/data/rankings/${slug}.json`, 'utf8'));
+  const L = last(wld[R.key])[0];
+  const want = wdiAll.map((d) => ({ iso3: d.iso3, v: new Map(d.series[R.key]).get(L) })).filter((x) => x.v != null).sort((a, b) => b.v - a.v);
+  const trs = root.querySelectorAll('table.ranking tbody tr');
+  ok(trs.length === want.length, where, `ranking has ${trs.length} rows, World Bank ${want.length} economies with ${L} data`);
+  trs.forEach((tr, i) => {
+    const w = want[i]; if (!w) return;
+    ok(tr.getAttribute('data-iso3') === w.iso3 && Number(tr.getAttribute('data-rank')) === i + 1, where, `row ${i + 1}: ${tr.getAttribute('data-iso3')} ≠ ${w.iso3}`);
+    ok(textOf(tr.querySelector('td.c-val')) === R.cell(w.v), where, `row ${w.iso3}: value ${textOf(tr.querySelector('td.c-val'))} ≠ ${R.cell(w.v)}`);
+  });
+  const n = nodes(root);
+  const art = n.find((x) => x['@type'] === 'Article'), il = n.find((x) => x['@type'] === 'ItemList'), ds = n.find((x) => x['@type'] === 'Dataset'), fq = n.find((x) => x['@type'] === 'FAQPage');
+  if (!ok(art && il && ds && fq, where, 'ranking page needs Article + ItemList + Dataset + FAQPage')) continue;
+  const names = trs.map((tr) => textOf(tr.querySelector('th.c-name')).replace(textOf(tr.querySelector('th.c-name .reg')), '').trim());
+  ok(JSON.stringify(il.itemListElement.map((x) => x.name)) === JSON.stringify(names) && il.itemListElement.every((x, i) => x.position === i + 1), where, 'ItemList ≠ ranking shown');
+  for (const t of [art.headline, art.description, ds.name, ds.description, ...fq.mainEntity.flatMap((q) => [q.name, q.acceptedAnswer.text])]) {
+    for (const num of t.match(/\d[\d,]*(\.\d+)?/g) ?? []) ok(text.includes(num), where, `JSON-LD number ${num} is not shown on the page`);
+  }
+  ok(JSON.stringify(root.querySelectorAll('.faq details summary').map(textOf)) === JSON.stringify(fq.mainEntity.map((q) => q.name)), where, 'FAQ in JSON-LD differs from the page');
+  ok(ds.license === 'https://creativecommons.org/licenses/by/4.0/', where, 'Dataset licence is not CC BY 4.0');
+  ok(art.dateModified?.startsWith(m.updated) && lastmod(url) === m.updated && root.querySelectorAll('time').some((t) => t.getAttribute('datetime') === m.updated), where, 'Updated ≠ dateModified / sitemap / shown date');
+  ok(/World Bank does not endorse/.test(textOf(root.querySelector('details#sources') ?? root)), where, 'Sources must say the World Bank does not endorse the page');
+  const csvPath = join(DIST, (ds.distribution?.[0]?.contentUrl ?? '').replace(/^https?:\/\/[^/]+/, '').slice(BASE.length));
+  if (ok(existsSync(csvPath), where, 'Dataset CSV missing')) {
+    const lines = readFileSync(csvPath, 'utf8').split('\n').filter((l) => l && !l.startsWith('#'));
+    const head = lines[0].split(','); const ci = head.indexOf(R.csvCol), ii = head.indexOf('iso3');
+    ok(lines.length - 1 === want.length, where, 'CSV row count ≠ ranking');
+    lines.slice(1).forEach((l, i) => {
+      const f = l.match(/("([^"]|"")*"|[^,]*)(,|$)/g).map((x) => x.replace(/,$/, ''));
+      ok(f[ii] === want[i]?.iso3 && Number(f[ci]) === want[i]?.v && Number(f[0]) === i + 1, where, `CSV row ${i + 1} ≠ World Bank`);
+    });
+  }
+  for (const el of root.querySelectorAll('article .answer, article .prose p, article .faq p')) {
+    const t = textOf(el); checks++;
+    for (const x of t.match(/\d+\.\d{2,}%/g) ?? []) problems.push(`${where}: percent with more than 1 decimal in prose: "${x}"`);
+    for (const x of t.matchAll(/\$(\d+(?:\.\d+)?) (billion|million)/g)) if (!/^\d+\.\d$/.test(x[1])) problems.push(`${where}: "${x[0]}" needs exactly 1 decimal`);
+    for (const x of t.matchAll(/\$(\d+(?:\.\d+)?) trillion/g)) if (!/^\d+\.\d\d$/.test(x[1])) problems.push(`${where}: "${x[0]}" needs exactly 2 decimals`);
+  }
+}
+
 // hub
 {
   const file = join(DIST, 'economy', 'index.html');
   if (ok(existsSync(file), 'page /economy/', 'hub not built')) {
     const root = parse(readFileSync(file, 'utf8'));
-    const links = root.querySelectorAll('.list a.row').map((a) => a.getAttribute('href'));
+    const links = root.querySelectorAll('#countries a.row').map((a) => a.getAttribute('href'));
+    ok(links.length > 0, 'page /economy/', 'no #countries list');
     for (const c of econ) ok(links.includes(`${BASE}/economy/${c.slug}/`), 'page /economy/', `hub does not list ${c.slug}`);
     const list = nodes(root).find((x) => x['@type'] === 'CollectionPage')?.mainEntity?.itemListElement ?? [];
     ok(JSON.stringify(list.map((i) => i.url.replace(/^https?:\/\/[^/]+/, ''))) === JSON.stringify(links), 'page /economy/', 'ItemList ≠ list shown');
@@ -126,4 +178,4 @@ if (problems.length) {
   for (const p of problems) console.log('  - ' + p);
   process.exit(1);
 }
-console.log(`✓ Economy pages passed: ${checks} checks on ${econ.length} page(s) + hub (figures, table, CSV, schema, dates, style).`);
+console.log(`✓ Economy pages passed: ${checks} checks on ${econ.length} country page(s), ${Object.keys(RANKINGS).length} ranking page(s) + hub (figures, tables, rankings, CSV, schema, dates, style).`);
