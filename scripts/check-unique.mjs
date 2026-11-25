@@ -37,14 +37,17 @@ const STOP = new Set(`a an the and or but of in on at to for from by with as is 
 // Sections whose pages are written per country (each has its own editorial JSON folder).
 // Pages are compared across ALL sections: an economy page may not reuse a population page's wording either.
 const SECTIONS = [['population', 'src/data/countries'], ['economy', 'src/data/economy'], ['rankings', 'src/data/rankings']];
+const EXTRA = { population: ['src/data/pages'] }; // non-country pages in the same section (the World page)
 const countries = {}; // section → slug → country
 for (const [sec, dir] of SECTIONS) {
   countries[sec] = {};
-  if (!existsSync(dir)) continue;
-  for (const f of readdirSync(dir)) {
-    if (!f.endsWith('.json')) continue;
-    const d = JSON.parse(readFileSync(join(dir, f), 'utf8'));
-    countries[sec][d.slug] = d;
+  for (const dd of [dir, ...(EXTRA[sec] ?? [])]) {
+    if (!existsSync(dd)) continue;
+    for (const f of readdirSync(dd)) {
+      if (!f.endsWith('.json')) continue;
+      const d = JSON.parse(readFileSync(join(dd, f), 'utf8'));
+      countries[sec][d.slug] = d;
+    }
   }
 }
 

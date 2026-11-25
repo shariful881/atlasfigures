@@ -6,8 +6,9 @@ interface Row { year: number; population: number; density: number; fertility: nu
 interface Props {
   id: string; title: string; subtitle: string; rows: Row[]; current: number;
   source: string; sourceUrl?: string; checkedOn?: string; csv: string; csvName: string; licence?: { name: string; url: string };
+  noRank?: boolean; // the World page has no world rank column
 }
-const { id, title, subtitle, rows, current, source, sourceUrl, checkedOn, csv, csvName, licence } = Astro.props;
+const { id, title, subtitle, rows, current, source, sourceUrl, checkedOn, csv, csvName, licence, noRank } = Astro.props;
 const max = Math.max(...rows.map((r) => r.population));
 const est = rows.filter((r) => !r.projection);
 const proj = rows.filter((r) => r.projection);
@@ -35,7 +36,7 @@ const fmt = (n: number) => n.toLocaleString('en-US');
           <th scope="col">Births per woman</th>
           <th scope="col">Median age</th>
           <th scope="col">Urban</th>
-          <th scope="col">World rank</th>
+          {!noRank && <th scope="col">World rank</th>}
         </tr>
       </thead>
       <tbody>
@@ -47,13 +48,13 @@ const fmt = (n: number) => n.toLocaleString('en-US');
             <td>{r.fertility}</td>
             <td>{r.medianAge}</td>
             <td>{r.urbanPct == null ? '–' : `${r.urbanPct}%`}</td>
-            <td>{r.rank}</td>
+            {!noRank && <td>{r.rank}</td>}
           </tr>
         ))}
       </tbody>
       {proj.length > 0 && (
         <tbody class="proj-band">
-          <tr class="band-label"><th scope="rowgroup" colspan="7">UN projections (medium variant)</th></tr>
+          <tr class="band-label"><th scope="rowgroup" colspan={noRank ? 6 : 7}>UN projections (medium variant)</th></tr>
           {proj.map((r) => (
             <tr class="proj">
               <th scope="row">{r.year}</th>
@@ -62,7 +63,7 @@ const fmt = (n: number) => n.toLocaleString('en-US');
               <td>{r.fertility}</td>
               <td>{r.medianAge}</td>
               <td>{r.urbanPct == null ? '–' : `${r.urbanPct}%`}</td>
-              <td>{r.rank}</td>
+              {!noRank && <td>{r.rank}</td>}
             </tr>
           ))}
         </tbody>

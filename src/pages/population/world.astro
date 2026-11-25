@@ -1,0 +1,236 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import wd from '../../data/pages/world.json';
+import { worldData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, people, pct, CURRENT_YEAR } from '../../lib/figures';
+import { byPopulation, UN_REGIONS } from '../../lib/popRankings';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// The World page (task 20). Every figure comes from the UN's World totals in the original files (src/data/wpp/world.json)
+// and, for the country comparisons, the same country list as the rankings. Story: growth halved since the 1960s peak,
+// a peak in 2084, births vs deaths each day, where the added people are, Africa's rising share.
+const PAGE = '/population/world/';
+const y = byYear(worldData.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = worldData.meta.sourceUrl;
+const WUP_URL = worldData.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (wd.verification as any).checkedOn as string | undefined;
+const est = worldData.years.filter((r) => !r.projection);
+
+const gTop = worldData.years.reduce((a, b) => (b.growthRatePct > a.growthRatePct ? b : a));
+const addTop = worldData.years.reduce((a, b) => (b.change > a.change ? b : a));
+const peak = worldData.years.reduce((a, b) => (b.population > a.population ? b : a));
+const firstAbove = (n: number) => worldData.years.find((r) => r.population >= n)!.year;
+const b8 = firstAbove(8e9), b9 = firstAbove(9e9), b10 = firstAbove(10e9);
+const birthTop = est.reduce((a, b) => (b.births > a.births ? b : a));
+const tfrBelow = worldData.years.find((r) => r.fertility < 2.1)!.year;
+const tfrTop = worldData.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+const perDay = (v: number) => int(Math.round(v / 365));
+const ranked = byPopulation();
+const adders = [...ranked].sort((a, b) => b.now.change - a.now.change);
+const losers = [...ranked].sort((a, b) => a.now.change - b.now.change);
+const regionShare = (reg: string, yr: number) => (ranked.filter((r) => r.region === reg).reduce((s, r) => s + r.yearOf(yr).population, 0) / y[yr].population) * 100;
+const leLow = worldData.years.filter((r) => r.year >= 2019 && r.year <= 2023).reduce((a, b) => (b.lifeExpectancy < a.lifeExpectancy ? b : a));
+
+assertClaim(gTop.year === 1963 && c.growthRatePct < gTop.growthRatePct / 2.5, 'growth peaked in 1963 and is now well under half that rate');
+assertClaim(addTop.year === 1990, 'largest yearly addition in 1990');
+assertClaim(peak.year === 2084 && y[2100].population < peak.population, 'peak 2084, lower by 2100');
+assertClaim(b8 === 2022 && b9 === 2037 && b10 === 2061, '8 billion 2022, 9 billion 2037, 10 billion 2061');
+assertClaim(birthTop.year === 2012, 'births peaked in 2012');
+assertClaim(tfrTop.year === 1963 && tfrBelow === 2050, 'fertility peak 1963; below 2.1 from 2050');
+assertClaim(adders.slice(0, 5).map((r) => r.iso3).join(',') === 'IND,NGA,PAK,COD,ETH', 'India, Nigeria, Pakistan, DR Congo, Ethiopia add most');
+assertClaim(losers[0].iso3 === 'CHN' && losers[1].iso3 === 'JPN', 'China, then Japan lose most');
+assertClaim(regionShare('Africa', 1950) < 10 && regionShare('Africa', 2100) > 37, 'Africa under a tenth in 1950, over 37% by 2100');
+assertClaim(leLow.year === 2021 && c.lifeExpectancy > y[2019].lifeExpectancy, 'life expectancy dipped to 2021, now above 2019');
+const times = c.population / y[1950].population;
+assertClaim(wd.tableYears.includes(peak.year), 'peak year is a table row');
+assertClaim(times > 3.2 && times < 3.4, 'more than three times 1950');
+
+const title = `World Population ${CURRENT_YEAR}: ${(c.population / 1e9).toFixed(2)} Billion, Live Estimate and UN Projections | AtlasFigures`;
+const description = `About ${people(c.population)} people live on Earth in mid-${CURRENT_YEAR}, by UN estimate, and the total grows by roughly ${perDay(c.change)} a day. When it peaks, where growth happens, and how the figures are made.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+    { label: 'Births per day', value: perDay(c.births) },
+    { label: 'Deaths per day', value: perDay(c.deaths) },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Countries and areas', value: String(ranked.length), note: 'in the UN data' },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definitions' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: `${(c.population / 1e9).toFixed(2)}B` },
+  { label: 'Per day', value: `+${perDay(c.change)}` },
+  { label: 'Peak year', value: String(peak.year) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+];
+
+const rows = displayRows(worldData.years, wd.tableYears);
+
+const faq = [
+  { q: `What is the world population in ${CURRENT_YEAR}?`, a: `About ${people(c.population)}: that is the UN number for 1 July ${CURRENT_YEAR}. The live counter on this page moves that number forward at the UN's projected rate for the year.` },
+  { q: 'When did the world reach 8 billion people?', a: `In the UN's mid-year series the total first topped 8 billion in ${b8}. On the same projection it passes 9 billion in ${b9} and 10 billion in ${b10}.` },
+  { q: 'Will the world population ever stop rising?', a: `Yes, around ${peak.year}: the projected maximum is about ${people(peak.population)}, and the total then eases to ${people(y[2100].population)} by 2100.` },
+  { q: 'How many babies are born each day?', a: `About ${perDay(c.births)} in ${CURRENT_YEAR}, against about ${perDay(c.deaths)} deaths, so the world adds roughly ${perDay(c.change)} people a day.` },
+  { q: 'Which countries add the most people each year?', a: `India adds the most (about ${millions(adders[0].now.change)} this year), then Nigeria, Pakistan, DR Congo and Ethiopia. China's population falls the most, by about ${millions(-losers[0].now.change)}.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: 'world', name: 'World', wikipedia: wd.wikipedia,
+  headline: `World population ${CURRENT_YEAR}: ${people(c.population)}, growth, peak and where people live`,
+  description,
+  datasetName: 'World population, fertility, median age and urban share, 1950–2100',
+  datasetDescription: `Mid-year world population for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age and urban share (national definitions, to 2050).`,
+  temporalCoverage: '1950/2100',
+  published: wd.published, updated: wd.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+}).map((n: any) => (n['@type'] === 'Article' ? { ...n, about: { '@type': 'Place', name: 'World' } } : n['@type'] === 'Dataset' ? { ...n, variableMeasured: (n.variableMeasured as string[]).filter((v) => v !== 'World population rank' && v !== 'Net migrants') } : n));
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="World"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'World', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>World population: how many people live on Earth</h1>
+        <LiveCounter
+          label="World population, estimated live"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: world total for 1 July ${CURRENT_YEAR}, rising by around ${perDay(c.change)} people daily`}
+        />
+        <p class="answer">
+          By the UN's reckoning, about <strong>{people(c.population)}</strong> people are alive at mid-{CURRENT_YEAR}. Growth continues at {pct(c.growthRatePct)} a year, around <strong>{perDay(c.change)} people a day</strong>, less than half as fast as at its {gTop.year} peak, with a projected high point in {peak.year}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={wd.updated}>{longDate(wd.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="World" code="world" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>How fast is the world population growing?</h2>
+          <p>At {pct(c.growthRatePct)} a year in {CURRENT_YEAR}, well under half the {gTop.year} peak of {pct(gTop.growthRatePct)}. In absolute numbers the biggest yearly addition, about {millions(addTop.change)}, came in {addTop.year}; this year it is about {millions(c.change)}. Even so, the world now has more than three times the {people(y[1950].population)} people of 1950.</p>
+        </div>
+        <LineChart
+          title="People on Earth, 1950–2100"
+          subtitle="Mid-year counts from the UN; the projected part (dashed) levels off in the 2080s."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How many people are born and die each day?</h2>
+          <p>About {perDay(c.births)} births and {perDay(c.deaths)} deaths a day in {CURRENT_YEAR}, which is where the daily gain of roughly {perDay(c.change)} comes from: at world level there is no migration, only births minus deaths. The most babies in a single year, about {millions(birthTop.births)}, were born in {birthTop.year}; the {CURRENT_YEAR} total is about {millions(c.births)}.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Births and deaths per day, world">
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{perDay(c.births)}</div><span class="d">Births a day</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{perDay(c.deaths)}</div><span class="d">Deaths a day</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">+{perDay(c.change)}</div><span class="d">Net each day</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>When will the world population peak?</h2>
+          <p>In {peak.year}, when the UN's medium projection reaches about {people(peak.population)}. The average number of children per woman, {dec(tfrTop.fertility, 2)} at the {tfrTop.year} high, is down to {dec(c.fertility, 2)} and should drop below 2.1 from {tfrBelow} on the same projection. By 2100 the total is {people(y[2100].population)}, and the median age rises from {dec(c.medianAge, 1)} now to {dec(y[2100].medianAge, 1)}.</p>
+        </div>
+        <LineChart
+          title="Global fertility rate, 1950 to 2100"
+          subtitle="Average children per woman worldwide; projected years dashed, 2.1 marked."
+          points={rows.map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'the 2.1 line' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Where is the world's population growing?</h2>
+          <p>The biggest gains are in South Asia and Africa. India's yearly gain is about {millions(adders[0].now.change)}, Nigeria's {millions(adders[1].now.change)}, Pakistan's {millions(adders[2].now.change)}, DR Congo's {millions(adders[3].now.change)} and Ethiopia's {millions(adders[4].now.change)}. China loses about {millions(-losers[0].now.change)} and Japan about {int(Math.round(-losers[1].now.change / 1000))} thousand. Africa's share of humanity, {pct(regionShare('Africa', 1950))} in 1950, is {pct(regionShare('Africa', CURRENT_YEAR))} now and {pct(regionShare('Africa', 2100))} in the 2100 projection. Every country is listed in our <a href={path('/rankings/population-by-country/')}>population ranking</a>.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Are people living longer?</h2>
+          <p>Yes. Average life expectancy has risen from {dec(y[1950].lifeExpectancy, 1)} years in 1950 to {dec(c.lifeExpectancy, 1)} now. The UN series shows a dip from {dec(y[2019].lifeExpectancy, 1)} in 2019 to {dec(leLow.lifeExpectancy, 1)} in {leLow.year}, since recovered. More than half of people, {pct(c.urbanPct!)}, live in places their country defines as urban, against {pct(y[1950].urbanPct!)} in 1950.</p>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="World population year by year since 1950, with projections"
+          subtitle={`Decades to 2100, plus ${CURRENT_YEAR} and the projected peak year, ${peak.year}.`}
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          noRank
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path('/data/world-population.csv')}
+          csvName="world-population.csv"
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">The world's population in short answers</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files, World totals): population, births, deaths, growth, density, fertility, median age, life expectancy and projections. Country comparisons use the same files for all {ranked.length} countries and areas; regions are the UN's.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition, World): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} world total and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={wd.published}>{longDate(wd.published)}</time> · Updated <time datetime={wd.updated}>{longDate(wd.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('World population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="World" code="world" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

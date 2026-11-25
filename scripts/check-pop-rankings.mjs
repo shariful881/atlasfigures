@@ -88,9 +88,60 @@ for (const [slug, P] of Object.entries(PAGES)) {
     for (const m of textOf(p).match(/\d{1,3}(,\d{3}){2,}/g) ?? []) ok(false, where, `full number "${m}" in prose; write it as millions/billions`);
 }
 
+// ---------- World page (task 20) ----------
+{
+  const url = '/population/world/', where = `page ${url}`;
+  const file = join(DIST, 'population', 'world', 'index.html');
+  if (ok(existsSync(file), where, 'page not built')) {
+    const html = readFileSync(file, 'utf8');
+    const root = parse(html);
+    const wd = JSON.parse(readFileSync('src/data/pages/world.json', 'utf8'));
+    const world = JSON.parse(readFileSync('src/data/wpp/world.json', 'utf8'));
+    const W = Object.fromEntries(world.years.map((r) => [r.year, r]));
+    const now = W[YEAR];
+    const visible = parse(html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, ''));
+    visible.querySelectorAll('nav.related-pages').forEach((el) => el.remove());
+    const text = textOf(visible);
+    const exp = { population: int(now.population), billions: `${(now.population / 1e9).toFixed(2)} billion`, growth: `${now.growthRatePct.toFixed(1)}%`, change: int(now.change),
+      'births/day': int(Math.round(now.births / 365)), 'deaths/day': int(Math.round(now.deaths / 365)), density: int(now.densityPerKm2), median: now.medianAge.toFixed(1),
+      fertility: now.fertility.toFixed(2), life: now.lifeExpectancy.toFixed(1), urban: `${now.urbanPct.toFixed(1)}%`, countries: String(index.length) };
+    for (const [k, v] of Object.entries(exp)) ok(text.includes(v), where, `${k} ${v} (from the UN World data) is not on the page`);
+    const live = root.querySelector('section.live');
+    ok(live && Number(live.getAttribute('data-anchor')) === now.population && Number(live.getAttribute('data-rate')) === now.change && live.getAttribute('data-date') === `${YEAR}-07-01`, where, 'live counter anchor/rate/date ≠ UN World data');
+    ok(live && textOf(live).includes('Estimate based on UN projections'), where, 'live counter label missing');
+    for (const tr of root.querySelectorAll('table.data tbody tr')) {
+      const cells = tr.querySelectorAll('th,td').map(textOf); const y = Number(cells[0].match(/\d{4}/)?.[0]);
+      if (W[y]) ok(cells.some((t) => t.includes(int(W[y].population))), where, `table ${y}: population ≠ ${int(W[y].population)}`);
+    }
+    ok(root.querySelectorAll('table.data tbody tr:not(.band-label)').length === wd.tableYears.length, where, 'table rows ≠ tableYears');
+    const ld = root.querySelectorAll('script[type="application/ld+json"]').flatMap((s) => { const j = JSON.parse(s.text); return j['@graph'] ?? [j]; });
+    const art = ld.find((n) => n['@type'] === 'Article'), faq = ld.find((n) => n['@type'] === 'FAQPage'), ds = ld.find((n) => n['@type'] === 'Dataset');
+    ok(art && faq && ds, where, 'needs Article + Dataset + FAQPage');
+    for (const t of [art?.headline, art?.description, ...(faq?.mainEntity ?? []).flatMap((q) => [q.name, q.acceptedAnswer?.text])].filter(Boolean))
+      for (const num of t.match(/\d[\d,]*(\.\d+)?/g) ?? []) ok(text.includes(num), where, `JSON-LD number ${num} is not shown on the page`);
+    ok(JSON.stringify(root.querySelectorAll('.faq details summary').map(textOf)) === JSON.stringify((faq?.mainEntity ?? []).map((q) => q.name)), where, 'FAQ in JSON-LD differs from the page');
+    const csvFile = join(DIST, 'data', 'world-population.csv');
+    if (ok(ds?.distribution?.[0]?.contentUrl?.endsWith('/data/world-population.csv') && existsSync(csvFile), where, 'Dataset CSV missing')) {
+      const lines = readFileSync(csvFile, 'utf8').split('\n').filter((l) => /^\d{4},/.test(l));
+      ok(lines.length === wd.tableYears.length, where, 'CSV rows ≠ tableYears');
+      for (const l of lines) { const [y, pop] = l.split(','); ok(Number(pop) === W[Number(y)]?.population, where, `CSV ${y} ≠ UN data`); }
+    }
+    ok(art?.dateModified?.startsWith(wd.updated) && root.querySelectorAll('time').some((t) => t.getAttribute('datetime') === wd.updated), where, 'Updated date ≠ dateModified / not shown');
+    ok(new RegExp(`${BASE}${url}</loc><lastmod>${wd.updated}</lastmod>`).test(sitemap), where, 'sitemap lastmod ≠ Updated (or page not in sitemap)');
+    for (const p of visible.querySelectorAll('article .answer, article .prose p, article .faq p'))
+      for (const m of textOf(p).match(/\d{1,3}(,\d{3}){2,}/g) ?? []) ok(false, where, `full number "${m}" in prose`);
+  }
+  // Population hub: every country page listed once, plus the World card
+  const hub = parse(readFileSync(join(DIST, 'population', 'index.html'), 'utf8'));
+  const pages = readdirSync('src/data/countries').length;
+  ok(hub.querySelectorAll('.list a.row').length === pages, 'page /population/', `hub lists ${hub.querySelectorAll('.list a.row').length} countries, ${pages} have pages`);
+  ok(hub.querySelectorAll('a').some((a) => a.getAttribute('href') === `${BASE}/population/world/`), 'page /population/', 'hub does not link to the World page');
+  ok(hub.querySelectorAll('.list a.row').every((a) => ['Asia', 'Africa', 'Europe', 'Americas', 'Oceania'].includes(a.getAttribute('data-continent'))), 'page /population/', 'a hub row has no valid continent for the filter');
+}
+
 if (problems.length) {
   console.log(`✗ Population rankings: ${problems.length} problem(s)`);
   for (const p of problems.slice(0, 40)) console.log('  - ' + p);
   process.exit(1);
 }
-console.log(`✓ Population rankings passed: ${checks} checks on ${Object.keys(PAGES).length} page(s) (table, order, values, ItemList, CSV, JSON-LD, FAQ, dates, style).`);
+console.log(`✓ Population rankings, World page and hub passed: ${checks} checks (table, order, values, ItemList, CSV, JSON-LD, FAQ, live counter, dates, style).`);
