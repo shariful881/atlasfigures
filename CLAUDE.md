@@ -7,6 +7,11 @@
 - `main` is protected by a GitHub ruleset ("Protect main (live site)"): no direct pushes, no force push, no deletion;
   changes reach `main` only through a pull request from `dev`, and the `check` job must pass first.
 
+## Work list (owner's rule)
+- All tasks are numbered in the Project doc `claude/atlasfigures-worklist.md`. Do ONLY the task number the owner
+  names, one at a time; never start the next one on your own. When done: show the owner, mark it 👀, wait.
+  After "live koro" → PR dev → main, merge, mark ✅ with the date. Update the work list after every task.
+
 Full guides live in the claude.ai Project "World Meters":
 `claude/atlasfigures-plan.md`, `claude/atlasfigures-design-guide.md`, `claude/atlasfigures-components-guide.md`,
 `claude/atlasfigures-seo-guide.md`, `claude/atlasfigures-data-guide.md`.
