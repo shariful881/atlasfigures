@@ -163,7 +163,7 @@ for (const yr of years) {
     .map((c) => ({ c, p: c.years.find((y) => y.year === yr)?.population ?? -1 }))
     .sort((a, b) => b.p - a.p);
   const w = world.years.find((y) => y.year === yr).population;
-  list.forEach(({ c, p }, i) => rankByYear.set(`${c.id}:${yr}`, { rank: i + 1, share: r2((p / w) * 100) }));
+  list.forEach(({ c, p }, i) => rankByYear.set(`${c.id}:${yr}`, { rank: i + 1, share: Math.round((p / w) * 1e6) / 1e4 /* 4 decimals: displayed values round once */ }));
 }
 
 const meta = {

@@ -1,0 +1,223 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import ar from '../../data/countries/argentina.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: Latin America's most urban large country, a sudden fall in births after 2014, slow growth to a 2050 peak.
+const PAGE = '/population/argentina/';
+const un = countryData(ar.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (ar.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const latam = wpp.filter((d: any) => d.region === 'Latin America and the Caribbean');
+const urb = latam.filter((d: any) => at(d).population > 10e6 && at(d).urbanPct != null).sort((a: any, b: any) => at(b).urbanPct - at(a).urbanPct).map((d: any) => d.iso3);
+assertClaim(urb[0] === 'ARG' && y[1950].urbanPct! > 64, 'most urban Latin American country over 10 million; already about two-thirds urban in 1950');
+const est = un.years.filter((r) => !r.projection);
+const birthTop = est.reduce((a, b) => (b.births > a.births ? b : a));
+const birthDrop = (1 - c.births / birthTop.births) * 100;
+assertClaim(birthTop.year === 2014 && birthDrop > 33 && birthDrop < 35, 'births about a third below the 2014 peak');
+const tfrLow = est.reduce((a, b) => (b.fertility < a.fertility ? b : a));
+assertClaim(tfrLow.year === 2022 && y[2015].fertility > 2.3, 'fertility above 2.3 in 2015, lowest in 2022');
+const below = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(below === 2018 && un.years.every((r) => r.year < 2018 || r.fertility < 2.1), 'under 2.1 since 2018');
+const lowF = latam.filter((d: any) => at(d).population > 5e6).sort((a: any, b: any) => at(a).fertility - at(b).fertility).map((d: any) => d.iso3);
+assertClaim(lowF.indexOf('ARG') === 3, 'fourth-lowest fertility in Latin America (countries over 5 million)');
+const south = wpp.filter((d: any) => d.subregion === 'South America').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(south.slice(0, 3).join(',') === 'BRA,COL,ARG', 'third in South America after Brazil and Colombia');
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+const natLoss = un.years.find((r) => r.naturalChange < 0)!.year;
+assertClaim(peak.year === 2050 && natLoss === 2050, 'peak and first natural loss in 2050');
+assertClaim(y[1950].netMigrants > 50e3 && Math.abs(c.netMigrants) < 5e3, 'net immigration above 50 thousand in 1950, near zero now');
+const times = c.population / y[1950].population;
+assertClaim(times > 2.6 && times < 2.8, 'about 2.7 times 1950');
+
+const title = `Argentina Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)} Million, Births Down a Third Since 2014 | AtlasFigures`;
+const description = `Of the ${millions(c.population)} living in Argentina at mid-${CURRENT_YEAR}, more than nine in ten (${pct(c.urbanPct!)}) are urban. Births have fallen by about a third since ${birthTop.year}, and the UN projects a peak in ${peak.year}.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: ar.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Urban share', value: pct(c.urbanPct!) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+];
+
+const rows = displayRows(un.years, ar.tableYears);
+
+const faq = [
+  { q: 'Roughly how many Argentines are there?', a: `About ${millions(c.population)}, the UN's figure for the middle of ${CURRENT_YEAR}: ${ord(c.worldRank!)} worldwide and third in South America behind Brazil and Colombia.` },
+  { q: 'Why are fewer babies being born in Argentina?', a: `The UN series measures the change but does not explain it: births fell from about ${int(Math.round(birthTop.births / 1000))} thousand in ${birthTop.year} to roughly ${int(Math.round(c.births / 1000))} thousand in ${CURRENT_YEAR}, and fertility from ${dec(y[2015].fertility, 2)} in 2015 to ${dec(c.fertility, 2)}.` },
+  { q: 'Is Argentina the most urbanised country in Latin America?', a: `Among countries of over ten million there, yes, with ${pct(c.urbanPct!)} of Argentines urban under their country's own definition.` },
+  { q: 'When will Argentina\'s population begin to decline?', a: `After ${peak.year}, the projected high point (${millions(peak.population)}); the 2100 projection is ${millions(y[2100].population)}.` },
+  { q: 'Does Argentina still attract immigrants?', a: `Net migration is close to zero now, about ${int(c.netMigrants)} people in ${CURRENT_YEAR}. In 1950, by contrast, arrivals outnumbered departures by roughly ${int(Math.round(y[1950].netMigrants / 1000))} thousand.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: ar.slug, name: ar.name, wikipedia: ar.wikipedia,
+  headline: `Argentina's ${millions(c.population)}: highly urban, with births down a third since ${birthTop.year}`,
+  description,
+  datasetName: 'Argentina population, births, fertility, urban share and migration, 1950–2100',
+  datasetDescription: `Mid-year population of Argentina for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: ar.published, updated: ar.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Argentina"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Argentina', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Argentina: an urban nation with a sudden fall in births</h1>
+        <LiveCounter
+          label="Argentina: population estimate as of now"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} value, up roughly ${int(c.change / 365)} people each day`}
+        />
+        <p class="answer">
+          By mid-{CURRENT_YEAR} Argentina's population was close to <strong>{millions(c.population)}</strong> ({ord(c.worldRank!)} worldwide), and <strong>{pct(c.urbanPct!)} urban</strong>. Births have dropped by about a third since {birthTop.year}, so growth is now only {pct(c.growthRatePct)} a year.
+        </p>
+        <div class="dates"><span>Updated <time datetime={ar.updated}>{longDate(ar.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Argentina" code="ar" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>How sharply have births fallen in Argentina?</h2>
+          <p>By roughly a third in about a decade. The UN puts births at about {int(Math.round(birthTop.births / 1000))} thousand in {birthTop.year}, the highest on record, and around {int(Math.round(c.births / 1000))} thousand in {CURRENT_YEAR}. Fertility, still {dec(y[2015].fertility, 2)} in 2015, dipped under 2.1 in {below} and reached a low of {dec(tfrLow.fertility, 2)} in {tfrLow.year}; it is {dec(c.fertility, 2)} now, the fourth-lowest among Latin American countries above five million.</p>
+        </div>
+        <LineChart
+          title="Argentine fertility, 1950–2050: steady, then a sharp drop"
+          subtitle="UN births-per-woman data, projection dashed; the 2.1 reference is shown."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: '2.1 reference' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Is Argentina more urban than its neighbours?</h2>
+          <p>Yes, more than any other Latin American country of over ten million: {pct(c.urbanPct!)} by the national definition. It was already {pct(y[1950].urbanPct!)} urban in 1950; the projection for 2050 is {pct(y[2050].urbanPct!)}.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Urban share in Argentina">
+          <div><span class="y">1950</span><div class="v">{pct(y[1950].urbanPct!)}</div><span class="d">Urban share</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{pct(c.urbanPct!)}</div><span class="d">Top in Latin America</span></div>
+          <div><span class="y">2050, UN projection</span><div class="v">{pct(y[2050].urbanPct!)}</div><span class="d">Projected</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Is Argentina still a destination for migrants?</h2>
+          <p>Not in net terms today: the UN puts net migration at about {int(c.netMigrants)} people in {CURRENT_YEAR}, close to zero. In 1950 Argentina gained about {int(Math.round(y[1950].netMigrants / 1000))} thousand people through migration. Life expectancy at birth has risen from {dec(y[1950].lifeExpectancy, 1)} years then to {dec(c.lifeExpectancy, 1)} now.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>When does Argentina's population peak?</h2>
+          <p>In {peak.year}, at {millions(peak.population)} under the UN's central scenario, which is also the first year with more deaths than births. After that the count shrinks, reaching {millions(y[2100].population)} in 2100, {ord(y[2100].worldRank!)} in the world. Only Brazil and Colombia outnumber it in South America; today it holds about 2.7 times its 1950 population.</p>
+        </div>
+        <LineChart
+          title="Argentina's population, 1950–2100: flattening toward 2050"
+          subtitle="UN mid-year figures; the dashed projection crests at about 48 million."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Argentine population data, 1950–2100"
+          subtitle="Set the 2010 row beside the 2026 row to see how fast family size changed."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${ar.slug}-population.csv`)}
+          csvName={`${ar.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Argentina's population: things to know</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{ar.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share, its projection to 2050 and comparisons within Latin America.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={ar.published}>{longDate(ar.published)}</time> · Updated <time datetime={ar.updated}>{longDate(ar.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Argentina population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Argentina" code="ar" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
