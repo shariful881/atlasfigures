@@ -1,7 +1,7 @@
-name: Check (dev)
+name: Check (dev, dev-data)
 on:
   push:
-    branches: [dev]
+    branches: [dev, dev-data]
   pull_request:
     branches: [main]
 jobs:
