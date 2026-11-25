@@ -31,6 +31,7 @@
     "result": "All 653 automated comparisons matched; no hand-check problems after rewording three sentences"
   },
   "changelog": [
-    { "date": "2026-11-25", "type": "published", "note": "First version: World Bank WDI figures (updated 11 November 2026) for 1972–2025." }
+    { "date": "2026-11-25", "type": "published", "note": "First version: World Bank WDI figures (updated 11 November 2026) for 1972–2025." },
+    { "date": "2026-11-25", "type": "clarification", "note": "Said that the World Bank's South Asia region does not include Pakistan or Afghanistan in its current grouping; added links to the GDP rankings." }
   ]
 }

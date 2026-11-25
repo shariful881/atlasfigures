@@ -48,6 +48,8 @@ const pages: { path: string; lastmod: string }[] = [
   { path: '/population/uganda/', lastmod: '2026-11-25' },
   { path: '/economy/', lastmod: '2026-11-25' },
   { path: '/economy/bangladesh/', lastmod: '2026-11-25' },
+  { path: '/rankings/gdp-by-country/', lastmod: '2026-11-25' },
+  { path: '/rankings/gdp-per-capita-by-country/', lastmod: '2026-11-25' },
   { path: '/about/', lastmod: '2026-11-25' },
   { path: '/methodology/', lastmod: '2026-11-25' },
   { path: '/sources/', lastmod: '2026-11-25' },
