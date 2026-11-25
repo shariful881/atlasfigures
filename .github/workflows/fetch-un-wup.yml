@@ -1,0 +1,64 @@
+# Downloads the UN World Urbanization Prospects 2025 file with the percentage urban by
+# NATIONAL definition (POP/DB/WUP/Rev.2025/F15) from population.un.org into
+# data/raw/un-wup-2025/, with URLs, download date and SHA-256. Commits to `dev` only.
+name: Fetch UN urbanization data (dev)
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev]
+    paths: ['.github/workflows/fetch-un-wup.yml']
+permissions:
+  contents: write
+jobs:
+  fetch:
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+      - name: Find file links on the UN downloads page
+        run: |
+          set -euo pipefail
+          DIR=data/raw/un-wup-2025
+          mkdir -p "$DIR"
+          UA='AtlasFigures data fetch (github.com/shariful881/atlasfigures)'
+          for u in 'https://population.un.org/wup/downloads' 'https://population.un.org/wup/downloads?tab=Urban%20and%20Rural'; do
+            curl -fsSL -A "$UA" "$u" || true
+          done > /tmp/page.html
+          # Links may sit in HTML or in embedded JSON; collect every WUP2025 file path.
+          grep -oE '(https://population\.un\.org)?/wup/assets/[^"'"'"' <>]+' /tmp/page.html | sed 's#^/wup#https://population.un.org/wup#' | sed 's#\\u0026#\&#g' | sort -u > "$DIR/LINKS.txt" || true
+          grep -oE 'WUP2025-F[0-9]+[^"'"'"' <>]*' /tmp/page.html | sort -u >> "$DIR/LINKS.txt" || true
+          echo "--- links found ---"; cat "$DIR/LINKS.txt"
+      - name: Download F15 (percentage urban, national definition)
+        run: |
+          set -euo pipefail
+          DIR=data/raw/un-wup-2025
+          UA='AtlasFigures data fetch (github.com/shariful881/atlasfigures)'
+          URL=$(grep -iE '^https.*F15[^/]*\.(xlsx|csv|zip)' "$DIR/LINKS.txt" | head -1 || true)
+          if [ -z "$URL" ]; then echo "F15 link not found on the page; see LINKS.txt"; exit 0; fi
+          NAME=$(basename "${URL%%\?*}" | sed 's/%20/_/g')
+          curl -fSL --retry 3 -A "$UA" -o "$DIR/$NAME" "$URL"
+          NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          {
+            echo "# UN World Urbanization Prospects 2025 — original file"
+            echo
+            echo "Downloaded automatically by .github/workflows/fetch-un-wup.yml. Do not edit by hand."
+            echo
+            echo "- Publisher: United Nations, Department of Economic and Social Affairs, Population Division"
+            echo "- Dataset: Percentage urban and rural by national definition (POP/DB/WUP/Rev.2025/F15)"
+            echo "- Downloaded (UTC): $NOW"
+            echo
+            echo "| File | URL | Bytes | SHA-256 |"
+            echo "|---|---|---|---|"
+            echo "| $NAME | $URL | $(stat -c %s "$DIR/$NAME") | $(sha256sum "$DIR/$NAME" | cut -d' ' -f1) |"
+          } > "$DIR/SOURCE.md"
+          cat "$DIR/SOURCE.md"
+      - name: Commit to dev
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/raw/un-wup-2025
+          git diff --cached --quiet && { echo 'No change'; exit 0; }
+          git commit -m 'Data: UN WUP 2025 file (percentage urban, national definition)'
+          git push origin HEAD:dev
