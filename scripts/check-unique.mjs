@@ -34,11 +34,18 @@ const UI_SELECTORS = [
 const STOP = new Set(`a an the and or but of in on at to for from by with as is are was were be been being it its this that these those than then there their they them he she his her we our you your i not no so if into about over under up down out more most less least very also just only per each every all any some such which who whom whose what when where why how will would can could may might should shall do does did has have had one two`.split(' '));
 
 // country data keyed by slug
-const countries = {};
-for (const f of readdirSync('src/data/countries')) {
-  if (!f.endsWith('.json')) continue;
-  const d = JSON.parse(readFileSync(join('src/data/countries', f), 'utf8'));
-  countries[d.slug] = d;
+// Sections whose pages are written per country (each has its own editorial JSON folder).
+// Pages are compared across ALL sections: an economy page may not reuse a population page's wording either.
+const SECTIONS = [['population', 'src/data/countries'], ['economy', 'src/data/economy']];
+const countries = {}; // section → slug → country
+for (const [sec, dir] of SECTIONS) {
+  countries[sec] = {};
+  if (!existsSync(dir)) continue;
+  for (const f of readdirSync(dir)) {
+    if (!f.endsWith('.json')) continue;
+    const d = JSON.parse(readFileSync(join(dir, f), 'utf8'));
+    countries[sec][d.slug] = d;
+  }
 }
 
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -70,16 +77,18 @@ function extract(file, slug) {
   return { slug, headings, blocks };
 }
 
-const pagesDir = join(DIST, 'population');
-if (!existsSync(pagesDir)) { console.error(`No ${pagesDir}. Run the build first.`); process.exit(2); }
+if (!existsSync(join(DIST, 'population'))) { console.error(`No ${join(DIST, 'population')}. Run the build first.`); process.exit(2); }
 
 const pages = [];
-for (const slug of readdirSync(pagesDir)) {
+for (const [sec] of SECTIONS) {
+ const pagesDir = join(DIST, sec);
+ if (!existsSync(pagesDir)) continue;
+ for (const slug of readdirSync(pagesDir)) {
   const file = join(pagesDir, slug, 'index.html');
-  if (!existsSync(file) || !countries[slug]) continue; // only country pages
-  const p = extract(file, slug);
+  if (!existsSync(file) || !countries[sec][slug]) continue; // only country pages
+  const p = extract(file, `${sec}/${slug}`);
   if (!p) continue;
-  const c = countries[slug];
+  const c = countries[sec][slug];
   p.grams = new Map();
   for (const b of new Set(p.blocks)) {
     const w = normalize(b, c);
@@ -91,6 +100,7 @@ for (const slug of readdirSync(pagesDir)) {
   }
   p.heads = new Map(p.headings.map((h) => [normalize(h, c).join(' '), h]));
   pages.push(p);
+ }
 }
 
 let problems = 0;
