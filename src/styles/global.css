@@ -517,3 +517,52 @@ a.tile:hover { border-color: var(--contour); color: var(--text); }
 /* Falling population (e.g. China): the counter counts down, so its changes use a warm "decline" colour */
 .live.falling .live-stats .v, .live.falling .odo .roll, .live.falling .next-txt b { color: var(--fall); }
 .live.falling .next-bar span { background: var(--fall); }
+
+/* ---------- Search (task 7) ---------- */
+.site-header .nav { margin-left: auto; }
+.sbox { position: relative; width: 250px; flex: none; }
+.sbox .s-input { width: 100%; height: 40px; border-radius: 999px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.1); color: #fff; font: inherit; font-size: .9rem; padding: 0 34px 0 38px; outline: none; transition: background .15s, border-color .15s; }
+.sbox .s-input::placeholder { color: #a9c1d0; }
+.sbox .s-input:focus { background: #fff; color: var(--text); border-color: #fff; }
+.sbox .s-input:focus::placeholder { color: var(--text-3); }
+.sbox .s-input::-webkit-search-cancel-button { display: none; }
+.sbox-ico { position: absolute; left: 13px; top: 11px; width: 18px; height: 18px; color: #a9c1d0; pointer-events: none; }
+.sbox-ico svg { width: 18px; height: 18px; }
+.sbox:focus-within .sbox-ico { color: var(--text-3); }
+.sbox-kbd { position: absolute; right: 12px; top: 10px; font: inherit; font-size: .72rem; color: #a9c1d0; border: 1px solid rgba(255,255,255,.25); border-radius: 5px; padding: 0 6px; line-height: 18px; pointer-events: none; }
+.sbox:focus-within .sbox-kbd { display: none; }
+.sbox-panel { position: absolute; right: 0; top: 48px; width: 380px; max-height: 70vh; overflow-y: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: 0 24px 48px -16px rgba(18,59,90,.35); padding: 6px; z-index: 50; }
+.s-head { font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-3); margin: 8px 10px 4px; }
+@media (max-width: 767px) { .s-head { margin: 10px 4px 8px; } }
+.s-list { list-style: none; margin: 0; padding: 0; }
+.s-list a { display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: center; padding: 9px 10px; border-radius: var(--r-md); text-decoration: none; color: var(--text); }
+.s-list a:hover, .s-list [aria-selected="true"] a { background: var(--water-2); color: var(--text); }
+.s-flag { width: 30px; height: 20px; border-radius: 3px; border: 1px solid var(--line); object-fit: cover; }
+.s-kind { width: 30px; height: 30px; border-radius: 8px; background: var(--water-2); position: relative; }
+.s-kind::after { content: ""; position: absolute; inset: 9px; border-radius: 3px; background: var(--ocean-2); }
+.s-kind.s-world::after { border-radius: 50%; background: var(--contour); }
+.s-kind.s-ranking::after { inset: 8px 9px; background: linear-gradient(90deg, var(--ocean-2) 0 3px, transparent 3px 5px, var(--ocean-2) 5px 8px, transparent 8px 10px, var(--ocean-2) 10px); clip-path: polygon(0 50%, 3px 50%, 3px 100%, 0 100%, 0 50%, 5px 20%, 8px 20%, 8px 100%, 5px 100%, 5px 20%, 10px 0, 13px 0, 13px 100%, 10px 100%); }
+.s-kind.s-info::after { background: var(--text-3); }
+.s-txt { display: flex; flex-direction: column; min-width: 0; }
+.s-t { font-weight: 700; color: var(--ocean); font-size: .95rem; line-height: 1.25; }
+.s-s { font-size: .8rem; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.s-empty { padding: 14px 12px; color: var(--text-3); font-size: .9rem; }
+#s-open { display: none; }
+dialog.sfull { display: none; }
+@media (max-width: 1023px) and (min-width: 768px) { .sbox { width: 180px; } .sbox-kbd { display: none; } .nav a { padding: 8px 10px; } }
+@media (max-width: 767px) {
+  .sbox { display: none; }
+  #s-open { display: grid; }
+  dialog.sfull[open] { display: block; position: fixed; inset: 0; width: 100%; height: 100%; max-width: 100%; max-height: 100%; margin: 0; padding: 0; border: 0; background: var(--water-2); color: var(--text); animation: sfull-in .18s ease-out; }
+  dialog.sfull::backdrop { background: transparent; }
+  @keyframes sfull-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  .sfull-bar { display: flex; align-items: center; gap: 4px; padding: calc(env(safe-area-inset-top) + 6px) 10px 8px 6px; background: rgba(247,249,249,.96); border-bottom: 1px solid var(--line); position: sticky; top: 0; }
+  .sfull-bar .icon-btn { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; color: var(--ocean); background: none; border: 0; }
+  .sfull-bar .icon-btn svg { width: 22px; height: 22px; }
+  .sfull-bar .s-input { flex: 1; height: 44px; border-radius: 999px; border: 0; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); font: inherit; font-size: 16px; padding: 0 16px; color: var(--text); outline: none; }
+  .sfull-bar .s-input:focus { box-shadow: inset 0 0 0 2px var(--contour); }
+  .sfull-body { padding: 8px 16px calc(24px + env(safe-area-inset-bottom)); overflow-y: auto; height: calc(100% - 64px); }
+  .sfull .s-list { background: var(--surface); border-radius: var(--r-lg); overflow: hidden; }
+  .sfull .s-list a { border-radius: 0; padding: 12px 14px; min-height: 56px; border-bottom: 1px solid var(--line); }
+  .sfull .s-list li:last-child a { border-bottom: 0; }
+}
