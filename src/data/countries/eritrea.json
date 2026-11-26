@@ -1,0 +1,63 @@
+{
+  "slug": "eritrea",
+  "name": "Eritrea",
+  "demonym": "Eritrean",
+  "capital": "Asmara",
+  "iso3": "ERI",
+  "code": "er",
+  "continent": "Africa",
+  "wikipedia": "https://en.wikipedia.org/wiki/Eritrea",
+  "unName": "Eritrea",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1957,
+    1960,
+    1970,
+    1980,
+    1990,
+    1991,
+    1992,
+    1993,
+    1995,
+    1998,
+    1999,
+    2000,
+    2010,
+    2020,
+    2026,
+    2030,
+    2040,
+    2050,
+    2060,
+    2070,
+    2080,
+    2090,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/eritrea.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; about 4.5 times 1950",
+      "1991 net outflow about 16% of the 1990 population; falls only in 1991 and 1992; 1993 inflow; 1995 largest inflow",
+      "Life expectancy low 1957; 1999 dip below 1997",
+      "Urban share 1950, now, 2050 (minority throughout); fertility under 2.1 first in 2080; no peak before 2100",
+      "title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) — 71 of 71 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Counts only; no causes given."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}

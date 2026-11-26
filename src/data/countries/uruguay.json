@@ -1,0 +1,62 @@
+{
+  "slug": "uruguay",
+  "name": "Uruguay",
+  "demonym": "Uruguayan",
+  "capital": "Montevideo",
+  "iso3": "URY",
+  "code": "uy",
+  "continent": "Americas",
+  "wikipedia": "https://en.wikipedia.org/wiki/Uruguay",
+  "unName": "Uruguay",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1975,
+    1980,
+    1990,
+    2000,
+    2003,
+    2010,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2026,
+    2030,
+    2040,
+    2050,
+    2060,
+    2070,
+    2080,
+    2090,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/uruguay.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area",
+      "Highest urban share in Latin America and the Caribbean (1 million+) in 2026 and in 1950",
+      "Peak 2020, falls every year 2021–2100; deaths above births 2021, 2022 and every year from 2024",
+      "Fertility under 2.1 every year from 2004; largest net outflow 2003; 2100 within 5% of 1950",
+      "title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) — 67 of 67 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
