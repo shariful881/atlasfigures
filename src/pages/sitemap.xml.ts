@@ -204,7 +204,7 @@ const pages: { path: string; lastmod: string }[] = [
   { path: '/sources/', lastmod: '2026-11-25' },
   { path: '/corrections/', lastmod: '2026-11-25' },
   { path: '/contact/', lastmod: '2026-11-25' },
-  { path: '/privacy/', lastmod: '2026-11-25' },
+  { path: '/privacy/', lastmod: '2026-11-26' },
 ];
 
 export function GET() {
