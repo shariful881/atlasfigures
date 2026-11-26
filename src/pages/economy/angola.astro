@@ -1,0 +1,166 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/angola.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/angola/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const ssa = rankBy('gdp', L).filter((r) => r.region === 'Sub-Saharan Africa');
+const sPos = ssa.findIndex((r) => r.iso3 === c.iso3);
+const gPeak = s.gdp.reduce((a, b) => (b[1] > a[1] ? b : a));
+const pPeak = s.gdpPerCapita.reduce((a, b) => (b[1] > a[1] ? b : a));
+const below = Math.round((1 - gdp / gPeak[1]) * 100);
+const fiveDown = [2016, 2017, 2018, 2019, 2020].every((y) => g(y) < 0) && g(2015) > 0 && g(2021) > 0;
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const best = s.gdpGrowthPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const over20 = [2020, 2021, 2022, 2024, L].every((y) => i(y) > 20) && i(2023) < 14;
+const first = s.gdp[0][0];
+const uSsa = rankBy('unemploymentPct', L).filter((r) => r.region === 'Sub-Saharan Africa');
+const uPos = uSsa.findIndex((r) => r.iso3 === c.iso3) + 1;
+
+assertClaim(gPeak[0] === 2014 && pPeak[0] === 2012 && below === 20 && sPos === 4 && ssa[sPos - 1].iso3 === 'ETH' && ssa[sPos + 1].iso3 === 'GHA' && B.gdpRank === 68, 'GDP 20% below 2014 peak; fifth in SSA between Ethiopia and Ghana; 68th');
+assertClaim(fiveDown, 'contracted five years in a row 2016-2020');
+assertClaim(worst[0] === 1993 && worst[1] < -23 && best[0] === 1995 && best[1] > 14.9, 'worst 1993, best 1995');
+assertClaim(iMax[0] === 1996 && iMax[1] > 4000 && over20, 'inflation peak 1996; over 20% in all recent years but 2023');
+assertClaim(first === 1980 && growth > 3 && growth < g(L - 1), 'GDP series from 1980; growth 3.1 slower than 2024');
+assertClaim(uPos === 9 && uSsa.length === 45 && unemp! > 14 && net!.value < 41, 'unemployment over 14%, internet about four in ten');
+
+const title = `Angola Economy ${L}: GDP Still a Fifth Below Its 2014 Peak | AtlasFigures`;
+const description = `Angola\'s ${L} economy, worth ${usd(gdp)}, was ${below}% short of the ${usd(gPeak[1])} reached in 2014, yet it is still fifth in sub-Saharan Africa. Growth slowed to ${pct(growth)}; inflation stood at ${pct(infl.value)}.`;
+
+const faq = [
+  { q: 'Has Angola\'s GDP shrunk since 2014?', a: `In dollar terms, yes: ${usd(gdp)} in ${L} versus ${usd(gPeak[1])} in 2014, the high point — about ${below}% less. GDP per person peaked even earlier, in 2012, at ${usdWhole(pPeak[1])}.` },
+  { q: 'Did Angola go through a recession?', a: `Real GDP fell in five straight years, 2016 to 2020, ending with a ${pct(Math.abs(g(2020)))} drop in 2020. Growth returned in 2021 and was ${pct(growth)} in ${L}.` },
+  { q: 'Is inflation in Angola still above 20%?', a: `Yes: ${pct(infl.value)} in ${L} after ${pct(i(L - 1))} in ${L - 1}; 2023 (${pct(i(2023))}) is the only year since 2020 below that mark. In 1996 it peaked at ${pct(iMax[1])}.` },
+  { q: 'Is Angola among sub-Saharan Africa\'s biggest economies?', a: `Yes, ${ord(sPos + 1)}: by ${L} GDP it sits behind Ethiopia and ahead of Ghana, and ${ord(B.gdpRank!)} globally.` },
+  { q: 'What share of Angolans are unemployed?', a: `The ILO model estimates ${pct(unemp!)} for ${L}, the ${ord(uPos)}-highest of the ${uSsa.length} sub-Saharan countries with an estimate.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Angola's economy in ${L}: below its 2014 high, with prices still rising fast`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Angolan economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Angola', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Angola's economy: still climbing back</h1>
+        <p class="answer">
+          At <strong>{usd(gdp)}</strong> in {L}, Angola's GDP was about <strong>{below}%</strong> below its 2014 peak; growth was {pct(growth)} and inflation {pct(infl.value)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Angola economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Angola" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Five years of contraction ended in 2021, but in dollars Angola's output remains short of 2014's.</p>
+
+        <div class="story-block prose">
+          <h2>Has Angola's economy recovered its 2014 size?</h2>
+          <p>Not yet. The {L} total, {usd(gdp)}, sits roughly {below}% under 2014's {usd(gPeak[1])}; per head, the {L} figure of {usdWhole(perHead)} remains well short of the 2012 high of {usdWhole(pPeak[1])}. Angola still ranks {ord(sPos + 1)} among sub-Saharan economies and {ord(B.gdpRank!)} worldwide.</p>
+        </div>
+        <LineChart
+          title={`Angola's GDP in current US dollars, ${first}–${L}`}
+          subtitle="Angolan output valued at each year's US$ prices, starting with 1980, the earliest World Bank year."
+          points={s.gdp.map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How long did Angola's recession last?</h2>
+          <p>Five years: real GDP shrank every year from 2016 through 2020. Growth resumed in 2021 and was {pct(growth)} in {L}, slower than {pct(g(L - 1))} in {L - 1}. The record swings came in the 1990s — a {pct(Math.abs(worst[1]))} fall in 1993 and {pct(best[1])} growth in 1995.</p>
+        </div>
+        <LineChart
+          title={`Year-on-year growth in Angola, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="Annual % change in constant-price GDP."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Why are prices in Angola rising so quickly?</h2>
+          <p>The series records the speed, not the causes: {pct(infl.value)} in {L} and {pct(i(L - 1))} in {L - 1}, with every year since 2020 above 20% except 2023 ({pct(i(2023))}). In 1996 inflation reached {pct(iMax[1])}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How widespread is joblessness in Angola?</h2>
+          <p>The ILO's modelled estimate is {pct(unemp!)} for {L}. Only {pct(net!.value)} of Angolans were online in {net!.year}, and price-adjusted GDP per person stood at {intDollars(ppp!)}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Angola and southern Africa: related pages</h2>
+          <ul>
+            <li><a href={path('/population/angola/')}>Angola's population</a></li>
+            <li><a href={path('/economy/south-africa/')}>South Africa's economy</a></li>
+            <li><a href={path('/economy/dr-congo/')}>DR Congo's economy</a></li>
+            <li><a href={path('/economy/nigeria/')}>Nigeria's economy</a></li>
+            <li><a href={path('/rankings/gdp-by-country/')}>GDP league table</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Angola in numbers, selected years`}
+          subtitle="From 1980, with 1993, 1995–96, the 2012–14 peaks and 2015 onward annually. The CSV lists all years."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/angola-economy.csv')} csvName="angola-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Angola's economy at a glance: questions</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">"Sub-Saharan Africa" is the World Bank region. The World Bank notes that for 1994–2025 multiple exchange rates in Angola are combined into an alternative conversion factor. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Angolan economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Angola" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>
