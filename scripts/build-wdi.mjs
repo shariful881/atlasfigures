@@ -43,6 +43,9 @@ export const LABELS = {
   'NE.EXP.GNFS.ZS': { key: 'exportsPctGdp', label: 'Exports of goods and services', unit: '% of GDP' },
   'NE.IMP.GNFS.ZS': { key: 'importsPctGdp', label: 'Imports of goods and services', unit: '% of GDP' },
   'SH.STA.MMRT': { key: 'maternalMortality', label: 'Maternal mortality ratio', unit: 'deaths per 100,000 live births (modelled estimate)' },
+  'AG.LND.TOTL.K2': { key: 'landArea', label: 'Land area', unit: 'sq. km' },
+  'AG.LND.FRST.ZS': { key: 'forestPct', label: 'Forest area', unit: '% of land area' },
+  'AG.LND.FRST.K2': { key: 'forestArea', label: 'Forest area', unit: 'sq. km' },
 };
 
 // ---------- CSV (same parser rules as build-data.mjs) ----------

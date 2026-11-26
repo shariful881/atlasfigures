@@ -1,0 +1,20 @@
+{
+  "slug": "land-area-by-country",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/geo-119.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; check-wdi.mjs compares all generated WDI values with the original files; then the text was read by hand",
+    "what": "every ranking row (215 countries and areas, order and value), the share-of-world column, the CSV, the regional table, every figure in the text, FAQ, title, description and JSON-LD; claims: Russia, China, US, Canada, Brazil, Australia, India in that order, six above 7 million km², Russia 12.6% and the top six 46.0% of the world, Monaco, Gibraltar, Nauru, Tuvalu smallest, Bangladesh 95th, India about 23 and Myanmar about 5 times Bangladesh, regions add up to the world; the definition (inland water bodies excluded) from the World Bank indicator notes",
+    "against": "World Bank WDI bulk files and indicator metadata (update 11 November 2026, CC BY 4.0; data compiled by the Food and Agriculture Organization of the United Nations)",
+    "result": "Before publishing, the World Bank surface-area series (AG.SRF.TOTL.K2) was dropped because it includes some coastal waters (e.g. Canada 15.6 million km², Monaco 74.9 km²) and would mislead; the ranking uses land area only. All automated comparisons matched"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: World Bank WDI (FAO) land area for 2023."
+    }
+  ]
+}

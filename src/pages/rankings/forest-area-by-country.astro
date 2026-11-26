@@ -1,0 +1,225 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import WorldMap from '../../components/WorldMap.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/forest-area-by-country.json';
+import { econData, econMeta, aggregate, valueIn, rankBy, notRanked, rankingYear } from '../../lib/econ';
+import { assertClaim, ord, int } from '../../lib/figures';
+import { commonName, pagesOf } from '../../lib/names';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/); the forest estimates are FAO's (FRA).
+const PAGE = '/rankings/forest-area-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WDI = 'World Bank, World Development Indicators (FAO forest area)';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = meta.verification?.checkedOn;
+const name = commonName;
+const M = econMeta.indicators.forestArea;
+const B = 2000;
+
+const L = rankingYear('forestArea');
+const ranked = rankBy('forestArea', L);
+const N = ranked.length;
+const missing = notRanked('forestArea', L).filter((m) => m.latestYear != null);
+const WS = aggregate('WLD').series;
+const world = valueIn(WS.forestArea, L)!;
+const worldPct = valueIn(WS.forestPct, L)!;
+const byIso = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const fa = (x: string, y: number) => valueIn(econData(x).series.forestArea, y);
+const fp = (x: string, y: number) => valueIn(econData(x).series.forestPct, y);
+const mkm = (v: number) => `${(v / 1e6).toFixed(1)} million km²`;
+const km = (v: number) => `${int(v)} km²`;
+const cell = (v: number) => v.toLocaleString('en-US', { maximumFractionDigits: 1 });
+const p1 = (v: number) => `${v.toFixed(1)}%`;
+const signedKm = (v: number) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${int(Math.abs(v))}`;
+const top5 = ranked.slice(0, 5);
+const top5Share = (top5.reduce((a, r) => a + r.value, 0) / world) * 100;
+const change = ranked
+  .map((r) => ({ iso3: r.iso3, b: fa(r.iso3, B), d: fa(r.iso3, B) == null ? null : r.value - fa(r.iso3, B)! }))
+  .filter((c): c is { iso3: string; b: number; d: number } => c.d != null)
+  .sort((a, b) => a.d - b.d || a.iso3.localeCompare(b.iso3));
+const lost = change.slice(0, 3), gained = change.slice(-3).reverse();
+const noBase = ranked.filter((r) => fa(r.iso3, B) == null).map((r) => r.iso3);
+const shareRank = rankBy('forestPct', L);
+// The World Bank's world series changes membership over time (new and split states), so the change since B is
+// our sum over the places that have both years.
+const sumB = change.reduce((a, c) => a + c.b, 0), sumD = change.reduce((a, c) => a + c.d, 0);
+const lac = valueIn(aggregate('LCN').series.forestPct, L)!, mena = valueIn(aggregate('MEA').series.forestPct, L)!;
+const braYears = econData('BRA').series.forestArea.filter(([y]) => y <= L);
+const bgd = byIso('BGD');
+
+assertClaim(M.aggregation === 'Sum' && L === 2023 && N === 213 && missing.length === 1 && missing[0].iso3 === 'CHI', 'sum; 2023; 213 places; only Channel Islands missing');
+assertClaim(['RUS', 'BRA', 'CAN', 'USA', 'CHN'].every((x, i) => ranked[i].iso3 === x) && Math.round(top5Share) === 55, 'Russia, Brazil, Canada, US, China; 55% of world forest');
+assertClaim(Math.round((ranked[0].value / world) * 100) === 21, 'Russia about a fifth of the world forest');
+assertClaim(Math.round(worldPct * 10) === 311 && change.length === 206 && Math.round(sumD / 1e4) === -85 && Math.round((sumD / sumB) * 1000) === -20, 'world 31.1% of land; 206 places with both years lost 0.85 million km² (2.0%)');
+assertClaim(['BRA', 'COD', 'AGO'].every((x, i) => lost[i].iso3 === x) && ['CHN', 'RUS', 'CAN'].every((x, i) => gained[i].iso3 === x), 'biggest losses Brazil, DR Congo, Angola; gains China, Russia, Canada');
+assertClaim(Math.round((lost[0].d / lost[0].b) * 1000) === -121 && Math.round((gained[0].d / gained[0].b) * 1000) === 265, 'Brazil -12.1%, China +26.5%');
+assertClaim(-lost[0].d > gained[0].d, 'Brazil lost more than China gained');
+assertClaim(['FSM', 'SUR', 'GAB'].every((x, i) => shareRank[i].iso3 === x) && shareRank[2].value > 91, 'Micronesia, Suriname, Gabon above 91%');
+assertClaim(shareRank.filter((r) => r.value === 0).map((r) => r.iso3).sort().join() === 'GIB,MCO,NRU', 'no forest: Gibraltar, Monaco, Nauru');
+assertClaim(Math.round(lac * 10) === 461 && Math.round(mena * 10) === 22, 'LAC 46.1%, MENA 2.2%');
+assertClaim(Math.round(fp('BGD', L)! * 10) === 144 && Math.round(fp('BGD', B)! * 10) === 148 && fp('IND', L)! > fp('IND', B)! && Math.round(fp('BTN', L)!) === 71, 'Bangladesh 14.4% (14.8% in 2000); India up; Bhutan 71%');
+assertClaim(ranked.filter((r) => r.region === 'South Asia').every((r) => r.iso3 === 'BTN' || fp(r.iso3, L)! < fp('BTN', L)!), 'Bhutan highest share in South Asia');
+assertClaim(noBase.length === 7, 'seven places without a 2000 figure');
+assertClaim(braYears[0][0] === 1990 && braYears.every(([, v], i) => i === 0 || v < braYears[i - 1][1]), 'Brazil forest smaller every year since 1990');
+
+const title = `Forest Area by Country ${L}: Largest Forests and Change Since ${B} | AtlasFigures`;
+const description = `Forests cover ${p1(worldPct)} of the world's land, ${mkm(world)} in ${L}. Russia has the largest forest; Brazil lost the most since ${B} and China gained the most. FAO data for ${N} places.`;
+
+const cards = [
+  { label: 'World forest', value: `${(world / 1e6).toFixed(1)}M km²`, year: L, note: `${p1(worldPct)} of land` },
+  { label: `Change since ${B}`, value: `−${(-sumD / 1e6).toFixed(2)}M km²`, year: L, note: `${change.length} places, our sum` },
+  { label: 'Five largest', value: p1(top5Share), year: L, note: 'of all forest' },
+  { label: 'Latin America', value: p1(lac), year: L, note: 'of land is forest' },
+];
+
+const rows = ranked.map((r) => {
+  const pg = pagesOf(r.iso3); const site = pg.economy ?? pg.population;
+  const s = fp(r.iso3, L), b = fa(r.iso3, B);
+  return {
+    rank: r.rank, iso3: r.iso3, name: name(r.iso3), site, href: site ? path(site) : null, region: r.region,
+    bar: Math.min(r.value / ranked[0].value, 1), value: cell(r.value),
+    cells: [s != null ? p1(s) : '–', b != null ? signedKm(r.value - b) : '–'],
+  };
+});
+const mapFmt = (v: number) => (v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `${Math.round(v / 1e3)}k` : `${Math.round(v)}`);
+const mapRows = ranked.map((r) => ({ iso3: r.iso3, name: name(r.iso3), rank: r.rank, raw: r.value, value: `${cell(r.value)} km²` }));
+const regions = [...new Set(ranked.map((r) => r.region))].sort();
+
+const faq = [
+  { q: 'Which country has the most forest?', a: `Russia: ${mkm(ranked[0].value)} of its land was forest in ${L}, about a fifth of all the world's forest. Brazil (${mkm(ranked[1].value)}) and Canada (${mkm(ranked[2].value)}) come next.` },
+  { q: 'Which countries are most covered by forest?', a: `Micronesia (${p1(shareRank[0].value)} of its land), Suriname (${p1(shareRank[1].value)}) and Gabon (${p1(shareRank[2].value)}) have the highest shares. Gibraltar, Monaco and Nauru have no forest at all in the FAO figures.` },
+  { q: `Which country has lost the most forest since ${B}?`, a: `Brazil: its forest shrank by ${km(-lost[0].d)} between ${B} and ${L}, or ${Math.abs((lost[0].d / lost[0].b) * 100).toFixed(1)}%. DR Congo and Angola had the next-largest losses.` },
+  { q: 'How much of Bangladesh is forest?', a: `${p1(fp('BGD', L)!)} of its land, or ${km(bgd.value)}, in ${L} — slightly less than the ${p1(fp('BGD', B)!)} of ${B}. That share is below the world's ${p1(worldPct)}.` },
+  { q: 'Is the world losing forest?', a: `Yes. Adding up the ${change.length} countries and areas with figures for both years, forest area fell by ${km(-sumD)} between ${B} and ${L}, or ${Math.abs((sumD / sumB) * 100).toFixed(1)}%, even though China, Russia and Canada added forest.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Forest area by country ${L}: ${N} countries and areas ranked, with the change since ${B}`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'CreativeWork', name: 'World Development Indicators', url: WDI_URL, publisher: { '@type': 'Organization', name: 'The World Bank' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `Forest area by country, ${L}`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Forest area by country, ${L}`,
+    description: `Forest area in square kilometres and as a share of land area for ${N} countries and areas in ${L}, ranked, with the forest area of ${B}, from the World Development Indicators (update of ${longDate(M.wdiLastUpdated)}). The estimates come from the FAO Global Forest Resources Assessment.`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WDI_URL], temporalCoverage: `${B}/${L}`,
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['Forest area (sq. km)', 'Forest area (% of land area)'],
+    dateModified: iso(UPDATED), license: econMeta.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/forest-area-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="Forest area" back="/rankings/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Rankings', href: '/rankings/' }, { name: 'Forest area by country', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>Forest area by country, {L}</h1>
+    <p class="answer">Forests covered <strong>{p1(worldPct)}</strong> of the world's land in {L}, or {mkm(world)}. Russia has by far the largest forest, and five countries — Russia, Brazil, Canada, the United States and China — hold {p1(top5Share)} of it.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`Forest area ranking, ${L}`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="map">Map</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="map" aria-label="Map" hidden-mobile>
+      <WorldMap
+        id="map-h" title={`Forest area in square kilometres, ${L}`}
+        subtitle="FAO forest area. The five shades split the ranked places into groups of about the same size; the darkest holds the biggest forests."
+        rows={mapRows} fmt={mapFmt}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+    </section>
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`Forest area in km², ${L}`}
+        subtitle={`Largest forest first, with the share of land that is forest and the change in forest area since ${B} (our subtraction).`}
+        valueLabel="Forest, km²"
+        cols={[{ label: 'Share of land' }, { label: `Change since ${B}, km²`, cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={regions}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        csv={path('/data/forest-area-by-country.csv')} csvName="forest-area-by-country.csv"
+        licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+      />
+      <p class="note">Bars are scaled to Russia; {N} countries and areas are ranked. A dash in the change column means there is no {B} figure — for countries such as South Sudan, Serbia and Montenegro the series starts later. Not ranked: the Channel Islands, whose most recent forest figure dates from {missing[0].latestYear}.</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>How much of the world is covered by forest?</h2>
+        <p>Just under a third of the land. The FAO estimates put the world's forest at {mkm(world)} in {L}, {p1(worldPct)} of the land area. Taking the {change.length} places that report both {B} and {L}, {km(-sumD)} of forest disappeared over those years — a net fall of {Math.abs((sumD / sumB) * 100).toFixed(1)}%, after the gains in some countries are set against the losses in others.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Where has forest been lost and gained since {B}?</h2>
+        <p><a href={path('/economy/brazil/')}>Brazil</a> lost {km(-lost[0].d)} of forest between {B} and {L}, {Math.abs((lost[0].d / lost[0].b) * 100).toFixed(1)}% of what it had — more than any other country, and more than <a href={path('/economy/china/')}>China</a> gained. <a href={path('/economy/dr-congo/')}>DR Congo</a> ({km(-lost[1].d)}) and <a href={path('/economy/angola/')}>Angola</a> ({km(-lost[2].d)}) follow. China added {km(gained[0].d)}, growing its forest by {((gained[0].d / gained[0].b) * 100).toFixed(1)}%; Russia and Canada had the next-largest gains.</p>
+      </div>
+      <LineChart
+        title={`Brazil's forest area, ${braYears[0][0]}–${L}`}
+        subtitle="Million square kilometres of forest in Brazil, FAO Global Forest Resources Assessment; years between assessments are FAO estimates."
+        points={braYears.map(([x, y]) => ({ x, y: Number((y / 1e6).toFixed(2)) }))}
+        format="plain" unit="million km²" highlight={L} estimateLabel="World Bank data"
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+      <div class="story-block prose">
+        <p>Brazil has had less forest each year than the year before, going from {mkm(braYears[0][1])} in {braYears[0][0]} to {mkm(byIso('BRA').value)} in {L}.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Which regions are the most and least wooded?</h2>
+        <p>Latin America and the Caribbean, where {p1(lac)} of the land is forest, has the highest share of any World Bank region; the Middle East, North Africa, Afghanistan and Pakistan region has the lowest at {p1(mena)}. Individual countries go higher still: Micronesia ({p1(shareRank[0].value)}), Suriname and Gabon each have more than 91% of their land under forest.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>What share of Bangladesh is forest?</h2>
+        <p>{p1(fp('BGD', L)!)} of <a href={path('/economy/bangladesh/')}>Bangladesh</a>'s land in {L}, down a little from {p1(fp('BGD', B)!)} in {B}. India's share rose over the same years, from {p1(fp('IND', B)!)} to {p1(fp('IND', L)!)}, and Bhutan, at {p1(fp('BTN', L)!)}, is the most heavily forested country in South Asia.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Forests: questions answered</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(M.wdiLastUpdated)}): forest area, square kilometres (AG.LND.FRST.K2) and percentage of land area (AG.LND.FRST.ZS), from the FAO Global Forest Resources Assessment (FAOSTAT). World and regional figures: World Bank totals and weighted averages. Change since {B}: our subtraction of the two published areas. Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          <li>Related pages: <a href={path('/rankings/land-area-by-country/')}>land area by country</a>, <a href={path('/rankings/co2-emissions-by-country/')}>CO₂ emissions by country</a>.</li>
+        </ul>
+        <p class="note">FAO counts as forest any land of more than half a hectare with trees able to reach 5 metres and a canopy cover above 10%, natural or planted, that is not mainly farmland or urban land; fruit plantations, agroforestry and urban parks are excluded. FAO assesses forests every five to ten years, so figures for the years between are estimates, and a plantation counts the same as natural forest — the change in natural forest can therefore be larger than these numbers show. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Forest area by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+</style>
