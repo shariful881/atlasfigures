@@ -1,0 +1,59 @@
+{
+  "slug": "taiwan",
+  "name": "Taiwan",
+  "demonym": "Taiwanese",
+  "capital": "Taipei",
+  "iso3": "TWN",
+  "code": "tw",
+  "continent": "Asia",
+  "wikipedia": "https://en.wikipedia.org/wiki/Taiwan",
+  "unName": "China, Taiwan Province of China",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1962,
+    1970,
+    1980,
+    1990,
+    2000,
+    2010,
+    2016,
+    2019,
+    2020,
+    2023,
+    2026,
+    2030,
+    2040,
+    2048,
+    2050,
+    2075,
+    2080,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/taiwan.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "UN listing 'China, Taiwan Province of China' shown in Key facts and Sources; wording neutral ('countries and areas'); population, rank, share, growth, density, land area",
+      "Lowest fertility of any country or area in 2010; below 1 every year since 2020; fifth-lowest now after Macao, Hong Kong, South Korea, Saint Barthélemy; births 1962 high and now",
+      "Population peak 2019 = first year of natural decrease, which continues every year to 2100; deaths, births and change this year; below 20 million in 2048; 2100 total, a fall exceeded only by Ukraine and South Korea among countries and areas above 10 million",
+      "Density second after Bangladesh among countries and areas above 10 million; median age 1990, now, 2080 peak; life expectancy; men per 100 women 1970; women in the majority from 2016",
+      "World rank 1970, now, 2100; fifth in Eastern Asia; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 68 of 68 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. The page uses the UN's own listing and takes no side on status."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}

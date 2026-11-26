@@ -1,0 +1,231 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
+import ml from '../../data/countries/mali.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: life expectancy more than doubled from one of
+// the world's lowest 1950 levels; net emigration in every UN year from 1950 to 2100; a very young population; still
+// mostly rural in 2050; past 50 million in 2055 and one of the steepest climbs up the world ranking. No causes claimed.
+const PAGE = '/population/mali/';
+const un = countryData(ml.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (ml.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const le50 = [...wpp].sort((a: any, b: any) => at(a, 1950).lifeExpectancy - at(b, 1950).lifeExpectancy).map((d: any) => d.iso3);
+assertClaim(le50.indexOf('MLI') === 3, 'fourth-lowest life expectancy in the world in 1950');
+const leRatio = c.lifeExpectancy / y[1950].lifeExpectancy;
+assertClaim(leRatio > 2.1 && leRatio < 2.2, 'life expectancy more than doubled');
+assertClaim(un.years.every((r) => r.netMigrants < 0), 'net emigration in every UN year 1950–2100');
+const migTop = un.years.filter((r) => r.year <= CURRENT_YEAR).reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+assertClaim(migTop.year === 2012, 'largest estimated net outflow in 2012');
+const young = [...big].sort((a: any, b: any) => at(a).medianAge - at(b).medianAge).map((d: any) => d.iso3);
+assertClaim(young.indexOf('MLI') === 4, 'fifth-youngest median age among countries above ten million');
+const waf = wpp.filter((d: any) => d.subregion === 'Western Africa');
+assertClaim([...waf].sort((a: any, b: any) => b.landAreaKm2 - a.landAreaKm2).slice(0, 2).map((d: any) => d.iso3).join() === 'NER,MLI', 'second-largest land area in Western Africa after Niger');
+assertClaim(y[2050].urbanPct! < 50 && un.years.every((r) => r.urbanPct == null || r.urbanPct < 50), 'never majority urban in the series to 2050');
+const fifty = un.years.find((r) => r.population > 5e7)!.year;
+assertClaim(fifty === 2055, 'passes 50 million in 2055');
+const climbs = big.map((d: any) => at(d).worldRank - at(d, 2100).worldRank);
+const climb = c.worldRank! - y[2100].worldRank!;
+assertClaim(climb === 27 && climb === Math.max(...climbs), 'joint-largest climb in the world ranking to 2100');
+const under = un.years.find((r) => r.fertility < 2.1)!.year;
+const tfrTop = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(under === 2099 && tfrTop.year === 1980, 'fertility under 2.1 only in 2099; high in 1980');
+const times = c.population / y[1950].population;
+assertClaim(times > 5.4 && times < 5.6, 'about 5.5 times 1950');
+const waf2100 = [...waf].sort((a: any, b: any) => at(b, 2100).population - at(a, 2100).population).map((d: any) => d.iso3);
+assertClaim(waf2100.indexOf('MLI') === 3, 'fourth in Western Africa by 2100');
+
+const title = `Mali Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)}M, Lifespans Doubled Since 1950 | AtlasFigures`;
+const description = `Malians (${millions(c.population)} in ${CURRENT_YEAR}, UN) now live over twice as long as in 1950. Emigration exceeds immigration each UN year, the median age is ${dec(c.medianAge, 1)}, and 50 million arrives in 2055.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: ml.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Life expectancy', value: dec(c.lifeExpectancy, 1) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+  { label: 'In 2100', value: millionsShort(y[2100].population) },
+];
+
+const rows = displayRows(un.years, ml.tableYears);
+
+const faq = [
+  { q: 'How many Malians are counted in ' + CURRENT_YEAR + '?', a: `Close to ${millions(c.population)} in UN figures for 1 July ${CURRENT_YEAR}, enough for ${ord(c.worldRank!)} place globally.` },
+  { q: 'How long do people live in Mali?', a: `${dec(c.lifeExpectancy, 1)} years at birth today, against ${dec(y[1950].lifeExpectancy, 1)} in 1950, when only three countries or areas had a lower figure.` },
+  { q: 'Do Malians emigrate more than people move in?', a: `On balance, yes, throughout the UN series, 1950 to 2100. Net departures come to roughly ${int(Math.round(-c.netMigrants / 1000))} thousand this year; ${migTop.year} holds the estimated record, near ${int(Math.round(-migTop.netMigrants / 1000))} thousand.` },
+  { q: "When will Mali's population pass 50 million?", a: `In ${fifty}, if the medium variant holds; it ends at ${millions(y[2100].population)} in 2100, with Mali placed ${ord(y[2100].worldRank!)}.` },
+  { q: 'Is Mali mostly rural?', a: `Yes. Only ${pct(c.urbanPct!)} of Malians are urban under national criteria, and even the 2050 projection (${pct(y[2050].urbanPct!)}) is under half.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: ml.slug, name: ml.name, wikipedia: ml.wikipedia,
+  headline: `Mali's ${millions(c.population)}: lifespans doubled, steady emigration and 50 million by ${fifty}`,
+  description,
+  datasetName: 'Mali population, life expectancy, migration and fertility, 1950–2100',
+  datasetDescription: `Mid-year population of Mali for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: ml.published, updated: ml.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Mali"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Mali", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Mali: twice the lifespan of 1950, and still very young</h1>
+        <LiveCounter
+          label="Mali: population, estimated for now"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} figure, plus about ${int(c.change / 365)} per day`}
+        />
+        <p class="answer">
+          With roughly <strong>{millions(c.population)}</strong> people in UN figures for 1 July {CURRENT_YEAR}, Mali holds {ord(c.worldRank!)} place worldwide. The expected lifespan of a newborn, <strong>{dec(c.lifeExpectancy, 1)} years</strong>, is now more than double that of 1950, while the median Malian is just {dec(c.medianAge, 1)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={ml.updated}>{longDate(ml.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Mali" code="ml" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Has life expectancy in Mali really doubled?</h2>
+          <p>More than doubled. The 1950 estimate, {dec(y[1950].lifeExpectancy, 1)} years, was lower than in all but three countries or areas; the {CURRENT_YEAR} figure is {dec(c.lifeExpectancy, 1)}. Infant mortality fell from {dec(y[1950].infantMortalityPer1000!, 1)} deaths per thousand births to {dec(c.infantMortalityPer1000!, 1)}. Fertility, {dec(c.fertility, 2)} now against {dec(tfrTop.fertility, 2)} at its {tfrTop.year} high, keeps the population young; only four countries with ten million-plus people have a lower median age.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Life expectancy at birth in Mali, UN estimates">
+          <div><span class="y">1950</span><div class="v">{dec(y[1950].lifeExpectancy, 1)}</div><span class="d">Years at birth</span></div>
+          <div><span class="y">2000</span><div class="v">{dec(y[2000].lifeExpectancy, 1)}</div><span class="d">Years at birth</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{dec(c.lifeExpectancy, 1)}</div><span class="d">Years at birth</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Are more people leaving Mali than arriving?</h2>
+          <p>Yes, in each year the UN covers, estimated and projected alike. The heaviest estimated year is {migTop.year}, near {int(Math.round(-migTop.netMigrants / 1000))} thousand on balance, and the figure is around {int(Math.round(-c.netMigrants / 1000))} thousand this year, small next to the {int(Math.round(c.naturalChange / 1000))} thousand by which births exceed deaths. The figures do not record destinations or reasons.</p>
+        </div>
+        <LineChart
+          title="Mali, 1950–2100: estimated and projected population"
+          subtitle="Population at 1 July each year in UN data; dashes mark the projection, which climbs without a break."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>When does Mali's population cross 50 million?</h2>
+          <p>{fifty}. The medium projection carries on to {millions(y[2100].population)} in 2100, with Mali then {ord(y[2100].worldRank!)} globally and fourth among Western African nations; its {climb}-place rise from {ord(c.worldRank!)} today is not exceeded by any sizeable nation. The population is already {dec(times, 1)} times its 1950 size. Fertility reaches 2.1 only in {under}.</p>
+        </div>
+        <LineChart
+          title="Malian fertility: UN estimates since 1950, projection to 2050"
+          subtitle="Average births per woman; the projected stretch is dashed and a reference line marks 2.1."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'replacement at 2.1' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Is Mali becoming urban?</h2>
+          <p>Gradually, but it stays mostly rural. Measured by Mali's own urban criteria, the share has gone from {pct(y[1950].urbanPct!)} in 1950 to {pct(c.urbanPct!)}; the 2050 projection, {pct(y[2050].urbanPct!)}, is still short of half. Mali's land area, <span data-exact>{int(un.landAreaKm2)}</span> km², is second in Western Africa after Niger's, so density is just {int(c.densityPerKm2)} people per square kilometre.</p>
+        </div>
+        <RelatedPages iso3={ml.iso3} name={ml.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Mali: population, fertility and urban share by year"
+          subtitle="Estimate rows to the mid-2020s, then the medium projection; the urban column stays under 50% throughout."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${ml.slug}-population.csv`)}
+          csvName={`${ml.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Mali in brief: common questions</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{ml.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, infant mortality, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={ml.published}>{longDate(ml.published)}</time> · Updated <time datetime={ml.updated}>{longDate(ml.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Mali population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Mali" code="ml" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
