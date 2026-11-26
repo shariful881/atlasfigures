@@ -1,0 +1,207 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import WorldMap from '../../components/WorldMap.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/co2-emissions-by-country.json';
+import { energyMeta, energyOf, worldEnergy, valueIn, rankEnergy, notRankedEnergy, energyYear, tonnes } from '../../lib/energy';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { commonName, pagesOf } from '../../lib/names';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original Global Carbon Project file (via src/data/energy/).
+const PAGE = '/rankings/co2-emissions-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const G = energyMeta.gcb;
+const SRC = `Global Carbon Project, ${G.budget}`;
+const checkedOn = meta.verification?.checkedOn;
+const name = commonName;
+
+const L = energyYear('co2');
+const ranked = rankEnergy('co2', L);
+const perHead = rankEnergy('co2pc', L);
+const missing = notRankedEnergy('co2', L);
+const N = ranked.length;
+const W = worldEnergy.series.co2!;
+const world = valueIn(W, L)!;
+const worldPc = valueIn(worldEnergy.series.co2pc, L)!;
+const byIso = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const pcOf = (x: string) => perHead.find((r) => r.iso3 === x);
+const s = (x: string) => energyOf(x).series.co2!;
+const change = (x: string) => (valueIn(s(x), L)! / valueIn(s(x), L - 1)! - 1) * 100;
+const top3 = ranked.slice(0, 3).reduce((a, r) => a + r.value, 0);
+const top10 = ranked.slice(0, 10).reduce((a, r) => a + r.value, 0);
+const lowSince = (x: string) => Math.max(...s(x).filter(([y, v]) => y < L && v < valueIn(s(x), L)!).map(([y]) => y));
+const usPeak = s('USA').reduce((a, b) => (b[1] > a[1] ? b : a));
+const chnFirst = s('CHN').find(([y, v]) => v > (valueIn(s('USA'), y) ?? Infinity))![0];
+const worldPeak = W.reduce((a, b) => (b[1] > a[1] ? b : a));
+const wYears = W.filter(([y]) => y >= 1960 && y <= L);
+
+assertClaim(['CHN', 'USA', 'IND', 'RUS', 'JPN'].every((x, i) => ranked[i].iso3 === x), 'top five order');
+assertClaim(top3 / world > 0.5 && top3 / world < 0.55, 'top three emit just over half');
+assertClaim(worldPeak[0] === L && world > valueIn(W, L - 1)!, 'world total a record');
+assertClaim(perHead[0].iso3 === 'QAT' && pcOf('USA')!.value > 3 * worldPc && pcOf('IND')!.value < worldPc && pcOf('CHN')!.value > worldPc, 'per person: Qatar first; US more than three times the world average; India below, China above');
+assertClaim(lowSince('DEU') === 1950 && lowSince('JPN') === 1987, 'Germany lowest since 1950, Japan since 1987');
+assertClaim(usPeak[0] === 2005 && chnFirst === 2006, 'US peak 2005; China passed the US in 2006');
+assertClaim(change('CHN') > 0 && change('CHN') < 0.5 && change('USA') > 2, 'China nearly flat, US up more than 2%');
+assertClaim(['BRN', 'BHR', 'KWT'].every((x, i) => perHead[i + 1].iso3 === x), 'Brunei, Bahrain, Kuwait follow Qatar per person');
+assertClaim(ranked[0].value > ranked.slice(1, 5).reduce((a, r) => a + r.value, 0), 'China more than the next four combined');
+assertClaim(world > ranked.reduce((a, r) => a + r.value, 0), 'world total larger than the sum of ranked countries (bunkers included)');
+assertClaim(byIso('BGD').rank === 38 && pcOf('BGD')!.value < 1, 'Bangladesh 38th, under 1 tonne per person');
+
+const title = `CO2 Emissions by Country ${L}: Biggest Emitters Ranked | AtlasFigures`;
+const description = `China emitted ${tonnes(byIso('CHN').value)} of fossil CO2 in ${L}, ${pct((byIso('CHN').value / world) * 100)} of the world total, ahead of the United States and India. ${N} countries and areas ranked, with emissions per person.`;
+
+const cards = [
+  { label: 'World total', value: `${(world / 1000).toFixed(2)} bn t`, year: L, note: 'fossil CO2' },
+  { label: 'Largest emitter', value: `${(ranked[0].value / 1000).toFixed(2)} bn t`, year: L, note: name(ranked[0].iso3) },
+  { label: 'Top 3 share', value: pct((top3 / world) * 100), year: L, note: 'of world total' },
+  { label: 'World per person', value: `${worldPc.toFixed(1)} t`, year: L, note: 'tonnes of CO2' },
+];
+
+const top = ranked[0].value;
+const rows = ranked.map((r) => {
+  const pc = pcOf(r.iso3); const pg = pagesOf(r.iso3); const site = pg.economy ?? pg.population;
+  const prev = valueIn(s(r.iso3), L - 1);
+  return {
+    rank: r.rank, iso3: r.iso3, name: name(r.iso3), site, href: site ? path(site) : null, region: r.region,
+    bar: r.value / top, value: r.value.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+    cells: [pc ? pc.value.toFixed(1) : '–', prev ? `${r.value >= prev ? '+' : ''}${((r.value / prev - 1) * 100).toFixed(1)}%` : '–'],
+  };
+});
+const mapFmt = (v: number) => (v >= 1000 ? `${(v / 1000).toFixed(1)} bn t` : `${v >= 10 ? Math.round(v) : v.toFixed(1)} Mt`);
+const mapRows = ranked.map((r) => ({ iso3: r.iso3, name: name(r.iso3), rank: r.rank, raw: r.value, value: mapFmt(r.value) }));
+const regions = [...new Set(ranked.map((r) => r.region))].sort();
+
+const faq = [
+  { q: 'Which country emits the most CO2?', a: `China, with ${tonnes(byIso('CHN').value)} of fossil CO2 in ${L}, about ${pct((byIso('CHN').value / world) * 100)} of the global total and more than the United States, India, Russia and Japan combined.` },
+  { q: 'Which country has the highest CO2 emissions per person?', a: `Qatar, at ${perHead[0].value.toFixed(1)} tonnes per person in ${L}, against a global mean of ${worldPc.toFixed(1)} tonnes; the United States emitted ${pcOf('USA')!.value.toFixed(1)}, China ${pcOf('CHN')!.value.toFixed(1)} and India ${pcOf('IND')!.value.toFixed(1)}.` },
+  { q: 'Are global CO2 emissions still rising?', a: `Yes. Fossil CO2 emissions reached ${tonnes(world)} in ${L}, a new peak, up ${pct((world / valueIn(W, L - 1)! - 1) * 100)} on ${L - 1}.` },
+  { q: 'When did China overtake the United States?', a: `In ${chnFirst}, on Global Carbon Project figures. US emissions peaked in ${usPeak[0]} at ${tonnes(usPeak[1])}; in ${L} they were ${tonnes(byIso('USA').value)}.` },
+  { q: 'How much CO2 does Bangladesh emit?', a: `${tonnes(byIso('BGD').value)} in ${L}, ${ord(byIso('BGD').rank)} in the world, or ${pcOf('BGD')!.value.toFixed(2)} tonnes per person.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `CO2 emissions by country ${L}: ${N} countries and areas ranked by fossil CO2`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'Dataset', name: `The Global Carbon Project's fossil CO2 emissions dataset, version ${G.version}`, url: G.url, publisher: { '@type': 'Organization', name: 'Global Carbon Project' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `Fossil CO2 emissions by country, ${L}`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Fossil CO2 emissions by country, ${L} (million tonnes and tonnes per person)`,
+    description: `Territorial fossil CO2 emissions (fossil fuels, cement and flaring) of ${N} countries and areas in ${L}, in million tonnes, ranked, with tonnes per person and the change from ${L - 1} to ${L}. Source: the Global Carbon Project's fossil CO2 emissions dataset version ${G.version}.`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [G.url], temporalCoverage: String(L),
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['Fossil CO2 emissions (million tonnes)', 'Fossil CO2 emissions per person (tonnes)'],
+    dateModified: iso(UPDATED), license: G.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/co2-emissions-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="CO2 emissions by country" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'CO2 emissions by country', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>CO₂ emissions by country, {L}</h1>
+    <p class="answer"><strong>China</strong> released <strong>{tonnes(byIso('CHN').value)}</strong> of fossil CO₂ in {L}, {pct((byIso('CHN').value / world) * 100)} of the world's {tonnes(world)}. The United States and India follow, and together the three account for just over half of all emissions.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={SRC} url={G.url} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`CO2 emissions ranking, ${L}`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="map">Map</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="map" aria-label="Map" hidden-mobile>
+      <WorldMap
+        id="map-h" title={`Where the world's fossil CO₂ comes from, ${L}`}
+        subtitle="Territorial emissions from fossil fuels, cement and flaring; darker means more CO₂; each shade holds a fifth of the countries and areas ranked."
+        rows={mapRows} fmt={mapFmt}
+        source={SRC} sourceUrl={G.url} checkedOn={checkedOn}
+      />
+    </section>
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`Fossil CO₂ emitted by each country or area, ${L}`}
+        subtitle={`Million tonnes of CO₂, largest first, with tonnes per person and the change from ${L - 1}.`}
+        valueLabel="Million tonnes"
+        cols={[{ label: 'Tonnes per person' }, { label: `Change on ${L - 1}`, cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={regions}
+        source={SRC} sourceUrl={G.url} checkedOn={checkedOn}
+        csv={path('/data/co2-emissions-by-country.csv')} csvName="co2-emissions-by-country.csv"
+        licence={{ name: 'CC BY 4.0 (Global Carbon Project)', url: G.licenceUrl }}
+      />
+      {missing.length > 0 && <p class="note">Not ranked for lack of a {L} figure: {missing.map((m) => name(m.iso3)).join(', ')}.</p>}
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>Which countries emit the most CO₂?</h2>
+        <p>China ({tonnes(ranked[0].value)}), the United States ({tonnes(ranked[1].value)}) and India ({tonnes(ranked[2].value)}), followed by Russia and Japan. China alone emits more than those four combined, and the ten largest emitters produce {pct((top10 / world) * 100)} of the global total. China's emissions first exceeded America's in {chnFirst}.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Who emits the most per person?</h2>
+        <p>Qatar heads this list, at {perHead[0].value.toFixed(1)} tonnes per resident in {L}, ahead of Brunei, Bahrain and Kuwait. Among the largest economies the United States stands out at {pcOf('USA')!.value.toFixed(1)} tonnes, more than three times the world average of {worldPc.toFixed(1)}. China, at {pcOf('CHN')!.value.toFixed(1)}, is above that average; India, at {pcOf('IND')!.value.toFixed(1)}, is well below it.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Are global emissions still going up?</h2>
+        <p>Yes: {tonnes(world)} in {L}, a record and {pct((world / valueIn(W, L - 1)! - 1) * 100)} more than in {L - 1}. China's output was almost unchanged ({change('CHN') >= 0 ? '+' : ''}{change('CHN').toFixed(1)}%), while US emissions rose {change('USA').toFixed(1)}%. Some countries are well past their peak: Germany's {L} emissions were its lowest since 1950 and Japan's the lowest since 1987, and the United States emits less than at its {usPeak[0]} high.</p>
+      </div>
+      <LineChart
+        title={`World fossil CO₂ emissions, 1960–${L}`}
+        subtitle="Billion tonnes of CO₂ from fossil fuels, cement and flaring."
+        points={wYears.map(([x, y]) => ({ x, y: Number((y / 1000).toFixed(2)) }))}
+        format="plain" unit="billion tonnes" highlight={L} estimateLabel="Global Carbon Project data"
+        source={SRC} sourceUrl={G.url} checkedOn={checkedOn}
+      />
+
+      <div class="story-block prose">
+        <h2>How much does Bangladesh emit?</h2>
+        <p><a href={path('/economy/bangladesh/')}>Bangladesh</a> ranks {ord(byIso('BGD').rank)} by total, with {tonnes(byIso('BGD').value)}, but its {pcOf('BGD')!.value.toFixed(2)} tonnes per person is among the lowest anywhere, {ord(pcOf('BGD')!.rank)} of {perHead.length}.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">CO₂ emissions by country: quick answers</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={G.url}>Andrew, R. M. &amp; Peters, G. P., The Global Carbon Project's fossil CO₂ emissions dataset</a>, version {G.version} (published {longDate(G.published)}; file {G.file}), part of the {G.budget}: total fossil CO₂ emissions (million tonnes) and emissions per person (tonnes). Licence CC BY 4.0.</li>
+          <li>Related page: <a href={path('/rankings/renewable-electricity-by-country/')}>renewable electricity by country</a>.</li>
+        </ul>
+        <p class="note">Emissions are territorial: CO₂ from burning coal, oil and gas, from cement production and from gas flaring inside each country, as estimated by the Global Carbon Project. Land-use change is not included. International shipping and aviation are not assigned to any country but are part of the world total. Only countries and areas on the UN list with a {L} figure are ranked; nothing is carried forward, and equal values are listed by ISO code. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('CO2 emissions by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+</style>

@@ -124,6 +124,8 @@ const pages: { path: string; lastmod: string }[] = [
   { path: '/economy/ukraine/', lastmod: '2026-11-26' },
   { path: '/economy/new-zealand/', lastmod: '2026-11-26' },
   { path: '/economy/peru/', lastmod: '2026-11-26' },
+  { path: '/rankings/co2-emissions-by-country/', lastmod: '2026-11-26' },
+  { path: '/rankings/renewable-electricity-by-country/', lastmod: '2026-11-26' },
   { path: '/economy/germany/', lastmod: '2026-11-25' },
   { path: '/economy/japan/', lastmod: '2026-11-25' },
   { path: '/economy/south-korea/', lastmod: '2026-11-25' },

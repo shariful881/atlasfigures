@@ -8,5 +8,7 @@ dist/
 src/data/wpp/
 # Generated from data/raw/wdi by scripts/build-wdi.mjs
 src/data/wdi/
+# Generated from data/raw/energy by scripts/build-energy.mjs
+src/data/energy/
 .tmp/
 __pycache__/

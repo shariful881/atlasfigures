@@ -1,0 +1,203 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import WorldMap from '../../components/WorldMap.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/renewable-electricity-by-country.json';
+import { energyMeta, energyOf, worldEnergy, valueIn, rankEnergy, notRankedEnergy, energyYear, twh } from '../../lib/energy';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { commonName, pagesOf } from '../../lib/names';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original Ember file (via src/data/energy/).
+const PAGE = '/rankings/renewable-electricity-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const E = energyMeta.ember;
+const SRC = 'Ember, Yearly Electricity Data';
+const checkedOn = meta.verification?.checkedOn;
+const name = commonName;
+
+const L = energyYear('renShare');
+const ranked = rankEnergy('renShare', L);
+const missing = notRankedEnergy('renShare', L);
+const N = ranked.length;
+const WS = worldEnergy.series;
+const world = valueIn(WS.renShare, L)!;
+const worldNext = valueIn(WS.renShare, L + 1);
+const worldWs = valueIn(WS.wsShare, L)!;
+const byIso = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const v = (x: string, k: 'gen' | 'ren' | 'wsShare' | 'hydroShare' | 'otherRenShare') => valueIn(energyOf(x).series[k], L);
+const nearAll = ranked.filter((r) => r.value >= 99.95);
+const big = ranked.filter((r) => (v(r.iso3, 'gen') ?? 0) >= 100);
+const wsTop = rankEnergy('wsShare', L);
+const wYears = WS.renShare!.filter(([y]) => y <= L);
+const w2015 = valueIn(WS.wsShare, 2015)!;
+const chinaOfWorld = (v('CHN', 'ren')! / valueIn(WS.ren, L)!) * 100;
+
+assertClaim(L === 2024 && worldNext != null && worldNext > world, 'ranking year 2024; Ember world figure for 2025 higher');
+assertClaim(nearAll.map((r) => r.iso3).join() === 'ALB,COD,ISL,PRY,BTN,ETH,NPL', 'seven at (rounded) 100%');
+assertClaim(big[0].iso3 === 'NOR' && big[1].iso3 === 'BRA' && big.at(-1)!.iso3 === 'IRQ' && big.at(-2)!.iso3 === 'BGD', 'large systems: Norway and Brazil top, Bangladesh and Iraq bottom');
+assertClaim(wsTop[0].iso3 === 'LSO' && wsTop[1].iso3 === 'DJI' && wsTop[2].iso3 === 'DNK', 'wind and solar: Lesotho, Djibouti, Denmark');
+assertClaim(worldWs > 3 * w2015, 'world wind and solar share more than tripled since 2015');
+assertClaim(chinaOfWorld > 33 && chinaOfWorld < 34, 'China about a third of world renewable power');
+assertClaim(WS.renShare![0][0] === 2000 && WS.renShare!.filter(([y]) => y > 2007 && y <= L).every(([y, x]) => x >= valueIn(WS.renShare, y - 1)! || y === 2007), 'world share rising since 2008');
+const hydroMost = nearAll.filter((r) => v(r.iso3, 'hydroShare')! > 50).length;
+assertClaim(hydroMost === 7 && v('ISL', 'otherRenShare')! > 20, 'most of the seven mainly hydro; Iceland other renewables above 20%');
+assertClaim(big[2].iso3 === 'SWE' && big[3].iso3 === 'CAN' && big.slice(-3).map((r) => r.iso3).join() === 'SAU,BGD,IRQ' && big.slice(-3).every((r) => r.value < 3), 'Sweden, Canada next; Saudi Arabia, Bangladesh, Iraq bottom under 3%');
+assertClaim(byIso('BGD').value < 3 && byIso('USA').value < byIso('CHN').value && byIso('IND').value < byIso('USA').value, 'Bangladesh under 3%; China > US > India');
+
+const title = `Renewable Electricity by Country ${L}: Share of Power | AtlasFigures`;
+const description = `Renewables supplied ${pct(world)} of the world's electricity in ${L}. Seven countries got essentially all their power from renewable sources; Norway and Brazil lead among large systems. ${N} countries and areas ranked.`;
+
+const cards = [
+  { label: 'World share', value: pct(world), year: L, note: 'renewables' },
+  { label: 'Wind and solar', value: pct(worldWs), year: L, note: 'of world power' },
+  { label: 'At 100%', value: String(nearAll.length), year: L, note: 'countries' },
+  { label: 'China', value: pct(chinaOfWorld), year: L, note: 'of world renewable power' },
+];
+
+const rows = ranked.map((r) => {
+  const pg = pagesOf(r.iso3); const site = pg.economy ?? pg.population;
+  const ws = v(r.iso3, 'wsShare'), ren = v(r.iso3, 'ren');
+  return {
+    rank: r.rank, iso3: r.iso3, name: name(r.iso3), site, href: site ? path(site) : null, region: r.region,
+    bar: Math.min(r.value, 100) / 100, value: pct(Math.min(r.value, 100)),
+    cells: [ws != null ? pct(ws) : '–', ren != null ? ren.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '–'],
+  };
+});
+const mapFmt = (x: number) => `${Math.round(Math.min(x, 100))}%`;
+const mapRows = ranked.map((r) => ({ iso3: r.iso3, name: name(r.iso3), rank: r.rank, raw: r.value, value: pct(Math.min(r.value, 100)) }));
+const regions = [...new Set(ranked.map((r) => r.region))].sort();
+
+const faq = [
+  { q: 'Which countries run on 100% renewable electricity?', a: `In ${L}, Albania, DR Congo, Iceland, Paraguay, Bhutan, Ethiopia and Nepal generated essentially all their electricity from renewable sources on Ember\'s figures; in each of the seven, hydropower alone supplied more than half.` },
+  { q: 'What share of the world\'s electricity is renewable?', a: `${pct(world)} in ${L}, including ${pct(worldWs)} from wind and solar. For ${L + 1}, Ember already puts the global share at ${pct(worldNext!)}.` },
+  { q: 'Which large country has the highest renewable share?', a: `Among countries generating at least 100 TWh a year, Norway leads with ${pct(byIso('NOR').value)} renewable electricity, followed by Brazil at ${pct(byIso('BRA').value)}.` },
+  { q: 'How much of China\'s electricity is renewable?', a: `${pct(byIso('CHN').value)} in ${L}, ${ord(byIso('CHN').rank)} of ${N}. Because its system is so large, China produced ${pct(chinaOfWorld)} of all the renewable electricity generated worldwide.` },
+  { q: 'How much renewable electricity does Bangladesh have?', a: `${pct(byIso('BGD').value)} of its generation in ${L} (${ord(byIso('BGD').rank)}), one of the lowest shares among countries generating over 100 TWh.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Renewable electricity by country ${L}: ${N} countries and areas ranked by renewable share of generation`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'Dataset', name: 'Yearly Electricity Data', url: E.url, publisher: { '@type': 'Organization', name: 'Ember' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `Renewable share of electricity generation by country, ${L}`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Renewable share of electricity generation by country, ${L}`,
+    description: `Share of electricity generation from renewable sources (hydro, wind, solar, bioenergy and other renewables) for ${N} countries and areas in ${L}, ranked, with the wind and solar share and renewable generation in TWh, from Ember's Yearly Electricity Data.`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [E.url], temporalCoverage: String(L),
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['Renewables, share of generation (%)', 'Wind and solar, share of generation (%)', 'Renewable generation (TWh)'],
+    dateModified: iso(UPDATED), license: E.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/renewable-electricity-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="Renewable electricity" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Renewable electricity by country', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>Renewable electricity by country, {L}</h1>
+    <p class="answer">Renewable sources generated <strong>{pct(world)}</strong> of the world's electricity in {L}. <strong>Seven countries</strong> — among them Iceland, Paraguay, Ethiopia and Nepal — met essentially all their needs from renewables, while among large power systems Norway ({pct(byIso('NOR').value)}) and Brazil ({pct(byIso('BRA').value)}) lead.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={SRC} url={E.url} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`Renewable electricity ranking, ${L}`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="map">Map</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="map" aria-label="Map" hidden-mobile>
+      <WorldMap
+        id="map-h" title={`How much of each country's power is renewable, ${L}`}
+        subtitle="Renewables as a share of electricity generation; darker means a larger share. Shades split the ranked countries and areas into fifths."
+        rows={mapRows} fmt={mapFmt}
+        source={SRC} sourceUrl={E.url} checkedOn={checkedOn}
+      />
+    </section>
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`Renewable share of electricity generation, ${L}`}
+        subtitle="Per cent of each country's generation from hydro, wind, solar, bioenergy and other renewables, highest first, with the wind and solar share and renewable output in terawatt-hours."
+        valueLabel="Renewable share"
+        cols={[{ label: 'Wind and solar' }, { label: 'Renewable TWh', cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={regions}
+        source={SRC} sourceUrl={E.url} checkedOn={checkedOn}
+        csv={path('/data/renewable-electricity-by-country.csv')} csvName="renewable-electricity-by-country.csv"
+        licence={{ name: 'CC BY 4.0 (Ember)', url: E.licenceUrl }}
+      />
+      <p class="note">Missing from the {L} ranking (no figure yet): {missing.length} countries and areas, among them Ukraine (latest year {missing.find((m) => m.iso3 === 'UKR')!.latestYear}). Shares are shown capped at 100%; Ember's figures for a few systems round slightly above it.</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>Which countries get all their electricity from renewables?</h2>
+        <p>Seven did in {L}: Albania, <a href={path('/economy/dr-congo/')}>DR Congo</a>, Iceland, Paraguay, Bhutan, <a href={path('/economy/ethiopia/')}>Ethiopia</a> and <a href={path('/economy/nepal/')}>Nepal</a>. In every one of them hydropower supplies more than half of all electricity; in Iceland, "other renewables", the category that includes geothermal power, supply {pct(v('ISL', 'otherRenShare')!)}.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Which big power systems are the most renewable?</h2>
+        <p>Of the {big.length} countries that generated at least 100 TWh in {L}, Norway comes first at {pct(byIso('NOR').value)}, then Brazil ({pct(byIso('BRA').value)}), Sweden and Canada. At the other end are Saudi Arabia, Bangladesh and Iraq, each under 3%. China ({pct(byIso('CHN').value)}) is ahead of the United States ({pct(byIso('USA').value)}) and India ({pct(byIso('IND').value)}), and its sheer size means it produced {pct(chinaOfWorld)} of the world's renewable electricity, {twh(v('CHN', 'ren')!)}.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>How fast are wind and solar growing?</h2>
+        <p>Wind and solar together supplied {pct(worldWs)} of world electricity in {L}, over triple 2015's {pct(w2015)}. Lesotho and Djibouti lead on this measure, followed by Denmark at {pct(wsTop[2].value)}. The overall renewable share has risen every year since 2008, and Ember's world figure for {L + 1} is already {pct(worldNext!)}.</p>
+      </div>
+      <LineChart
+        title={`World electricity from renewables, 2000–${L}`}
+        subtitle="Renewable sources as a share of global electricity generation, per cent."
+        points={wYears.map(([x, y]) => ({ x, y }))}
+        format="percent" highlight={L} estimateLabel="Ember data"
+        source={SRC} sourceUrl={E.url} checkedOn={checkedOn}
+      />
+
+      <div class="story-block prose">
+        <h2>Where does Bangladesh stand?</h2>
+        <p><a href={path('/economy/bangladesh/')}>Bangladesh</a> generated {twh(v('BGD', 'gen')!)} of electricity in {L}, of which renewables made up {pct(byIso('BGD').value)} ({ord(byIso('BGD').rank)} of {N}); wind and solar contributed {pct(v('BGD', 'wsShare')!)}.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Renewable electricity: common questions</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={E.url}>Ember, Yearly Electricity Data</a> (global file, downloaded {longDate(energyMeta.downloaded.slice(0, 10))}): electricity generation by source, renewable and wind-and-solar shares of generation. Licence CC BY 4.0. Ember compiles the data from EIA, Eurostat and UN datasets and national sources.</li>
+          <li>Related page: <a href={path('/rankings/co2-emissions-by-country/')}>CO₂ emissions by country</a>.</li>
+        </ul>
+        <p class="note">Renewables are hydro, wind, solar, bioenergy and other renewables (such as geothermal); nuclear is not included. Shares are of electricity generated, not consumed, so imports and exports are not counted. The ranking uses {L}, the latest year Ember covers for nearly all countries; its {L + 1} figures so far cover only part of the world. Equal shares are listed by ISO code. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Renewable electricity by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+</style>

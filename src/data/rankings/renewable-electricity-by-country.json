@@ -1,0 +1,20 @@
+{
+  "slug": "renewable-electricity-by-country",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/energy-110.py reads the original Global Carbon Project and Ember files (data/raw/energy/) with Python's csv module, not the site's generated data; scripts/check-energy.mjs compares all 94,154 generated values with the original files; then the text was read by hand",
+    "what": "every ranking row (194 countries and areas, order and value capped at 100%), the CSV, every figure in the text, FAQ, title, description and JSON-LD; claims: the seven countries at 100% and their hydro share above half, Iceland's other-renewables share, order among the 36 systems above 100 TWh, wind-and-solar leaders, world share rising every year since 2008, wind and solar more than tripled since 2015, China's share of world renewable power, Bangladesh",
+    "against": "Global Carbon Project fossil CO2 emissions dataset 2026v11 (Zenodo, CC BY 4.0) and Ember Yearly Electricity Data (downloaded 26 November 2026, CC BY 4.0); UN WPP 2024 country list",
+    "result": "All automated comparisons matched; before publishing, ties in the ranking were given a fixed order (by ISO code), the 2024 ranking year for Ember (its 2025 data cover only part of the world) was made explicit, and unsupported wording ('small oil- and gas-producing states', 'mainly geothermal', 'cleanest power mix') was replaced with what the data show"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: Ember Yearly Electricity Data (downloaded 26 November 2026) for 2024."
+    }
+  ]
+}
