@@ -1,0 +1,165 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/senegal.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/senegal/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const ssa = rankBy('gdp', L).filter((r) => r.region === 'Sub-Saharan Africa');
+const ssaPos = ssa.findIndex((r) => r.iso3 === c.iso3) + 1;
+const ssaGrow = rankBy('gdpGrowthPct', L).filter((r) => r.region === 'Sub-Saharan Africa');
+const ssaGrowPos = ssaGrow.findIndex((r) => r.iso3 === c.iso3) + 1;
+const hiGrowSince = Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < L && x >= growth).map(([y]) => y));
+const lastFall = Math.max(...s.gdpGrowthPct.filter(([, x]) => x < 0).map(([y]) => y));
+const jump = (gdp / v('gdp', L - 1)! - 1) * 100;
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const uLowSince = Math.max(...s.unemploymentPct.filter(([y, x]) => y < L && x <= unemp!).map(([y]) => y));
+const remPctRank = rankBy('remittancesPctGdp', rem!.year).find((r) => r.iso3 === c.iso3)!.rank;
+const remPeak = s.remittances.reduce((a, b) => (b[1] > a[1] ? b : a));
+
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita) && ssaPos === 14 && B.gdpRank === 107, 'record GDP; 14th in SSA; 107th');
+assertClaim(hiGrowSince === 2017 && ssaGrowPos === 7 && growth > 6.6, 'fastest growth since 2017; 7th in SSA');
+assertClaim(Math.round(jump) === 15 && lastFall === 1994, 'dollar GDP +15%; last contraction 1994');
+assertClaim(iMax[0] === 1994 && iMax[1] > 32 && i(2022) > 9.6 && infl.value < 2, 'inflation peak 1994; 9.7% in 2022; under 2% now');
+assertClaim(uLowSince === 2005 && unemp! < 3, 'unemployment lowest since 2005');
+assertClaim(rem!.year === 2023 && remPeak[0] === 2023 && remPctRank === 25 && remPct!.value > 10, 'remittances end 2023, record, 25th by share, above 10% of GDP');
+
+const title = `Senegal Economy ${L}: ${pct(growth)} Growth and a Record ${usd(gdp)} GDP | AtlasFigures`;
+const description = `Real growth of ${pct(growth)} made ${L} Senegal's strongest year since 2017; GDP ended at ${usd(gdp)}. Prices rose just ${pct(infl.value)}; the latest remittance data (for 2023) put them at ${pct(remPct!.value)} of GDP.`;
+
+const faq = [
+  { q: 'Is Senegal growing faster now?', a: `Yes — ${pct(growth)} in real terms for ${L}, the quickest pace since 2017 and seventh in sub-Saharan Africa that year. Senegal has not had a year of falling output since 1994.` },
+  { q: 'What size is Senegal\'s economy?', a: `${usd(gdp)} in ${L}, about 15% more in dollar terms than a year earlier — ${ord(B.gdpRank!)} in the world and 14th in sub-Saharan Africa. Per person: ${usdWhole(perHead)}, or ${intDollars(ppp!)} at PPP.` },
+  { q: 'Are Senegalese prices rising fast?', a: `No. The index climbed ${pct(infl.value)} over ${L}, down from ${pct(i(2022))} in 2022. Its series peak: ${pct(iMax[1])}, 1994.` },
+  { q: 'What do emigrants send back to Senegal?', a: `${usd(rem!.value)} for ${rem!.year} (no later year yet), an all-time high that matched ${pct(remPct!.value)} of GDP — ${ord(remPctRank)} worldwide on that measure.` },
+  { q: `Is unemployment low in Senegal?`, a: `On the ILO model, ${pct(unemp!)} of workers in ${L} — Senegal's least since 2005, against a 2015 high of ${pct(u(2015))}.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Senegal's economy in ${L}: fastest growth since 2017 and a record GDP`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Senegalese economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Senegal', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Senegal's economy: a growth spurt and a record GDP</h1>
+        <p class="answer">
+          Senegalese GDP rose <strong>{pct(growth)}</strong> after adjusting for inflation in {L}, to <strong>{usd(gdp)}</strong>; consumer prices increased {pct(infl.value)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Senegal economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Senegal" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">No year of falling output since 1994, and money from emigrants worth about a tenth of GDP.</p>
+
+        <div class="story-block prose">
+          <h2>How much did Senegal's GDP grow in {L}?</h2>
+          <p>By {pct(growth)} in volume — its best result since 2017 — and by about 15% in dollars, to an unprecedented {usd(gdp)}. Among sub-Saharan economies that is 14th place ({ord(B.gdpRank!)} globally); per person, {usdWhole(perHead)}.</p>
+        </div>
+        <LineChart
+          title={`Senegal's real growth, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="Real GDP growth in % for each year."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How long has Senegal gone without a contraction?</h2>
+          <p>Three decades: GDP last fell in 1994. Every year since has brought positive growth, including 2020, when the economy still expanded {pct(g(2020))}. Seven sub-Saharan countries grew faster than Senegal in {L}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Why do remittances matter for Senegal?</h2>
+          <p>The {rem!.year} total — the most recent — was a record {usd(rem!.value)}, equivalent to {pct(remPct!.value)} of output and {ord(remPctRank)} worldwide by that ratio. The World Bank has not released Senegal's {rem!.year + 1} or {L} totals.</p>
+        </div>
+        <LineChart
+          title={`Remittances to Senegal, ${s.remittances[0][0]}–${rem!.year}`}
+          subtitle="Personal remittances received, current US$."
+          points={s.remittances.map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>What about Senegal's prices and jobs?</h2>
+          <p>Calm on both fronts. Consumer prices climbed {pct(infl.value)} in {L} after a 2022 spike to {pct(i(2022))} (the series high came in 1994: {pct(iMax[1])}), and ILO-modelled unemployment of {pct(unemp!)} is the lowest Senegal has seen since 2005.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Senegal and West Africa: related pages</h2>
+          <ul>
+            <li><a href={path('/population/senegal/')}>Senegal's population</a></li>
+            <li><a href={path('/economy/cote-divoire/')}>Côte d'Ivoire's economy</a></li>
+            <li><a href={path('/economy/ghana/')}>Ghana's economy</a></li>
+            <li><a href={path('/economy/nigeria/')}>Nigeria's economy</a></li>
+            <li><a href={path('/rankings/remittances-by-country/')}>Remittances by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Senegal: figures by year`}
+          subtitle="Ten-year steps to 2010 with 1994 added, then 2015–2025; the CSV covers the gaps."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/senegal-economy.csv')} csvName="senegal-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Senegal's economy: questions worth asking</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Remittances are published up to 2023. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Senegalese economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Senegal" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>
