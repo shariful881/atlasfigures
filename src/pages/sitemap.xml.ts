@@ -181,6 +181,8 @@ const pages: { path: string; lastmod: string }[] = [
   { path: '/rankings/mobile-subscriptions-by-country/', lastmod: '2026-11-26' },
   { path: '/rankings/child-mortality-by-country/', lastmod: '2026-11-26' },
   { path: '/rankings/maternal-mortality-by-country/', lastmod: '2026-11-26' },
+  { path: '/rankings/exports-by-country/', lastmod: '2026-11-26' },
+  { path: '/rankings/imports-by-country/', lastmod: '2026-11-26' },
   { path: '/economy/germany/', lastmod: '2026-11-25' },
   { path: '/economy/japan/', lastmod: '2026-11-25' },
   { path: '/economy/south-korea/', lastmod: '2026-11-25' },

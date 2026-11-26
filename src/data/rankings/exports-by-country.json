@@ -1,0 +1,20 @@
+{
+  "slug": "exports-by-country",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/trade-117.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; check-wdi.mjs compares all 212,284 generated WDI values with the original files; then the text was read by hand",
+    "against": "World Bank WDI bulk files and indicator metadata (update 11 November 2026, CC BY 4.0; national accounts data)",
+    "what": "every ranking row (171 economies, order and value), the CSV, every figure in the text, FAQ, title, description and JSON-LD; claims: ranking year 2024 by country coverage, China, US, Germany top, top-ten share 48.8%, Luxembourg, Hong Kong, Singapore highest share of GDP, world share 12.8% in 1970 and 29.1% in 2024, Bangladesh 64th and below its 2022 level, UAE/Qatar/Nigeria unranked; definitions from the World Bank indicator notes",
+    "result": "All automated comparisons matched; 2025 was not used for the ranking because only 138 economies have a 2025 figure while the World Bank's gap-filled world total runs ahead"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: World Bank WDI exports of goods and services for 2024."
+    }
+  ]
+}

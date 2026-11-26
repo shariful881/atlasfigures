@@ -119,7 +119,9 @@ const RANKINGS = { 'gdp-by-country': { key: 'gdp', cell: (v) => (v / 1e9).toLoca
   'internet-users-by-country': { key: 'internetPct', cell: pct, csvCol: 'internet_users_pct_population', coverage: true },
   'mobile-subscriptions-by-country': { key: 'mobilePer100', cell: (v) => v.toFixed(1), csvCol: 'mobile_subscriptions_per_100_people', coverage: true },
   'child-mortality-by-country': { key: 'under5Mortality', cell: (v) => v.toFixed(1), csvCol: 'under5_mortality_per_1000_live_births' },
-  'maternal-mortality-by-country': { key: 'maternalMortality', cell: (v) => v.toLocaleString('en-US'), csvCol: 'maternal_deaths_per_100000_live_births' } };
+  'maternal-mortality-by-country': { key: 'maternalMortality', cell: (v) => v.toLocaleString('en-US'), csvCol: 'maternal_deaths_per_100000_live_births' },
+  'exports-by-country': { key: 'exports', cell: (v) => (v / 1e9).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }), csvCol: 'exports_goods_services_current_usd', coverage: true },
+  'imports-by-country': { key: 'imports', cell: (v) => (v / 1e9).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }), csvCol: 'imports_goods_services_current_usd', coverage: true } };
 const wdiAll = readdirSync('src/data/wdi/countries').map((f) => JSON.parse(readFileSync(join('src/data/wdi/countries', f), 'utf8')));
 const wld = JSON.parse(readFileSync('src/data/wdi/aggregates.json', 'utf8')).aggregates.find((a) => a.code === 'WLD').series;
 for (const [slug, R] of Object.entries(RANKINGS)) {

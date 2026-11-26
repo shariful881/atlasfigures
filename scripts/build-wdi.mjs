@@ -38,6 +38,10 @@ export const LABELS = {
   'IT.NET.BBND.P2': { key: 'broadbandPer100', label: 'Fixed broadband subscriptions', unit: 'per 100 people' },
   'SH.DYN.MORT': { key: 'under5Mortality', label: 'Under-5 mortality', unit: 'deaths per 1,000 live births' },
   'SP.DYN.IMRT.IN': { key: 'infantMortality', label: 'Infant mortality', unit: 'deaths per 1,000 live births' },
+  'NE.EXP.GNFS.CD': { key: 'exports', label: 'Exports of goods and services', unit: 'current US$' },
+  'NE.IMP.GNFS.CD': { key: 'imports', label: 'Imports of goods and services', unit: 'current US$' },
+  'NE.EXP.GNFS.ZS': { key: 'exportsPctGdp', label: 'Exports of goods and services', unit: '% of GDP' },
+  'NE.IMP.GNFS.ZS': { key: 'importsPctGdp', label: 'Imports of goods and services', unit: '% of GDP' },
   'SH.STA.MMRT': { key: 'maternalMortality', label: 'Maternal mortality ratio', unit: 'deaths per 100,000 live births (modelled estimate)' },
 };
 
