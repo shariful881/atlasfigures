@@ -1,0 +1,20 @@
+{
+  "slug": "forest-area-by-country",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/geo-119.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; check-wdi.mjs compares all generated WDI values with the original files; then the text was read by hand",
+    "what": "every ranking row (213 countries and areas, order and value), the share-of-land and change-since-2000 columns, the CSV, every figure in the text, FAQ, title, description and JSON-LD; claims: Russia, Brazil, Canada, US, China largest and 55.2% of the world, Russia about a fifth, losses Brazil, DR Congo, Angola and gains China, Russia, Canada since 2000, Brazil lost more than China gained and shrank every year since 1990, Micronesia, Suriname, Gabon highest shares, no forest in Gibraltar, Monaco, Nauru, Latin America highest and MENA lowest region, Bhutan highest in South Asia; the FAO forest definition from the indicator notes",
+    "against": "World Bank WDI bulk files and indicator metadata (update 11 November 2026, CC BY 4.0; data compiled by the Food and Agriculture Organization of the United Nations)",
+    "result": "Before publishing, the World Bank world forest series was found to change membership over time (jumps in 1993 and 2012) and the world forest share uses a changing land-area base, so the change since 2000 is our sum over the 206 places with both years (−851,404 km², −2.0%) and no world trend chart is shown; Brazil's series is charted instead. All automated comparisons matched"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: World Bank WDI (FAO FRA) forest area and share of land for 2023, with the change since 2000."
+    }
+  ]
+}

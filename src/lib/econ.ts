@@ -10,7 +10,8 @@ export type IndicatorKey =
   | 'unemploymentPct' | 'remittances' | 'remittancesPctGdp' | 'internetPct'
   | 'mobilePer100' | 'mobileSubs' | 'broadbandPer100'
   | 'under5Mortality' | 'infantMortality' | 'maternalMortality'
-  | 'exports' | 'imports' | 'exportsPctGdp' | 'importsPctGdp';
+  | 'exports' | 'imports' | 'exportsPctGdp' | 'importsPctGdp'
+  | 'landArea' | 'forestPct' | 'forestArea';
 /** [year, value] pairs, years ascending, only years the World Bank publishes a value for. */
 export type Series = [number, number][];
 export type EconData = {

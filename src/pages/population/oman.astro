@@ -1,0 +1,210 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
+import omn from '../../data/countries/oman.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story, counts only: about 12.4 times 1950; net
+// arrivals of 492,609 in 2011 (largest); net departures 2018–2021 and falls 2019–2021; the 2022 rebound; 166.5 men per
+// 100 women, third after Qatar and the UAE; second-lowest density in Western Asia after Saudi Arabia; growth to 2100.
+const PAGE = '/population/oman/';
+const un = countryData(omn.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (omn.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const since = c.population / y[1950].population;
+assertClaim(since > 12.2 && since < 12.6, 'about 12.4 times 1950');
+const inTop = un.years.reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+assertClaim(inTop.year === 2011 && inTop.netMigrants > 4.9e5, 'largest inflow 2011');
+assertClaim([2018, 2019, 2020, 2021].every((n) => y[n].netMigrants < 0) && y[2022].netMigrants > 3e5, 'departures 2018–2021, rebound 2022');
+const outTop = un.years.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+assertClaim(outTop.year === 2020, 'largest outflow 2020');
+const falls = un.years.filter((r) => y[r.year - 1] && r.population < y[r.year - 1].population).map((r) => r.year);
+assertClaim(falls.join() === '2019,2020,2021', 'falls 2019–2021 only');
+const m1 = wpp.filter((d: any) => at(d).population >= 1e6);
+const sr = (d: any) => at(d).male / at(d).female;
+assertClaim([...m1].sort((a: any, b: any) => sr(b) - sr(a)).slice(0, 3).map((d: any) => d.iso3).join() === 'QAT,ARE,OMN', 'third-highest sex ratio');
+const wa1 = wpp.filter((d: any) => d.subregion === 'Western Asia' && at(d).population >= 1e6);
+assertClaim([...wa1].sort((a: any, b: any) => at(a).densityPerKm2 - at(b).densityPerKm2).slice(0, 2).map((d: any) => d.iso3).join() === 'SAU,OMN', 'second-lowest density after Saudi Arabia');
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+assertClaim(peak.year === 2100, 'still growing 2100');
+const repl = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(repl === 2037, 'under 2.1 in 2037');
+
+const title = `Oman Population ${CURRENT_YEAR} (${(c.population / 1e6).toFixed(1)}M): Twelve Times Its 1950 Size, With a 2011 Influx | AtlasFigures`;
+const description = `Oman has grown about twelvefold since 1950 to ${millions(c.population)} this year, per UN estimates. 2011 alone added ${int(inTop.netMigrants)} through net migration; the total then dipped in 2019–2021 before climbing again, and men outnumber women by roughly five to three.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: omn.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Men per 100 women', value: dec((c.male / c.female) * 100, 1) },
+  { label: 'Life expectancy', value: dec(c.lifeExpectancy, 1) },
+  { label: 'Urban', value: pct(c.urbanPct!) },
+];
+
+const rows = displayRows(un.years, omn.tableYears);
+
+const faq = [
+  { q: 'Was Oman small in 1950?', a: `Yes: ${int(y[1950].population)} people, about a twelfth of today's ${millions(c.population)}.` },
+  { q: 'Why does Oman have a large male majority?', a: `The UN files give ${dec((c.male / c.female) * 100, 1)} men per 100 women, behind only Qatar and the United Arab Emirates among countries over a million, but they do not record why.` },
+  { q: 'Did Oman lose population around 2020?', a: `Yes: net departures in each year from 2018 to 2021, heaviest in 2020 (${int(-outTop.netMigrants)}), and lower totals in 2019, 2020 and 2021. Arrivals jumped to ${int(y[2022].netMigrants)} net in 2022.` },
+  { q: 'Which year saw the biggest net inflow into Oman?', a: `2011, with ${int(inTop.netMigrants)}, followed by ${int(y[2012].netMigrants)} in 2012.` },
+  { q: 'Will Oman keep growing to 2100?', a: `Yes; growth continues in every projected year, to ${millions(y[2100].population)}.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: omn.slug, name: omn.name, wikipedia: omn.wikipedia,
+  headline: `Oman's ${millions(c.population)}: twelvefold since 1950; a 2011 surge of arrivals; a dip in 2019–2021; a male majority`,
+  description,
+  datasetName: 'Oman population, net migration and sex ratio, 1950–2100',
+  datasetDescription: `Mid-year population of Oman for selected years from 1950 to ${CURRENT_YEAR} (every year 2018–2023 included, with 2011, 2012 and 2015), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: omn.published, updated: omn.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Oman"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Oman", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Oman: a population built by arrivals, mostly male</h1>
+        <LiveCounter
+          label="Oman: population estimate updating now"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`From UN World Population Prospects 2024 at mid-${CURRENT_YEAR}, plus some ${int(c.change / 365)} each day`}
+        />
+        <p class="answer">
+          UN figures show Oman with <strong>{millions(c.population)}</strong> residents in {CURRENT_YEAR}, about twelve times the {int(y[1950].population)} of 1950. Men outnumber women: <strong>{dec((c.male / c.female) * 100, 1)}</strong> per 100.
+        </p>
+        <div class="dates"><span>Updated <time datetime={omn.updated}>{longDate(omn.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Oman" code="om" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>How fast did Oman's population grow?</h2>
+          <p>Twelvefold, starting from {int(y[1950].population)} in 1950 and passing {millions(y[2000].population)} in 2000 on the way to today's figure. The biggest single jump came in 2011, when net arrivals reached {int(inTop.netMigrants)}, then {int(y[2012].netMigrants)} in 2012.</p>
+        </div>
+        <LineChart
+          title="Net migration into Oman, 1950–2100"
+          subtitle="Positive values are net arrivals; 2018–2021 below zero; dashed from 2024."
+          points={rows.map((r) => ({ x: r.year, y: r.netMigrants, projection: r.projection }))}
+          format="plain"
+          unit="people"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Why did Oman's total fall in 2019–2021?</h2>
+          <p>Departures outran arrivals each year over 2018–2021, the UN data show, largest in 2020 ({int(-outTop.netMigrants)}), and lower mid-year totals in 2019, 2020 and 2021, down to {millions(y[2021].population)}. They do not explain the movements. 2022 then delivered {int(y[2022].netMigrants)} net arrivals.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How male is Oman's population?</h2>
+          <p>Strongly so: {dec((c.male / c.female) * 100, 1)} men per 100 women, a ratio only Qatar and the United Arab Emirates exceed among nations of a million-plus. The figures give the imbalance, not its causes.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How much room is there in Oman, and how long will it grow?</h2>
+          <p>{int(c.densityPerKm2)} people per km², sparser in Western Asia only in Saudi Arabia. Life expectancy is {dec(c.lifeExpectancy, 1)}, fertility {dec(c.fertility, 2)} (under 2.1 from {repl}), and the count keeps climbing through 2100, ending the series at {millions(y[2100].population)}.</p>
+        </div>
+        <RelatedPages iso3={omn.iso3} name={omn.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Omani rows: 2011, 2012, then 2018 through 2023"
+          subtitle="Net migration turns negative in 2018–2021 and jumps back in 2022."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${omn.slug}-population.csv`)}
+          csvName={`${omn.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Oman: quick facts as questions</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{omn.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={omn.published}>{longDate(omn.published)}</time> · Updated <time datetime={omn.updated}>{longDate(omn.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Oman population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Oman" code="om" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
