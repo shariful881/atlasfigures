@@ -2,7 +2,8 @@
 // Rule per page: all same-subregion countries with a page (up to 5; the largest first as the regional anchor, then the closest in size),
 // topped up to 5 from the same UN region the same way. Then an orphan pass: a page that no other page links to takes over the
 // least-close region top-up slot (never a same-subregion slot, never the anchor) on the same-region page closest to it in size,
-// as long as the country it replaces stays linked from somewhere else.
+// as long as the country it replaces stays linked from somewhere else. If no page has a top-up slot to spare, the closest-sized
+// same-region page with a single region slot gives that slot (its anchor) to the orphan, again only if the anchor stays linked elsewhere.
 import index from '../data/wpp/index.json';
 
 const pageCountries = Object.values(import.meta.glob('../data/countries/*.json', { eager: true, import: 'default' })) as any[];
@@ -50,6 +51,18 @@ for (const orphan of entries) {
     const idx = [...reg.keys()].slice(1).reverse().find((i) => (counts.get(reg[i].iso3) ?? 0) > 1);
     if (idx === undefined) continue;
     reg[idx] = orphan;
+    break;
+  }
+  if ((inbound().get(orphan.iso3) ?? 0) > 0) continue;
+  // fallback when every same-region host has only its anchor slot (e.g. Central Asia once Eastern Asia had five pages):
+  // the closest-sized host gives its single region slot to the orphan, if that anchor stays linked from elsewhere
+  const single = entries
+    .filter((h) => h !== orphan && h.un.region === orphan.un.region && h.un.subregion !== orphan.un.subregion && picks.get(h.iso3)!.region.length === 1)
+    .sort((a, b) => gap(a, orphan) - gap(b, orphan) || a.iso3.localeCompare(b.iso3));
+  for (const h of single) {
+    const reg = picks.get(h.iso3)!.region;
+    if ((inbound().get(reg[0].iso3) ?? 0) < 2) continue;
+    reg[0] = orphan;
     break;
   }
 }

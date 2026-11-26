@@ -1,0 +1,230 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
+import zm from '../../data/countries/zambia.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: an urban share that rose to 1980, then fell
+// for two decades before recovering, with a majority projected for 2034; life expectancy that dropped from 1980 to a low
+// in 1998 and passed its 1980 level again only in 2009; nearly ten times the 1950 population; overtaking Malawi in 2034.
+// The UN files give no causes.
+const PAGE = '/population/zambia/';
+const un = countryData(zm.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (zm.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const urbHi = un.years.filter((r) => r.year <= 2000 && r.urbanPct != null).reduce((a, b) => (b.urbanPct! > a.urbanPct! ? b : a));
+assertClaim(urbHi.year === 1980 && y[2000].urbanPct! < y[1980].urbanPct! - 3, 'urban share peaked in 1980, then fell');
+const urbBack = un.years.find((r) => r.year > 1990 && r.urbanPct != null && r.urbanPct > urbHi.urbanPct!)!.year;
+const urbanHalf = un.years.find((r) => r.urbanPct != null && r.urbanPct > 50)!.year;
+assertClaim(urbBack === 2010 && urbanHalf === 2034, 'back above the 1980 urban share in 2010; majority in 2034');
+const leLow = un.years.filter((r) => r.year > 1975 && r.year <= CURRENT_YEAR).reduce((a, b) => (b.lifeExpectancy < a.lifeExpectancy ? b : a));
+const leBack = un.years.find((r) => r.year > 1990 && r.lifeExpectancy > y[1980].lifeExpectancy)!.year;
+assertClaim(leLow.year === 1998 && leBack === 2009, 'life expectancy low 1998; above the 1980 level from 2009');
+const gain = (d: any) => at(d).lifeExpectancy - at(d, 2000).lifeExpectancy;
+assertClaim([...wpp].sort((a: any, b: any) => gain(b) - gain(a)).map((d: any) => d.iso3).indexOf('ZMB') === 2, 'third-largest life-expectancy gain since 2000');
+const times = c.population / y[1950].population;
+assertClaim(times > 9.6 && times < 9.8, 'nearly ten times 1950');
+const overMw = un.years.find((r) => r.year > CURRENT_YEAR && r.population > at(wpp.find((d: any) => d.iso3 === 'MWI'), r.year).population)!.year;
+assertClaim(overMw === 2034, 'passes Malawi in 2034');
+const ageLow = un.years.reduce((a, b) => (b.medianAge < a.medianAge ? b : a));
+assertClaim(ageLow.year === 1980, 'youngest median age in 1980');
+const tfrTop = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+const under = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(tfrTop.year === 1975 && under === 2098, 'fertility high 1975; under 2.1 from 2098');
+assertClaim(un.years.every((r, i, a) => i === 0 || r.population > a[i - 1].population), 'rises every year');
+const eaf = wpp.filter((d: any) => d.subregion === 'Eastern Africa').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(eaf.indexOf('ZMB') === 7, 'eighth in Eastern Africa');
+
+const title = `Zambia Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)}M, Ten Times 1950 and an Urban Comeback | AtlasFigures`;
+const description = `Almost tenfold growth since 1950 has brought Zambia to ${millions(c.population)} (UN, ${CURRENT_YEAR}). Its urban share slipped after 1980 and recovered; lifespans fell to a 1998 low, then rose by ${dec(gain({ years: un.years }), 1)} years since 2000.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: zm.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Since 1950', value: `×${dec(times, 1)}` },
+  { label: 'Urban', value: pct(c.urbanPct!) },
+  { label: 'In 2100', value: millionsShort(y[2100].population) },
+];
+
+const rows = displayRows(un.years, zm.tableYears);
+
+const faq = [
+  { q: 'How many Zambians are counted today?', a: `Some ${millions(c.population)}, per the UN for mid-${CURRENT_YEAR}; globally Zambia is ${ord(c.worldRank!)}, and it is eighth within Eastern Africa.` },
+  { q: 'Did Zambia become less urban?', a: `For a while. The urban share reached ${pct(urbHi.urbanPct!)} in ${urbHi.year}, dropped to ${pct(y[2000].urbanPct!)} by 2000 and was not higher again until ${urbBack}. It is ${pct(c.urbanPct!)} now.` },
+  { q: 'Did life expectancy in Zambia go backwards?', a: `For almost two decades. It fell from ${dec(y[1980].lifeExpectancy, 1)} years in 1980 to ${dec(leLow.lifeExpectancy, 1)} in ${leLow.year}, regained the 1980 level in ${leBack} and is ${dec(c.lifeExpectancy, 1)} today. The UN data do not give reasons.` },
+  { q: 'When does Zambia become majority urban?', a: `In ${urbanHalf}. World Urbanization Prospects puts the 2050 share at ${pct(y[2050].urbanPct!)}.` },
+  { q: "How large will Zambia's population be by 2100?", a: `${millions(y[2100].population)}, with the UN's medium variant showing Zambia overtaking Malawi in ${overMw}.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: zm.slug, name: zm.name, wikipedia: zm.wikipedia,
+  headline: `Zambia's ${millions(c.population)}: an urban dip and comeback, a 1998 low in lifespans and tenfold growth`,
+  description,
+  datasetName: 'Zambia population, urban share and life expectancy, 1950–2100',
+  datasetDescription: `Mid-year population of Zambia for selected years from 1950 to ${CURRENT_YEAR} (1998 and 2009 included), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: zm.published, updated: zm.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Zambia"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Zambia", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Zambia: an urban dip, a recovery in lifespans and tenfold growth</h1>
+        <LiveCounter
+          label="Zambia: modelled number of residents"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} value with close to ${int(c.change / 365)} added every day`}
+        />
+        <p class="answer">
+          Zambia's <strong>{millions(c.population)}</strong> people (UN, 1 July {CURRENT_YEAR}) are close to <strong>ten times</strong> the 1950 figure ({millions(y[1950].population)}). Its urban share fell for two decades after {urbHi.year} before recovering, and life expectancy, at a low in {leLow.year}, is now {dec(c.lifeExpectancy, 1)} years.
+        </p>
+        <div class="dates"><span>Updated <time datetime={zm.updated}>{longDate(zm.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Zambia" code="zm" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Did Zambia's urban share fall after 1980?</h2>
+          <p>Yes. World Urbanization Prospects, using Zambia's national definition, shows the urban share rising to {pct(urbHi.urbanPct!)} by {urbHi.year} (it was {pct(y[1950].urbanPct!)} in 1950) and sliding to {pct(y[2000].urbanPct!)} by 2000. It did not exceed the {urbHi.year} figure again until {urbBack} and is {pct(c.urbanPct!)} today; an urban majority is projected for {urbanHalf}.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Urban share in Zambia, national definition">
+          <div><span class="y">{urbHi.year}</span><div class="v">{pct(urbHi.urbanPct!)}</div><span class="d">Urban</span></div>
+          <div><span class="y">2000</span><div class="v">{pct(y[2000].urbanPct!)}</div><span class="d">Urban</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{pct(c.urbanPct!)}</div><span class="d">Urban</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How much life expectancy did Zambia lose after 1980?</h2>
+          <p>By {dec(y[1980].lifeExpectancy - leLow.lifeExpectancy, 1)} years: from {dec(y[1980].lifeExpectancy, 1)} at birth in 1980 to {dec(leLow.lifeExpectancy, 1)} in {leLow.year}, and it did not get back above the 1980 figure until {leBack}. The UN figures show the drop but not its cause. Since 2000 it has risen {dec(gain({ years: un.years }), 1)} years, to {dec(c.lifeExpectancy, 1)}; only two countries or areas have gained more in that time.</p>
+        </div>
+        <LineChart
+          title="How Zambia's population has grown, and where the UN expects it to go"
+          subtitle="UN totals at mid-year, rising in every year shown; projection dashed."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How fast has Zambia grown since 1950?</h2>
+          <p>About {dec(times, 1)}-fold over {CURRENT_YEAR - 1950} years, and the annual rate is still {pct(c.growthRatePct)}. The median age, {dec(c.medianAge, 1)}, has risen from a low of {dec(ageLow.medianAge, 1)} in {ageLow.year}. Fertility reached {dec(tfrTop.fertility, 2)} in {tfrTop.year}, its high, is {dec(c.fertility, 2)} now and falls under 2.1 only in {under}.</p>
+        </div>
+        <LineChart
+          title="Zambian fertility, 1950–2050: estimates and projection"
+          subtitle="UN fertility for Zambia: solid for the estimates, dashed for the medium variant; 2.1 marked."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'marker 2.1' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Will Zambia overtake Malawi?</h2>
+          <p>In {overMw}, on the UN medium variant. Its projected 2050 total of {millions(y[2050].population)} grows to {millions(y[2100].population)} by 2100, a climb from {ord(c.worldRank!)} to {ord(y[2100].worldRank!)} in the world. With {int(un.landAreaKm2)} km² of land it has only {int(c.densityPerKm2)} people per square kilometre today.</p>
+        </div>
+        <RelatedPages iso3={zm.iso3} name={zm.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Zambia, 1950–2100, including 1998 and 2009"
+          subtitle="The urban column is lower in 2000 than in 1980; projected rows follow."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${zm.slug}-population.csv`)}
+          csvName={`${zm.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Quick answers on Zambia</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{zm.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={zm.published}>{longDate(zm.published)}</time> · Updated <time datetime={zm.updated}>{longDate(zm.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Zambia population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Zambia" code="zm" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

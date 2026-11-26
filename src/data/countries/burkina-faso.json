@@ -1,0 +1,57 @@
+{
+  "slug": "burkina-faso",
+  "name": "Burkina Faso",
+  "demonym": "Burkinabè",
+  "capital": "Ouagadougou",
+  "iso3": "BFA",
+  "code": "bf",
+  "continent": "Africa",
+  "wikipedia": "https://en.wikipedia.org/wiki/Burkina_Faso",
+  "unName": "Burkina Faso",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1967,
+    1970,
+    1980,
+    1990,
+    2000,
+    2010,
+    2015,
+    2016,
+    2020,
+    2026,
+    2030,
+    2040,
+    2047,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/burkina-faso.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; sixth in Western Africa",
+      "Largest fall in fertility of any country 2015–2020 (5.48 to 4.44); largest since 2000 among Western African countries above 10 million; 1981 high; now; under 2.1 from 2080",
+      "Births peak 2016 among estimate years and below that peak every year since; births now",
+      "Men per 100 women 1950 and now; women in the majority every year from 1967; net emigration in every UN year except 2000–2005; this year's net departures",
+      "Urban share 1950, now, 2050; urban majority 2047; 2050 and 2100 totals, growth near zero by 2100; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 64 of 64 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. The fertility fall, sex ratio and migration are described without causes."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
