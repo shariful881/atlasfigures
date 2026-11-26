@@ -1,0 +1,153 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/new-zealand.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/new-zealand/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const pcPeak = s.gdpPerCapita.reduce((a, b) => (b[1] > a[1] ? b : a));
+const hiUSince = Math.max(...s.unemploymentPct.filter(([y, x]) => y < L && x > unemp!).map(([y]) => y));
+const uMin = s.unemploymentPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const lowInflSince = Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y));
+
+assertClaim(g(2024) < 0 && growth > 0 && growth < 1, 'contraction in 2024, under 1% growth in 2025');
+assertClaim(hiUSince === 2016 && uMin[0] === 2022 && unemp! > 5, 'unemployment highest since 2016, from 2022 low');
+assertClaim(isMax(s.gdp) && pcPeak[0] === 2021 && perHead < pcPeak[1] && B.pcRank === 23, 'record GDP; per person below 2021; 23rd');
+assertClaim(infl.year === L && lowInflSince === 2020 && i(2022) > 7, 'inflation lowest since 2020');
+assertClaim(rem!.year === 2022, 'remittances end 2022');
+
+const title = `New Zealand Economy ${L}: Weak Growth, Jobless Rate Up | AtlasFigures`;
+const description = `New Zealand\'s output fell ${pct(Math.abs(g(2024)))} in 2024 and grew only ${pct(growth)} in ${L}. Joblessness climbed to ${pct(unemp!)}, a nine-year high, while inflation eased to ${pct(infl.value)}.`;
+
+const faq = [
+  { q: 'Was New Zealand in recession?', a: `Real GDP fell ${pct(Math.abs(g(2024)))} over 2024 and grew only ${pct(growth)} in ${L}.` },
+  { q: 'Why is unemployment rising in New Zealand?', a: `The figures show the rise, not its causes: ILO-modelled joblessness went from a 2022 low of ${pct(uMin[1])} to ${pct(unemp!)} in ${L}, a nine-year high.` },
+  { q: 'Are New Zealanders richer than in 2021?', a: `Not quite: ${usdWhole(perHead)} per head in ${L} (${ord(B.pcRank!)} globally) is a little below 2021's ${usdWhole(pcPeak[1])}. At comparable prices, ${intDollars(ppp!)}.` },
+  { q: 'Has inflation come down in New Zealand?', a: `It has eased from ${pct(i(2022))} in 2022 to ${pct(infl.value)} in ${L}, the calmest reading since 2020.` },
+  { q: 'Is New Zealand\'s GDP at a record?', a: `In current dollars, yes: ${usd(gdp)} for ${L}, putting it ${ord(B.gdpRank!)} on the world list.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `New Zealand's economy ${L}: barely growing after a 2024 contraction, with unemployment at a nine-year high`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="New Zealand economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'New Zealand', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>New Zealand's economy: slow growth, more jobless</h1>
+        <p class="answer">
+          New Zealand's economy grew only <strong>{pct(growth)}</strong> in {L}, after contracting in 2024. Unemployment rose to <strong>{pct(unemp!)}</strong>, the highest since 2016.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`New Zealand economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="New Zealand" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">New Zealand's jobless rate has climbed for three years while growth has stalled, even as inflation has eased.</p>
+
+        <div class="story-block prose">
+          <h2>Did New Zealand's economy shrink?</h2>
+          <p>In 2024, yes: real GDP fell {pct(Math.abs(g(2024)))}. It edged up {pct(growth)} in {L}, still below 1%.</p>
+        </div>
+        <LineChart
+          title={`New Zealand's economic growth, 1961–${L}`}
+          subtitle="Real GDP, % change on the year before."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How much has unemployment risen in New Zealand?</h2>
+          <p>From {pct(uMin[1])} in 2022, the lowest in the ILO-modelled series, to {pct(unemp!)} in {L}, unmatched since 2016.</p>
+        </div>
+        <LineChart
+          title={`New Zealand jobless rate, 1991–${L}`}
+          subtitle="Modelled ILO estimate, % of the labour force."
+          points={s.unemploymentPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Is New Zealand richer than before?</h2>
+          <p>In total dollars, yes: {L} output of {usd(gdp)} set a new high. Per person, at {usdWhole(perHead)} ({ord(B.pcRank!)} globally), it remains slightly under the 2021 peak of {usdWhole(pcPeak[1])}. Inflation slowed to {pct(infl.value)}, its calmest pace since 2020.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>New Zealand and the Pacific: related pages</h2>
+          <ul>
+            <li><a href={path('/population/new-zealand/')}>New Zealand's population</a></li>
+            <li><a href={path('/economy/australia/')}>Australia's economy</a></li>
+            <li><a href={path('/economy/japan/')}>Japan's economy</a></li>
+            <li><a href={path('/economy/singapore/')}>Singapore's economy</a></li>
+            <li><a href={path('/rankings/unemployment-rate-by-country/')}>Unemployment by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`A selection of New Zealand data, 1960 onward`}
+          subtitle="Decades from 1960, plus 1991 and 2019 onward; full series in the CSV."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/new-zealand-economy.csv')} csvName="new-zealand-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">New Zealand's economy: popular questions</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">The World Bank notes New Zealand's fiscal year ends on 31 March; national accounts are calendar-year. Its remittance series for New Zealand ends in 2022. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("New Zealand economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="New Zealand" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

@@ -1,0 +1,46 @@
+{
+  "slug": "norway",
+  "name": "Norway",
+  "demonym": "Norwegian",
+  "capital": "Oslo",
+  "iso3": "NOR",
+  "code": "no",
+  "continent": "Europe",
+  "wikipedia": "https://en.wikipedia.org/wiki/Norway",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1960,
+    1970,
+    1980,
+    1988,
+    1990,
+    2000,
+    2009,
+    2010,
+    2014,
+    2015,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/econ-batch10.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; then the rendered text was read by hand",
+    "what": "Every figure in the direct answer, indicator cards, Key facts, story, comparison figures, table, CSV, FAQ, title, description and JSON-LD, and the claim behind each sentence (records, 'since' years, rank positions, comparisons, World Bank country notes)",
+    "against": "World Bank WDI bulk files and country metadata (update 11 November 2026, CC BY 4.0)",
+    "result": "All 2,786 automated comparisons across the five pages matched; Ukraine's unemployment series ends in 2021 and New Zealand's remittances in 2022, both stated on the pages; a stray backslash in the Norway FAQ, an unverified 'more each year' for Peru's remittances and 'pre-war' wording for Ukraine (now 'pre-2022') were corrected before publishing"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: World Bank WDI figures (update of 11 November 2026)."
+    }
+  ]
+}
