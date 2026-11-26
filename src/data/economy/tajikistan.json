@@ -1,0 +1,47 @@
+{
+  "slug": "tajikistan",
+  "name": "Tajikistan",
+  "demonym": "Tajik",
+  "capital": "Dushanbe",
+  "iso3": "TJK",
+  "code": "tj",
+  "continent": "Asia",
+  "wikipedia": "https://en.wikipedia.org/wiki/Tajikistan",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1986,
+    1990,
+    1992,
+    1996,
+    2000,
+    2001,
+    2010,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/econ-batch17.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; then the rendered text was read by hand",
+    "what": "Every figure in the direct answer, indicator cards, Key facts, story, table, CSV, FAQ, title, description and JSON-LD, and the claim behind each sentence (records, 'since' years, rank positions and counts, start and end years of each series, and the literacy, child-mortality, internet, employment and labour-force figures quoted from other World Bank series)",
+    "against": "World Bank WDI bulk files and country metadata (update 11 November 2026, CC BY 4.0)",
+    "result": "All 2,935 automated comparisons across the five pages matched; before publishing Chad's remittance figure for 1994 (the last year in its series) was added to the page, Burundi's description claim about Iran and Türkiye was added to the visible text, and Burundi's 'one of only two countries' (with Moldova) where women's labour force participation exceeds men's was checked against every economy"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: World Bank WDI figures (update of 11 November 2026)."
+    }
+  ]
+}
