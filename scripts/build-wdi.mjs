@@ -46,6 +46,8 @@ export const LABELS = {
   'AG.LND.TOTL.K2': { key: 'landArea', label: 'Land area', unit: 'sq. km' },
   'AG.LND.FRST.ZS': { key: 'forestPct', label: 'Forest area', unit: '% of land area' },
   'AG.LND.FRST.K2': { key: 'forestArea', label: 'Forest area', unit: 'sq. km' },
+  'SE.ADT.LITR.ZS': { key: 'literacyPct', label: 'Adult literacy rate', unit: '% of people ages 15 and above' },
+  'SE.XPD.TOTL.GD.ZS': { key: 'eduSpendPctGdp', label: 'Government expenditure on education', unit: '% of GDP' },
 };
 
 // ---------- CSV (same parser rules as build-data.mjs) ----------
