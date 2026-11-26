@@ -1,0 +1,134 @@
+---
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import data from '../../data/holidays/bangladesh-2027.json';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+import { type Holiday, weekday, dShort, breaks, ummAlQura } from '../../lib/holidays';
+import { assertClaim } from '../../lib/figures';
+
+const PAGE = '/countdown/eid-ul-fitr/';
+const Y = data.year;
+const list = data.holidays as Holiday[];
+const eid = list.find((h) => h.name === 'Eid-ul-Fitr')!.date;
+const eidDays = list.filter((h) => h.name.startsWith('Eid-ul-Fitr')).map((h) => h.date).sort();
+const brk = breaks(list, Y).find((b) => b.from <= eid && b.to >= eid)!;
+const ramadan = ummAlQura(1448, 9, 1, Y)!, uqEid = ummAlQura(1448, 10, 1, Y)!;
+assertClaim(eidDays.length === 5 && brk.days >= 5, 'five Eid-ul-Fitr holidays inside a longer break');
+const target = `${eid}T00:00:00+06:00`;
+const faq = [
+  { q: 'How many days until Eid-ul-Fitr 2027?', a: `The countdown at the top of this page shows the exact days, hours, minutes and seconds to the start of ${weekday(eid)}, ${dShort(eid)} ${Y} in Bangladesh, the date in the government's holiday list.` },
+  { q: 'Is Eid-ul-Fitr 2027 on 9 or 10 March?', a: `In Bangladesh the government list expects ${dShort(eid)}, subject to the moon being sighted. The Umm al-Qura calendar used in Saudi Arabia gives ${dShort(uqEid)}, so Eid may come a day apart in the two countries.` },
+  { q: 'How long is the Eid-ul-Fitr holiday in Bangladesh in 2027?', a: `Five days in the list, ${dShort(eidDays[0])} to ${dShort(eidDays[eidDays.length - 1])}. With Jumatul Bida, Shab-e-Qadr and the weekend next to them, the break runs ${brk.days} days, from ${dShort(brk.from)} to ${dShort(brk.to)}.` },
+  { q: 'When does Ramadan 2027 start?', a: `The Umm al-Qura calendar puts 1 Ramadan 1448 on ${weekday(ramadan)}, ${dShort(ramadan)} ${Y}. In Bangladesh the start is confirmed after the moon is sighted and can be a day later.` },
+];
+const schema = [
+  { '@type': 'WebPage', '@id': abs(`${PAGE}#page`), url: abs(PAGE), name: `Countdown to Eid-ul-Fitr ${Y}`, isPartOf: { '@id': WEBSITE_ID }, publisher: { '@id': ORG_ID }, inLanguage: 'en', datePublished: `${data.published}T12:00:00+06:00`, dateModified: `${data.updated}T12:00:00+06:00` },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+const SRC = 'Ministry of Public Administration notification, via Prothom Alo (BSS)';
+---
+<Base title={`Eid-ul-Fitr ${Y} Countdown: Days Left in Bangladesh | AtlasFigures`}
+  description={`Live countdown to Eid-ul-Fitr ${Y}, expected in Bangladesh on ${weekday(eid)} ${dShort(eid)} (moon permitting). Holiday dates, the ${brk.days}-day break and Ramadan's start.`}
+  section="time" appTitle="Eid countdown" back="/time/" schema={schema}
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Time', href: '/time/' }, { name: 'Eid-ul-Fitr countdown', href: PAGE }]}>
+  <h1>Countdown to Eid-ul-Fitr {Y}</h1>
+  <section class="cd" id="cd" data-target={target} aria-label="Time left until Eid-ul-Fitr">
+    <div class="cd-top"><span class="moon" aria-hidden="true">☾</span> {weekday(eid)}, {dShort(eid)} {Y} · Bangladesh</div>
+    <div class="cd-grid">
+      <div><span class="n" data-k="d">--</span><span class="l">days</span></div>
+      <div><span class="n" data-k="h">--</span><span class="l">hours</span></div>
+      <div><span class="n" data-k="m">--</span><span class="l">minutes</span></div>
+      <div><span class="n" data-k="s">--</span><span class="l">seconds</span></div>
+    </div>
+    <p class="cd-note" data-k="note">Counting to midnight at the start of {dShort(eid)}, Bangladesh time (UTC+6). Subject to the sighting of the moon.</p>
+    <a class="cd-btn" href={path(`/data/eid-ul-fitr-${Y}.ics`)} download><Icon name="time" /> Remind me (add to calendar)</a>
+  </section>
+
+  <p class="answer">Eid-ul-Fitr {Y} is expected in Bangladesh on <strong>{weekday(eid)}, {dShort(eid)}</strong>, depending on the moon. Government offices close for five days, {dShort(eidDays[0])} to {dShort(eidDays[eidDays.length - 1])}, and with the weekend and the nights before Eid the break lasts <strong>{brk.days} days</strong>.</p>
+  <div class="dates"><span>Updated <time datetime={data.updated}>{longDate(data.updated)}</time></span><SourceBadge source={SRC} url={data.source.url} checkedOn={data.verification.checkedOn} /></div>
+
+  <section class="tcard" aria-labelledby="days-h">
+    <header class="tcard-head"><div><h2 id="days-h">The Eid-ul-Fitr break, day by day</h2><p class="tcard-sub">Every day off from {dShort(brk.from)} to {dShort(brk.to)}, including the Friday–Saturday weekend.</p></div></header>
+    <div class="table-scroll">
+      <table class="data">
+        <thead><tr><th scope="col">Date</th><th scope="col">Day</th><th scope="col">Why it is off</th></tr></thead>
+        <tbody>{Array.from({ length: brk.days }, (_, i) => new Date(new Date(`${brk.from}T00:00:00Z`).getTime() + i * 86400000).toISOString().slice(0, 10)).map((d) => {
+          const hs = list.filter((h) => h.date === d).map((h) => h.name);
+          return <tr class={d === eid ? 'is-current' : ''}><th scope="row">{dShort(d)}</th><td>{weekday(d)}</td><td>{hs.length ? hs.join(', ') : 'Weekly holiday'}</td></tr>;
+        })}</tbody>
+      </table>
+    </div>
+    <footer class="tcard-foot"><SourceBadge source={SRC} url={data.source.url} checkedOn={data.verification.checkedOn} variant="footer" /></footer>
+  </section>
+
+  <section class="prose">
+    <h2>Why could Eid-ul-Fitr move by a day?</h2>
+    <p>Eid-ul-Fitr marks the first day of Shawwal, which begins when the new crescent moon is seen after Ramadan. In Bangladesh the date is confirmed only after the moon is sighted the evening before, so {dShort(eid)} is the expected day, not a fixed one. The Umm al-Qura calendar, calculated in advance, gives {dShort(uqEid)}.</p>
+  </section>
+
+  <nav class="related-pages pair-related" aria-label="Related pages">
+    <h2 class="visually-hidden">Related pages</h2>
+    <ul>
+      <li><a href={path(`/holidays/bangladesh/${Y}/`)}><Icon name="time" /> All Bangladesh holidays {Y}</a></li>
+      <li><a href={path('/time/dhaka/')}><Icon name="time" /> Time in Dhaka</a></li>
+    </ul>
+  </nav>
+
+  <section class="faq-wrap" aria-labelledby="faq-h">
+    <h2 id="faq-h">Eid-ul-Fitr {Y}: questions</h2>
+    <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+  </section>
+
+  <details class="sources-details" id="sources">
+    <summary><h2>Sources and methodology</h2></summary>
+    <div class="sources-block">
+      <ul class="sources">
+        <li><a href={data.source.url}>Prothom Alo (BSS)</a>: Bangladesh's {Y} holiday list from the Ministry of Public Administration, with Eid-ul-Fitr on {dShort(eid)} depending on the moon.</li>
+        <li>Umm al-Qura dates (Ramadan and Eid) from the Islamic calendar built into the JavaScript runtime (Unicode CLDR), for comparison.</li>
+      </ul>
+      <p class="note">The countdown runs to 00:00 on {dShort(eid)} in Bangladesh (UTC+6) using your device's clock. If the government changes the date after the moon sighting, this page will be updated.</p>
+      <p class="note">Published <time datetime={data.published}>{longDate(data.published)}</time> · Updated <time datetime={data.updated}>{longDate(data.updated)}</time> · By {PUBLISHER}</p>
+      <p class="note report-error">Spotted an error? <a href={reportErrorUrl(`Eid-ul-Fitr ${Y} countdown`, PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+    </div>
+  </details>
+</Base>
+
+<script is:inline>
+  (function () {
+    var el = document.getElementById('cd'); if (!el) return;
+    var t = Date.parse(el.dataset.target);
+    var q = function (k) { return el.querySelector('[data-k="' + k + '"]'); };
+    var pad = function (n) { return String(n).padStart(2, '0'); };
+    var mine = new Date(t).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    function tick() {
+      var s = Math.floor((t - Date.now()) / 1000);
+      if (s <= 0) { q('d').textContent = '0'; q('h').textContent = q('m').textContent = q('s').textContent = '00'; q('note').textContent = 'Eid Mubarak! The expected date has arrived.'; return; }
+      q('d').textContent = Math.floor(s / 86400); q('h').textContent = pad(Math.floor(s % 86400 / 3600)); q('m').textContent = pad(Math.floor(s % 3600 / 60)); q('s').textContent = pad(s % 60);
+    }
+    q('note').textContent += ' That moment is ' + mine + ' on your clock.';
+    tick(); setInterval(tick, 1000);
+  })();
+</script>
+
+<style>
+  .cd { background: linear-gradient(150deg, #0f3a33 0%, var(--ocean) 100%); color: #d6e4ec; border-radius: 24px; padding: 24px 26px; text-align: center; margin-top: 6px; }
+  .cd-top { font-weight: 700; color: #fff; font-size: 1.05rem; }
+  .moon { color: #f1d27a; font-size: 1.3rem; margin-right: 4px; }
+  .cd-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 18px 0 12px; }
+  .cd-grid div { background: rgba(255,255,255,.08); border-radius: var(--r-md); padding: 14px 6px; }
+  .cd-grid .n { display: block; font-size: clamp(2.2rem, 6vw, 3.8rem); font-weight: 800; color: #fff; line-height: 1; font-variant-numeric: tabular-nums; }
+  .cd-grid .l { display: block; font-size: .78rem; color: #a9c1d0; margin-top: 6px; text-transform: uppercase; letter-spacing: .05em; }
+  .cd-note { font-size: .85rem; color: #a9c1d0; margin: 0 0 14px; }
+  .cd-btn { display: inline-flex; align-items: center; gap: 8px; background: #f1d27a; color: #0f3a33; font-weight: 800; text-decoration: none; border-radius: 999px; padding: 11px 20px; min-height: 44px; }
+  .cd-btn :global(svg) { width: 18px; height: 18px; }
+  .tcard { margin-top: 24px; }
+  .pair-related ul { list-style: none; padding: 0; margin: 24px 0 0; display: flex; flex-wrap: wrap; gap: 10px; }
+  .pair-related a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); text-decoration: none; font-weight: 600; font-size: .92rem; }
+  .pair-related :global(svg) { width: 18px; height: 18px; }
+  @media (max-width: 767px) {
+    .cd { border-radius: var(--r-lg); padding: 20px 14px; min-height: 60vh; display: flex; flex-direction: column; justify-content: center; }
+    .cd-grid { grid-template-columns: repeat(2, 1fr); }
+    .cd-btn { align-self: center; }
+  }
+</style>
