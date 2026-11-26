@@ -1,0 +1,63 @@
+{
+  "slug": "belgium",
+  "name": "Belgium",
+  "demonym": "Belgian",
+  "capital": "Brussels",
+  "iso3": "BEL",
+  "code": "be",
+  "continent": "Europe",
+  "wikipedia": "https://en.wikipedia.org/wiki/Belgium",
+  "unName": "Belgium",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1964,
+    1970,
+    1972,
+    1975,
+    1980,
+    1982,
+    1990,
+    2000,
+    2010,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2026,
+    2030,
+    2040,
+    2044,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/belgium.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area",
+      "Only European country of 1 million+ with net arrivals in every year 1950–2100; largest 2022, smallest 1982; births, deaths, net migration and change now",
+      "Deaths above births in 1975, 2020 and every year from 2022 to 2100; births peak 1964",
+      "Fertility 2.1 or above in 1971, below every year from 1972; lowest 2023; life expectancy 2019 and 2020 dip",
+      "Second-densest in Europe (1 million+) after the Netherlands; fourth in Western Europe after Germany, France, the Netherlands; fourth-highest urban share in Europe",
+      "Peak 2044, natural decrease outweighs net arrivals after 2044, 2100 and 1950 totals; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 68 of 68 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
