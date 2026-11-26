@@ -1,0 +1,161 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/tunisia.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/tunisia/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const lowInflSince = Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y));
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const uMax = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const uMin = s.unemploymentPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const uRank = rankBy('unemploymentPct', L).find((r) => r.iso3 === c.iso3)!.rank;
+const remX = (rem!.value / v('remittances', 2015)!).toFixed(1);
+const avg = s.gdpGrowthPct.filter(([y]) => y >= 2000).reduce((a, [, x], _, arr) => a + x / arr.length, 0);
+
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita) && B.gdpRank === 92, 'record GDP; 92nd');
+assertClaim(lowInflSince === 2016 && iMax[0] === 2023 && iMax[1] > 9.3 && s.inflationPct[0][0] === 1984, 'inflation lowest since 2016; series peak 2023 in data from 1984');
+assertClaim(uMax[0] === 2011 && uMax[1] > 18.3 && uMin[0] === 2007 && uRank === 15 && unemp! > 15, 'unemployment peak 2011, low 2007; 15th highest');
+assertClaim(isMax(s.remittances) && isMax(s.remittancesPctGdp) && Number(remX) === 2.0, 'record remittances and share; about 2x 2015');
+assertClaim(g(2020) < -8.9 && g(2011) < 0 && g(2023) < 0.3 && avg > 2.5 && avg < 2.6, '2020 and 2011 contractions; 2023 near zero; average 2.5%');
+assertClaim(s.unemploymentPct.filter(([y]) => y >= 2015).every(([, x]) => x > 15) && u(2014) < 15 && unemp! > 100 / 7, 'unemployment above 15% since 2015; more than one in seven');
+
+const title = `Tunisia Economy ${L}: Slow Growth, Unemployment at ${pct(unemp!)} | AtlasFigures`;
+const description = `Growth of ${pct(growth)} took Tunisian GDP to ${usd(gdp)} for ${L}; modelled unemployment held at ${pct(unemp!)}. Inflation eased to ${pct(infl.value)}; remittances reached a record.`;
+
+const faq = [
+  { q: 'Why is unemployment so high in Tunisia?', a: `The modelled ILO series measures it but does not explain it: ${pct(unemp!)} for ${L}, ${ord(uRank)} highest among economies with an estimate. It peaked at ${pct(uMax[1])} in 2011 and was lowest in 2007, at ${pct(uMin[1])}.` },
+  { q: 'Is Tunisian growth picking up?', a: `Slightly — ${pct(g(2023))} in 2023, ${pct(g(L - 1))} in ${L - 1}, ${pct(growth)} in ${L}. Over 2000–${L}, growth averaged roughly ${pct(avg)}.` },
+  { q: 'Is inflation falling in Tunisia?', a: `Yes. Having peaked at ${pct(iMax[1])} in 2023 (Tunisia\'s highest since records start in 1984), inflation slid to ${pct(i(L - 1))} and then ${pct(infl.value)}, Tunisia\'s mildest since 2016.` },
+  { q: 'Do remittances matter for Tunisia?', a: `More than ever. Tunisians abroad sent ${usd(rem!.value)} in ${L}, close to double the 2015 sum, and ${pct(remPct!.value)} of GDP — records on both counts.` },
+  { q: 'Which recent years saw Tunisia\'s output fall?', a: `2020, with a ${pct(Math.abs(g(2020)))} drop, and before that 2011 (${signedPct(g(2011))}).` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Tunisia's economy in ${L}: modest growth, high joblessness, record remittances`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Tunisian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Tunisia', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Tunisia's economy: slow growth, stubborn joblessness</h1>
+        <p class="answer">
+          Tunisian GDP expanded <strong>{pct(growth)}</strong> in {L}, to <strong>{usd(gdp)}</strong>, but more than one in seven workers was jobless on the ILO's modelled estimate.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Tunisia economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Tunisia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Average growth near 2.5% a year since 2000; joblessness above 15% in each year from 2015.</p>
+
+        <div class="story-block prose">
+          <h2>Why does Tunisia's growth stay slow?</h2>
+          <p>The numbers show the pace, not its causes: {pct(g(2023))} in 2023, {pct(g(L - 1))} in {L - 1}, {pct(growth)} in {L}, and an average near {pct(avg)} a year across 2000–{L}. In dollars, though, output topped any earlier year at {usd(gdp)}.</p>
+        </div>
+        <LineChart
+          title={`Tunisian real GDP growth, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="Change in inflation-adjusted GDP, % per year."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How widespread is unemployment in Tunisia?</h2>
+          <p>Modelled ILO joblessness was {pct(unemp!)} in {L}, ranking {ord(uRank)} from the top worldwide. The series peaked in 2011 at {pct(uMax[1])}; its low point was 2007, {pct(uMin[1])}.</p>
+        </div>
+        <LineChart
+          title={`Tunisia's jobless rate, ${s.unemploymentPct[0][0]}–${L}`}
+          subtitle="Unemployment rate, % (ILO model estimate)."
+          points={s.unemploymentPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Have Tunisian price rises slowed?</h2>
+          <p>Yes. 2023 brought {pct(iMax[1])}, the most since Tunisian records began in 1984; inflation then cooled to {pct(i(L - 1))} and, in {L}, {pct(infl.value)} — below any year since 2016.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>What do Tunisians abroad send home?</h2>
+          <p>More than ever: {usd(rem!.value)} during {L}, close to twice the 2015 inflow and a record {pct(remPct!.value)} of GDP. GDP per person was {usdWhole(perHead)} ({intDollars(ppp!)} at PPP).</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Tunisia and North Africa: related pages</h2>
+          <ul>
+            <li><a href={path('/population/tunisia/')}>Tunisia's population</a></li>
+            <li><a href={path('/economy/algeria/')}>Algeria's economy</a></li>
+            <li><a href={path('/economy/morocco/')}>Morocco's economy</a></li>
+            <li><a href={path('/economy/egypt/')}>Egypt's economy</a></li>
+            <li><a href={path('/rankings/unemployment-rate-by-country/')}>Unemployment league table</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Tunisia in figures, selected years`}
+          subtitle="1961 (first GDP year), decades to 2010, 2011, then 2015 onward; the CSV has the full record."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/tunisia-economy.csv')} csvName="tunisia-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Five things people ask about Tunisia's economy</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Unemployment is the ILO's modelled estimate as published by the World Bank. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Tunisian economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Tunisia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>
