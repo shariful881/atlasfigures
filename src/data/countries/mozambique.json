@@ -1,0 +1,60 @@
+{
+  "slug": "mozambique",
+  "name": "Mozambique",
+  "demonym": "Mozambican",
+  "capital": "Maputo",
+  "iso3": "MOZ",
+  "code": "mz",
+  "continent": "Africa",
+  "wikipedia": "https://en.wikipedia.org/wiki/Mozambique",
+  "unName": "Mozambique",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1985,
+    1986,
+    1987,
+    1988,
+    1990,
+    1993,
+    1994,
+    1995,
+    2000,
+    2010,
+    2020,
+    2026,
+    2030,
+    2040,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/mozambique.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population 1950–2100, rank, share, growth, density, land area; 5th in Eastern Africa",
+      "1987 the only year of decline; largest net outflow 1987, net departures every year 1980–1992, net arrivals 1993–1995 with the 1994 high",
+      "Median age sixth-lowest among countries above 10 million; fertility third in Eastern Africa after Somalia and Burundi, 1972 high, below 2.1 only from 2087",
+      "Passes 100 million in 2091; 2050 and 2100 totals; rank 44 to 21; urban 1950/now/2050, majority from 2044; life expectancy 1950 and now",
+      "Civil-war wording against Encyclopaedia Britannica (Mozambique: formally ended in 1992; displaced at least four million); title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 70 of 70 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. The page links the timing to Britannica's dates but says the UN files give no reasons."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}

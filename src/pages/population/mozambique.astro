@@ -1,0 +1,237 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
+import mz from '../../data/countries/mozambique.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: 1987 is the only year of decline in the UN
+// series (a large net outflow), followed by large net arrivals in 1993–1995; one of the youngest populations of any
+// country above ten million; growth to past 100 million before 2100. Britannica gives the civil-war dates; the UN files
+// themselves record counts, not causes.
+const PAGE = '/population/mozambique/';
+const un = countryData(mz.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BRIT_URL = 'https://www.britannica.com/place/Mozambique';
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (mz.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+
+const falls = un.years.filter((r) => r.change < 0).map((r) => r.year);
+assertClaim(falls.length === 1 && falls[0] === 1987, '1987 is the only year with a falling population');
+const outMax = un.years.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+assertClaim(outMax.year === 1987, '1987 has the largest net outflow in the series');
+assertClaim(un.years.filter((r) => r.year >= 1980 && r.year <= 1992).every((r) => r.netMigrants < 0) && [1993, 1994, 1995].every((n) => y[n].netMigrants > 0), 'net outflow every year 1980–1992, net inflow 1993–1995');
+const inMax = un.years.reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+assertClaim(inMax.year === 1994, '1994 has the largest net inflow');
+
+const young = wpp.filter((d: any) => at(d).population >= 1e7).sort((a: any, b: any) => at(a).medianAge - at(b).medianAge).map((d: any) => d.iso3);
+assertClaim(young.indexOf('MOZ') === 5, 'sixth-youngest median age among countries above ten million');
+const eaf = wpp.filter((d: any) => d.subregion === 'Eastern Africa');
+const eafPop = [...eaf].sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(eafPop.indexOf('MOZ') === 4, 'fifth in Eastern Africa by population');
+const eafTfr = [...eaf].sort((a: any, b: any) => at(b).fertility - at(a).fertility).map((d: any) => d.iso3);
+assertClaim(eafTfr[0] === 'SOM' && eafTfr[1] === 'BDI' && eafTfr[2] === 'MOZ', 'third-highest fertility in Eastern Africa after Somalia and Burundi');
+const tfrTop = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(tfrTop.year === 1972, 'fertility high in 1972');
+const under = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(under === 2087, 'fertility goes under 2.1 only in 2087');
+const hundred = un.years.find((r) => r.population > 1e8)!.year;
+assertClaim(hundred === 2091 && un.years.every((r, i, a) => i === 0 || r.year <= 1988 || r.population > a[i - 1].population), 'passes 100 million in 2091; rising every year after 1988');
+assertClaim(c.worldRank === 44 && y[2100].worldRank === 21, '44th now, 21st by 2100');
+const climbs = wpp.filter((d: any) => at(d).population >= 1e7).map((d: any) => at(d).worldRank - at(d, 2100).worldRank).sort((a: number, b: number) => b - a);
+assertClaim(climbs.indexOf(c.worldRank! - y[2100].worldRank!) <= 7, 'among the largest rank climbs to 2100');
+const urbanHalf = un.years.find((r) => r.urbanPct != null && r.urbanPct > 50)!.year;
+assertClaim(urbanHalf === 2044, 'urban majority from 2044');
+
+const title = `Mozambique Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)} Million, the 1987 Dip and Growth Past 100 Million | AtlasFigures`;
+const description = `${millions(c.population)} Mozambicans in ${CURRENT_YEAR} (UN), half of them younger than ${dec(c.medianAge, 1)}. A single shrinking year, 1987, then uninterrupted growth that crosses 100 million in ${hundred}.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: mz.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+  { label: 'In 2100', value: millionsShort(y[2100].population) },
+];
+
+const rows = displayRows(un.years, mz.tableYears);
+
+const faq = [
+  { q: 'How populous is Mozambique?', a: `${millions(c.population)}, says the UN for mid-${CURRENT_YEAR}; Mozambique sits ${ord(c.worldRank!)} globally and fifth among Eastern African countries.` },
+  { q: "Has Mozambique's population ever gone down?", a: `Once, in 1987, by about ${int(Math.round(-y[1987].change / 1000))} thousand. Net departures that year, around ${int(Math.round(-y[1987].netMigrants / 1000))} thousand, outweighed natural increase; every later year shows growth.` },
+  { q: 'Why are Mozambicans so young?', a: `Births still far outnumber deaths, with each woman having ${dec(c.fertility, 2)} children on average, and half the population is under ${dec(c.medianAge, 1)}. Just five sizeable nations have a lower median age.` },
+  { q: 'When does Mozambique pass 100 million people?', a: `${hundred}, according to the UN medium variant, which closes the century with ${millions(y[2100].population)} Mozambicans and a ${ord(y[2100].worldRank!)}-place ranking.` },
+  { q: 'Where is Mozambique\'s capital?', a: 'Maputo, the capital, lies on the coast in the far south.' },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: mz.slug, name: mz.name, wikipedia: mz.wikipedia,
+  headline: `Mozambique's ${millions(c.population)}: the 1987 dip, a very young population and growth past 100 million`,
+  description,
+  datasetName: 'Mozambique population, net migration, fertility and urban share, 1950–2100',
+  datasetDescription: `Mid-year population of Mozambique for selected years from 1950 to ${CURRENT_YEAR} (each year 1985–1988 and 1993–1995 included), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: mz.published, updated: mz.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  extraCitations: [{ name: 'Mozambique', url: BRIT_URL, publisher: 'Encyclopaedia Britannica' }],
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Mozambique"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Mozambique', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Mozambique: one year of loss, then decades of growth</h1>
+        <LiveCounter
+          label="Mozambique: estimated population right now"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: ${CURRENT_YEAR} mid-year figure plus roughly ${int(c.change / 365)} a day`}
+        />
+        <p class="answer">
+          Mozambique, with close to <strong>{millions(c.population)}</strong> residents in {CURRENT_YEAR} per UN estimates, ranks {ord(c.worldRank!)} globally, and the median resident is just <strong>{dec(c.medianAge, 1)}</strong>. The UN series shows a fall in just one year, 1987; from there the medium variant climbs past 100 million in {hundred}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={mz.updated}>{longDate(mz.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Mozambique" code="mz" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>What made Mozambique's population fall in 1987?</h2>
+          <p>Departures outweighed births. Net emigration that year reached roughly {int(Math.round(-y[1987].netMigrants / 1000))} thousand, a record for Mozambique in the UN series, and over the calendar year the total slipped by {int(Math.round(-y[1987].change / 1000))} thousand. Net departures continued every year until 1992. Then the flow reversed: 1993 to 1995 show net arrivals, peaking at about {int(Math.round(y[1994].netMigrants / 1000))} thousand in 1994. Encyclopaedia Britannica dates the end of the civil war that followed independence to 1992 and says it displaced at least four million people; the UN files record the movements without giving reasons.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Net migration in Mozambique, selected years, UN estimates">
+          <div><span class="y">1987</span><div class="v">−{int(Math.round(-y[1987].netMigrants / 1000))}k</div><span class="d">Net departures</span></div>
+          <div><span class="y">1994</span><div class="v">+{int(Math.round(y[1994].netMigrants / 1000))}k</div><span class="d">Net arrivals</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">−{int(Math.round(-c.netMigrants / 1000))}k</div><span class="d">Net departures</span></div>
+        </div>
+        <LineChart
+          title="Mozambique's headcount from 1950, projected to 2100"
+          subtitle="Mid-year UN totals; the brief late-1980s dip is visible in the 1987 and 1988 points, and the dashed part is the medium projection."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Is Mozambique one of the world's youngest countries?</h2>
+          <p>Yes. Its median age, {dec(c.medianAge, 1)}, is lower than almost anywhere: only five countries with ten million or more inhabitants have a lower one. Fertility, {dec(c.fertility, 2)} per woman, is third-highest in Eastern Africa after Somalia and Burundi; it peaked at {dec(tfrTop.fertility, 2)} in {tfrTop.year}, and the UN projection does not bring it beneath 2.1 until {under}.</p>
+        </div>
+        <LineChart
+          title="Mozambican fertility, 1950 to 2050"
+          subtitle="Average births per woman in UN estimates, continued by the medium variant (dashed); line at 2.1."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'replacement, 2.1' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>When will Mozambique reach 100 million?</h2>
+          <p>In {hundred}, if the UN's medium assumptions hold. Mid-century brings {millions(y[2050].population)}; the century's close, {millions(y[2100].population)}, lifting Mozambique from {ord(c.worldRank!)} to {ord(y[2100].worldRank!)} in the world, one of the steepest climbs of any large country.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Will most Mozambicans live in cities?</h2>
+          <p>From {urbanHalf}, if World Urbanization Prospects is right. The urban share, by Mozambique's own definition, was {pct(y[1950].urbanPct!)} in 1950 and is {pct(c.urbanPct!)} now; the 2050 value is {pct(y[2050].urbanPct!)}. Over the same span life expectancy at birth has gone from {dec(y[1950].lifeExpectancy, 1)} years to {dec(c.lifeExpectancy, 1)}.</p>
+        </div>
+        <RelatedPages iso3={mz.iso3} name={mz.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Mozambique, 1950–2100, with the late-1980s and mid-1990s years"
+          subtitle="Rows 1985–1988 and 1993–1995 show the outflow and the return; later rows are UN projections."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${mz.slug}-population.csv`)}
+          csvName={`${mz.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Mozambique: common questions</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{mz.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+            <li><a href={BRIT_URL}>Encyclopaedia Britannica, "Mozambique"</a>: the civil war formally ending in 1992 and displacing at least four million people.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={mz.published}>{longDate(mz.published)}</time> · Updated <time datetime={mz.updated}>{longDate(mz.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Mozambique population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Mozambique" code="mz" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
