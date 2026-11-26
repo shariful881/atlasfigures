@@ -28,7 +28,7 @@ const UI_SELECTORS = [
   'script', 'style', 'svg', 'nav', 'header.site', 'footer',
   '.live', '.dates', '.segments', '.facts', '.facts-m', '.sheet',
   '.sources-details', '.vchip', '.legend', '.readout', '.chart-foot',
-  '.tcard-foot', '.table-scroll', '.btn-ghost', '.visually-hidden', '.rank-tools', '.rank-empty', '.map-zoom', '.map-legend', '.map-tip',
+  '.tcard-foot', '.table-scroll', '.btn-ghost', '.visually-hidden', '.rank-tools', '.rank-empty', '.map-zoom', '.map-legend', '.map-tip', '.clock', '.tfacts',
 ];
 
 const STOP = new Set(`a an the and or but of in on at to for from by with as is are was were be been being it its this that these those than then there their they them he she his her we our you your i not no so if into about over under up down out more most less least very also just only per each every all any some such which who whom whose what when where why how will would can could may might should shall do does did has have had one two`.split(' '));
@@ -36,7 +36,7 @@ const STOP = new Set(`a an the and or but of in on at to for from by with as is 
 // country data keyed by slug
 // Sections whose pages are written per country (each has its own editorial JSON folder).
 // Pages are compared across ALL sections: an economy page may not reuse a population page's wording either.
-const SECTIONS = [['population', 'src/data/countries'], ['economy', 'src/data/economy'], ['rankings', 'src/data/rankings']];
+const SECTIONS = [['population', 'src/data/countries'], ['economy', 'src/data/economy'], ['rankings', 'src/data/rankings'], ['time', 'src/data/cities']];
 const EXTRA = { population: ['src/data/pages'] }; // non-country pages in the same section (the World page)
 const countries = {}; // section → slug → country
 for (const [sec, dir] of SECTIONS) {

@@ -1,0 +1,45 @@
+---
+import CityTime from '../../components/CityTime.astro';
+import c from '../../data/cities/new-delhi.json';
+import { history, hoursAhead, hrs, dayExtremes, hm, assertClaim, JAN, JUL, Y, sunOn, solarNoonMin, clock , hmS, hmA } from '../../lib/cityFacts';
+
+const past = history(c.tz, 1900, Y + 1);
+const last = past[past.length - 1];
+assertClaim(last.year === 1945 && last.after === 330, 'India has kept UTC+5:30 since 1945');
+assertClaim(past.some((t) => t.after === 390 && t.year >= 1941 && t.year <= 1942), 'India used UTC+6:30 during 1941–1945');
+const ext = dayExtremes(c.lat, c.lon);
+const june = sunOn(c.tz, c.lat, c.lon, 6, 21), dec = sunOn(c.tz, c.lat, c.lon, 12, 21);
+const noon = solarNoonMin(c.tz, Y, 3, 21, c.lat, c.lon);
+assertClaim(noon > 12 * 60 + 15, 'solar noon in Delhi on 21 March is after 12:15');
+const dk = hoursAhead(c.tz, 'Asia/Dhaka', JAN);
+assertClaim(dk === 0.5 && hoursAhead(c.tz, 'Asia/Dhaka', JUL) === 0.5, 'Dhaka is half an hour ahead of Delhi');
+const lonW = hoursAhead('Europe/London', c.tz, JAN), lonS = hoursAhead('Europe/London', c.tz, JUL);
+const nyW = hoursAhead('America/New_York', c.tz, JAN), nyS = hoursAhead('America/New_York', c.tz, JUL);
+const faq = [
+  { q: 'Why does India have a half-hour time zone?', a: 'India Standard Time is set five and a half hours ahead of UTC, matching the 82.5° east meridian that runs through the middle of the country. One offset covers the whole of India.' },
+  { q: 'Does India use daylight saving time?', a: `No. The last change in the time zone history for India was on ${last.date}, when wartime UTC+6:30 ended. India Standard Time has been UTC+5:30 ever since.` },
+  { q: 'How many hours is India ahead of the UK?', a: `IST is ${hrs(lonW)} hours ahead of GMT and ${hrs(lonS)} ahead of BST.` },
+  { q: 'India vs New York: how many hours apart?', a: `India is ${hrs(nyW)} hours ahead of New York in winter and ${hrs(nyS)} hours ahead while the US is on daylight time.` },
+];
+---
+<CityTime city={c}
+  title="India Standard Time Now: Current Time in New Delhi | AtlasFigures"
+  description={`Live time in New Delhi and all of India: India Standard Time (IST) is UTC+5:30 all year, unchanged since ${last.year}. Daylight through the year and gaps to London, New York and Dhaka.`}
+  h1="Current time in New Delhi, India"
+  sunTitle={`Sunrise and sunset in New Delhi, ${Y}`}
+  sunSub="One row per month (the 21st), in IST. Delhi lies west of the meridian IST is based on, so solar noon comes after 12:00."
+  diffTitle="From New Delhi to nine cities: time gaps"
+  diffSub="How many hours each city is ahead (+) or behind (−) India. Half-hour values appear because IST is UTC+5:30."
+  faqTitle="India Standard Time: quick answers" faq={faq}>
+  <Fragment slot="answer">
+    <p>New Delhi, like the rest of India, keeps <strong>India Standard Time, UTC+5:30</strong>. There is no daylight saving: IST does not move with the seasons.</p>
+  </Fragment>
+  <Fragment slot="story">
+    <h2>Has India's time zone always been UTC+5:30?</h2>
+    <p>Not quite. During the Second World War the time zone database records clocks set to UTC+6:30, with the last switch back to UTC+5:30 on {last.date}. India has used UTC+5:30 without a break since then.</p>
+    <h2>Why is the sun highest after 12:15 in Delhi?</h2>
+    <p>New Delhi's longitude, about 77.2° east, is well west of the 82.5° meridian used for India Standard Time. On 21 March solar noon in Delhi comes at {clock(noon)}.</p>
+    <h2>How far is Delhi from Dhaka on the clock?</h2>
+    <p>Dhaka is half an hour ahead, all year. In Delhi the shortest day gives {hmA(ext.min)} of light, beginning at {dec.rise}; the longest gives {hmA(ext.max)}, with the sun up by {june.rise}.</p>
+  </Fragment>
+</CityTime>

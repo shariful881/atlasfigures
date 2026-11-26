@@ -1,0 +1,46 @@
+---
+import CityTime from '../../components/CityTime.astro';
+import c from '../../data/cities/paris.json';
+import { history, hoursAhead, hrs, dayExtremes, hm, assertClaim, JAN, JUL, Y, sunOn, solarNoonMin, clock, offsetMin , hmS, hmA } from '../../lib/cityFacts';
+
+const y26 = history(c.tz, Y, Y + 1);
+assertClaim(y26.length === 2 && y26[0].after === 120 && y26[1].after === 60, 'Paris is UTC+1 in winter and UTC+2 in summer');
+const lon26 = history('Europe/London', Y, Y + 1);
+assertClaim(y26.every((t, i) => t.at === lon26[i].at), 'Paris and London change clocks at the same instant');
+const war = history(c.tz, 1940, 1941).find((t) => t.after === 60 && t.before === 0)!;
+const since45 = Array.from({ length: Y - 1946 + 1 }, (_, i) => offsetMin(c.tz, Date.UTC(1946 + i, 0, 15)));
+assertClaim(Boolean(war) && since45.every((o) => o === 60), 'Paris moved from UTC+0 to UTC+1 in 1940 and every January since 1946 has been UTC+1');
+const noonW = solarNoonMin(c.tz, Y, 1, 21, c.lat, c.lon), noonS = solarNoonMin(c.tz, Y, 7, 21, c.lat, c.lon);
+const ext = dayExtremes(c.lat, c.lon);
+const june = sunOn(c.tz, c.lat, c.lon, 6, 21), dec = sunOn(c.tz, c.lat, c.lon, 12, 21);
+const lon = hoursAhead('Europe/London', c.tz, JAN), ny = hoursAhead('America/New_York', c.tz, JAN);
+const faq = [
+  { q: 'Is Paris one hour ahead of London?', a: `Yes, all year. Both cities change their clocks at the same moment, so Paris stays ${hrs(lon)} hour ahead in winter and in summer.` },
+  { q: 'What time zone is France in?', a: 'Metropolitan France uses Central European Time, UTC+1, outside summer, and Central European Summer Time, UTC+2, between the final Sundays of March and October.' },
+  { q: 'Why does it stay light so late in Paris in summer?', a: `Paris keeps UTC+2 in summer although it lies only 2.35° east of Greenwich. Sunset on 21 June is at ${june.set}, and in July the sun is highest at about ${clock(noonS)} on the clock.` },
+  { q: 'By how much does Paris lead New York?', a: `${hrs(ny)} hours for most of the year; one hour less during the short spells in March and late October when only one side has switched.` },
+];
+---
+<CityTime city={c}
+  title="Paris Time Now: Central European Time, CET/CEST | AtlasFigures"
+  description={`Live Paris clock, France: CET, one hour ahead of UTC, through the winter; CEST, two hours ahead, from ${y26[0].date.replace(/ \d{4}$/, '')} until ${y26[1].date}. Sun times and gaps.`}
+  h1="The time in Paris now"
+  changesTitle={`France's clock changes, ${Y} and ${Y + 1}`}
+  changesSub="Paris follows the European Union rule: clocks spring forward on March's final Sunday and fall back on October's, at 01:00 UTC."
+  sunTitle={`Paris sun times on the 21st of each month, ${Y}`}
+  sunSub="Clock time in Paris, including summer time. Note how late solar noon falls: the city is run on an offset set for a meridian far to its east."
+  diffTitle="Paris and nine cities: hours apart"
+  diffSub="Positive values are cities ahead of Paris. European cities move with Paris, so their gap is fixed; others shift during the year."
+  faqTitle="Paris time: frequently asked" faq={faq}>
+  <Fragment slot="answer">
+    <p>Through the colder months Paris shows <strong>Central European Time, UTC+1</strong>; during summer time it moves to <strong>UTC+2</strong>. In {Y} French clocks sprang ahead on {y26[0].date}; they return to winter time on {y26[1].date}, the same moments as in London.</p>
+  </Fragment>
+  <Fragment slot="story">
+    <h2>Why is Paris an hour ahead of London when it lies so close to Greenwich?</h2>
+    <p>Geography alone would put Paris on UTC+0: the city is only 2.35° east of the prime meridian. Records in the time zone database put Paris on UTC+1 from {war.date}, and every winter since 1946 it has stayed there, an hour ahead of the UK.</p>
+    <h2>When is midday by the sun in Paris?</h2>
+    <p>Much later than noon on the clock. On 21 January the sun is highest at {clock(noonW)}; on 21 July, with summer time, at {clock(noonS)}. That is why June evenings stay light until after {june.set}.</p>
+    <h2>How short are winter days in Paris?</h2>
+    <p>Only {hmS(ext.min)} at the December solstice, with a sunrise as late as {dec.rise}. June brings {hmS(ext.max)}.</p>
+  </Fragment>
+</CityTime>

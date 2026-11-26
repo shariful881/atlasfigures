@@ -1,0 +1,48 @@
+---
+import CityTime from '../../components/CityTime.astro';
+import c from '../../data/cities/los-angeles.json';
+import { history, hoursAhead, hrs, dayExtremes, hm, assertClaim, JAN, JUL, Y, sunOn, solarNoonMin , hmS, hmA } from '../../lib/cityFacts';
+
+const y26 = history(c.tz, Y, Y + 1);
+assertClaim(y26.length === 2 && y26[0].after === -420 && y26[1].after === -480, 'Los Angeles is UTC−8 in winter and UTC−7 in summer');
+const ny26 = history('America/New_York', Y, Y + 1);
+const sameNight = y26.every((t, i) => new Date(t.at).toLocaleDateString('en-GB', { timeZone: c.tz }) === new Date(ny26[i].at).toLocaleDateString('en-GB', { timeZone: 'America/New_York' }));
+assertClaim(sameNight, 'Los Angeles and New York change clocks on the same night');
+const tokyoW = hoursAhead(c.tz, 'Asia/Tokyo', JAN), tokyoS = hoursAhead(c.tz, 'Asia/Tokyo', JUL);
+const sydW = hoursAhead(c.tz, 'Australia/Sydney', JAN), sydS = hoursAhead(c.tz, 'Australia/Sydney', JUL);
+const delhiW = hoursAhead(c.tz, 'Asia/Kolkata', JAN);
+assertClaim(sydW === 19 && sydS === 17, 'Sydney is 19 hours ahead of LA in January and 17 in July');
+const ext = dayExtremes(c.lat, c.lon);
+const noonJun = solarNoonMin(c.tz, Y, 6, 21, c.lat, c.lon);
+assertClaim(noonJun > 12 * 60 + 40 && noonJun < 13 * 60 + 15, 'summer solar noon in LA is close to 1 p.m.');
+const june = sunOn(c.tz, c.lat, c.lon, 6, 21), dec = sunOn(c.tz, c.lat, c.lon, 12, 21);
+const faq = [
+  { q: 'Is Los Angeles on PST or PDT?', a: `It switches twice a year. PDT, seven hours behind UTC, began on ${y26[0].date} and lasts until ${y26[1].date}; outside those dates the city is on PST.` },
+  { q: 'What is the time gap from Los Angeles to Tokyo?', a: `During California's winter Tokyo leads by ${hrs(tokyoW)} hours; once Pacific Daylight Time starts, by ${hrs(tokyoS)}. Japan does not change its clocks, so the evening in LA is already the next morning in Tokyo.` },
+  { q: 'Is it tomorrow in Australia when it is today in Los Angeles?', a: `Usually, yes. Sydney is ${hrs(sydW)} hours ahead in January and ${hrs(sydS)} hours ahead in July, so from ${24 - sydW} a.m. in January (${24 - sydS} a.m. in July) Los Angeles time onwards, it is already the next day in Sydney.` },
+  { q: 'How many hours separate Los Angeles from India?', a: `${hrs(delhiW)} hours, with New Delhi ahead, while California is on standard time. During Pacific Daylight Time the gap narrows by one hour, because India never changes its clocks.` },
+];
+---
+<CityTime city={c}
+  title="Los Angeles Time Now: Pacific Time Clock (PST/PDT) | AtlasFigures"
+  description={`Current time in Los Angeles, California. Clocks read PST, eight hours behind UTC, until spring; PDT runs ${y26[0].date.replace(/ \d{4}$/, '')} to ${y26[1].date}. Sun times and world time gaps.`}
+  h1="Time right now in Los Angeles"
+  changesTitle={`Pacific Time clock changes, ${Y} and ${Y + 1}`}
+  changesSub="California follows the federal US dates: forward in mid-March, back in early November, always at 2 a.m. local time."
+  sunTitle={`Los Angeles sunrise and sunset by month, ${Y}`}
+  sunSub="Twelve sample dates, each the 21st. Summer rows use Pacific Daylight Time, which is why solar noon then falls close to 1 p.m."
+  diffTitle="Hours between Los Angeles and other cities"
+  diffSub="Every city on this list is ahead of Los Angeles, the westernmost of the ten; numbers change when either side switches its clocks."
+  faqTitle="Pacific Time in Los Angeles: questions people ask" faq={faq}>
+  <Fragment slot="answer">
+    <p>Los Angeles follows <strong>Pacific Time</strong>, which is <strong>UTC−8</strong> (PST) during the winter months and UTC−7 (PDT) between {y26[0].date} and {y26[1].date}. It is always three hours behind New York.</p>
+  </Fragment>
+  <Fragment slot="story">
+    <h2>Why is Los Angeles behind almost everywhere else?</h2>
+    <p>It sits on the Pacific coast at about 118° west, so its clocks are set eight hours behind UTC. Of the ten cities AtlasFigures tracks, it is the furthest west: in January Sydney is {hrs(sydW)} hours ahead and Tokyo {hrs(tokyoW)}, which means a late-afternoon call from LA reaches Asia and Australia the next morning.</p>
+    <h2>Do Los Angeles and New York change clocks on the same day?</h2>
+    <p>Yes. Both switch at 2 a.m. local time on the same Sundays, three hours apart in real time, so the coast-to-coast gap stays at three hours through the year. In {Y} the spring change falls on {y26[0].date}.</p>
+    <h2>How much daylight does Los Angeles get?</h2>
+    <p>A winter day here lasts {hmS(ext.min)}, a summer one up to {hmS(ext.max)}. Midsummer sunset comes at {june.set} Pacific Daylight Time; by 21 December it is dark soon after {dec.set}.</p>
+  </Fragment>
+</CityTime>
