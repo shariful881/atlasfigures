@@ -177,7 +177,9 @@ for (const file of pages) {
     const sameSub = others.filter((u) => u.subregion === me.subregion).length;
     const sameReg = others.filter((u) => u.region === me.region).length;
     const want = Math.min(5, sameReg); // subregion first, topped up from the region
-    ok(linked.filter((iso) => idx.find((u) => u.iso3 === iso)?.subregion === me.subregion).length === Math.min(5, sameSub), where, 'related pages skip a same-subregion country');
+    const subLinked = linked.filter((iso) => idx.find((u) => u.iso3 === iso)?.subregion === me.subregion).length;
+    // orphan repair (src/lib/related.ts) may give one same-subregion slot of a full block to a same-region page nobody else links
+    ok(subLinked === Math.min(5, sameSub) || (sameSub >= 5 && subLinked === 4 && linked.length === 5), where, 'related pages skip a same-subregion country');
     ok(linked.length === want, where, `related pages link ${linked.length} countries, expected ${want}`);
     for (const iso of linked) {
       const u = idx.find((x) => x.iso3 === iso);

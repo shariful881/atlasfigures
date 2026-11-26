@@ -3,7 +3,8 @@
 // topped up to 5 from the same UN region the same way. Then an orphan pass: a page that no other page links to takes over the
 // least-close region top-up slot (never a same-subregion slot, never the anchor) on the same-region page closest to it in size,
 // as long as the country it replaces stays linked from somewhere else. If no page has a top-up slot to spare, the closest-sized
-// same-region page with a single region slot gives that slot (its anchor) to the orphan, again only if the anchor stays linked elsewhere.
+// same-region page with a single region slot gives that slot (its anchor) to the orphan, again only if the anchor stays linked elsewhere;
+// if same-region pages have no region slot at all, the closest-sized one gives up its least-close same-subregion slot instead.
 import index from '../data/wpp/index.json';
 
 const pageCountries = Object.values(import.meta.glob('../data/countries/*.json', { eager: true, import: 'default' })) as any[];
@@ -63,6 +64,22 @@ for (const orphan of entries) {
     const reg = picks.get(h.iso3)!.region;
     if ((inbound().get(reg[0].iso3) ?? 0) < 2) continue;
     reg[0] = orphan;
+    break;
+  }
+  if ((inbound().get(orphan.iso3) ?? 0) > 0) continue;
+  // last resort when same-region pages have no region slot at all (e.g. Mexico once South America had six pages):
+  // the closest-sized such page gives its least-close same-subregion slot (never the anchor) to the orphan,
+  // if the country it drops stays linked from elsewhere
+  const full = entries
+    .filter((h) => h !== orphan && h.un.region === orphan.un.region && h.un.subregion !== orphan.un.subregion && picks.get(h.iso3)!.region.length === 0 && picks.get(h.iso3)!.sub.length > 1)
+    .sort((a, b) => gap(a, orphan) - gap(b, orphan) || a.iso3.localeCompare(b.iso3));
+  for (const h of full) {
+    const p = picks.get(h.iso3)!;
+    const counts = inbound();
+    const idx = [...p.sub.keys()].slice(1).reverse().find((i) => (counts.get(p.sub[i].iso3) ?? 0) > 1);
+    if (idx === undefined) continue;
+    p.sub.splice(idx, 1);
+    p.region.push(orphan);
     break;
   }
 }

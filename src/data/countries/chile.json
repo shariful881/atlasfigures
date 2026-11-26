@@ -1,0 +1,59 @@
+{
+  "slug": "chile",
+  "name": "Chile",
+  "demonym": "Chilean",
+  "capital": "Santiago",
+  "iso3": "CHL",
+  "code": "cl",
+  "continent": "Americas",
+  "wikipedia": "https://en.wikipedia.org/wiki/Chile",
+  "unName": "Chile",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    1991,
+    2000,
+    2010,
+    2015,
+    2018,
+    2020,
+    2026,
+    2030,
+    2036,
+    2040,
+    2041,
+    2050,
+    2056,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/chile.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area",
+      "Lowest fertility in South America; fifth-lowest among countries and areas above 10 million after South Korea, Taiwan, Ukraine, China; under 2.1 every year from 1999; 1950, 2015, now; births 1991 high and now",
+      "Peak 2041; natural decrease every year from 2036; below today from 2056; 2100 total about a third lower; rank now and 2100",
+      "Net emigration every year 1950–1991 and net immigration every year since; largest inflow 2018; now",
+      "Highest life expectancy in South America; median age 1990, now, 2050 (oldest among South American countries above 1 million, now and 2050); urban share; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 65 of 65 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Migration is described as balances only."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
