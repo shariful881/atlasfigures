@@ -1,0 +1,62 @@
+{
+  "slug": "panama",
+  "name": "Panama",
+  "demonym": "Panamanian",
+  "capital": "Panama City",
+  "iso3": "PAN",
+  "code": "pa",
+  "continent": "Americas",
+  "wikipedia": "https://en.wikipedia.org/wiki/Panama",
+  "unName": "Panama",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1962,
+    1970,
+    1980,
+    1981,
+    1990,
+    2000,
+    2010,
+    2015,
+    2018,
+    2020,
+    2024,
+    2025,
+    2026,
+    2030,
+    2040,
+    2050,
+    2060,
+    2070,
+    2080,
+    2090,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/panama.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; about 5.4 times 1950",
+      "Fertility 2024–2026, first under 2.1 in 2025; high 1962; births peak 2015",
+      "Sex ratio about 100 now, about 105 in 1950",
+      "Life expectancy second in Central America after Costa Rica; urban majority 1981; peak 2080",
+      "title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) — 66 of 66 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
