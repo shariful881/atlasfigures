@@ -1,0 +1,201 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import WorldMap from '../../components/WorldMap.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/maternal-mortality-by-country.json';
+import { econData, econMeta, aggregate, valueIn, rankBy, notRanked, rankingYear } from '../../lib/econ';
+import { assertClaim, ord } from '../../lib/figures';
+import { commonName, pagesOf } from '../../lib/names';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/); the estimates are the UN MMEIG's.
+const PAGE = '/rankings/maternal-mortality-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WDI = 'World Bank, World Development Indicators (UN MMEIG estimates)';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = meta.verification?.checkedOn;
+const name = commonName;
+const M = econMeta.indicators.maternalMortality;
+
+const L = rankingYear('maternalMortality');
+const ranked = rankBy('maternalMortality', L);
+const N = ranked.length;
+const missing = notRanked('maternalMortality', L).filter((m) => m.latestYear != null);
+const WS = aggregate('WLD').series;
+const world = valueIn(WS.maternalMortality, L)!;
+const world2000 = valueIn(WS.maternalMortality, 2000)!;
+const ssa = valueIn(aggregate('SSF').series.maternalMortality, L)!;
+const sas = valueIn(aggregate('SAS').series.maternalMortality, L)!;
+const byIso = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const mm = (x: string, y: number) => valueIn(econData(x).series.maternalMortality, y);
+const top20Ssa = ranked.slice(0, 20).filter((r) => r.region === 'Sub-Saharan Africa').length;
+const fall = Math.round((1 - world / world2000) * 100);
+const bgdFall = Math.round((1 - byIso('BGD').value / mm('BGD', 2000)!) * 100);
+const rose = ranked.filter((r) => { const b = mm(r.iso3, 2000); return b != null && r.value > b; }).length;
+const wYears = WS.maternalMortality!.filter(([y]) => y >= 2000 && y <= L);
+
+assertClaim(M.aggregation === 'Weighted average' && L === 2023 && N > 190 && missing.length === 0, 'world weighted average; 2023; all have 2023');
+assertClaim(ranked[0].iso3 === 'NGA' && ranked[0].value > 990 && ranked[1].iso3 === 'TCD' && ranked[2].value === ranked[3].value && ['CAF', 'SSD'].includes(ranked[2].iso3) && ['CAF', 'SSD'].includes(ranked[3].iso3), 'Nigeria first near 1,000; Chad; CAR and South Sudan tied');
+assertClaim(top20Ssa === 19 && ranked.slice(0, 20).find((r) => r.region !== 'Sub-Saharan Africa')!.iso3 === 'AFG' && byIso('AFG').rank === 7, '19 of top 20 SSA; Afghanistan 7th');
+assertClaim(ranked.at(-1)!.value === 1 && ranked.at(-2)!.value === 1 && ['NOR', 'BLR'].every((x) => byIso(x).value === 1), 'Norway and Belarus 1');
+assertClaim(fall === 40 && valueIn(WS.maternalMortality, 2021)! > valueIn(WS.maternalMortality, 2020)! + 25 && valueIn(WS.maternalMortality, 2022)! < valueIn(WS.maternalMortality, 2020)!, 'down 40% since 2000; 2021 spike');
+assertClaim(byIso('USA').value > mm('USA', 2000)! && byIso('USA').value > byIso('GBR').value * 2, 'US higher than in 2000, more than double UK');
+assertClaim(bgdFall === 78 && byIso('BGD').value < world && byIso('IND').value < byIso('BGD').value && byIso('PAK').value > byIso('BGD').value && sas < world, 'Bangladesh down 78%, below world; India lower; Pakistan higher');
+assertClaim(ssa > 440 && rose > 5 && rose < 30, 'SSA 448; some rose');
+
+const title = `Maternal Mortality by Country ${L}: Ratios for ${N} Places | AtlasFigures`;
+const description = `About ${world} women died from pregnancy or childbirth for every 100,000 live births worldwide in ${L}, ${fall}% fewer than in 2000. Nigeria heads the list.`;
+
+const cards = [
+  { label: 'World ratio', value: String(world), year: L, note: 'per 100,000 births' },
+  { label: 'In 2000', value: String(world2000), year: 2000, note: 'per 100,000 births' },
+  { label: 'Sub-Saharan Africa', value: String(ssa), year: L, note: 'per 100,000 births' },
+  { label: 'South Asia', value: String(sas), year: L, note: 'per 100,000 births' },
+];
+
+const rows = ranked.map((r) => {
+  const pg = pagesOf(r.iso3); const site = pg.economy ?? pg.population;
+  const b = mm(r.iso3, 2000);
+  return {
+    rank: r.rank, iso3: r.iso3, name: name(r.iso3), site, href: site ? path(site) : null, region: r.region,
+    bar: Math.min(r.value / 1000, 1), value: r.value.toLocaleString('en-US'),
+    cells: [b != null ? b.toLocaleString('en-US') : '–', econData(r.iso3).incomeGroup ?? '–'],
+  };
+});
+const mapFmt = (v: number) => `${Math.round(v)}`;
+const mapRows = ranked.map((r) => ({ iso3: r.iso3, name: name(r.iso3), rank: r.rank, raw: r.value, value: `${r.value.toLocaleString('en-US')} per 100,000` }));
+const regions = [...new Set(ranked.map((r) => r.region))].sort();
+
+const faq = [
+  { q: 'Which country has the highest maternal mortality rate?', a: `Nigeria. Its ${L} estimate is ${ranked[0].value} maternal deaths for each 100,000 babies born. Chad (${ranked[1].value}) comes next, then the Central African Republic and South Sudan (${ranked[2].value} each).` },
+  { q: 'Where is maternal mortality lowest?', a: `Norway and Belarus, each with a ratio of ${ranked.at(-1)!.value}, followed by Australia, Israel and Poland at ${byIso('AUS').value}.` },
+  { q: 'Is maternal mortality falling?', a: `Globally, yes: a ratio of ${world} in ${L} against ${world2000} in 2000. The trend was not smooth — the ratio jumped to ${valueIn(WS.maternalMortality, 2021)} in 2021 before dropping back.` },
+  { q: 'Why is US maternal mortality higher than in 2000?', a: `The estimates show the change, not its causes: ${byIso('USA').value} deaths per 100,000 births in ${L} against ${mm('USA', 2000)} in 2000 — more than twice the UK\'s ${byIso('GBR').value}. It is one of ${rose} countries and areas whose ratio is higher than in 2000.` },
+  { q: 'What is the maternal mortality ratio in Bangladesh?', a: `${byIso('BGD').value} in ${L}, down ${bgdFall}% from ${mm('BGD', 2000)} in 2000 and below the world figure. India\'s ratio is ${byIso('IND').value} and Pakistan\'s ${byIso('PAK').value}.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Maternal mortality by country ${L}: ${N} countries and areas ranked per 100,000 live births`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'CreativeWork', name: 'World Development Indicators', url: WDI_URL, publisher: { '@type': 'Organization', name: 'The World Bank' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `Maternal mortality ratio by country, ${L}`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Maternal mortality ratio by country, ${L}`,
+    description: `Modelled maternal mortality ratio (deaths per 100,000 live births) for ${N} countries and areas in ${L}, ranked, with the 2000 ratio and the World Bank income group, from the World Development Indicators (update of ${longDate(M.wdiLastUpdated)}). The estimates are those of the UN Maternal Mortality Estimation Inter-Agency Group.`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WDI_URL], temporalCoverage: String(L),
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['Maternal mortality ratio (modeled estimate, per 100,000 live births)'],
+    dateModified: iso(UPDATED), license: econMeta.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/maternal-mortality-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="Maternal mortality" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Maternal mortality by country', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>Maternal mortality by country, {L}</h1>
+    <p class="answer">For every 100,000 live births in {L}, an estimated <strong>{world}</strong> women died from causes linked to pregnancy or childbirth, down from {world2000} in 2000. Nigeria's ratio, <strong>{ranked[0].value}</strong>, is the highest; Norway and Belarus report the lowest.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`Maternal mortality ranking, ${L}`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="map">Map</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="map" aria-label="Map" hidden-mobile>
+      <WorldMap
+        id="map-h" title={`Maternal deaths for every 100,000 live births, ${L}`}
+        subtitle="Modelled UN MMEIG estimates. Shades split the countries and areas into five equal groups, from the lowest ratios to the highest."
+        rows={mapRows} fmt={mapFmt}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+    </section>
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`Maternal mortality ratio, ${L}`}
+        subtitle="Deaths per 100,000 live births, highest first, next to each place's 2000 figure and its income classification."
+        valueLabel="Per 100,000 births"
+        cols={[{ label: 'In 2000' }, { label: 'Income group', cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={regions}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        csv={path('/data/maternal-mortality-by-country.csv')} csvName="maternal-mortality-by-country.csv"
+        licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+      />
+      <p class="note">Bars are drawn to a maximum of 1,000 per 100,000 births. Every country or area with an MMEIG estimate has a {L} value, so none is left out.</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>How many women die in childbirth worldwide?</h2>
+        <p>About {world} for every 100,000 live births in {L}, according to modelled UN estimates — a {fall}% decline from {world2000} in 2000. The path was uneven: the world ratio rose to {valueIn(WS.maternalMortality, 2021)} in 2021, then fell back to {valueIn(WS.maternalMortality, 2022)} in 2022.</p>
+      </div>
+      <LineChart
+        title={`Maternal mortality ratio, world, ${wYears[0][0]}–${L}`}
+        subtitle="Maternal deaths for each 100,000 babies born alive; the World Bank's global figure weights each country by its births."
+        points={wYears.map(([x, y]) => ({ x, y }))}
+        format="plain" unit="per 100,000 births" highlight={L} estimateLabel="World Bank data"
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+
+      <div class="story-block prose">
+        <h2>Which countries have the most maternal deaths per birth?</h2>
+        <p>Nineteen of the twenty highest ratios are in sub-Saharan Africa, where the regional figure was {ssa}; the exception is Afghanistan, {ord(byIso('AFG').rank)} at {byIso('AFG').value}. <a href={path('/economy/nigeria/')}>Nigeria</a> tops the list with {ranked[0].value}, followed by Chad ({ranked[1].value}) and, tied, the Central African Republic and South Sudan ({ranked[2].value}).</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Has maternal mortality risen anywhere?</h2>
+        <p>Yes. Set against 2000, the {L} ratio is higher in {rose} places. They include the <a href={path('/economy/united-states/')}>United States</a>, where the ratio went from {mm('USA', 2000)} to {byIso('USA').value} — more than double the United Kingdom's {byIso('GBR').value}.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>What is the maternal mortality ratio in South Asia?</h2>
+        <p>{sas} per 100,000 births for the region in {L}, below the world figure. <a href={path('/economy/bangladesh/')}>Bangladesh</a> stood at {byIso('BGD').value}, down {bgdFall}% from {mm('BGD', 2000)} in 2000; the Indian ratio was {byIso('IND').value} and the Pakistani one {byIso('PAK').value}.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Maternal mortality: frequent questions</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(M.wdiLastUpdated)}): maternal mortality ratio, modelled estimate per 100,000 live births (SH.STA.MMRT), from <em>Trends in Maternal Mortality</em> by the UN Maternal Mortality Estimation Inter-Agency Group (WHO, UNICEF, UNFPA, World Bank Group). World and regional figures: the World Bank's weighted averages. Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          <li>Related page: <a href={path('/rankings/child-mortality-by-country/')}>child mortality by country</a>.</li>
+        </ul>
+        <p class="note">A maternal death is the death of a woman from pregnancy-related causes while pregnant or within 42 days of the end of a pregnancy. Many ratios come from a statistical model rather than from counted deaths, and the World Bank notes that their reliability is generally unknown; each estimation round revises the whole series, so figures should not be compared with older editions. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Maternal mortality by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+</style>

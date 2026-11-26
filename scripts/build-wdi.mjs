@@ -36,6 +36,9 @@ export const LABELS = {
   'IT.CEL.SETS.P2': { key: 'mobilePer100', label: 'Mobile subscriptions', unit: 'per 100 people' },
   'IT.CEL.SETS': { key: 'mobileSubs', label: 'Mobile subscriptions', unit: 'subscriptions' },
   'IT.NET.BBND.P2': { key: 'broadbandPer100', label: 'Fixed broadband subscriptions', unit: 'per 100 people' },
+  'SH.DYN.MORT': { key: 'under5Mortality', label: 'Under-5 mortality', unit: 'deaths per 1,000 live births' },
+  'SP.DYN.IMRT.IN': { key: 'infantMortality', label: 'Infant mortality', unit: 'deaths per 1,000 live births' },
+  'SH.STA.MMRT': { key: 'maternalMortality', label: 'Maternal mortality ratio', unit: 'deaths per 100,000 live births (modelled estimate)' },
 };
 
 // ---------- CSV (same parser rules as build-data.mjs) ----------
