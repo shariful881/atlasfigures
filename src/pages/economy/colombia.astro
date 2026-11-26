@@ -1,0 +1,163 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/colombia.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/colombia/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const lac = rankBy('gdp', L).filter((r) => r.region === 'Latin America & Caribbean');
+const remRank = rankBy('remittances', rem!.year).find((r) => r.iso3 === c.iso3)!.rank;
+const remX = (rem!.value / v('remittances', 2015)!).toFixed(1);
+const negs = s.gdpGrowthPct.filter(([, x]) => x < 0).map(([y]) => y);
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const uMax = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const lowUSince = Math.max(...s.unemploymentPct.filter(([y, x]) => y < L && x < unemp!).map(([y]) => y));
+const hiInfl23 = Math.max(...s.inflationPct.filter(([y, x]) => y < 2023 && x > i(2023)).map(([y]) => y));
+const lowInflSince = Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y));
+const hiGrowSince = Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < L && x > growth).map(([y]) => y));
+
+assertClaim(isMax(s.gdp) && B.gdpRank === 35 && lac.findIndex((r) => r.iso3 === c.iso3) === 3, 'record GDP; 35th; fourth in Latin America');
+assertClaim(negs.join() === '1999,2020' && s.gdpGrowthPct[0][0] === 1961, 'only two declines since 1961');
+assertClaim(lowUSince === 1994 && s.unemploymentPct[0][0] === 1991 && uMax[0] === 2000, 'unemployment lowest since 1994; peak 2000');
+assertClaim(hiInfl23 === 1998 && infl.year === L && lowInflSince === 2021, '2023 inflation highest since 1998; latest lowest since 2021');
+assertClaim(hiGrowSince === 2022, 'growth fastest since 2022');
+assertClaim(isMax(s.remittances) && rem!.value > 2.5 * v('remittances', 2015)! && remRank === 17, 'record remittances, 2.5x 2015, 17th');
+
+const title = `Colombia Economy ${L}: Record GDP, Jobless Rate Falls | AtlasFigures`;
+const description = `Output hit ${usd(gdp)} in ${L}, a high for Colombia and fourth in Latin America. The jobless rate dropped to ${pct(unemp!)}, lowest since 1994, while remittances set their own record at ${usd(rem!.value)}.`;
+
+const faq = [
+  { q: 'How big is Colombia\'s economy?', a: `Its ${L} GDP — ${usd(gdp)}, the most ever — ranks ${ord(B.gdpRank!)} globally and fourth in the World Bank\'s Latin American and Caribbean region.` },
+  { q: 'In which years did Colombia\'s economy contract?', a: `Just 1999 and 2020 since 1961; the 2020 drop was ${pct(Math.abs(g(2020)))}.` },
+  { q: 'How many Colombians are out of work?', a: `${pct(unemp!)} of the workforce in ${L} under the ILO\'s model — Colombia\'s best since 1994. Joblessness peaked at ${pct(uMax[1])} in 2000.` },
+  { q: 'Is inflation in Colombia under control?', a: `It has eased. The 2023 rate of ${pct(i(2023))} was Colombia\'s highest since 1998; it then slowed to ${pct(infl.value)} by ${L}, its slowest pace since 2021.` },
+  { q: 'Do remittances matter to Colombia\'s economy?', a: `${usd(rem!.value)} came in ${rem!.year}, the highest ever, worth ${pct(remPct!.value)} of GDP; Colombia ranks ${ord(remRank)}.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Colombia's economy ${L}: record output, the lowest unemployment since 1994 and record remittances`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Colombian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Colombia', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Colombia's economy: steady growth, fewer jobless</h1>
+        <p class="answer">
+          Colombian output climbed to <strong>{usd(gdp)}</strong> in {L}, its highest ever, on growth of {pct(growth)}. Joblessness dropped to <strong>{pct(unemp!)}</strong>, a low not seen since 1994.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Colombia economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Colombia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Since 1961 Colombia's economy has contracted only twice, and transfers from its emigrants are at an all-time high.</p>
+
+        <div class="story-block prose">
+          <h2>How rarely has Colombia's economy shrunk?</h2>
+          <p>Twice since 1961: in 1999 and in 2020, when real GDP fell {pct(Math.abs(g(2020)))}. Growth in {L} was {pct(growth)}, the fastest since 2022.</p>
+        </div>
+        <LineChart
+          title={`Growth of the Colombian economy, 1961–${L}`}
+          subtitle="Real GDP, annual change in per cent; only 1999 and 2020 are below zero."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Is Colombian unemployment falling?</h2>
+          <p>Yes. At {pct(unemp!)} in {L}, the ILO-modelled rate is Colombia's lowest since 1994, well down from the {pct(uMax[1])} peak of 2000.</p>
+        </div>
+        <LineChart
+          title={`Colombia's jobless rate, 1991–${L}`}
+          subtitle="Share of Colombian workers without a job, modelled by the ILO, %."
+          points={s.unemploymentPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>What happened to inflation in Colombia?</h2>
+          <p>It surged in 2023 to {pct(i(2023))}, Colombia's steepest rise in prices since 1998. By {L} it had come down to {pct(infl.value)}, the mildest since 2021.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Are remittances to Colombia at a record?</h2>
+          <p>Record inflows of {usd(rem!.value)} arrived in {rem!.year}, roughly {remX}-fold the 2015 total — {pct(remPct!.value)} of GDP, {ord(remRank)} worldwide. Overall output was {usd(gdp)}, or {usdWhole(perHead)} a head ({intDollars(ppp!)} in PPP terms).</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Colombia and South America: related pages</h2>
+          <ul>
+            <li><a href={path('/population/colombia/')}>Colombia's population</a></li>
+            <li><a href={path('/economy/argentina/')}>Argentina's economy</a></li>
+            <li><a href={path('/economy/brazil/')}>Brazil's economy</a></li>
+            <li><a href={path('/economy/mexico/')}>Mexico's economy</a></li>
+            <li><a href={path('/rankings/remittances-by-country/')}>Remittances by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Colombian economic indicators for selected years, 1960–${L}`}
+          subtitle="1999 and 2000 appear with the latest years; the downloadable CSV has all of them."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/colombia-economy.csv')} csvName="colombia-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Colombia's economy in brief: FAQs</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">"Latin America" here means the World Bank's Latin America &amp; Caribbean region. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Colombian economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Colombia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

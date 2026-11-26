@@ -1,0 +1,44 @@
+{
+  "slug": "south-africa",
+  "name": "South Africa",
+  "demonym": "South African",
+  "capital": "Pretoria",
+  "iso3": "ZAF",
+  "code": "za",
+  "continent": "Africa",
+  "wikipedia": "https://en.wikipedia.org/wiki/South_Africa",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1960,
+    1970,
+    1980,
+    1990,
+    2000,
+    2007,
+    2009,
+    2011,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/econ-batch7.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; then the rendered text was read by hand",
+    "what": "Every figure in the direct answer, indicator cards, Key facts, story, comparison figures, table, CSV, FAQ, title, description and JSON-LD, and the claim behind each sentence (records, 'since' years, rank positions, regional comparisons, World Bank country notes)",
+    "against": "World Bank WDI bulk files and country metadata (update 11 November 2026, CC BY 4.0); World Bank regions (Sub-Saharan Africa, Middle East & North Africa, Latin America & Caribbean)",
+    "result": "All 3,149 automated comparisons across the five pages matched; Argentina's inflation is shown for 2024, the last year in the World Bank series, and Ethiopia's remittances for 2024; unsourced wording (an 'exchange-rate regime change' and 'birr liberalised' note for Ethiopia, 'few economies swing as much' for Argentina, a 'mostly' judgement for Colombia) was removed before publishing"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: World Bank WDI figures (update of 11 November 2026)."
+    }
+  ]
+}
