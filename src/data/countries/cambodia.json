@@ -1,0 +1,63 @@
+{
+  "slug": "cambodia",
+  "name": "Cambodia",
+  "demonym": "Cambodian",
+  "capital": "Phnom Penh",
+  "iso3": "KHM",
+  "code": "kh",
+  "continent": "Asia",
+  "wikipedia": "https://en.wikipedia.org/wiki/Cambodia",
+  "unName": "Cambodia",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1974,
+    1975,
+    1976,
+    1977,
+    1978,
+    1979,
+    1980,
+    1988,
+    1990,
+    1994,
+    1996,
+    2000,
+    2010,
+    2020,
+    2026,
+    2030,
+    2040,
+    2050,
+    2078,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/cambodia.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; seventh in South-Eastern Asia",
+      "1974 high, mid-year totals falling every year 1975–1979, 1979 low (about a quarter lost, 1.7 million), 1974 level passed in 1988, rising every year since; more than three times the 1979 low today",
+      "Life expectancy 1974, 1977 (lowest), 1979; under 15 in 1975–1978; births 1974, 1977 (about half), 1994 high",
+      "Men per 100 women 1980 low and now; net arrivals every year 1992–1997, largest 1996",
+      "Life expectancy 2000 and now (largest gain in South-Eastern Asia); infant mortality 2000 and now; urban share 2010 and now (nearly double); peak 2078; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 74 of 74 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file",
+      "Encyclopaedia Britannica, What was the impact of the Khmer Rouge on Cambodia? (read 2026-11-26): regime 1975–79; deaths of at least 1.5 million"
+    ],
+    "result": "All figures match. Historical context is limited to what Britannica states; the UN series is described as counts."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
