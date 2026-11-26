@@ -8,13 +8,14 @@ import { byPopulation, byDensity } from './popRankings';
 import { worldData, byYear, CURRENT_YEAR, int, pct, people } from './figures';
 import { commonName, iso2 } from './names';
 
-export type Topic = 'population' | 'economy' | 'energy' | 'telecom' | 'health';
+export type Topic = 'population' | 'economy' | 'energy' | 'telecom' | 'health' | 'geography';
 export const TOPICS: { key: Topic; label: string; text: string }[] = [
   { key: 'population', label: 'Population', text: 'How many people live in each place, and how closely packed they are.' },
   { key: 'economy', label: 'Economy', text: 'Output, income, prices, jobs, trade and money sent home from abroad.' },
   { key: 'energy', label: 'Energy and climate', text: 'Fossil CO₂ and how much electricity comes from renewables.' },
   { key: 'telecom', label: 'Internet and mobile', text: 'Who is online and how many phone and broadband lines there are.' },
   { key: 'health', label: 'Health', text: 'Survival of mothers and young children.' },
+  { key: 'geography', label: 'Land and forests', text: 'How much land each country has and how much of it is forest.' },
 ];
 
 export type RankingCard = {
@@ -83,6 +84,8 @@ export function rankingCards(): RankingCard[] {
     wb('mobile-subscriptions-by-country', 'telecom', 'Mobile subscriptions by country', 'Mobile and fixed broadband subscriptions for every 100 people.', 'mobilePer100', (v) => `${v.toFixed(1)} per 100`, { coverage: true, unit: 'per 100 people', leaderLabel: 'Highest', source: 'ITU via World Bank' }),
     wb('child-mortality-by-country', 'health', 'Child mortality by country', 'Children who die before age five, per 1,000 live births.', 'under5Mortality', (v) => `${v.toFixed(1)} per 1,000`, { unit: 'per 1,000 births', leaderLabel: 'Highest', source: 'UN IGME via World Bank' }),
     wb('maternal-mortality-by-country', 'health', 'Maternal mortality by country', 'Women who die from pregnancy or childbirth, per 100,000 live births.', 'maternalMortality', (v) => `${int(v)} per 100,000`, { unit: 'per 100,000 births', leaderLabel: 'Highest', source: 'UN MMEIG via World Bank' }),
+    wb('land-area-by-country', 'geography', 'Land area by country', 'Land in square kilometres, from the largest country to the smallest.', 'landArea', (v) => `${(v / 1e6).toFixed(1)} million km²`, { unit: 'km² of land', worldLabel: 'World total', leaderLabel: 'Largest', source: 'FAO via World Bank' }),
+    wb('forest-area-by-country', 'geography', 'Forest area by country', 'Forest in square kilometres and as a share of land, with the change since 2000.', 'forestArea', (v) => `${(v / 1e6).toFixed(1)} million km²`, { unit: 'km² of forest', worldLabel: 'World total', leaderLabel: 'Largest forest', source: 'FAO via World Bank' }),
   ];
   // Every ranking page must be on this list: a new ranking added without a card fails the build.
   const pages = Object.keys(import.meta.glob('../pages/rankings/*-by-country.astro')).map((k) => k.split('/').pop()!.replace('.astro', ''));

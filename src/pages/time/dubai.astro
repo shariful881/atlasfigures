@@ -1,0 +1,39 @@
+---
+import CityTime from '../../components/CityTime.astro';
+import c from '../../data/cities/dubai.json';
+import { history, hoursAhead, hrs, dayExtremes, hm, assertClaim, JAN, JUL, Y, sunOn, hmS, hmA } from '../../lib/cityFacts';
+
+const past = history(c.tz, 1900, Y + 1);
+assertClaim(past.length === 1 && past[0].after === 240 && past[0].year === 1920, 'Dubai has been on UTC+4 since 1920 with no other change');
+const ext = dayExtremes(c.lat, c.lon);
+const june = sunOn(c.tz, c.lat, c.lon, 6, 21), dec = sunOn(c.tz, c.lat, c.lon, 12, 21);
+const india = hoursAhead(c.tz, 'Asia/Kolkata', JAN), dhaka = hoursAhead(c.tz, 'Asia/Dhaka', JAN);
+const lonW = hoursAhead('Europe/London', c.tz, JAN), lonS = hoursAhead('Europe/London', c.tz, JUL);
+const nyW = hoursAhead('America/New_York', c.tz, JAN), nyS = hoursAhead('America/New_York', c.tz, JUL);
+assertClaim(india === 1.5 && dhaka === 2, 'India is 1½ hours and Bangladesh 2 hours ahead of Dubai');
+const faq = [
+  { q: 'Does Dubai change its clocks?', a: `No. Dubai has used UTC+4 since ${past[0].year} and has never observed daylight saving, so the time is the same offset in every season.` },
+  { q: 'What is the gap between Dubai and UK time?', a: `${hrs(lonW)} hours when the UK is on GMT; ${hrs(lonS)} between the last Sundays of March and October, when it is on BST.` },
+  { q: 'How far ahead of Dubai is India?', a: `India is ${hrs(india)} hours ahead of Dubai all year: when it is 9:00 in Dubai, it is 10:30 in New Delhi. Bangladesh is ${hrs(dhaka)} hours ahead.` },
+  { q: 'Is Abu Dhabi on the same time as Dubai?', a: 'Yes. The whole United Arab Emirates keeps Gulf Standard Time, UTC+4.' },
+];
+---
+<CityTime city={c}
+  title="What Time Is It in Dubai? Gulf Standard Time, UTC+4 | AtlasFigures"
+  description={`Dubai's clock right now, United Arab Emirates: Gulf Standard Time is UTC+4, unchanged since ${past[0].year}, with no daylight saving. Sun times and gaps to London, India and New York.`}
+  h1="Dubai local time"
+  sunTitle={`Dubai's sunrise and sunset through ${Y}`}
+  sunSub={`Sample days: the 21st of every month, on Gulf time. Daylight here never drops below ${hm(ext.min)} or rises above ${hm(ext.max)}.`}
+  diffTitle="Dubai and nine other cities: the time gap"
+  diffSub="Plus: ahead of Dubai. Minus: behind. Because Dubai never moves its clocks, every seasonal change here comes from the other city."
+  faqTitle="Gulf Standard Time: what visitors ask" faq={faq}>
+  <Fragment slot="answer">
+    <p>Dubai keeps <strong>Gulf Standard Time, UTC+4</strong>, all year. The United Arab Emirates does not use daylight saving, with no change to Dubai's offset recorded since {past[0].year}.</p>
+  </Fragment>
+  <Fragment slot="story">
+    <h2>Why does the gap between Dubai and London change?</h2>
+    <p>Only London moves. Dubai stays on UTC+4, so it is {hrs(lonW)} hours ahead of the UK in winter and {hrs(lonS)} when Britain is on summer time. The same applies to New York: {hrs(nyW)} hours behind Dubai in January, {hrs(nyS)} in July.</p>
+    <h2>How long are days in Dubai in summer and winter?</h2>
+    <p>Daylight runs to {hmS(ext.max)} at most around midsummer and falls to {hmS(ext.min)} near midwinter. On the June solstice the sun is up from {june.rise} to {june.set}; six months on, the sun is up at {dec.rise} and gone by {dec.set}.</p>
+  </Fragment>
+</CityTime>

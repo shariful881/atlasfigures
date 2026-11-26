@@ -1,9 +1,90 @@
 ---
-import ComingSoon from '../../components/ComingSoon.astro';
+import Base from '../../layouts/Base.astro';
+import Flag from '../../components/Flag.astro';
+import Icon from '../../components/Icon.astro';
+import { abs, path, WEBSITE_ID } from '../../site';
+import { offsetMin, offsetsIn, utcLabel } from '../../lib/tz';
+
+const PAGE = '/time/';
+const Y = 2026;
+const JAN = Date.UTC(Y, 0, 15, 12);
+const cities = (Object.values(import.meta.glob('../../data/cities/*.json', { eager: true, import: 'default' })) as any[])
+  .map((c) => { const o = offsetsIn(c.tz, Y); return { ...c, std: Math.min(...o), dst: o.length > 1 ? Math.max(...o) : null }; })
+  .sort((a, b) => offsetMin(b.tz, JAN) - offsetMin(a.tz, JAN));
+const withDst = cities.filter((c) => c.dst !== null).length;
+const schema = [{
+  '@type': 'CollectionPage', '@id': abs(`${PAGE}#page`), name: 'World clock', url: abs(PAGE), isPartOf: { '@id': WEBSITE_ID },
+  mainEntity: { '@type': 'ItemList', numberOfItems: cities.length, itemListElement: cities.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: `Time in ${c.name}`, url: abs(`/time/${c.slug}/`) })) },
+}];
 ---
-<ComingSoon section="time" title="Time" lead="Local time in every city and country, coming soon." items={[
-  'Current local time, sunrise and sunset for every major city',
-  'Time difference between any two cities',
-  'Time zone converter and meeting planner',
-  'Holiday calendars and countdowns',
-]} />
+<Base title="World Clock: Current Time in Major Cities | AtlasFigures"
+  description={`Live local time in ${cities.length} major cities, from Sydney to Los Angeles, with each city's UTC offset, daylight saving rules, sunrise and sunset. Figures from the IANA time zone database.`}
+  section="time" appTitle="Time" breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Time', href: PAGE }]} schema={schema}>
+  <header class="hub-hero">
+    <span class="hub-ico"><Icon name="time" /></span>
+    <div>
+      <h1>World clock</h1>
+      <p class="answer">The current local time in {cities.length} major cities, ordered from east to west. {withDst} of them change their clocks for daylight saving; the others keep one offset all year. Each city page adds sunrise and sunset, clock-change dates and the time gap to the others.</p>
+    </div>
+  </header>
+
+  <div class="filters" role="group" aria-label="Filter by continent">
+    {['All', 'Asia', 'Europe', 'Americas', 'Oceania'].map((r, i) => (
+      <button type="button" class={i === 0 ? 'on' : ''} aria-pressed={i === 0 ? 'true' : 'false'} data-region={r}>{r}</button>
+    ))}
+  </div>
+
+  <div class="list clocks">
+    {cities.map((c) => (
+      <a class="row clock-row" href={path(`/time/${c.slug}/`)} data-continent={c.cont} data-tz={c.tz}>
+        <Flag code={c.code} class="flag" />
+        <span><span class="name">{c.name}</span><br /><span class="meta">{c.country} · {c.dst === null ? `${utcLabel(c.std)} all year` : `${utcLabel(c.std)} / ${utcLabel(c.dst)} in summer`}</span></span>
+        <span class="rank" data-k="day">&nbsp;</span>
+        <span class="val big-time" data-k="time">--:--</span>
+        <span class="chev"><Icon name="chevron" /></span>
+      </a>
+    ))}
+  </div>
+  <p class="note hub-note">Times come from the time zone database built into your browser and update every second. Offsets and daylight-saving rules: IANA time zone database 2026e. More cities, a time difference calculator and a meeting planner are on the way.</p>
+
+  <script is:inline>
+    (function () {
+      var rows = document.querySelectorAll('.clock-row');
+      var me = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+      function tick() {
+        var now = new Date();
+        rows.forEach(function (r) {
+          var tz = r.dataset.tz;
+          r.querySelector('[data-k="time"]').textContent = new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(now);
+          var d = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+          var w = new Intl.DateTimeFormat('en-GB', { timeZone: tz, weekday: 'short' }).format(now);
+          r.querySelector('[data-k="day"]').textContent = w + (d > me ? ' · tomorrow' : d < me ? ' · yesterday' : ' · today');
+        });
+      }
+      tick(); setInterval(tick, 1000);
+      var btns = document.querySelectorAll('.filters button');
+      btns.forEach(function (b) { b.addEventListener('click', function () {
+        btns.forEach(function (x) { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        rows.forEach(function (r) { r.hidden = !(b.dataset.region === 'All' || r.dataset.continent === b.dataset.region); });
+      }); });
+    })();
+  </script>
+  <style>
+    .hub-hero { display: flex; gap: 20px; align-items: flex-start; padding: 28px 30px; margin: 4px 0 18px; border-radius: 24px; background: linear-gradient(135deg, var(--water-2), #fff 70%); border: 1px solid var(--line); }
+    .hub-hero > div { min-width: 0; }
+    .hub-ico { flex: 0 0 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; background: var(--contour); color: #fff; }
+    .hub-ico :global(svg) { width: 28px; height: 28px; }
+    .hub-hero h1 { margin: 0; }
+    .hub-hero .answer { margin: 10px 0 0; max-width: 70ch; }
+    .clock-row .big-time { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; min-width: 4.2ch; }
+    .list .row[hidden] { display: none; }
+    .hub-note { margin-top: 18px; max-width: 80ch; }
+    @media (max-width: 767px) {
+      .hub-hero { padding: 16px; gap: 12px; margin: 12px 0 8px; border: 0; background: var(--surface); border-radius: var(--r-lg); }
+      .hub-ico { flex-basis: 44px; height: 44px; border-radius: 12px; }
+      .hub-hero h1 { font-size: 1.5rem; }
+      .hub-hero .answer { font-size: .92rem; background: none; padding: 0; margin: 6px 0 0; }
+      .clock-row .big-time { font-size: 1.35rem; }
+    }
+  </style>
+</Base>

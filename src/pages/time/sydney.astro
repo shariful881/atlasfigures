@@ -1,0 +1,45 @@
+---
+import CityTime from '../../components/CityTime.astro';
+import c from '../../data/cities/sydney.json';
+import { history, hoursAhead, hrs, dayExtremes, hm, assertClaim, JAN, JUL, Y, sunOn , hmS, hmA } from '../../lib/cityFacts';
+
+const y26 = history(c.tz, Y, Y + 1);
+assertClaim(y26.length === 2 && y26[0].after === 600 && y26[1].after === 660, 'Sydney leaves daylight time in April and starts it in October');
+const nthSun = (t: number) => { const d = new Date(t + 11 * 3600000); return d.getUTCDay() === 0 && d.getUTCDate() <= 7; };
+assertClaim(nthSun(y26[0].at) && nthSun(y26[1].at), 'changes fall on the first Sunday of April and October');
+const lonW = hoursAhead('Europe/London', c.tz, JAN), lonS = hoursAhead('Europe/London', c.tz, JUL);
+const marchGap = hoursAhead('Europe/London', c.tz, Date.UTC(Y, 2, 31, 12));
+const tokyoW = hoursAhead('Asia/Tokyo', c.tz, JAN), tokyoS = hoursAhead('Asia/Tokyo', c.tz, JUL);
+assertClaim(lonW === 11 && lonS === 9 && marchGap === 10, 'Sydney is 11 hours ahead of London in January, 9 in July and 10 in the transition weeks');
+const ext = dayExtremes(c.lat, c.lon);
+const dec = sunOn(c.tz, c.lat, c.lon, 12, 21), june = sunOn(c.tz, c.lat, c.lon, 6, 21);
+const faq = [
+  { q: 'Is Sydney on AEST or AEDT?', a: `That depends on the season. AEST, ten hours ahead of UTC, covers April to October; AEDT, eleven ahead, the warmer half. In ${Y} AEST began on ${y26[0].date} and AEDT returns on ${y26[1].date}.` },
+  { q: 'How many hours ahead of the UK is Sydney?', a: `${hrs(lonW)} hours in January, ${hrs(lonS)} hours in July, and ${hrs(marchGap)} hours for a few weeks around late March and October, when only one of the two has switched.` },
+  { q: 'Is Sydney ahead of Tokyo?', a: `Yes: by ${hrs(tokyoW)} hours in January, during Australian daylight time, and by ${hrs(tokyoS)} hour in July. Japan never changes its clocks.` },
+  { q: 'Which day has the most daylight in Sydney?', a: `The December solstice, around 21 December: ${hmS(ext.max)} of sun. The June solstice has the least, ${hmS(ext.min)}.` },
+];
+---
+<CityTime city={c}
+  title="Sydney Time Now: AEST or AEDT? Live Clock | AtlasFigures"
+  description={`What time is it in Sydney, Australia? AEDT (UTC+11) in the southern summer and AEST (UTC+10) from ${y26[0].date.replace(/ \d{4}$/, '')} to ${y26[1].date}. Plus sun times and how far ahead Sydney is.`}
+  h1="What's the time in Sydney?"
+  changesTitle={`Daylight saving in Sydney, ${Y}–${Y + 1}`}
+  changesSub="New South Wales goes forward on the first Sunday of October and back on the first Sunday of April: the reverse of the northern calendar."
+  sunTitle={`Sydney's sunrise and sunset across ${Y}`}
+  sunSub="Dates are the 21st; times follow whichever offset Sydney is using. December rows are the longest days here, June rows the shortest."
+  diffTitle="Sydney's time lead over nine cities"
+  diffSub="Minus means that city is behind Sydney. Southern and northern daylight saving run in opposite halves of the year, so most gaps change twice."
+  faqTitle="Australian Eastern Time in Sydney: answers" faq={faq}>
+  <Fragment slot="answer">
+    <p>Sydney uses <strong>Australian Eastern Standard Time (UTC+10)</strong> in the southern winter and <strong>Australian Eastern Daylight Time (UTC+11)</strong> from the first Sunday of October to the first Sunday of April.</p>
+  </Fragment>
+  <Fragment slot="story">
+    <h2>Why does Sydney change its clocks in October?</h2>
+    <p>Because seasons are reversed in the southern hemisphere. Summer in Sydney runs from December to February, so daylight time starts in spring, on {y26[1].date}, and ends in autumn: it ended on {y26[0].date} this year.</p>
+    <h2>Why does the gap with London keep changing?</h2>
+    <p>Sydney and London move their clocks in opposite directions, and on different dates. In January Sydney is {hrs(lonW)} hours ahead; in July it is {hrs(lonS)}; and in the weeks between one city's change and the other's the gap is {hrs(marchGap)}.</p>
+    <h2>How long are summer days in Sydney?</h2>
+    <p>Around the summer solstice the sun comes up at {dec.rise} and stays up until {dec.set} daylight time. In June the day is squeezed between {june.rise} and {june.set}.</p>
+  </Fragment>
+</CityTime>

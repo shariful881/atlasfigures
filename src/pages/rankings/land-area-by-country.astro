@@ -1,0 +1,219 @@
+---
+import Base from '../../layouts/Base.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import WorldMap from '../../components/WorldMap.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/land-area-by-country.json';
+import { econMeta, aggregate, valueIn, rankBy, notRanked, rankingYear } from '../../lib/econ';
+import { assertClaim, ord, int, countryIndex } from '../../lib/figures';
+import { commonName, pagesOf } from '../../lib/names';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/); the land areas are FAO's.
+const PAGE = '/rankings/land-area-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WDI = 'World Bank, World Development Indicators (FAO land area)';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = meta.verification?.checkedOn;
+const name = commonName;
+const M = econMeta.indicators.landArea;
+
+const L = rankingYear('landArea');
+const ranked = rankBy('landArea', L);
+const N = ranked.length;
+const missing = notRanked('landArea', L).filter((m) => m.latestYear != null);
+const world = valueIn(aggregate('WLD').series.landArea, L)!;
+const byIso = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const mkm = (v: number) => `${(v / 1e6).toFixed(1)} million km²`;
+const km = (v: number) => `${int(v)} km²`;
+const cell = (v: number) => v.toLocaleString('en-US', { maximumFractionDigits: 1 });
+const share = (v: number) => (v / world) * 100;
+const big6 = ranked.slice(0, 6);
+const big6Share = share(big6.reduce((a, r) => a + r.value, 0));
+const over1m = ranked.filter((r) => r.value >= 1e6).length;
+const smallest = ranked.at(-1)!;
+const REG = [
+  ['ECS', 'Europe and Central Asia'], ['EAS', 'East Asia and Pacific'], ['SSF', 'Sub-Saharan Africa'],
+  ['LCN', 'Latin America and the Caribbean'], ['NAC', 'North America'],
+  ['MEA', 'Middle East, North Africa, Afghanistan and Pakistan'], ['SAS', 'South Asia'],
+].map(([code, label]) => ({ code, label, v: valueIn(aggregate(code).series.landArea, L)! }));
+const bgd = byIso('BGD');
+const bgdPopRank = countryIndex.countries.find((c) => c.iso3 === 'BGD')!.worldRank;
+
+assertClaim(M.aggregation === 'Sum' && L === 2023 && N === 215 && missing.length === 1 && missing[0].iso3 === 'CHI', 'world = sum; 2023; 215 places; only Channel Islands missing (last 2021)');
+assertClaim(['RUS', 'CHN', 'USA', 'CAN', 'BRA', 'AUS', 'IND'].every((x, i) => ranked[i].iso3 === x), 'Russia, China, US, Canada, Brazil, Australia, India');
+assertClaim(big6.every((r) => r.value > 7e6) && ranked[6].value < 3e6, 'six above 7 million km², India below 3 million');
+assertClaim(Math.round(share(ranked[0].value) * 10) === 126 && Math.round(big6Share) === 46, 'Russia 12.6% of world land, top six 46%');
+assertClaim(ranked[1].value / ranked[0].value > 0.55 && ranked[1].value / ranked[0].value < 0.6, 'China a little under three-fifths of Russia');
+assertClaim(Math.round(byIso('MMR').value / bgd.value) === 5, 'Myanmar about five times Bangladesh');
+assertClaim(smallest.iso3 === 'MCO' && smallest.value < 2.1 && ranked.at(-2)!.iso3 === 'GIB' && ranked.at(-3)!.iso3 === 'NRU' && ranked.at(-4)!.iso3 === 'TUV', 'Monaco, Gibraltar, Nauru, Tuvalu smallest');
+assertClaim(over1m === 28, '28 places above 1 million km²');
+assertClaim(REG.reduce((a, r) => a + r.v, 0) > world * 0.999 && REG.reduce((a, r) => a + r.v, 0) < world * 1.001 && REG[0].v > REG[1].v && REG[1].v > REG[2].v && REG[6].v < 3.4e6, 'regions add up to the world; Europe & C. Asia largest, South Asia smallest');
+assertClaim(bgd.value === 130170 && bgd.rank === 95 && byIso('IND').value > 22 * bgd.value && byIso('IND').value < 23 * bgd.value, 'Bangladesh 130,170 km², 95th; India 22-23 times larger');
+assertClaim(bgdPopRank <= 10, 'Bangladesh among the ten most populous (UN WPP)');
+assertClaim(byIso('CAN').value < byIso('USA').value && byIso('USA').value < byIso('CHN').value, 'Canada behind US and China on land');
+
+const title = `Land Area by Country ${L}: Largest to Smallest in km² | AtlasFigures`;
+const description = `Russia has the most land of any country, ${mkm(ranked[0].value)} in ${L}, a ${share(ranked[0].value).toFixed(1)}% share of the planet's counted land; Monaco has the least. FAO land area for ${N} countries and areas.`;
+
+const cards = [
+  { label: 'World land area', value: `${(world / 1e6).toFixed(1)}M km²`, year: L, note: 'World Bank total' },
+  { label: 'Russia', value: `${(ranked[0].value / 1e6).toFixed(1)}M km²`, year: L, note: `${share(ranked[0].value).toFixed(1)}% of the world` },
+  { label: 'Six largest', value: `${big6Share.toFixed(1)}%`, year: L, note: 'of all land counted' },
+  { label: 'Monaco', value: `${smallest.value.toFixed(1)} km²`, year: L, note: 'smallest in the list' },
+];
+
+const rows = ranked.map((r) => {
+  const pg = pagesOf(r.iso3); const site = pg.economy ?? pg.population;
+  return {
+    rank: r.rank, iso3: r.iso3, name: name(r.iso3), site, href: site ? path(site) : null, region: r.region,
+    bar: Math.min(r.value / ranked[0].value, 1), value: cell(r.value),
+    cells: [`${share(r.value).toFixed(2)}%`],
+  };
+});
+const mapFmt = (v: number) => (v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `${Math.round(v / 1e3)}k` : `${Math.round(v)}`);
+const mapRows = ranked.map((r) => ({ iso3: r.iso3, name: name(r.iso3), rank: r.rank, raw: r.value, value: `${cell(r.value)} km²` }));
+const regions = [...new Set(ranked.map((r) => r.region))].sort();
+
+const faq = [
+  { q: 'What is the largest country by land area?', a: `Russia, with ${mkm(ranked[0].value)} of land in ${L}. China, second, has a little under three-fifths of that (${mkm(ranked[1].value)}).` },
+  { q: 'Is Canada bigger than the United States?', a: `Not on land. FAO counts ${mkm(byIso('USA').value)} of land for the United States and ${mkm(byIso('CAN').value)} for Canada, so Canada is fourth here. Rankings that include lakes and rivers usually put Canada ahead.` },
+  { q: 'Which country has the smallest land area?', a: `Of the places in this list, Monaco, at about ${smallest.value.toFixed(1)} square kilometres. Gibraltar (${cell(ranked.at(-2)!.value)}), Nauru (${cell(ranked.at(-3)!.value)}) and Tuvalu (${cell(ranked.at(-4)!.value)}) follow. Vatican City does not appear in the World Bank series.` },
+  { q: 'How big is Bangladesh?', a: `Bangladesh has ${km(bgd.value)} of land, the ${ord(bgd.rank)} largest of ${N}. India's land area is about 23 times larger.` },
+  { q: 'How much land is there in the world?', a: `The World Bank's total for the ${N} economies it covers is ${mkm(world)} in ${L}. Antarctica is not part of any country and is not included.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Land area by country ${L}: ${N} countries and areas from largest to smallest`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'CreativeWork', name: 'World Development Indicators', url: WDI_URL, publisher: { '@type': 'Organization', name: 'The World Bank' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `Land area by country, ${L}`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Land area by country, ${L}`,
+    description: `Land area in square kilometres for ${N} countries and areas in ${L}, ranked, from the World Development Indicators (update of ${longDate(M.wdiLastUpdated)}). The figures are compiled by the Food and Agriculture Organization of the United Nations.`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WDI_URL], temporalCoverage: String(L),
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['Land area (sq. km)'],
+    dateModified: iso(UPDATED), license: econMeta.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/land-area-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="Land area" back="/rankings/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Rankings', href: '/rankings/' }, { name: 'Land area by country', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>Land area by country, {L}</h1>
+    <p class="answer"><strong>Russia</strong> is the largest country by land, with {mkm(ranked[0].value)} — a {share(ranked[0].value).toFixed(1)}% slice of all the land the World Bank counts. China, the United States, Canada, Brazil and Australia complete the six countries with more than 7 million km² each.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`Land area ranking, ${L}`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="map">Map</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="map" aria-label="Map" hidden-mobile>
+      <WorldMap
+        id="map-h" title={`Land area in square kilometres, ${L}`}
+        subtitle="FAO land area, lakes and rivers excluded. Each of the five shades covers a similar number of places, from the smallest (lightest) to the largest."
+        rows={mapRows} fmt={mapFmt}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+    </section>
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`Land area in km², ${L}`}
+        subtitle="Largest first. The share column divides each figure by the World Bank's world total (our calculation)."
+        valueLabel="Land, km²"
+        cols={[{ label: 'Share of world' }]}
+        rows={rows}
+        regions={regions}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        csv={path('/data/land-area-by-country.csv')} csvName="land-area-by-country.csv"
+        licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+      />
+      <p class="note">Bars are scaled to Russia. The Channel Islands are left out: their latest figure is for {missing[0].latestYear}. Kosovo has no land-area figure in the data.</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>Which countries have the most land?</h2>
+        <p>Six countries each hold more than 7 million square kilometres, and together they account for {big6Share.toFixed(1)}% of the world's land: <a href={path('/economy/russia/')}>Russia</a> ({mkm(ranked[0].value)}), <a href={path('/economy/china/')}>China</a> ({mkm(ranked[1].value)}), the <a href={path('/economy/united-states/')}>United States</a> ({mkm(ranked[2].value)}), <a href={path('/economy/canada/')}>Canada</a> ({mkm(ranked[3].value)}), <a href={path('/economy/brazil/')}>Brazil</a> ({mkm(ranked[4].value)}) and <a href={path('/economy/australia/')}>Australia</a> ({mkm(ranked[5].value)}). There is then a big drop to India in seventh place with {mkm(ranked[6].value)}. In all, {over1m} countries have more than a million square kilometres.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Why is Canada fourth and not second?</h2>
+        <p>Because this list measures land only. The FAO definition used by the World Bank leaves out inland water bodies — in most cases major rivers and lakes. On land alone, China ({mkm(byIso('CHN').value)}) and the US ({mkm(byIso('USA').value)}) are both ahead of Canada's {mkm(byIso('CAN').value)}. Lists that measure total area, water included, usually place Canada second after Russia.</p>
+      </div>
+
+      <section class="tcard" aria-labelledby="reg-h">
+        <header class="tcard-head">
+          <div>
+            <h2 id="reg-h">How is the world's land shared between regions?</h2>
+            <p class="tcard-sub">Land area of each World Bank region in {L}, and the part of the global figure it makes up (our calculation).</p>
+          </div>
+        </header>
+        <div class="table-scroll">
+          <table class="data">
+            <caption class="visually-hidden">Land area by World Bank region, {L}, in square kilometres and as a share of the world.</caption>
+            <thead><tr><th scope="col">Region</th><th scope="col">Land, km²</th><th scope="col">Share of world</th></tr></thead>
+            <tbody>
+              {REG.map((r) => (<tr><th scope="row">{r.label}</th><td>{int(r.v)}</td><td>{share(r.v).toFixed(1)}%</td></tr>))}
+              <tr class="is-current"><th scope="row">World</th><td>{int(world)}</td><td>100.0%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <footer class="tcard-foot"><SourceBadge source={`${WDI} (World Bank regional totals)`} url={WDI_URL} variant="footer" /></footer>
+      </section>
+      <div class="story-block prose">
+        <p>Europe and Central Asia, which includes all of Russia, has the most land of any region at {mkm(REG[0].v)}. South Asia is the smallest at {mkm(REG[6].v)} — only {share(REG[6].v).toFixed(1)}% of the world's land.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>How large is Bangladesh compared with its neighbours?</h2>
+        <p><a href={path('/economy/bangladesh/')}>Bangladesh</a> has {km(bgd.value)} of land and is the {ord(bgd.rank)} largest in the list — yet on UN figures only {bgdPopRank - 1} countries have more people, which is why its <a href={path('/rankings/population-density-by-country/')}>population density</a> is so high. India's land area is about 23 times as large, and Myanmar's ({km(byIso('MMR').value)}) is roughly five times as large.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Land area: questions answered</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(M.wdiLastUpdated)}): land area, square kilometres (AG.LND.TOTL.K2), compiled by the Food and Agriculture Organization of the United Nations (FAOSTAT). World and regional figures: World Bank totals. Shares of the world: our division of each figure by the world total. Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          <li>Related pages: <a href={path('/rankings/forest-area-by-country/')}>forest area by country</a>, <a href={path('/rankings/population-density-by-country/')}>population density by country</a>.</li>
+        </ul>
+        <p class="note">Land area is a country's total area excluding inland water bodies, national claims to the continental shelf and exclusive economic zones; in most cases major rivers and lakes are the water left out. Figures are FAO's as published; for a few places they differ from other commonly quoted sizes, and the UN figures used on our population pages can differ slightly too. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Land area by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+</style>

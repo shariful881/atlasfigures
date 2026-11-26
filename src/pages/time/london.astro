@@ -1,0 +1,49 @@
+---
+import CityTime from '../../components/CityTime.astro';
+import c from '../../data/cities/london.json';
+import { history, hoursAhead, hrs, dayExtremes, hm, assertClaim, JAN, JUL, Y, utcLabel, offsetMin, sunOn } from '../../lib/cityFacts';
+
+const y26 = history(c.tz, Y, Y + 1);
+assertClaim(y26.length === 2 && y26[0].after === 60 && y26[1].after === 0, 'London is on UTC+0 in winter and UTC+1 in summer');
+const bst = history(c.tz, 1968, 1972);
+const allYear = bst.find((t) => t.year === 1968 && t.after === 60), backAt = bst.find((t) => t.year === 1971 && t.after === 0);
+assertClaim(Boolean(allYear && backAt) && bst.filter((t) => t.at > allYear!.at && t.at < backAt!.at).length === 0, 'London stayed on UTC+1 without a break from February 1968 to October 1971');
+const ext = dayExtremes(c.lat, c.lon);
+assertClaim(ext.max - ext.min > 480, 'London day length varies by more than eight hours');
+assertClaim((backAt!.at - allYear!.at) / (365.25 * 86400000) > 3.5, 'more than three and a half years on UTC+1');
+const lastSunday = (t: number) => { const d = new Date(t); return d.getUTCDay() === 0 && new Date(t + 7 * 86400000).getUTCMonth() !== d.getUTCMonth(); };
+const y27 = history(c.tz, Y + 1, Y + 2);
+assertClaim([...y26, ...y27].every((t) => lastSunday(t.at) && new Date(t.at).getUTCHours() === 1 && [2, 9].includes(new Date(t.at).getUTCMonth())), 'UK clocks change at 01:00 UTC on the last Sunday of March and October');
+const june = sunOn(c.tz, c.lat, c.lon, 6, 21), dec = sunOn(c.tz, c.lat, c.lon, 12, 21);
+const ny = hoursAhead(c.tz, 'America/New_York', JAN), dhaka = hoursAhead(c.tz, 'Asia/Dhaka', JAN), dhakaS = hoursAhead(c.tz, 'Asia/Dhaka', JUL);
+assertClaim(ny === -5 && hoursAhead(c.tz, 'America/New_York', JUL) === -5, 'New York is five hours behind London in mid-January and mid-July');
+const faq = [
+  { q: 'Is London on GMT or BST right now?', a: `It depends on the date. London uses Greenwich Mean Time (UTC+0) from late October to late March and British Summer Time (UTC+1) in between. In ${Y} the switches are on ${y26[0].date} and ${y26[1].date}; the clock at the top of this page always shows which one is in force.` },
+  { q: 'When do the clocks go forward in the UK?', a: `On the last Sunday of March, at 01:00 GMT, when clocks jump to 02:00. They go back on the last Sunday of October, at 02:00 BST. For ${Y} those are ${y26[0].date} and ${y26[1].date}.` },
+  { q: 'How many hours is London behind Dhaka?', a: `${hrs(dhaka)} hours in winter and ${hrs(dhakaS)} in summer. Bangladesh never changes its clocks, so the gap shrinks by an hour whenever London is on British Summer Time.` },
+  { q: 'How long is the shortest day in London?', a: `Just ${hm(ext.min)} around 21 December in ${Y}; the June solstice brings ${hm(ext.max)}.` },
+];
+---
+<CityTime city={c}
+  title={`Current Time in London: GMT or BST Today? | AtlasFigures`}
+  description={`Live clock for London, UK: GMT (UTC+0) in winter, BST (UTC+1) between ${y26[0].date.replace(/ \d{4}$/, '')} and ${y26[1].date}. Daylight hours and hour differences.`}
+  h1="Current time in London"
+  changesTitle={`When UK clocks change, ${Y} and ${Y + 1}`}
+  changesSub="British Summer Time starts on the last Sunday of March and ends on the last Sunday of October; times shown are London clock times."
+  sunTitle={`London daylight through ${Y}`}
+  sunSub="Times follow the clock in use that day, so summer rows are in British Summer Time. Far north of the tropics, London's day length swings by more than eight hours."
+  diffTitle="London against nine world cities"
+  diffSub="Plus means that city is ahead of London. Gaps move by an hour when either side switches to or from summer time."
+  faqTitle="London time: common questions" faq={faq}>
+  <Fragment slot="answer">
+    <p>London is on <strong>Greenwich Mean Time (UTC+0)</strong> in winter and <strong>British Summer Time (UTC+1)</strong> from the last Sunday of March to the last Sunday of October. In {Y} the clocks moved forward on {y26[0].date} and go back on {y26[1].date}.</p>
+  </Fragment>
+  <Fragment slot="story">
+    <h2>Why is London's winter time called Greenwich Mean Time?</h2>
+    <p>The prime meridian, longitude 0°, runs through the Royal Observatory in Greenwich, a few kilometres east of central London. Clock time there in winter equals Coordinated Universal Time, which is why the UK's winter offset is written as UTC+0.</p>
+    <h2>Has London ever kept summer time all year?</h2>
+    <p>Yes. The time zone database shows London moving to UTC+1 on {allYear!.date} and not returning to UTC+0 until {backAt!.date}: more than three and a half years without a winter clock change. Since then the twice-yearly switch has been the rule.</p>
+    <h2>How dark do London winters get?</h2>
+    <p>At the winter solstice, 21 December, daybreak comes at {dec.rise} and the sun is down by {dec.set}. Six months later, sunrise is at {june.rise} and sunset at {june.set} British Summer Time, for a midsummer day of nearly {Math.round(ext.max / 60)} hours.</p>
+  </Fragment>
+</CityTime>

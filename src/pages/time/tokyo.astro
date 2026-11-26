@@ -1,0 +1,44 @@
+---
+import CityTime from '../../components/CityTime.astro';
+import c from '../../data/cities/tokyo.json';
+import { history, hoursAhead, hrs, dayExtremes, hm, assertClaim, JAN, JUL, Y, sunOn, solarNoonMin, clock , hmS, hmA } from '../../lib/cityFacts';
+
+const past = history(c.tz, 1900, Y + 1);
+const war = past.filter((t) => t.year >= 1948 && t.year <= 1951);
+assertClaim(war.length === 8 && war.every((t) => [540, 600].includes(t.after)), 'Japan used summer time (UTC+10) in 1948–1951');
+assertClaim(past.filter((t) => t.year > 1951).length === 0, 'no clock change in Tokyo since 1951');
+const lastBack = war[war.length - 1];
+const ext = dayExtremes(c.lat, c.lon);
+const june = sunOn(c.tz, c.lat, c.lon, 6, 21), dec = sunOn(c.tz, c.lat, c.lon, 12, 21);
+assertClaim(june.rise! < '04:30', 'June sunrise in Tokyo is before 4:30');
+const noon = solarNoonMin(c.tz, Y, 6, 21, c.lat, c.lon);
+const sg = hoursAhead('Asia/Singapore', c.tz, JAN), dk = hoursAhead('Asia/Dhaka', c.tz, JAN), lonW = hoursAhead('Europe/London', c.tz, JAN), lonS = hoursAhead('Europe/London', c.tz, JUL);
+assertClaim(hoursAhead('Asia/Seoul', c.tz, JAN) === 0 && hoursAhead('Asia/Seoul', c.tz, JUL) === 0, 'Seoul and Tokyo share a clock');
+const faq = [
+  { q: 'Does Japan have daylight saving time?', a: `No. Japan last used summer time from 1948 to 1951; its final switch back to UTC+9 was on ${lastBack.date}. Tokyo has stayed on Japan Standard Time ever since.` },
+  { q: 'How many hours ahead of London is Tokyo?', a: `${hrs(lonW)} in Japanese winter, ${hrs(lonS)} in Japanese summer; the change happens on Britain's side.` },
+  { q: 'Are Seoul and Tokyo on the same time?', a: 'Yes. South Korea also keeps UTC+9 all year, so Seoul and Tokyo clocks always match.' },
+  { q: 'Why is it light so early in Tokyo in summer?', a: `Japan sticks to UTC+9 in summer as well as winter. On 21 June first light becomes sunrise at ${june.rise}, and the sun peaks at ${clock(noon)}, well before midday on the clock.` },
+];
+---
+<CityTime city={c}
+  title="Tokyo Time Now: Japan Standard Time (JST, UTC+9) | AtlasFigures"
+  description="Live clock for Tokyo, Japan. Japan Standard Time is UTC+9 all year, with no daylight saving since 1951. Tokyo sunrise and sunset, plus hour gaps to nine other cities."
+  h1="Tokyo time now"
+  sunTitle={`When the sun rises and sets in Tokyo, ${Y}`}
+  sunSub="Twelve dates, each the 21st, on JST. With no summer time, June sunrises come very early on the clock."
+  diffTitle="Tokyo compared with nine cities"
+  diffSub="Cities marked plus are later in the day than Tokyo. Tokyo's own offset never moves; the changes come from cities that use daylight saving."
+  faqTitle="Japan Standard Time: short answers" faq={faq}>
+  <Fragment slot="answer">
+    <p>Tokyo uses <strong>Japan Standard Time, UTC+9</strong>, throughout the year. Japan has not changed its clocks for summer since {lastBack.year}, so the offset is the same in January and July.</p>
+  </Fragment>
+  <Fragment slot="story">
+    <h2>Did Japan ever use summer time?</h2>
+    <p>For four summers only. The time zone database records Tokyo moving to UTC+10 each May (April in 1949) from 1948 to 1951 and returning to UTC+9 each September. After {lastBack.date} the practice stopped, and it has not returned.</p>
+    <h2>Why does the sun rise before 4:30 in Tokyo in June?</h2>
+    <p>Tokyo lies at about 139.7° east, east of the 135° meridian that UTC+9 is based on, and it keeps standard time in summer. On 21 June the sun is up at {june.rise} and highest at {clock(noon)}; by 21 December dawn has slipped to {dec.rise}.</p>
+    <h2>How does Tokyo line up with the rest of Asia?</h2>
+    <p>It is {hrs(sg)} hour ahead of Singapore and other UTC+8 cities, and {hrs(dk)} hours ahead of Dhaka. Its daylight stretches from {hmA(ext.min)} at midwinter to {hmA(ext.max)} at midsummer.</p>
+  </Fragment>
+</CityTime>

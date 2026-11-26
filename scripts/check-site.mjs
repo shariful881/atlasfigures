@@ -126,7 +126,7 @@ for (const file of pages) {
   for (const n of nodes(ld)) for (const k of ['datePublished', 'dateModified']) {
     if (n[k]) ok(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?[+-]\d{2}:\d{2}$/.test(n[k]), where, `${n['@type']}.${k} "${n[k]}" is not an ISO datetime with time zone`);
   }
-  if (/\/(time|more)\/$/.test(url)) ok(noindex, where, 'coming-soon / navigation page must be noindex');
+  if (/\/more\/$/.test(url)) ok(noindex, where, 'navigation page must be noindex');
 
   // 5. Links
   for (const a of root.querySelectorAll('a[href]')) {

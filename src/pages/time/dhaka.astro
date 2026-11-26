@@ -1,0 +1,43 @@
+---
+import CityTime from '../../components/CityTime.astro';
+import c from '../../data/cities/dhaka.json';
+import { history, hoursAhead, hrs, dayExtremes, hm, assertClaim, JAN, JUL, Y, utcLabel, offsetMin, sunOn } from '../../lib/cityFacts';
+
+const past = history(c.tz, 1950, Y + 1);
+const dst2009 = past.filter((t) => t.year === 2009);
+assertClaim(dst2009.length === 2 && dst2009[0].after - dst2009[0].before === 60 && dst2009[1].after === 360, 'Bangladesh moved clocks to UTC+7 once, in 2009, and back to UTC+6 at the end of that year');
+assertClaim(past.filter((t) => t.year > 1951).length === 2, 'the 2009 change is the only one since 1951');
+const ext = dayExtremes(c.lat, c.lon);
+const june = sunOn(c.tz, c.lat, c.lon, 6, 21), dec = sunOn(c.tz, c.lat, c.lon, 12, 21);
+const india = hoursAhead('Asia/Kolkata', c.tz, JAN);
+assertClaim(india === 0.5 && hoursAhead('Asia/Kolkata', c.tz, JUL) === 0.5, 'Dhaka is half an hour ahead of India all year');
+const lonW = hoursAhead('Europe/London', c.tz, JAN), lonS = hoursAhead('Europe/London', c.tz, JUL);
+const std = utcLabel(offsetMin(c.tz, JAN));
+const faq = [
+  { q: 'Is Dhaka time the same as India time?', a: `No. Dhaka is ${hrs(india)} hour ahead of India Standard Time (UTC+5:30) all year, because Bangladesh keeps ${std} and neither country changes its clocks in summer.` },
+  { q: 'Does Bangladesh put its clocks forward in summer?', a: `No. Bangladesh last changed its clocks in ${dst2009[0].year}, when it tried an extra hour from ${dst2009[0].date} to ${dst2009[1].date}. Since then Dhaka has stayed on ${std} every day.` },
+  { q: 'How many hours is Dhaka ahead of London?', a: `${hrs(lonW)} hours while Britain keeps Greenwich Mean Time and ${hrs(lonS)} while it is on British Summer Time. The gap changes only because London moves its clocks.` },
+  { q: 'When is the longest day in Dhaka?', a: `Around the June solstice: ${hm(ext.max)} from sunrise to sunset in ${Y}. Near the December solstice that falls to ${hm(ext.min)}.` },
+];
+---
+<CityTime city={c}
+  title={`Time in Dhaka Now: Bangladesh Standard Time, ${std} | AtlasFigures`}
+  description={`Current local time in Dhaka, Bangladesh. Dhaka stays on ${std} year-round, without daylight saving; clocks last moved in ${dst2009[0].year}. Sunrise, sunset and time differences.`}
+  h1="What time is it in Dhaka?"
+  sunTitle={`Dhaka sunrise and sunset on the 21st of each month, ${Y}`}
+  sunSub="Clock times in Bangladesh Standard Time. Close to the Tropic of Cancer, summer and winter days differ by only about three hours."
+  diffTitle="How far Dhaka is from nine other cities"
+  diffSub="Hours ahead (+) or behind (−) Dhaka. A city with two different values changes its own clocks for summer; Dhaka never does."
+  faqTitle="Quick answers about the time in Dhaka" faq={faq}>
+  <Fragment slot="answer">
+    <p>Dhaka runs on <strong>Bangladesh Standard Time, {std}</strong>, on every day of the year. With no daylight saving, the city's clock is always exactly six hours ahead of Coordinated Universal Time.</p>
+  </Fragment>
+  <Fragment slot="story">
+    <h2>Did Bangladesh ever use daylight saving time?</h2>
+    <p>Once. On {dst2009[0].date} Bangladesh moved its clocks one hour forward to {dst2009[0].afterL}, and on {dst2009[1].date} it went back to {dst2009[1].afterL}. That half-year is the only change in the time zone database for Dhaka since 1951, so anything you read about "Bangladesh summer time" refers to {dst2009[0].year}.</p>
+    <h2>Why is Dhaka thirty minutes ahead of Kolkata?</h2>
+    <p>India keeps a single national time of UTC+5:30, while Bangladesh chose a whole-hour offset. The result is a {hrs(india)}-hour step at the border: when it is noon in Kolkata, it is 12:30 in Dhaka, in every season.</p>
+    <h2>How much does daylight change in Dhaka over the year?</h2>
+    <p>Not much. In {Y} the longest day brings {hm(ext.max)} of sun and the shortest {hm(ext.min)}, a difference of roughly {Math.round((ext.max - ext.min) / 60)} hours. On 21 December the sun rises at {dec.rise}; on 21 June it is up by {june.rise}.</p>
+  </Fragment>
+</CityTime>

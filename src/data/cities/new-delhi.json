@@ -1,0 +1,36 @@
+{
+  "slug": "new-delhi",
+  "name": "New Delhi",
+  "demonym": "Delhiite",
+  "capital": "India",
+  "country": "India",
+  "code": "in",
+  "iso3": "IND",
+  "tz": "Asia/Kolkata",
+  "lat": 28.61389,
+  "lon": 77.20889,
+  "dms": "28°36′50″N 77°12′32″E",
+  "cont": "Asia",
+  "coordSource": {
+    "name": "Wikipedia, \"New Delhi\" (infobox coordinates)",
+    "url": "https://en.wikipedia.org/wiki/New_Delhi",
+    "checkedOn": "2026-11-26"
+  },
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/time-cities.py recomputes every UTC offset, clock change and historical offset claim with Python zoneinfo (system IANA tz 2026e, independent of the browser/Node ICU copy) and every sunrise, sunset and solar noon with the astral library; coordinates read from the Wikipedia infobox",
+    "what": "UTC offsets, zone names, clock-change dates and times 2026-2027, historical offset claims in the text, sun table, time-difference table, title, description and JSON-LD",
+    "against": "IANA tz database 2026e; astral (NOAA equations); Wikipedia infobox coordinates",
+    "result": "All automated comparisons matched; sun times within 1.3 minutes of astral (rounding)"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version (task 26)."
+    }
+  ]
+}

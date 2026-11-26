@@ -3,7 +3,7 @@
 import { econData, econMeta, rankBy, rankingYear, coverageYear, valueIn } from '../../lib/econ';
 import { commonName } from '../../lib/names';
 
-const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 'unemploymentPct' | 'remittances' | 'internetPct' | 'mobilePer100' | 'under5Mortality' | 'maternalMortality' | 'exports' | 'imports'; coverage?: boolean; cols: [string, (iso3: string, y: number) => number | string | null][] }> = {
+const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 'unemploymentPct' | 'remittances' | 'internetPct' | 'mobilePer100' | 'under5Mortality' | 'maternalMortality' | 'exports' | 'imports' | 'landArea' | 'forestArea'; coverage?: boolean; cols: [string, (iso3: string, y: number) => number | string | null][] }> = {
   'gdp-by-country': { key: 'gdp', cols: [
     ['gdp_current_usd', (x, y) => valueIn(econData(x).series.gdp, y)],
     ['gdp_growth_pct_constant_prices', (x, y) => valueIn(econData(x).series.gdpGrowthPct, y)],
@@ -53,6 +53,14 @@ const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 
     ['imports_goods_services_current_usd', (x, y) => valueIn(econData(x).series.imports, y)],
     ['imports_pct_gdp', (x, y) => valueIn(econData(x).series.importsPctGdp, y)],
     ['exports_goods_services_current_usd', (x, y) => valueIn(econData(x).series.exports, y)],
+  ] },
+  'land-area-by-country': { key: 'landArea', cols: [
+    ['land_area_sq_km', (x, y) => valueIn(econData(x).series.landArea, y)],
+  ] },
+  'forest-area-by-country': { key: 'forestArea', cols: [
+    ['forest_area_sq_km', (x, y) => valueIn(econData(x).series.forestArea, y)],
+    ['forest_pct_of_land_area', (x, y) => valueIn(econData(x).series.forestPct, y)],
+    ['forest_area_2000_sq_km', (x) => valueIn(econData(x).series.forestArea, 2000)],
   ] },
   'remittances-by-country': { key: 'remittances', cols: [
     ['remittances_received_current_usd', (x, y) => valueIn(econData(x).series.remittances, y)],
