@@ -3,7 +3,7 @@
 import { econData, econMeta, rankBy, rankingYear, coverageYear, valueIn } from '../../lib/econ';
 import { commonName } from '../../lib/names';
 
-const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 'unemploymentPct' | 'remittances' | 'internetPct' | 'mobilePer100' | 'under5Mortality' | 'maternalMortality'; coverage?: boolean; cols: [string, (iso3: string, y: number) => number | string | null][] }> = {
+const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 'unemploymentPct' | 'remittances' | 'internetPct' | 'mobilePer100' | 'under5Mortality' | 'maternalMortality' | 'exports' | 'imports'; coverage?: boolean; cols: [string, (iso3: string, y: number) => number | string | null][] }> = {
   'gdp-by-country': { key: 'gdp', cols: [
     ['gdp_current_usd', (x, y) => valueIn(econData(x).series.gdp, y)],
     ['gdp_growth_pct_constant_prices', (x, y) => valueIn(econData(x).series.gdpGrowthPct, y)],
@@ -43,6 +43,16 @@ const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 
     ['maternal_deaths_per_100000_live_births', (x, y) => valueIn(econData(x).series.maternalMortality, y)],
     ['maternal_deaths_2000_per_100000', (x) => valueIn(econData(x).series.maternalMortality, 2000)],
     ['world_bank_income_group', (x) => econData(x).incomeGroup],
+  ] },
+  'exports-by-country': { key: 'exports', coverage: true, cols: [
+    ['exports_goods_services_current_usd', (x, y) => valueIn(econData(x).series.exports, y)],
+    ['exports_pct_gdp', (x, y) => valueIn(econData(x).series.exportsPctGdp, y)],
+    ['imports_goods_services_current_usd', (x, y) => valueIn(econData(x).series.imports, y)],
+  ] },
+  'imports-by-country': { key: 'imports', coverage: true, cols: [
+    ['imports_goods_services_current_usd', (x, y) => valueIn(econData(x).series.imports, y)],
+    ['imports_pct_gdp', (x, y) => valueIn(econData(x).series.importsPctGdp, y)],
+    ['exports_goods_services_current_usd', (x, y) => valueIn(econData(x).series.exports, y)],
   ] },
   'remittances-by-country': { key: 'remittances', cols: [
     ['remittances_received_current_usd', (x, y) => valueIn(econData(x).series.remittances, y)],

@@ -1,0 +1,198 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import WorldMap from '../../components/WorldMap.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/exports-by-country.json';
+import { econData, econMeta, aggregate, valueIn, rankBy, notRanked, coverageYear, usd } from '../../lib/econ';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { commonName, pagesOf } from '../../lib/names';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/rankings/exports-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = meta.verification?.checkedOn;
+const name = commonName;
+const M = econMeta.indicators.exports;
+
+const L = coverageYear('exports');
+const ranked = rankBy('exports', L);
+const byShare = rankBy('exportsPctGdp', L);
+const N = ranked.length;
+const missing = notRanked('exports', L).filter((m) => m.latestYear != null);
+const WS = aggregate('WLD').series;
+const world = valueIn(WS.exports, L)!;
+const worldShare = valueIn(WS.exportsPctGdp, L)!;
+const share1970 = valueIn(WS.exportsPctGdp, 1970)!;
+const byIso = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const ex = (x: string, y = L) => valueIn(econData(x).series.exports, y);
+const exP = (x: string) => valueIn(econData(x).series.exportsPctGdp, L);
+const im = (x: string) => valueIn(econData(x).series.imports, L);
+const bn = (v: number) => usd(v);
+const top10 = ranked.slice(0, 10).reduce((a, r) => a + r.value, 0);
+const missOf = (x: string) => missing.find((m) => m.iso3 === x);
+const wYears = WS.exportsPctGdp!.filter(([y]) => y >= 1970 && y <= L);
+
+assertClaim(M.aggregation === 'Gap-filled total' && L === 2024 && N > 165, 'world: gap-filled total; ranking year 2024 by coverage');
+assertClaim(['CHN', 'USA', 'DEU'].every((x, i) => ranked[i].iso3 === x) && ranked[0].value > 3.8e12, 'China, US, Germany top; China above 3.8 trillion');
+assertClaim(byIso('IND').rank === 11 && byIso('BGD').rank === 64 && byIso('VNM').rank === 22, 'India 11th, Bangladesh 64th, Vietnam 22nd');
+assertClaim(['LUX', 'HKG', 'SGP'].every((x, i) => byShare[i].iso3 === x) && byShare[0].value > 190, 'Luxembourg, Hong Kong, Singapore highest share');
+assertClaim(share1970 < 13 && worldShare > 29 && worldShare < 29.2, 'world share 12.8% in 1970, 29.1% now');
+assertClaim(ex('BGD')! < ex('BGD', 2022)! && exP('BGD')! < 11 && exP('USA')! < 11.1, 'Bangladesh exports below 2022; 10.5% of GDP; US 11.0%');
+assertClaim(['NGA', 'ARE', 'QAT'].every((x) => valueIn(econData(x).series.exports, L) == null) && missOf('ARE')!.latestYear === 2023 && missOf('QAT')!.latestYear === 2022, 'Nigeria, UAE, Qatar unranked');
+assertClaim(valueIn(econData('NGA').series.exports, 1960) != null && (econData('NGA').series.exports ?? []).length === 1, 'Nigeria has only a 1960 export figure');
+assertClaim(byShare.findIndex((r) => r.iso3 === 'BGD') + 1 > byShare.length - 15, 'Bangladesh among the lowest export shares');
+
+const title = `Exports by Country ${L}: The World's Biggest Exporters | AtlasFigures`;
+const description = `With ${bn(ranked[0].value)} of exports in ${L}, China led the world; the United States and Germany came second and third. ${N} economies ranked by exports, with each one's share of GDP.`;
+
+const cards = [
+  { label: 'World exports', value: bn(world).replace(' trillion', 'T'), year: L, note: 'goods and services' },
+  { label: 'Share of world GDP', value: pct(worldShare), year: L },
+  { label: 'Top exporter', value: bn(ranked[0].value).replace(' trillion', 'T'), year: L, note: 'China' },
+  { label: 'Top 10 share', value: pct((top10 / world) * 100), year: L, note: 'of world exports' },
+];
+
+const rows = ranked.map((r) => {
+  const pg = pagesOf(r.iso3); const site = pg.economy ?? pg.population;
+  const s = exP(r.iso3), i = im(r.iso3);
+  return {
+    rank: r.rank, iso3: r.iso3, name: name(r.iso3), site, href: site ? path(site) : null, region: r.region,
+    bar: r.value / ranked[0].value, value: (r.value / 1e9).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+    cells: [s != null ? pct(s) : '–', i != null ? (i / 1e9).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '–'],
+  };
+});
+const mapFmt = (v: number) => usd(v);
+const mapRows = ranked.map((r) => ({ iso3: r.iso3, name: name(r.iso3), rank: r.rank, raw: r.value, value: mapFmt(r.value) }));
+const regions = [...new Set(ranked.map((r) => r.region))].sort();
+
+const faq = [
+  { q: 'Which country exports the most?', a: `China, whose sales abroad totalled ${bn(ranked[0].value)} in ${L}. Next come the US, at ${bn(ranked[1].value)}, and Germany, at ${bn(ranked[2].value)}.` },
+  { q: 'How much does the world export in a year?', a: `About ${bn(world)} in ${L} on the World Bank\'s total, which fills gaps for economies without data. That equals ${pct(worldShare)} of world GDP, against ${pct(share1970)} in 1970.` },
+  { q: 'Which countries depend most on exports?', a: `Measured against GDP, Luxembourg (${pct(byShare[0].value)}), Hong Kong SAR (China) (${pct(byShare[1].value)}) and Singapore (${pct(byShare[2].value)}). Shares above 100% are possible because exports are counted at full value while GDP counts only value added.` },
+  { q: 'How much does Bangladesh export?', a: `Its ${L} exports came to ${bn(ex('BGD')!)}, ${ord(byIso('BGD').rank)} in the ranking and ${pct(exP('BGD')!)} of GDP; two years earlier, in 2022, they were ${bn(ex('BGD', 2022)!)}.` },
+  { q: 'Why are Nigeria, the UAE and Qatar missing?', a: `The World Bank file has no ${L} export figure for them: the United Arab Emirates\' latest is for 2023 and Qatar\'s for 2022, while Nigeria\'s series holds only a 1960 value. We rank one year only rather than mixing years.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Exports by country ${L}: ${N} economies ranked by exports of goods and services`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'CreativeWork', name: 'World Development Indicators', url: WDI_URL, publisher: { '@type': 'Organization', name: 'The World Bank' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `Exports of goods and services by country, ${L}`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Exports of goods and services by country, ${L}`,
+    description: `Exports of goods and services in current US dollars for ${N} economies in ${L}, ranked, with exports as a share of GDP and imports, from the World Development Indicators (update of ${longDate(M.wdiLastUpdated)}).`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WDI_URL], temporalCoverage: String(L),
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['Exports of goods and services (current US$)', 'Exports of goods and services (% of GDP)', 'Imports of goods and services (current US$)'],
+    dateModified: iso(UPDATED), license: econMeta.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/exports-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="Exports" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Exports by country', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>Exports by country, {L}</h1>
+    <p class="answer">China sold <strong>{bn(ranked[0].value)}</strong> worth of products and services abroad in {L}, topping the list, with the United States and Germany behind it. World exports came to about <strong>{bn(world)}</strong>, {pct(worldShare)} of global GDP.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`Exports ranking, ${L}`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="map">Map</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="map" aria-label="Map" hidden-mobile>
+      <WorldMap
+        id="map-h" title={`What each economy sold abroad, ${L}`}
+        subtitle="Export earnings in current dollars; the darkest colour marks the fifth of economies that export the most."
+        rows={mapRows} fmt={mapFmt}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+    </section>
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`Exports of goods and services, ${L}`}
+        subtitle="In US$ billion, largest exporter first. Also shown: exports relative to GDP, and what the same economy imported."
+        valueLabel="Exports, US$ bn"
+        cols={[{ label: 'Share of GDP' }, { label: 'Imports, US$ bn', cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={regions}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        csv={path('/data/exports-by-country.csv')} csvName="exports-by-country.csv"
+        licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+      />
+      <p class="note">Bars are relative to China, the largest exporter. Not in the list: {missing.length} economies whose newest export figure predates {L}, among them {name('ARE')} (2023), {name('QAT')} (2022) and {name('NGA')}, whose series holds only a 1960 value.</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>Who are the world's largest exporters?</h2>
+        <p>China is first on {bn(ranked[0].value)}; the US follows on {bn(ranked[1].value)} and Germany on {bn(ranked[2].value)}. Together the top ten supply {pct((top10 / world) * 100)} of all exports. Further down, India ranks {ord(byIso('IND').rank)} ({bn(byIso('IND').value)}) and Vietnam {ord(byIso('VNM').rank)} ({bn(byIso('VNM').value)}).</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>How much of the world economy is trade?</h2>
+        <p>Exports were worth {pct(worldShare)} of world GDP in {L}, more than double the {pct(share1970)} of 1970. The share is far higher in small, open economies: Luxembourg's exports equal {pct(byShare[0].value)} of its GDP, while in the United States the figure is {pct(exP('USA')!)}.</p>
+      </div>
+      <LineChart
+        title={`World exports as a share of GDP, ${wYears[0][0]}–${L}`}
+        subtitle="Exports of goods and services, % of world GDP (World Bank weighted average)."
+        points={wYears.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+        format="percent" highlight={L} estimateLabel="World Bank data"
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+
+      <div class="story-block prose">
+        <h2>How much does Bangladesh sell abroad?</h2>
+        <p><a href={path('/economy/bangladesh/')}>Bangladesh</a> earned {bn(ex('BGD')!)} from exports in {L}, {ord(byIso('BGD').rank)} in this list, against imports of {bn(im('BGD')!)}. That was less than the {bn(ex('BGD', 2022)!)} of 2022 and amounted to {pct(exP('BGD')!)} of GDP, one of the lower shares in the ranking.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Exports: common questions</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(M.wdiLastUpdated)}): exports of goods and services in current US$ (NE.EXP.GNFS.CD) and as % of GDP (NE.EXP.GNFS.ZS), imports of goods and services (NE.IMP.GNFS.CD), from national accounts data. World total: the World Bank's gap-filled total, which includes estimates for economies without data. Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          <li>Related page: <a href={path('/rankings/imports-by-country/')}>imports by country</a>.</li>
+        </ul>
+        <p class="note">Exports cover goods whose ownership passes from residents to non-residents, whether or not they physically cross a border, plus services sold to non-residents. Figures are in current dollars, so exchange-rate swings move them. The ranking uses {L}, the newest year with figures for most economies. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Exports by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+</style>

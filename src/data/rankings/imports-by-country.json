@@ -1,0 +1,20 @@
+{
+  "slug": "imports-by-country",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/trade-117.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; check-wdi.mjs compares all 212,284 generated WDI values with the original files; then the text was read by hand",
+    "against": "World Bank WDI bulk files and indicator metadata (update 11 November 2026, CC BY 4.0; national accounts data)",
+    "what": "every ranking row (171 economies, order and value), the CSV, the computed trade-balance column (exports minus imports) for every row, every figure in the text, FAQ, title, description and JSON-LD; claims: US, China, Germany top importers, largest deficits US, India, Philippines, largest surpluses China, Ireland, Singapore, Germany, 101 of 171 economies in deficit, Bangladesh 53rd",
+    "result": "All automated comparisons matched; the page states that the balance is our own subtraction of the two World Bank series"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: World Bank WDI imports of goods and services for 2024, with trade balances."
+    }
+  ]
+}

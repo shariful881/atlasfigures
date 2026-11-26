@@ -1,0 +1,197 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import WorldMap from '../../components/WorldMap.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/imports-by-country.json';
+import { econData, econMeta, aggregate, valueIn, rankBy, notRanked, coverageYear, usd } from '../../lib/econ';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { commonName, pagesOf } from '../../lib/names';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/). The balance column is exports minus imports.
+const PAGE = '/rankings/imports-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = meta.verification?.checkedOn;
+const name = commonName;
+const M = econMeta.indicators.imports;
+
+const L = coverageYear('imports');
+const ranked = rankBy('imports', L);
+const N = ranked.length;
+const missing = notRanked('imports', L).filter((m) => m.latestYear != null);
+const WS = aggregate('WLD').series;
+const world = valueIn(WS.imports, L)!;
+const worldShare = valueIn(WS.importsPctGdp, L)!;
+const byIso = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const im = (x: string) => valueIn(econData(x).series.imports, L);
+const imP = (x: string) => valueIn(econData(x).series.importsPctGdp, L);
+const ex = (x: string) => valueIn(econData(x).series.exports, L);
+const bal = (x: string) => { const e = ex(x), i = im(x); return e != null && i != null ? e - i : null; };
+const balRank = ranked.map((r) => ({ iso3: r.iso3, b: bal(r.iso3) })).filter((x): x is { iso3: string; b: number } => x.b != null).sort((a, b) => b.b - a.b);
+const deficits = balRank.filter((x) => x.b < 0).length;
+const bn = (v: number) => usd(v);
+const wYears = WS.imports!.filter(([y]) => y >= 1990 && y <= L);
+
+assertClaim(M.aggregation === 'Gap-filled total' && L === 2024 && N > 165, 'world: gap-filled total; 2024');
+assertClaim(['USA', 'CHN', 'DEU'].every((x, i) => ranked[i].iso3 === x) && ranked[0].value > 4.1e12, 'US, China, Germany top importers; US above 4.1 trillion');
+assertClaim(balRank.at(-1)!.iso3 === 'USA' && balRank.at(-1)!.b < -8.9e11 && balRank[0].iso3 === 'CHN' && balRank[0].b > 5.4e11, 'US biggest deficit near 900bn; China biggest surplus');
+assertClaim(['IRL', 'SGP', 'DEU'].every((x, i) => balRank[i + 1].iso3 === x), 'Ireland, Singapore, Germany next surpluses');
+assertClaim(balRank.at(-2)!.iso3 === 'IND' && balRank.at(-3)!.iso3 === 'PHL', 'India and Philippines next-largest deficits');
+assertClaim(byIso('IND').rank === 7 && byIso('BGD').rank === 53 && bal('BGD')! < 0, 'India 7th; Bangladesh 53rd with a deficit');
+assertClaim(deficits > N / 2, 'more deficits than surpluses');
+assertClaim(valueIn(WS.imports, 2020)! < valueIn(WS.imports, 2019)! && valueIn(WS.imports, 2022)! > valueIn(WS.imports, 2021)!, '2020 dip, 2022 jump');
+
+const title = `Imports by Country ${L}: Biggest Importers and Trade Balances | AtlasFigures`;
+const description = `With ${bn(ranked[0].value)} of imports in ${L}, the US out-bought every other economy and ran the world\'s biggest trade deficit. ${N} economies ranked, with exports minus imports.`;
+
+const cards = [
+  { label: 'World imports', value: bn(world).replace(' trillion', 'T'), year: L, note: 'goods and services' },
+  { label: 'Share of world GDP', value: pct(worldShare), year: L },
+  { label: 'Top importer', value: bn(ranked[0].value).replace(' trillion', 'T'), year: L, note: 'United States' },
+  { label: 'Trade deficits', value: String(deficits), year: L, note: `of ${balRank.length} economies` },
+];
+
+const fmtBn = (v: number) => (v / 1e9).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const rows = ranked.map((r) => {
+  const pg = pagesOf(r.iso3); const site = pg.economy ?? pg.population;
+  const s = imP(r.iso3), b = bal(r.iso3);
+  return {
+    rank: r.rank, iso3: r.iso3, name: name(r.iso3), site, href: site ? path(site) : null, region: r.region,
+    bar: r.value / ranked[0].value, value: fmtBn(r.value),
+    cells: [s != null ? pct(s) : '–', b != null ? (b > 0 ? '+' : '') + fmtBn(b) : '–'],
+  };
+});
+const mapFmt = (v: number) => usd(v);
+const mapRows = ranked.map((r) => ({ iso3: r.iso3, name: name(r.iso3), rank: r.rank, raw: r.value, value: mapFmt(r.value) }));
+const regions = [...new Set(ranked.map((r) => r.region))].sort();
+
+const faq = [
+  { q: 'Which country imports the most?', a: `The United States (${bn(ranked[0].value)} for ${L}), then China (${bn(ranked[1].value)}) and Germany (${bn(ranked[2].value)}).` },
+  { q: 'Which country has the biggest trade deficit?', a: `The United States: its imports exceeded its exports by ${bn(-balRank.at(-1)!.b)} in ${L}. India (${bn(-balRank.at(-2)!.b)}) and the Philippines (${bn(-balRank.at(-3)!.b)}) had the next-largest gaps.` },
+  { q: 'Which country has the largest trade surplus?', a: `China, which exported ${bn(balRank[0].b)} more than it imported in ${L}. Ireland, Singapore and Germany follow.` },
+  { q: 'How much does Bangladesh import?', a: `Imports totalled ${bn(im('BGD')!)} for ${L}, placing it ${ord(byIso('BGD').rank)}, while exports were ${bn(ex('BGD')!)}, so the shortfall was ${bn(-bal('BGD')!)}.` },
+  { q: 'Do most countries import more than they export?', a: `Yes, in ${L}: ${deficits} of the ${balRank.length} economies with both figures bought more from abroad than they sold.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Imports by country ${L}: ${N} economies ranked, with trade balances`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'CreativeWork', name: 'World Development Indicators', url: WDI_URL, publisher: { '@type': 'Organization', name: 'The World Bank' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `Imports of goods and services by country, ${L}`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Imports of goods and services by country, ${L}`,
+    description: `Imports of goods and services in current US dollars for ${N} economies in ${L}, ranked, with imports as a share of GDP and exports, from the World Development Indicators (update of ${longDate(M.wdiLastUpdated)}).`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WDI_URL], temporalCoverage: String(L),
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['Imports of goods and services (current US$)', 'Imports of goods and services (% of GDP)', 'Exports of goods and services (current US$)'],
+    dateModified: iso(UPDATED), license: econMeta.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/imports-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="Imports" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Imports by country', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>Imports by country, {L}</h1>
+    <p class="answer">In {L} American purchases from other countries added up to <strong>{bn(ranked[0].value)}</strong>, the most of any economy; US imports exceeded US exports by <strong>{bn(-balRank.at(-1)!.b)}</strong>. China, the next-largest importer, ran the biggest surplus.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`Imports ranking, ${L}`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="map">Map</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="map" aria-label="Map" hidden-mobile>
+      <WorldMap
+        id="map-h" title={`Purchases from abroad, ${L}`}
+        subtitle="Import spending in current dollars, shaded in five bands from the smallest importers to the largest."
+        rows={mapRows} fmt={mapFmt}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+    </section>
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`Imports of goods and services, ${L}`}
+        subtitle="In US$ billion, biggest importer first, next to imports relative to GDP and the trade balance (exports minus imports, + for a surplus)."
+        valueLabel="Imports, US$ bn"
+        cols={[{ label: 'Share of GDP' }, { label: 'Balance, US$ bn', cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={regions}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        csv={path('/data/imports-by-country.csv')} csvName="imports-by-country.csv"
+        licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+      />
+      <p class="note">Bars are relative to the United States. {missing.length} economies without an import figure for {L} are left out, including {name('ARE')}, {name('QAT')} and {name('NGA')}.</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>Who buys the most from the rest of the world?</h2>
+        <p>The United States, at {bn(ranked[0].value)} in {L}; China ({bn(ranked[1].value)}) and Germany ({bn(ranked[2].value)}) come after it, and India sits {ord(byIso('IND').rank)} on {bn(byIso('IND').value)}. Worldwide, imports summed to about {bn(world)}, or {pct(worldShare)} of global GDP.</p>
+      </div>
+      <LineChart
+        title={`Global import bill, ${wYears[0][0]}–${L}`}
+        subtitle="Current US dollars, World Bank gap-filled world total."
+        points={wYears.map(([x, y]) => ({ x, y }))}
+        format="usdBillions" highlight={L} estimateLabel="World Bank data"
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+
+      <div class="story-block prose">
+        <h2>Which countries run the biggest trade deficits and surpluses?</h2>
+        <p>Subtracting imports from exports, the United States had the largest gap, {bn(-balRank.at(-1)!.b)}, followed by India and the Philippines. China's surplus of {bn(balRank[0].b)} was the largest, with Ireland, Singapore and Germany next. {deficits} of the {balRank.length} economies with both figures imported more than they exported.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>What does Bangladesh import?</h2>
+        <p>The World Bank figures give the total, not the goods: <a href={path('/economy/bangladesh/')}>Bangladesh</a> spent {bn(im('BGD')!)} on imports in {L}, {ord(byIso('BGD').rank)} worldwide and {pct(imP('BGD')!)} of GDP, while exporting {bn(ex('BGD')!)}, which leaves a gap of {bn(-bal('BGD')!)}.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Imports and trade balances: questions</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(M.wdiLastUpdated)}): imports of goods and services in current US$ (NE.IMP.GNFS.CD) and as % of GDP (NE.IMP.GNFS.ZS), exports of goods and services (NE.EXP.GNFS.CD), from national accounts data. World total: the World Bank's gap-filled total. The trade balance is our subtraction of imports from exports. Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          <li>Related page: <a href={path('/rankings/exports-by-country/')}>exports by country</a>.</li>
+        </ul>
+        <p class="note">Imports cover goods whose ownership passes from non-residents to residents, wherever they are physically delivered, plus services bought from non-residents. Values are in current dollars. The ranking uses {L}, the newest year with figures for most economies. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Imports by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+</style>
