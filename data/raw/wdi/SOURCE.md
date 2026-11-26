@@ -6,7 +6,7 @@ Downloaded automatically by .github/workflows/fetch-wdi.yml. Do not edit by hand
 - Dataset: World Development Indicators (https://datacatalog.worldbank.org/search/dataset/0037712)
 - Licence: CC BY 4.0 (checked per indicator in the World Bank API metadata, field License_Type)
 - Terms: https://www.worldbank.org/ext/en/legal/terms-conditions/datasets — must not imply World Bank endorsement
-- Downloaded (UTC): 2026-11-26T10:17:53Z
+- Downloaded (UTC): 2026-11-26T11:42:06Z
 
 | Code | Indicator | Licence | WDI last updated | URL | Bytes | SHA-256 |
 |---|---|---|---|---|---|---|
@@ -39,3 +39,8 @@ Downloaded automatically by .github/workflows/fetch-wdi.yml. Do not edit by hand
 | SL.AGR.EMPL.ZS | Employment in agriculture (% of total employment) (modeled ILO estimate) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SL.AGR.EMPL.ZS?downloadformat=csv | 87616 | 3b5e81a8215cf08fa12638da062cc9458048fa0ba9293f51d4e5021f29c99b79 |
 | SL.IND.EMPL.ZS | Employment in industry (% of total employment) (modeled ILO estimate) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SL.IND.EMPL.ZS?downloadformat=csv | 85454 | 713dcb3eb8df5842a76786815611b2bd84559d9c102d23db61679881a0bfdd89 |
 | SL.SRV.EMPL.ZS | Employment in services (% of total employment) (modeled ILO estimate) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SL.SRV.EMPL.ZS?downloadformat=csv | 87016 | a7bd2afc4d76a9c8058aa1debc91605b6ded3149b6cba04466d7c273aa8a3998 |
+| SM.POP.REFG | Refugee population by country or territory of asylum | CC BY-4.0 | 2025-10-29 | https://api.worldbank.org/v2/en/indicator/SM.POP.REFG?downloadformat=csv | 52117 | e0654f5370c7468384d34b443c32204a2392b59940ae404918593c4bd5d22282 |
+| SM.POP.REFG.OR | Refugee population by country or territory of origin | CC BY-4.0 | 2025-10-29 | https://api.worldbank.org/v2/en/indicator/SM.POP.REFG.OR?downloadformat=csv | 51089 | f4c1aca9b54deb60b89d52027b46a120761ee7304d498c851f13a37381a77833 |
+| SM.POP.TOTL | International migrant stock, total | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SM.POP.TOTL?downloadformat=csv | 23421 | a2e889a2f8d27f49935f9cbd0a9c4fd07f6a75e73ee7fb434cccd63d484c64ec |
+| SM.POP.TOTL.ZS | International migrant stock (% of population) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SM.POP.TOTL.ZS?downloadformat=csv | 21685 | 2646e53c6acf0e73e563a4a52ebc9f4a584e271041dd188a1ac40287f55ff8cd |
+| SM.POP.NETM | Net migration | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SM.POP.NETM?downloadformat=csv | 67220 | 2d246c436ca08d31e5d11ad8c0711b20ff5159f21ac850e352f7b86671fcd909 |
