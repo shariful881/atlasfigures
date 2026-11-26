@@ -1,0 +1,43 @@
+{
+  "slug": "mozambique",
+  "name": "Mozambique",
+  "demonym": "Mozambican",
+  "capital": "Maputo",
+  "iso3": "MOZ",
+  "code": "mz",
+  "continent": "Africa",
+  "wikipedia": "https://en.wikipedia.org/wiki/Mozambique",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1991,
+    2000,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/econ-batch12.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; then the rendered text was read by hand",
+    "what": "Every figure in the direct answer, indicator cards, Key facts, story, comparison figures, table, CSV, FAQ, title, description and JSON-LD, and the claim behind each sentence (records, 'since' years, rank positions, comparisons, start years of each series)",
+    "against": "World Bank WDI bulk files and country metadata (update 11 November 2026, CC BY 4.0)",
+    "result": "All 3,364 automated comparisons across the five pages matched; Uzbekistan's inflation series starts in 2011, Mozambique's in 2005, and remittances for Côte d'Ivoire and Cameroon end in 2024, all stated on the pages; an unsourced 'cocoa' description of Côte d'Ivoire and a misleading Madagascar ranking sentence were removed before publishing"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: World Bank WDI figures (update of 11 November 2026)."
+    }
+  ]
+}
