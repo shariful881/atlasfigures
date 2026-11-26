@@ -1,0 +1,165 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/tajikistan.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/tajikistan/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const remShare = rankBy('remittancesPctGdp', L);
+const remUp = (rem!.value / v('remittances', L - 1)! - 1) * 100;
+const remX = (rem!.value / v('remittances', 2015)!).toFixed(1);
+const gRank = rankBy('gdpGrowthPct', L).find((r) => r.iso3 === c.iso3)!.rank;
+const avgs = rankBy('gdpGrowthPct', L).map((r) => econData(r.iso3)).map((d) => { const gs = d.series.gdpGrowthPct.filter(([y]) => y >= 2000 && y <= L); return { iso3: d.iso3, n: gs.length, a: gs.reduce((t, [, x]) => t + x, 0) / gs.length }; }).filter((x) => x.n === L - 1999).sort((a, b) => b.a - a.a);
+const avgPos = avgs.findIndex((x) => x.iso3 === c.iso3) + 1; const avg = avgs[avgPos - 1].a;
+const gdpX = Math.round(gdp / v('gdp', 2000)!);
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const iLow = s.inflationPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const falls = s.gdpGrowthPct.filter(([, x]) => x < 0).map(([y]) => y);
+
+assertClaim(isMax(s.remittances) && isMax(s.remittancesPctGdp) && remShare[0].iso3 === c.iso3 && remPct!.value > 57 && remShare[1].value < 40, 'remittances record, 57.7% of GDP, highest in world by far');
+assertClaim(Math.round(remUp) === 50 && Number(remX) === 4.5, 'remittances up 50% in a year, 4.5x 2015');
+assertClaim(gRank === 7 && avgPos === 4 && avgs.slice(0, 3).map((x) => x.iso3).join() === 'GUY,ETH,CHN' && [2021, 2022, 2023, 2024, L].every((y) => g(y) >= 8), '7th fastest 2025; 4th average since 2000; 8%+ since 2021');
+assertClaim(isMax(s.gdp) && gdpX === 21 && s.gdp[0][0] === 1990 && s.gdpGrowthPct[0][0] === 1986, 'record GDP, ~21x 2000; GDP from 1990, growth from 1986');
+assertClaim(worst[0] === 1992 && worst[1] < -28.9 && falls.every((y) => y <= 1996), '1992 worst; no fall since 1996');
+assertClaim(iLow[0] === L && s.inflationPct[0][0] === 2001 && iMax[0] === 2001, 'inflation lowest since series began 2001; peak 2001');
+
+const title = `Tajikistan Economy ${L}: Remittances Worth ${pct(remPct!.value)} of GDP | AtlasFigures`;
+const description = `Tajik migrants' transfers totalled ${usd(rem!.value)} for ${L}, matching ${pct(remPct!.value)} of GDP — the world's highest share by far. The economy expanded ${pct(growth)}, to ${usd(gdp)}.`;
+
+const faq = [
+  { q: 'Is Tajikistan the most remittance-dependent country?', a: `Yes. Migrants' transfers were ${pct(remPct!.value)} of Tajik GDP in ${L}; Tonga, in second place, was at ${pct(remShare[1].value)}.` },
+  { q: 'How much did remittances to Tajikistan grow in 2025?', a: `By about ${Math.round(remUp)}%, to ${usd(rem!.value)} — ${remX}-fold the sum for 2015.` },
+  { q: 'Does Tajikistan grow faster than most countries?', a: `Much faster: ${pct(growth)} in ${L}, ${ord(gRank)} worldwide, with output up 8% or more in each year from 2021. Its ${pct(avg)} average since 2000 is the fourth-highest, after Guyana, Ethiopia and China.` },
+  { q: 'When was Tajikistan\'s worst economic year?', a: `1992, when output fell ${pct(Math.abs(worst[1]))}. GDP last declined in 1996.` },
+  { q: 'Is Tajik inflation low now?', a: `Lower than ever recorded: ${pct(infl.value)} for ${L}, compared with ${pct(iMax[1])} when the series opened in 2001.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Tajikistan's economy in ${L}: the world's biggest reliance on remittances`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Tajik economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Tajikistan', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Tajikistan's economy: built on money from migrants</h1>
+        <p class="answer">
+          Tajikistan received <strong>{usd(rem!.value)}</strong> from migrant workers in {L}, worth <strong>{pct(remPct!.value)}</strong> of its GDP; output rose {pct(growth)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Tajikistan economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Tajikistan" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Measured against GDP, no other country gets as much from its emigrants.</p>
+
+        <div class="story-block prose">
+          <h2>Why are remittances so important to Tajikistan?</h2>
+          <p>Because no other economy relies on them as much. Tajik migrants transferred {usd(rem!.value)} home during {L}, worth {pct(remPct!.value)} of GDP — the top share anywhere, far above second-placed Tonga ({pct(remShare[1].value)}). The total rose about {Math.round(remUp)}% in a year and is {remX}-fold its 2015 level.</p>
+        </div>
+        <LineChart
+          title={`Migrant money flowing into Tajikistan, ${s.remittances[0][0]}–${L}`}
+          subtitle="Personal transfers from Tajik workers abroad, current US dollars."
+          points={s.remittances.map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How rapid is Tajik growth?</h2>
+          <p>Very fast: {pct(growth)} in {L}, {ord(gRank)} in the world, and at least 8% each year since 2021. Since 2000 growth has averaged {pct(avg)}, the fourth-best record of any economy; measured in dollars the economy, now {usd(gdp)}, is some {gdpX} times bigger than in 2000. Each Tajik's share of output is {usdWhole(perHead)} — {intDollars(ppp!)} when compared at PPP.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>What happened to Tajikistan in the early 1990s?</h2>
+          <p>Output collapsed. From 1989 to 1996 every year brought a contraction in the growth series (which begins in 1986), the worst being 1992 at {pct(Math.abs(worst[1]))}. The economy has grown every year since.</p>
+        </div>
+        <LineChart
+          title={`Tajik real growth rates, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="Volume growth of the Tajik economy in % a year."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Is inflation in Tajikistan at a low?</h2>
+          <p>To a record low: {pct(infl.value)} in {L}, down from {pct(iMax[1])} in 2001, the opening year of the series. Modelled unemployment is {pct(unemp!)}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Tajikistan and Central Asia: related pages</h2>
+          <ul>
+            <li><a href={path('/population/tajikistan/')}>Tajikistan's population</a></li>
+            <li><a href={path('/economy/uzbekistan/')}>Uzbekistan's economy</a></li>
+            <li><a href={path('/economy/kazakhstan/')}>Kazakhstan's economy</a></li>
+            <li><a href={path('/economy/russia/')}>Russia's economy</a></li>
+            <li><a href={path('/rankings/remittances-by-country/')}>Remittances by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Tajik economic data table`}
+          subtitle="Starts in 1986, the first growth figure; dollar GDP begins in 1990. Then 1992, 1996, 2000–01 and every year from 2015; all years in the CSV."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/tajikistan-economy.csv')} csvName="tajikistan-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">What to know about Tajikistan's economy</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Inflation data for Tajikistan start in 2001. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Tajik economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Tajikistan" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

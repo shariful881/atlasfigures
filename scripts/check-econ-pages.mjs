@@ -22,7 +22,7 @@ const textOf = (el) => el.text.replace(/\s+/g, ' ').trim();
 const nodes = (root) => root.querySelectorAll('script[type="application/ld+json"]').flatMap((s) => { const d = JSON.parse(s.text); return d['@graph'] ?? [d]; });
 
 // Money style, written independently of src/lib/econ.ts
-const usd = (v) => (v >= 1e12 ? `$${(v / 1e12).toFixed(2)} trillion` : v >= 1e9 ? `$${(v / 1e9).toFixed(1)} billion` : `$${(v / 1e6).toFixed(1)} million`);
+const usd = (v) => (v >= 1e12 ? `$${(v / 1e12).toFixed(2)} trillion` : v >= 1e9 ? `$${(v / 1e9).toFixed(1)} billion` : v >= 1e6 ? `$${(v / 1e6).toFixed(1)} million` : `$${Math.round(v).toLocaleString("en-US")}`);
 const whole = (v) => `$${Math.round(v).toLocaleString('en-US')}`;
 const pct = (v) => `${v.toFixed(1)}%`;
 const last = (s) => s.at(-1);
