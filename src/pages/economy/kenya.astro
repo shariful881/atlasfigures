@@ -91,7 +91,7 @@ const schema = econSchema({
           title={`Kenyan GDP, 1960–${L}`}
           subtitle="Current US dollars; the latest year is the highest on record."
           points={s.gdp.map(([x, y]) => ({ x, y }))}
-          format="usd" highlight={L} estimateLabel="World Bank data"
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
           source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
         />
         <div class="story-block prose">
@@ -106,7 +106,7 @@ const schema = econSchema({
           title={`Kenya's inflow of remittances, ${s.remittances[0][0]}–${L}`}
           subtitle="Personal transfers and employee pay sent from abroad, current US dollars."
           points={s.remittances.map(([x, y]) => ({ x, y }))}
-          format="usd" highlight={L} estimateLabel="World Bank data"
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
           source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
         />
         <div class="story-block prose">

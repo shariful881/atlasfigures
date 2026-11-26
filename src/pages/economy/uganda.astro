@@ -102,7 +102,7 @@ const schema = econSchema({
           title={`Remittance inflows to Uganda, 1999–${L}`}
           subtitle="Personal transfers and compensation of employees, current US dollars."
           points={s.remittances.map(([x, y]) => ({ x, y }))}
-          format="usd" highlight={L} estimateLabel="World Bank data"
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
           source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
         />
         <div class="story-block prose">
