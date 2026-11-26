@@ -1,0 +1,60 @@
+{
+  "slug": "peru",
+  "name": "Peru",
+  "demonym": "Peruvian",
+  "capital": "Lima",
+  "iso3": "PER",
+  "code": "pe",
+  "continent": "Americas",
+  "wikipedia": "https://en.wikipedia.org/wiki/Peru",
+  "unName": "Peru",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    2000,
+    2007,
+    2010,
+    2015,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2026,
+    2030,
+    2040,
+    2050,
+    2066,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/peru.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; fourth in South America after Brazil, Colombia and Argentina",
+      "Net departures every year 1951–2014 (2007 largest), net arrivals 2015–2027 (2018 largest), small net departures from 2028; 2026 value",
+      "Life expectancy 2019, 2020, 2021 (lowest since 2004), 2022, 2026; deaths 2019 and 2021",
+      "Fertility 1956 high, below 2.1 every year from 2019; median age 1980 and now; urban share",
+      "Peak 2066, natural decrease from 2067, 2100 total; world rank 2000, now, 2100; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 72 of 72 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. No causes are given for the migration or life-expectancy changes."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
