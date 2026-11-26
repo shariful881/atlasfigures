@@ -1,0 +1,66 @@
+{
+  "slug": "syria",
+  "name": "Syria",
+  "demonym": "Syrian",
+  "capital": "Damascus",
+  "iso3": "SYR",
+  "code": "sy",
+  "continent": "Asia",
+  "wikipedia": "https://en.wikipedia.org/wiki/Syria",
+  "unName": "Syrian Arab Republic",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    2000,
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2020,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026,
+    2030,
+    2040,
+    2050,
+    2075,
+    2086,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/syria.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; fifth in Western Asia",
+      "Mid-year high 2011 and low 2016 (about 3.7 million fewer); net departures every year 2011–2017, 2013 the largest of any country that year; life expectancy 2010 and 2015",
+      "Net arrivals every year since 2018; 2023 value second only to the United States; 2026 value; 2011 level passed again in 2023",
+      "Growth fourth-fastest among countries above 10 million; natural increase; fertility now and under 2.1 from 2047; median age",
+      "2050 total; peak 2086, natural decrease 2087; urban share; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 82 of 82 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Counts only: no causes, no parties, and the page says the data do not identify who moved."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}

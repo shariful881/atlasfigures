@@ -1,0 +1,54 @@
+{
+  "slug": "niger",
+  "name": "Niger",
+  "demonym": "Nigerien",
+  "capital": "Niamey",
+  "iso3": "NER",
+  "code": "ne",
+  "continent": "Africa",
+  "wikipedia": "https://en.wikipedia.org/wiki/Niger",
+  "unName": "Niger",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    2000,
+    2010,
+    2015,
+    2020,
+    2026,
+    2030,
+    2040,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/niger.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; fourth in Western Africa now, third by 2100 after Nigeria and Côte d'Ivoire; largest land area in Western Africa; 11.1 times 1950",
+      "Highest fertility of any country in every UN year 1995–2018 (24 years); fifth now after Chad, Somalia, DR Congo, Central African Republic; 1985 high; about two births fewer than 2010; above seven in every decade row 1950–2015; under 2.1 from 2091",
+      "Median age second-lowest after Somalia among countries above 10 million; among the three fastest-growing; births, deaths, life expectancy 1950 and now",
+      "Men per 100 women 1950, 1989 (first male majority), now; urban share third-lowest after Papua New Guinea and Malawi among countries above 10 million",
+      "Passes 50 million in 2048, doubles by 2055, rises every year; 2100 total and rank; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 62 of 62 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. The sex-ratio change is described without causes."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
