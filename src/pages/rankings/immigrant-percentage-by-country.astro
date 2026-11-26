@@ -1,0 +1,206 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import WorldMap from '../../components/WorldMap.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/immigrant-percentage-by-country.json';
+import { econData, econMeta, aggregate, valueIn, rankBy, rankingYear } from '../../lib/econ';
+import { assertClaim, ord, int, millions } from '../../lib/figures';
+import { commonName, pagesOf } from '../../lib/names';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/); the estimates are UN DESA's
+// International Migrant Stock as a share of each population.
+const PAGE = '/rankings/immigrant-percentage-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WDI = 'World Bank, World Development Indicators (UN DESA International Migrant Stock)';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = meta.verification?.checkedOn;
+const name = commonName;
+const M = econMeta.indicators.migrantPct;
+const B0 = 1990, B1 = 2000;
+
+const L = rankingYear('migrantPct');
+const ranked = rankBy('migrantPct', L);
+const N = ranked.length;
+const WS = aggregate('WLD').series;
+const wP = valueIn(WS.migrantPct, L)!;
+const agg = (c: string) => valueIn(aggregate(c).series.migrantPct, L)!;
+const hic = agg('HIC'), lmy = agg('LMY'), sas = agg('SAS');
+const byIso = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const sh = (x: string, y: number) => valueIn(econData(x).series.migrantPct, y);
+const st = (x: string, y: number) => valueIn(econData(x).series.migrantStock, y);
+const p1 = (v: number) => `${v.toFixed(1)}%`;
+const over50 = ranked.filter((r) => r.value > 50).length;
+const under1 = ranked.filter((r) => r.value < 1).length;
+const qat = byIso('QAT'), are = byIso('ARE'), kwt = byIso('KWT'), bgd = byIso('BGD'), esp = byIso('ESP');
+const qPeak = econData('QAT').series.migrantPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const rises = ranked.filter((r) => sh(r.iso3, B1) != null).map((r) => ({ iso3: r.iso3, d: r.value - sh(r.iso3, B1)! })).sort((a, b) => b.d - a.d);
+const lowest = ranked.slice(-6);
+const espYears = econData('ESP').series.migrantPct.filter(([y]) => y <= L);
+
+assertClaim(M.aggregation === 'Weighted average' && L === 2024 && N === 216, 'weighted average; 2024; 216 places');
+assertClaim(['QAT', 'ARE', 'MCO'].every((x, i) => ranked[i].iso3 === x) && kwt.rank === 7 && over50 === 18 && under1 === 40, 'Qatar, UAE, Monaco; Kuwait 7th; 18 above half; 40 below 1%');
+assertClaim(qPeak[0] === 2015 && Math.round(qPeak[1] * 10) === 861 && sh('QAT', B0) === 49, 'Qatar peaked at 86.1% in 2015; 49.0% in 1990');
+assertClaim(Math.round(wP * 10) === 37 && Math.round(hic * 10) === 147 && Math.round(lmy * 10) === 14 && Math.round(sas * 10) === 5, 'world 3.7%, high income 14.7%, low and middle 1.4%, South Asia 0.5%');
+assertClaim(rises[0].iso3 === 'ABW' && rises[1].iso3 === 'MLT' && sh('ESP', B1) === 4.9 && esp.value === 18.5 && sh('ESP', B0) === 2.1, 'biggest rises Aruba, Malta; Spain 4.9 -> 18.5 (2.1 in 1990)');
+assertClaim(sh('USA', L) === 15.2 && sh('DEU', L) === 19.8 && sh('CAN', L) === 22.2 && sh('AUS', L) === 30.4 && sh('SAU', L) === 40.3 && sh('GBR', L) === 17.1, 'big destinations');
+assertClaim(lowest.map((r) => r.iso3).join() === 'CHN,MDG,MMR,PHL,CUB,MAF' && byIso('CHN').value === 0.1, 'lowest: China, Madagascar, Myanmar, Philippines 0.1; Cuba, Saint Martin');
+assertClaim(bgd.rank === 159 && bgd.value === 1.7 && sh('BGD', B0) === 0.8 && byIso('IND').value === 0.3, 'Bangladesh 1.7%, 159th; 0.8% in 1990; India 0.3%');
+assertClaim(sh('CHL', B1) === 1.1 && sh('CHL', L) === 7.8 && sh('COL', 2015) === 0.3 && sh('COL', L) === 5.8, 'Chile 1.1 -> 7.8; Colombia 0.3 in 2015 -> 5.8');
+
+const title = `Immigrants as a Percentage of Population by Country ${L} | AtlasFigures`;
+const description = `In Qatar ${p1(qat.value)} of residents were born abroad in ${L} and in the UAE ${p1(are.value)}; worldwide the figure is ${p1(wP)}. ${N} countries and areas ranked by their foreign-born share.`;
+
+const cards = [
+  { label: 'World', value: p1(wP), year: L, note: 'of people born abroad' },
+  { label: 'Highest: Qatar', value: p1(qat.value), year: L, note: `peak ${p1(qPeak[1])} in ${qPeak[0]}` },
+  { label: 'High-income economies', value: p1(hic), year: L, note: 'average' },
+  { label: 'More than half', value: String(over50), year: L, note: 'countries and areas' },
+];
+
+const rows = ranked.map((r) => {
+  const pg = pagesOf(r.iso3); const site = pg.population ?? pg.economy;
+  const s0 = sh(r.iso3, B0), n = st(r.iso3, L);
+  return {
+    rank: r.rank, iso3: r.iso3, name: name(r.iso3), site, href: site ? path(site) : null, region: r.region,
+    bar: r.value / 100, value: p1(r.value),
+    cells: [n == null ? '–' : int(n), s0 == null ? '–' : p1(s0)],
+  };
+});
+const mapFmt = (v: number) => `${v < 10 ? v.toFixed(1) : Math.round(v)}%`;
+const mapRows = ranked.map((r) => ({ iso3: r.iso3, name: name(r.iso3), rank: r.rank, raw: r.value, value: `${p1(r.value)} born abroad` }));
+const regions = [...new Set(ranked.map((r) => r.region))].sort();
+
+const faq = [
+  { q: 'Which country has the highest percentage of immigrants?', a: `Qatar, where ${p1(qat.value)} of the population was born in another country as of ${L}. Next comes the United Arab Emirates (${p1(are.value)}), and Kuwait (${p1(kwt.value)}) ranks ${ord(kwt.rank)} behind several small territories.` },
+  { q: 'What percentage of the world population are migrants?', a: `The UN figure is ${p1(wP)} for ${L}. In high-income economies the average share is ${p1(hic)}; across low- and middle-income ones it is ${p1(lmy)}.` },
+  { q: 'What percentage of Bangladesh is foreign-born?', a: `${p1(bgd.value)} in ${L}, ${ord(bgd.rank)} of ${N}, against ${p1(sh('BGD', B0)!)} in ${B0}. In India the share is ${p1(byIso('IND').value)}.` },
+  { q: 'Which countries have almost no immigrants?', a: `Cuba's share rounds to ${p1(lowest[4].value)}, and China, Madagascar, Myanmar and the Philippines are at ${p1(lowest[0].value)}. In all, ${under1} countries and areas are below 1%.` },
+  { q: 'What share of Americans were born abroad?', a: `${p1(sh('USA', L)!)} of United States residents in ${L}, up from ${p1(sh('USA', B0)!)} in ${B0}. Canada's figure is ${p1(sh('CAN', L)!)} and Australia's ${p1(sh('AUS', L)!)}.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Immigrants as a percentage of population by country, ${L}: ${N} countries and areas ranked`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'CreativeWork', name: 'World Development Indicators', url: WDI_URL, publisher: { '@type': 'Organization', name: 'The World Bank' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `Foreign-born share of the population by country, ${L}`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `International migrant stock as a share of population by country, ${L}`,
+    description: `Percentage of residents born in another country for ${N} countries and areas in ${L}, with the number of migrants and the ${B0} share, from the World Development Indicators (update of ${longDate(M.wdiLastUpdated)}). Estimates by the UN Population Division.`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WDI_URL], temporalCoverage: `${B0}/${L}`,
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['International migrant stock (% of population)', 'International migrant stock, total'],
+    dateModified: iso(UPDATED), license: econMeta.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/immigrant-percentage-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="Born abroad" back="/rankings/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Rankings', href: '/rankings/' }, { name: 'Immigrants as a percentage of population', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>Immigrants as a percentage of population, by country ({L})</h1>
+    <p class="answer">About three in every four people living in Qatar (<strong>{p1(qat.value)}</strong>) and in the United Arab Emirates ({p1(are.value)}) were born in another country. Across the whole world the foreign-born share is {p1(wP)}, and in {under1} countries and areas it is under 1%.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`Foreign-born share, ${L}`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="map">Map</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="map" aria-label="Map" hidden-mobile>
+      <WorldMap
+        id="map-h" title={`Share of residents born abroad, ${L}`}
+        subtitle="International migrant stock as a percentage of each population. The darkest countries are where newcomers form the largest part of society; shades split the places into groups of similar size."
+        rows={mapRows} fmt={mapFmt}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+    </section>
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`Foreign-born residents, % of population, ${L}`}
+        subtitle={`Highest share first, with the number of migrants and the share in ${B0}.`}
+        valueLabel="Born abroad"
+        cols={[{ label: 'Migrants' }, { label: `${B0}`, cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={regions}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        csv={path('/data/immigrant-percentage-by-country.csv')} csvName="immigrant-percentage-by-country.csv"
+        licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+      />
+      <p class="note">Each bar measures the share out of 100%. It includes all {N} places the UN estimated for {L}; a dash marks a missing figure.</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>Where do immigrants make up most of the population?</h2>
+        <p>In the Gulf and in very small places. Qatar ({p1(qat.value)}), the <a href={path('/economy/united-arab-emirates/')}>United Arab Emirates</a> ({p1(are.value)}) and Kuwait ({p1(kwt.value)}) are among the {over50} countries and areas where people born elsewhere outnumber those born locally; the rest of that group are mostly micro-states and island territories such as Monaco, Liechtenstein and Aruba. Qatar's share reached {p1(qPeak[1])} in {qPeak[0]}, up from {p1(sh('QAT', B0)!)} in {B0}, before easing.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>How do the big destination countries compare?</h2>
+        <p>Large numbers do not always mean a large share. Foreign-born residents are {p1(sh('USA', L)!)} of the <a href={path('/economy/united-states/')}>United States</a>, {p1(sh('GBR', L)!)} of the United Kingdom, {p1(sh('DEU', L)!)} of <a href={path('/economy/germany/')}>Germany</a>, {p1(sh('CAN', L)!)} of <a href={path('/economy/canada/')}>Canada</a> and {p1(sh('AUS', L)!)} of <a href={path('/economy/australia/')}>Australia</a>; in <a href={path('/economy/saudi-arabia/')}>Saudi Arabia</a> they are {p1(sh('SAU', L)!)}. High-income economies average {p1(hic)}, whereas low- and middle-income ones average {p1(lmy)} and South Asia only {p1(sas)}.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Which countries saw the foreign-born share climb fastest?</h2>
+        <p>Measured in percentage points since {B1}, Aruba and Malta rose the most. In <a href={path('/economy/spain/')}>Spain</a>, {p1(sh('ESP', B0)!)} of residents were born abroad in {B0}, {p1(sh('ESP', B1)!)} in {B1} and {p1(esp.value)} by {L}. In South America, <a href={path('/economy/chile/')}>Chile</a> went from {p1(sh('CHL', B1)!)} to {p1(sh('CHL', L)!)} and <a href={path('/economy/colombia/')}>Colombia</a> from {p1(sh('COL', 2015)!)} in 2015 to {p1(sh('COL', L)!)}.</p>
+      </div>
+      <LineChart
+        title={`Spain: residents born abroad, ${espYears[0][0]}–${L}`}
+        subtitle="Share of the population, UN estimates for selected years."
+        points={espYears.map(([x, y]) => ({ x, y }))}
+        format="percent" highlight={L} estimateLabel="World Bank data"
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+
+      <div class="story-block prose">
+        <h2>Is Bangladesh's foreign-born share high or low?</h2>
+        <p>Low: {p1(bgd.value)} in {L}, {ord(bgd.rank)} of {N}, although it has more than doubled from {p1(sh('BGD', B0)!)} in {B0}. In absolute terms that is {millions(st('BGD', L)!)} people. <a href={path('/economy/india/')}>India</a>'s share is {p1(byIso('IND').value)}, and <a href={path('/economy/china/')}>China</a>'s {p1(byIso('CHN').value)} is among the lowest anywhere.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Foreign-born share: quick answers</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(M.wdiLastUpdated)}): international migrant stock as % of population (SM.POP.TOTL.ZS) and in total (SM.POP.TOTL), UN Population Division, International Migrant Stock. World, regional and income-group shares: World Bank weighted averages. Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          <li>Related pages: <a href={path('/rankings/immigrant-population-by-country/')}>immigrant population by country</a>, <a href={path('/rankings/population-density-by-country/')}>population density by country</a>.</li>
+        </ul>
+        <p class="note">An international migrant is someone living in a country other than their country of birth, refugees included; where only citizenship is recorded, foreign citizens are used instead, so in a few countries the figure counts foreigners rather than the foreign-born. The UN publishes estimates for {B0}, 1995, {B1}, 2005, 2010, 2015, 2020 and {L}. Shares are shown to one decimal, so very small values appear as 0.0%. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Immigrants as a percentage of population by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+</style>

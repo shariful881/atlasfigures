@@ -262,6 +262,8 @@ const pages: { path: string; lastmod: string }[] = [
   { path: '/rankings/education-spending-by-country/', lastmod: '2026-11-26' },
   { path: '/rankings/female-labor-force-participation-by-country/', lastmod: '2026-11-26' },
   { path: '/rankings/employment-in-agriculture-by-country/', lastmod: '2026-11-26' },
+  { path: '/rankings/immigrant-population-by-country/', lastmod: '2026-11-26' },
+  { path: '/rankings/immigrant-percentage-by-country/', lastmod: '2026-11-26' },
   { path: '/rankings/exports-by-country/', lastmod: '2026-11-26' },
   { path: '/rankings/imports-by-country/', lastmod: '2026-11-26' },
   { path: '/economy/germany/', lastmod: '2026-11-25' },

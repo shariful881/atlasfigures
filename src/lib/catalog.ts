@@ -8,9 +8,10 @@ import { byPopulation, byDensity } from './popRankings';
 import { worldData, byYear, CURRENT_YEAR, int, pct, people } from './figures';
 import { commonName, iso2 } from './names';
 
-export type Topic = 'population' | 'economy' | 'energy' | 'telecom' | 'health' | 'education' | 'geography';
+export type Topic = 'population' | 'migration' | 'economy' | 'energy' | 'telecom' | 'health' | 'education' | 'geography';
 export const TOPICS: { key: Topic; label: string; text: string }[] = [
   { key: 'population', label: 'Population', text: 'How many people live in each place, and how closely packed they are.' },
+  { key: 'migration', label: 'Migration', text: 'People living outside the country they were born in.' },
   { key: 'economy', label: 'Economy', text: 'Output, income, prices, jobs, trade and money sent home from abroad.' },
   { key: 'energy', label: 'Energy and climate', text: 'Fossil CO₂ and how much electricity comes from renewables.' },
   { key: 'telecom', label: 'Internet and mobile', text: 'Who is online and how many phone and broadband lines there are.' },
@@ -69,6 +70,8 @@ export function rankingCards(): RankingCard[] {
     wb('imports-by-country', 'economy', 'Imports by country', 'Goods and services bought from abroad, with each trade balance.', 'imports', usd, { coverage: true, unit: 'US$', worldLabel: 'World total', leaderLabel: 'Largest importer' }),
     wb('female-labor-force-participation-by-country', 'economy', 'Women in the labour force', 'Share of women aged 15+ working or seeking work, with the rate for men.', 'lfpFemale', pct, { unit: '% of women 15+', leaderLabel: 'Highest', source: 'ILO via World Bank' }),
     wb('employment-in-agriculture-by-country', 'economy', 'Employment in agriculture', 'Share of jobs in farming, with industry and services alongside.', 'empAgriPct', pct, { unit: '% of employment', leaderLabel: 'Highest', source: 'ILO via World Bank' }),
+    wb('immigrant-population-by-country', 'migration', 'Immigrant population by country', 'People born abroad living in each country, with their share of the population.', 'migrantStock', (v) => `${(v / 1e6).toFixed(1)} million`, { unit: 'people born abroad', worldLabel: 'World total', leaderLabel: 'Most immigrants', source: 'UN DESA via World Bank' }),
+    wb('immigrant-percentage-by-country', 'migration', 'Immigrants as % of population', 'Foreign-born share of each population, from the Gulf to China.', 'migrantPct', pct, { unit: '% of population', leaderLabel: 'Highest', source: 'UN DESA via World Bank' }),
     wb('remittances-by-country', 'economy', 'Remittances by country', 'Money sent home by people working abroad, in dollars and as a share of GDP.', 'remittances', usd, { unit: 'US$ received', worldLabel: 'World total', leaderLabel: 'Most received' }),
     {
       slug: 'co2-emissions-by-country', href: '/rankings/co2-emissions-by-country/', topic: 'energy',
