@@ -1,0 +1,196 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Icon from '../../../components/Icon.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import data from '../../../data/holidays/bangladesh-2027.json';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../../site';
+import { type Holiday, weekday, dShort, isWeekend, breaks, ummAlQura } from '../../../lib/holidays';
+import { assertClaim } from '../../../lib/figures';
+
+const PAGE = '/holidays/bangladesh/2027/';
+const Y = data.year;
+const list = (data.holidays as Holiday[]).slice().sort((a, b) => a.date.localeCompare(b.date) || a.type.localeCompare(b.type));
+const gen = list.filter((h) => h.type === 'general'), exe = list.filter((h) => h.type === 'executive');
+const wkG = gen.filter((h) => isWeekend(h.date)).length, wkE = exe.filter((h) => isWeekend(h.date)).length;
+const r = data.reported;
+assertClaim(gen.length === r.general && exe.length === r.executive && wkG === r.onWeekendGeneral && wkE === r.onWeekendExecutive, 'list matches the reported counts (15 + 14; 4 + 3 on Fridays or Saturdays)');
+const distinct = new Set(list.map((h) => h.date)).size;
+const brk = breaks(list, Y).sort((a, b) => b.days - a.days || a.from.localeCompare(b.from));
+const longest = brk[0];
+const fitr = list.find((h) => h.name === 'Eid-ul-Fitr')!.date, azha = list.find((h) => h.name === 'Eid-ul-Azha')!.date;
+const uqFitr = ummAlQura(1448, 10, 1, Y)!, uqAzha = ummAlQura(1448, 12, 10, Y)!;
+const months = [...new Set(list.map((h) => h.date.slice(0, 7)))].map((m) => ({ key: m, label: new Date(`${m}-01T00:00:00Z`).toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' }), items: list.filter((h) => h.date.startsWith(m)) }));
+const faq = [
+  { q: 'How many public holidays does Bangladesh have in 2027?', a: `29 in the government list: ${gen.length} general holidays and ${exe.length} by executive order. ${r.onWeekend} of them fall on a Friday or Saturday, the weekly days off, so the government counts ${r.effective} effective holidays.` },
+  { q: 'When is Eid-ul-Fitr 2027 in Bangladesh?', a: `The list puts Eid-ul-Fitr on ${weekday(fitr)}, ${dShort(fitr)} ${Y}, depending on the sighting of the moon, with holidays from ${dShort('2027-03-08')} to ${dShort('2027-03-12')}.` },
+  { q: 'What is the longest holiday break in 2027?', a: `${longest.days} days in a row, from ${weekday(longest.from)} ${dShort(longest.from)} to ${weekday(longest.to)} ${dShort(longest.to)}, when the holidays join the Friday–Saturday weekend.` },
+  { q: 'Which 2027 holidays can change?', a: 'Islamic holidays (both Eids, Shab-e-Barat, Shab-e-Qadr, Jumatul Bida, Ashura and Eid-e-Miladunnabi) depend on the moon being sighted and can move by a day. This page will be updated if the government changes any date.' },
+];
+const schema = [
+  { '@type': 'WebPage', '@id': abs(`${PAGE}#page`), url: abs(PAGE), name: `Bangladesh public holidays ${Y}`, isPartOf: { '@id': WEBSITE_ID }, publisher: { '@id': ORG_ID }, inLanguage: 'en', datePublished: `${data.published}T12:00:00+06:00`, dateModified: `${data.updated}T12:00:00+06:00`, about: { '@type': 'Country', name: 'Bangladesh' } },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+const checkedOn = data.verification.checkedOn;
+const SRC = 'Ministry of Public Administration notification, via Prothom Alo (BSS)';
+---
+<Base title={`Bangladesh Public Holidays ${Y}: All 29 Dates, Eid and Long Breaks | AtlasFigures`}
+  description={`The government's ${Y} holiday list for Bangladesh: ${gen.length} general and ${exe.length} executive-order holidays, Eid-ul-Fitr on ${dShort(fitr)} and Eid-ul-Azha on ${dShort(azha)} (moon permitting), and a ${longest.days}-day break in ${dShort(longest.from).split(' ')[1]}.`}
+  section="time" appTitle={`Holidays ${Y}`} back="/time/" schema={schema}
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Time', href: '/time/' }, { name: `Bangladesh holidays ${Y}`, href: PAGE }]}>
+  <article class="hol">
+   <div class="hol-main">
+    <h1>Bangladesh public holidays {Y}</h1>
+    <p class="answer">The government has set <strong>29 public holidays for {Y}</strong>: {gen.length} general holidays and {exe.length} by executive order. Eid-ul-Fitr is expected on <strong>{weekday(fitr)}, {dShort(fitr)}</strong> and Eid-ul-Azha on <strong>{weekday(azha)}, {dShort(azha)}</strong>, both subject to the sighting of the moon.</p>
+    <div class="dates"><span>Updated <time datetime={data.updated}>{longDate(data.updated)}</time></span><SourceBadge source={SRC} url={data.source.url} checkedOn={checkedOn} /></div>
+
+    <section class="next-card" id="next" aria-live="polite" data-list={JSON.stringify(list.map((h) => [h.date, h.name]))}>
+      <span class="nk">Next holiday</span>
+      <span class="nn" data-k="name">{list[0].name}</span>
+      <span class="nd" data-k="date">{weekday(list[0].date)}, {dShort(list[0].date)} {Y}</span>
+      <span class="nc" data-k="in">&nbsp;</span>
+    </section>
+
+
+    <section class="tcard" aria-labelledby="list-h">
+      <header class="tcard-head"><div><h2 id="list-h">All {Y} holidays, month by month</h2><p class="tcard-sub">General holidays apply to everyone; executive-order holidays mainly to government offices. ☾ marks dates that depend on the moon.</p></div>
+        <div class="dl-btns"><a class="btn-ghost" href={path(`/data/bangladesh-holidays-${Y}.csv`)} download>CSV</a><a class="btn-ghost" href={path(`/data/bangladesh-holidays-${Y}.ics`)} download>Add to calendar</a></div></header>
+      <div class="table-scroll">
+        <table class="data hol-table">
+          <caption class="visually-hidden">Bangladesh public holidays {Y}: date, weekday, name and type</caption>
+          <thead><tr><th scope="col">Date</th><th scope="col">Day</th><th scope="col">Holiday</th><th scope="col">Type</th></tr></thead>
+          {months.map((m) => (
+            <tbody>
+              <tr class="mrow"><th scope="rowgroup" colspan="4">{m.label}</th></tr>
+              {m.items.map((h) => (
+                <tr data-date={h.date} class={isWeekend(h.date) ? 'wk' : ''}>
+                  <th scope="row">{dShort(h.date)}<span class="wd-m">{weekday(h.date).slice(0, 3)}{isWeekend(h.date) ? ' · weekend' : ''}</span></th>
+                  <td>{weekday(h.date)}{isWeekend(h.date) ? ' (weekend)' : ''}</td>
+                  <td class="hn">{h.name}{h.lunar ? ' ☾' : ''}{h.note ? <span class="hnote"> · {h.note}</span> : ''}</td>
+                  <td><span class={`tag ${h.type}`}>{h.type === 'general' ? 'General' : 'Executive'}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          ))}
+        </table>
+      </div>
+      <footer class="tcard-foot"><SourceBadge source={SRC} url={data.source.url} checkedOn={checkedOn} variant="footer" /></footer>
+    </section>
+
+    <section class="prose hol-story">
+      <h2>When are the long breaks in {Y}?</h2>
+      <p>Counting the Friday–Saturday weekend, {Y} has {brk.length} breaks of three days or more. The two longest are around the Eids: {brk.slice(0, 2).map((b) => `${b.days} days from ${dShort(b.from)} to ${dShort(b.to)}`).join(' and ')}.</p>
+      <ul class="breaks">{brk.map((b) => <li><b>{b.days} days</b> · {weekday(b.from)} {dShort(b.from)} – {weekday(b.to)} {dShort(b.to)} · {b.names.join(', ')}</li>)}</ul>
+      <h2>Why is Eid on a different day from Saudi Arabia?</h2>
+      <p>Bangladesh fixes the Eid dates after the moon is sighted in the country. For {Y} the government list has Eid-ul-Fitr on {dShort(fitr)} and Eid-ul-Azha on {dShort(azha)}; the Umm al-Qura calendar used in Saudi Arabia gives {dShort(uqFitr)} and {dShort(uqAzha)}.</p>
+      <h2>Is 20 May one holiday or two?</h2>
+      <p>The published list counts it twice: Buddha Purnima is a general holiday on 20 May, and the same date is also the third executive-order day after Eid-ul-Azha. That is why the list has 29 entries but {distinct} different dates.</p>
+    </section>
+
+    <nav class="related-pages pair-related" aria-label="Related pages">
+      <h2 class="visually-hidden">Related pages</h2>
+      <ul>
+        <li><a href={path('/countdown/eid-ul-fitr/')}><Icon name="time" /> Countdown to Eid-ul-Fitr</a></li>
+        <li><a href={path('/time/dhaka/')}><Icon name="time" /> Time in Dhaka</a></li>
+        <li><a href={path('/population/bangladesh/')}><Icon name="population" /> Population of Bangladesh</a></li>
+      </ul>
+    </nav>
+
+    <section class="faq-wrap" aria-labelledby="faq-h">
+      <h2 id="faq-h">Bangladesh holidays {Y}: quick answers</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={data.source.url}>Prothom Alo (BSS), "Public holidays 2027"</a>: every date and name from the Ministry of Public Administration notification of 5 November 2026.</li>
+          <li><a href={data.source.cabinetUrl}>Dhaka Tribune</a> and <a href={data.source.countsUrl}>The Financial Express</a>: the counts approved by the cabinet on 2 November 2026 (29 holidays; 7 on weekly days off, 4 general and 3 executive; 22 effective). Our weekday calculation gives the same 4 and 3.</li>
+          <li>Umm al-Qura dates: the Islamic calendar built into the JavaScript runtime (Unicode CLDR), for comparison only.</li>
+        </ul>
+        <p class="note">Weekdays and long breaks are calculated from the dates; Bangladesh's weekly days off are Friday and Saturday. If the government changes a date, for example after the moon is sighted, we will update this page and record the change.</p>
+        <p class="note">Published <time datetime={data.published}>{longDate(data.published)}</time> · Updated <time datetime={data.updated}>{longDate(data.updated)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl(`Bangladesh holidays ${Y}`, PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+   </div>
+    <aside class="facts hfacts" aria-labelledby="hf-h">
+      <h2 id="hf-h">{Y} at a glance</h2>
+      <dl>
+        <dt>Holidays in the list</dt><dd>{list.length} ({gen.length} general, {exe.length} executive)</dd>
+        <dt>On a Friday or Saturday</dt><dd>{wkG + wkE}</dd>
+        <dt>Effective days off (government count)</dt><dd>{r.effective}</dd>
+        <dt>Longest break</dt><dd>{longest.days} days, {dShort(longest.from)}–{dShort(longest.to)}</dd>
+        <dt>Eid-ul-Fitr</dt><dd>{dShort(fitr)} (Umm al-Qura calendar: {dShort(uqFitr)})</dd>
+        <dt>Eid-ul-Azha</dt><dd>{dShort(azha)} (Umm al-Qura calendar: {dShort(uqAzha)})</dd>
+      </dl>
+      <p class="src">Weekly days off in Bangladesh: Friday and Saturday.</p>
+    </aside>
+  </article>
+</Base>
+
+<script is:inline>
+  (function () {
+    var el = document.getElementById('next'); if (!el) return;
+    var list = JSON.parse(el.dataset.list);
+    var today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dhaka', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+    var next = list.find(function (h) { return h[0] >= today; });
+    if (!next) { el.querySelector('[data-k="in"]').textContent = 'All 2027 holidays have passed.'; return; }
+    var d = new Date(next[0] + 'T00:00:00Z');
+    el.querySelector('[data-k="name"]').textContent = next[1];
+    el.querySelector('[data-k="date"]').textContent = d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+    var days = Math.round((d - new Date(today + 'T00:00:00Z')) / 86400000);
+    el.querySelector('[data-k="in"]').textContent = days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : 'In ' + days + ' days';
+    var row = document.querySelector('tr[data-date="' + next[0] + '"]'); if (row) row.classList.add('is-next');
+  })();
+</script>
+
+<style>
+  .hol { display: grid; grid-template-columns: minmax(0, 1fr) 320px; column-gap: 44px; align-items: start; }
+  .hol-main { min-width: 0; }
+  .hol > .hfacts { position: sticky; top: 24px; }
+  .next-card { display: grid; grid-template-columns: 1fr auto; gap: 2px 16px; align-items: center; background: linear-gradient(150deg, var(--ocean), var(--ocean-2)); color: #d6e4ec; border-radius: 20px; padding: 18px 22px; margin-top: 6px; }
+  .next-card .nk { font-size: .76rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #a9c1d0; grid-column: 1 / -1; }
+  .next-card .nn { font-size: 1.45rem; font-weight: 800; color: #fff; }
+  .next-card .nc { grid-row: 2 / span 2; grid-column: 2; background: #fff; color: var(--ocean); font-weight: 800; border-radius: 999px; padding: 8px 16px; white-space: nowrap; }
+  .next-card .nc:empty { display: none; }
+  .hfacts { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 20px 22px 16px; }
+  .hfacts h2 { font-size: 1rem; margin: 0 0 12px; }
+  .hfacts dl { margin: 0; display: block; font-size: .92rem; }
+  .hfacts dt { color: var(--text-3); font-size: .76rem; text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
+  .hfacts dd { margin: 1px 0 11px; text-align: left; font-weight: 700; color: var(--ocean); font-variant-numeric: normal; }
+  .hfacts .src { font-size: .78rem; color: var(--text-3); margin: 14px 0 0; padding-top: 10px; border-top: 1px solid var(--line); }
+  .tcard { margin-top: 24px; }
+  .dl-btns { display: flex; gap: 8px; }
+  .hol-table th, .hol-table td { white-space: normal; text-align: left !important; }
+  .hol-table tr.mrow th { background: var(--water-2); color: var(--ocean); font-weight: 800; font-size: .85rem; text-transform: uppercase; letter-spacing: .04em; }
+  .hol-table tr.wk td, .hol-table tr.wk th { color: var(--text-3); }
+  .hol-table tr.is-next th, .hol-table tr.is-next td { background: var(--contour-2); }
+  .hol-table .hn { font-weight: 700; color: var(--ocean); }
+  .wd-m { display: none; }
+  .hnote { font-weight: 400; color: var(--text-3); font-size: .82rem; }
+  .tag { font-size: .72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+  .tag.general { background: var(--ocean); color: #fff; }
+  .tag.executive { background: var(--water); color: var(--ocean); }
+  .hol-story { margin-top: 10px; }
+  .breaks { padding-left: 18px; color: var(--text-2); }
+  .pair-related ul { list-style: none; padding: 0; margin: 24px 0 0; display: flex; flex-wrap: wrap; gap: 10px; }
+  .pair-related a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); text-decoration: none; font-weight: 600; font-size: .92rem; }
+  .pair-related :global(svg) { width: 18px; height: 18px; }
+  .faq-wrap h2 { margin-top: 32px; }
+  @media (max-width: 1023px) { .hol { grid-template-columns: minmax(0, 1fr) 260px; column-gap: 24px; } }
+  @media (max-width: 767px) {
+    .hol { display: block; }
+    .hol h1 { margin: 14px 2px 10px; font-size: 1.6rem; }
+    .next-card { border-radius: var(--r-lg); }
+    .hol > .hfacts { position: static; margin: 12px 0; border: 0; padding: 16px 18px 12px; }
+    .hol { display: flex; flex-direction: column; }
+    .hol > .hfacts { order: -1; margin-top: 0; }
+    .hol-main { display: contents; }
+    .hol-table td:nth-child(2), .hol-table thead th:nth-child(2) { display: none; }
+    .hol-table .wd-m { display: block; font-size: .74rem; font-weight: 500; color: var(--text-3); }
+    .hol .tcard-head { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .hol-table th, .hol-table td { padding: 9px 10px; }
+    .hol-story { background: var(--surface); border-radius: var(--r-lg); padding: 4px 18px 8px; margin-top: 12px; }
+  }
+</style>

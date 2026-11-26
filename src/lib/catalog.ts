@@ -2,25 +2,26 @@
 // how many places it ranks, the world figure and the place in first position. Every figure is computed with the
 // SAME functions the ranking page itself uses (rankBy / rankEnergy / byPopulation …), so the hub can never show a
 // different number or a different leader from the page it links to. Nothing here is typed by hand.
-import { aggregate, valueIn as wbIn, rankBy, rankingYear, coverageYear, usd, usdWhole, type IndicatorKey } from './econ';
+import { aggregate, valueIn as wbIn, rankBy, rankLatest, latest as wbLatest, rankingYear, coverageYear, usd, usdWhole, type IndicatorKey } from './econ';
 import { worldEnergy, valueIn as enIn, rankEnergy, energyYear, tonnes } from './energy';
 import { byPopulation, byDensity } from './popRankings';
 import { worldData, byYear, CURRENT_YEAR, int, pct, people } from './figures';
 import { commonName, iso2 } from './names';
 
-export type Topic = 'population' | 'economy' | 'energy' | 'telecom' | 'health' | 'geography';
+export type Topic = 'population' | 'economy' | 'energy' | 'telecom' | 'health' | 'education' | 'geography';
 export const TOPICS: { key: Topic; label: string; text: string }[] = [
   { key: 'population', label: 'Population', text: 'How many people live in each place, and how closely packed they are.' },
   { key: 'economy', label: 'Economy', text: 'Output, income, prices, jobs, trade and money sent home from abroad.' },
   { key: 'energy', label: 'Energy and climate', text: 'Fossil CO₂ and how much electricity comes from renewables.' },
   { key: 'telecom', label: 'Internet and mobile', text: 'Who is online and how many phone and broadband lines there are.' },
   { key: 'health', label: 'Health', text: 'Survival of mothers and young children.' },
+  { key: 'education', label: 'Education', text: 'Who can read and write, and what governments spend on schools.' },
   { key: 'geography', label: 'Land and forests', text: 'How much land each country has and how much of it is forest.' },
 ];
 
 export type RankingCard = {
   slug: string; href: string; topic: Topic; title: string; blurb: string; source: string;
-  year: number; count: number; unit: string;
+  year: number | string; count: number; unit: string;
   world: { label: string; value: string } | null;
   leader: { iso3: string; name: string; flag: string | null; value: string; label: string } | null;
 };
@@ -66,6 +67,8 @@ export function rankingCards(): RankingCard[] {
     wb('unemployment-rate-by-country', 'economy', 'Unemployment rate by country', 'Share of the labour force without work, ILO modelled estimates.', 'unemploymentPct', pct, { unit: '% of labour force', leaderLabel: 'Highest', source: 'ILO via World Bank' }),
     wb('exports-by-country', 'economy', 'Exports by country', 'Goods and services sold abroad, in current US dollars.', 'exports', usd, { coverage: true, unit: 'US$', worldLabel: 'World total', leaderLabel: 'Largest exporter' }),
     wb('imports-by-country', 'economy', 'Imports by country', 'Goods and services bought from abroad, with each trade balance.', 'imports', usd, { coverage: true, unit: 'US$', worldLabel: 'World total', leaderLabel: 'Largest importer' }),
+    wb('female-labor-force-participation-by-country', 'economy', 'Women in the labour force', 'Share of women aged 15+ working or seeking work, with the rate for men.', 'lfpFemale', pct, { unit: '% of women 15+', leaderLabel: 'Highest', source: 'ILO via World Bank' }),
+    wb('employment-in-agriculture-by-country', 'economy', 'Employment in agriculture', 'Share of jobs in farming, with industry and services alongside.', 'empAgriPct', pct, { unit: '% of employment', leaderLabel: 'Highest', source: 'ILO via World Bank' }),
     wb('remittances-by-country', 'economy', 'Remittances by country', 'Money sent home by people working abroad, in dollars and as a share of GDP.', 'remittances', usd, { unit: 'US$ received', worldLabel: 'World total', leaderLabel: 'Most received' }),
     {
       slug: 'co2-emissions-by-country', href: '/rankings/co2-emissions-by-country/', topic: 'energy',
@@ -84,6 +87,19 @@ export function rankingCards(): RankingCard[] {
     wb('mobile-subscriptions-by-country', 'telecom', 'Mobile subscriptions by country', 'Mobile and fixed broadband subscriptions for every 100 people.', 'mobilePer100', (v) => `${v.toFixed(1)} per 100`, { coverage: true, unit: 'per 100 people', leaderLabel: 'Highest', source: 'ITU via World Bank' }),
     wb('child-mortality-by-country', 'health', 'Child mortality by country', 'Children who die before age five, per 1,000 live births.', 'under5Mortality', (v) => `${v.toFixed(1)} per 1,000`, { unit: 'per 1,000 births', leaderLabel: 'Highest', source: 'UN IGME via World Bank' }),
     wb('maternal-mortality-by-country', 'health', 'Maternal mortality by country', 'Women who die from pregnancy or childbirth, per 100,000 live births.', 'maternalMortality', (v) => `${int(v)} per 100,000`, { unit: 'per 100,000 births', leaderLabel: 'Highest', source: 'UN MMEIG via World Bank' }),
+    (() => {
+      // UNESCO literacy: each country's latest figure from 2015, so the card shows the span of years.
+      const r = rankLatest('literacyPct', 2015), w = wbLatest(WLD().literacyPct)!;
+      return { slug: 'literacy-rate-by-country', href: '/rankings/literacy-rate-by-country/', topic: 'education' as Topic, title: 'Literacy rate by country', blurb: 'Share of adults who can read and write, latest UNESCO figure for each country.',
+        source: 'UNESCO via World Bank', year: `2015–${Math.max(...r.map((x) => x.year))}`, count: r.length, unit: '% of adults',
+        world: { label: `World, ${w.year}`, value: pct(w.value) }, leader: null };
+    })(),
+    (() => {
+      const r = rankLatest('eduSpendPctGdp', 2020);
+      return { slug: 'education-spending-by-country', href: '/rankings/education-spending-by-country/', topic: 'education' as Topic, title: 'Education spending by country', blurb: 'Government spending on education as a share of GDP, latest figure for each country.',
+        source: 'UNESCO via World Bank', year: `2020–${Math.max(...r.map((x) => x.year))}`, count: r.length, unit: '% of GDP',
+        world: null, leader: lead(r[0].iso3, pct(r[0].value), 'Highest') };
+    })(),
     wb('land-area-by-country', 'geography', 'Land area by country', 'Land in square kilometres, from the largest country to the smallest.', 'landArea', (v) => `${(v / 1e6).toFixed(1)} million km²`, { unit: 'km² of land', worldLabel: 'World total', leaderLabel: 'Largest', source: 'FAO via World Bank' }),
     wb('forest-area-by-country', 'geography', 'Forest area by country', 'Forest in square kilometres and as a share of land, with the change since 2000.', 'forestArea', (v) => `${(v / 1e6).toFixed(1)} million km²`, { unit: 'km² of forest', worldLabel: 'World total', leaderLabel: 'Largest forest', source: 'FAO via World Bank' }),
   ];

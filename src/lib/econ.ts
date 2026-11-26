@@ -11,7 +11,9 @@ export type IndicatorKey =
   | 'mobilePer100' | 'mobileSubs' | 'broadbandPer100'
   | 'under5Mortality' | 'infantMortality' | 'maternalMortality'
   | 'exports' | 'imports' | 'exportsPctGdp' | 'importsPctGdp'
-  | 'landArea' | 'forestPct' | 'forestArea';
+  | 'landArea' | 'forestPct' | 'forestArea'
+  | 'literacyPct' | 'eduSpendPctGdp'
+  | 'lfpFemale' | 'lfpMale' | 'empAgriPct' | 'empIndPct' | 'empSrvPct';
 /** [year, value] pairs, years ascending, only years the World Bank publishes a value for. */
 export type Series = [number, number][];
 export type EconData = {
@@ -67,6 +69,15 @@ export function rankBy(key: IndicatorKey, year: number): Ranked[] {
   return Object.values(files)
     .map((d) => ({ iso3: d.iso3, region: d.region, incomeGroup: d.incomeGroup, value: valueIn(d.series[key], year) }))
     .filter((x): x is Omit<Ranked, 'rank'> => x.value != null)
+    .sort((a, b) => b.value - a.value || a.iso3.localeCompare(b.iso3))
+    .map((x, i) => ({ ...x, rank: i + 1 }));
+}
+/** For irregularly reported series (UNESCO education data): each economy's most recent value from `since` on,
+ *  highest first, with the year it refers to. Values are never carried forward past their own year. */
+export function rankLatest(key: IndicatorKey, since: number): (Ranked & { year: number })[] {
+  return Object.values(files)
+    .map((d) => { const l = latest((d.series[key] ?? []).filter(([y]) => y >= since)); return l && { iso3: d.iso3, region: d.region, incomeGroup: d.incomeGroup, value: l.value, year: l.year }; })
+    .filter((x): x is Omit<Ranked, 'rank'> & { year: number } => Boolean(x))
     .sort((a, b) => b.value - a.value || a.iso3.localeCompare(b.iso3))
     .map((x, i) => ({ ...x, rank: i + 1 }));
 }

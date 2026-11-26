@@ -123,7 +123,12 @@ const RANKINGS = { 'gdp-by-country': { key: 'gdp', cell: (v) => (v / 1e9).toLoca
   'exports-by-country': { key: 'exports', cell: (v) => (v / 1e9).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }), csvCol: 'exports_goods_services_current_usd', coverage: true },
   'imports-by-country': { key: 'imports', cell: (v) => (v / 1e9).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }), csvCol: 'imports_goods_services_current_usd', coverage: true },
   'land-area-by-country': { key: 'landArea', cell: (v) => v.toLocaleString('en-US', { maximumFractionDigits: 1 }), csvCol: 'land_area_sq_km' },
-  'forest-area-by-country': { key: 'forestArea', cell: (v) => v.toLocaleString('en-US', { maximumFractionDigits: 1 }), csvCol: 'forest_area_sq_km' } };
+  'forest-area-by-country': { key: 'forestArea', cell: (v) => v.toLocaleString('en-US', { maximumFractionDigits: 1 }), csvCol: 'forest_area_sq_km' },
+  // UNESCO education series are reported irregularly: each economy's latest value from `since` on (task 115).
+  'female-labor-force-participation-by-country': { key: 'lfpFemale', cell: (v) => `${v.toFixed(1)}%`, csvCol: 'labour_force_participation_women_pct_15_plus' },
+  'employment-in-agriculture-by-country': { key: 'empAgriPct', cell: (v) => `${v.toFixed(1)}%`, csvCol: 'employment_agriculture_pct' },
+  'literacy-rate-by-country': { key: 'literacyPct', cell: (v) => `${v.toFixed(1)}%`, csvCol: 'adult_literacy_pct_ages_15_plus', since: 2015 },
+  'education-spending-by-country': { key: 'eduSpendPctGdp', cell: (v) => `${v.toFixed(1)}%`, csvCol: 'government_education_expenditure_pct_gdp', since: 2020 } };
 const wdiAll = readdirSync('src/data/wdi/countries').map((f) => JSON.parse(readFileSync(join('src/data/wdi/countries', f), 'utf8')));
 const wld = JSON.parse(readFileSync('src/data/wdi/aggregates.json', 'utf8')).aggregates.find((a) => a.code === 'WLD').series;
 for (const [slug, R] of Object.entries(RANKINGS)) {
@@ -135,8 +140,11 @@ for (const [slug, R] of Object.entries(RANKINGS)) {
   const m = JSON.parse(readFileSync(`src/data/rankings/${slug}.json`, 'utf8'));
   // Year: World total's latest year, or for ITU telecom series the newest year with values for >= 80% of reporters.
   const cov = () => { const n = new Map(); for (const d of wdiAll) for (const [y] of d.series[R.key] ?? []) n.set(y, (n.get(y) ?? 0) + 1); const mx = Math.max(...n.values()); return Math.max(...[...n].filter(([, c]) => c >= 0.8 * mx).map(([y]) => y)); };
-  const L = R.coverage ? cov() : last(wld[R.key])[0];
-  const want = wdiAll.map((d) => ({ iso3: d.iso3, v: new Map(d.series[R.key]).get(L) })).filter((x) => x.v != null).sort((a, b) => b.v - a.v || a.iso3.localeCompare(b.iso3));
+  const L = R.since ? null : R.coverage ? cov() : last(wld[R.key])[0];
+  const latestFrom = (s) => { const k = (s ?? []).filter(([y]) => y >= R.since); return k.length ? k.at(-1) : null; };
+  const want = R.since
+    ? wdiAll.map((d) => { const l = latestFrom(d.series[R.key]); return { iso3: d.iso3, v: l?.[1], y: l?.[0] }; }).filter((x) => x.v != null).sort((a, b) => b.v - a.v || a.iso3.localeCompare(b.iso3))
+    : wdiAll.map((d) => ({ iso3: d.iso3, v: new Map(d.series[R.key]).get(L), y: L })).filter((x) => x.v != null).sort((a, b) => b.v - a.v || a.iso3.localeCompare(b.iso3));
   const trs = root.querySelectorAll('table.ranking tbody tr');
   ok(trs.length === want.length, where, `ranking has ${trs.length} rows, World Bank ${want.length} economies with ${L} data`);
   trs.forEach((tr, i) => {
@@ -188,7 +196,7 @@ for (const [slug, R] of Object.entries(RANKINGS)) {
     ok(lines.length - 1 === want.length, where, 'CSV row count ≠ ranking');
     lines.slice(1).forEach((l, i) => {
       const f = l.match(/("([^"]|"")*"|[^,]*)(,|$)/g).map((x) => x.replace(/,$/, ''));
-      ok(f[ii] === want[i]?.iso3 && Number(f[ci]) === want[i]?.v && Number(f[0]) === i + 1, where, `CSV row ${i + 1} ≠ World Bank`);
+      ok(f[ii] === want[i]?.iso3 && Number(f[ci]) === want[i]?.v && Number(f[0]) === i + 1 && Number(f[head.indexOf('year')]) === want[i]?.y, where, `CSV row ${i + 1} ≠ World Bank`);
     });
   }
   for (const el of root.querySelectorAll('article .answer, article .prose p, article .faq p')) {

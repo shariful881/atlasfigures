@@ -1,0 +1,154 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/mali.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+import { rankLatest, latest } from '../../lib/econ';
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/mali/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const hiSince = Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < L && x >= growth).map(([y]) => y));
+const up = [2021, 2022, 2023, 2024, L].every((y, k, a) => k === 0 || g(y) >= g(a[k - 1]));
+const gMax = s.gdpGrowthPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const lit = rankLatest('literacyPct', 2015); const litMe = lit.find((r) => r.iso3 === c.iso3)!; const litLow = lit.length - litMe.rank + 1;
+const ssa = rankBy('gdp', L).filter((r) => r.region === 'Sub-Saharan Africa'); const ssaPos = ssa.findIndex((r) => r.iso3 === c.iso3) + 1;
+const forest = latest(s.forestPct)!;
+const deflYears = s.inflationPct.filter(([y, x]) => y >= 2010 && x < 0).map(([y]) => y);
+
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita) && ssaPos === 15 && B.gdpRank === 113, 'record GDP; 15th SSA; 113th');
+assertClaim(hiSince === 2016 && g(2020) < 0 && up, 'fastest since 2016; 2020 fall; faster each year since 2021');
+assertClaim(gMax[0] === 2001 && gMax[1] > 15.8, 'record 2001');
+assertClaim(litMe.year === 2024 && litLow <= 3 && Math.round(litMe.value * 10) === 356, 'literacy 35.6% (2024), among 3 lowest');
+assertClaim(i(2022) > 9.5 && infl.value < 3.5 && deflYears.join() === '2013,2016,2019', '2022 9.6%; falls in 2013, 2016, 2019');
+assertClaim(rem!.year === 2024 && remPct!.value > 3.9 && rem!.value > 1e9 && Math.round(forest.value) === 9, 'remittances 2024 above $1bn, 4.0%; forest 9%');
+
+const title = `Mali Economy ${L}: Growth Picks Up to ${pct(growth)} | AtlasFigures`;
+const description = `Malian real GDP rose ${pct(growth)} over ${L} to ${usd(gdp)}, its biggest gain since 2016. It has sped up in each year after the 2020 dip; inflation was ${pct(infl.value)}.`;
+
+const faq = [
+  { q: 'Has Mali recovered from 2020?', a: `Yes. Output dipped ${pct(Math.abs(g(2020)))} that year; since then the pace has risen every year, to ${pct(growth)} in ${L} — Mali's quickest since 2016.` },
+  { q: 'What is Mali\'s literacy rate?', a: `${pct(litMe.value)} of adults in ${litMe.year}, according to UNESCO — one of the three lowest rates among the ${lit.length} countries with a recent figure.` },
+  { q: 'What was Mali\'s best year for growth?', a: `2001, with a ${pct(gMax[1])} expansion in real GDP.` },
+  { q: 'Do prices ever fall in Mali?', a: `Occasionally: Malian prices dipped in 2013, 2016 and 2019. In ${L} the index rose ${pct(infl.value)}, after ${pct(i(2022))} in 2022.` },
+  { q: 'Are remittances important to Mali?', a: `Moderately — ${usd(rem!.value)} arrived in ${rem!.year}, ${pct(remPct!.value)} of GDP; ${rem!.year} is the newest year published.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Mali's economy in ${L}: four years of quickening growth`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Malian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Mali', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Mali's economy: a steady climb back</h1>
+        <p class="answer">
+          Mali grew <strong>{pct(growth)}</strong> in {L}; GDP is <strong>{usd(gdp)}</strong> and inflation {pct(infl.value)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Mali economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Mali" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Growth has risen year after year since output dipped in 2020.</p>
+
+        <div class="story-block prose">
+          <h2>Is Malian growth gaining pace?</h2>
+          <p>Year by year since the pandemic. GDP shrank {pct(Math.abs(g(2020)))} in 2020, then grew {pct(g(2021))}, {pct(g(2022))}, {pct(g(2023))}, {pct(g(2024))} and {pct(growth)} in {L} — Mali's strongest since 2016. Mali's record is {pct(gMax[1])}, in 2001.</p>
+        </div>
+        <LineChart
+          title={`How fast Mali's output grew, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="Constant-price GDP, annual % change."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How large has Mali's economy become?</h2>
+          <p>A record {usd(gdp)} for {L} — fifteenth among sub-Saharan economies, {ord(B.gdpRank!)} worldwide — equivalent to {usdWhole(perHead)} per Malian, {intDollars(ppp!)} in PPP terms. Remittances totalled {usd(rem!.value)} in {rem!.year}, the last year with data.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How many Malians can read and write?</h2>
+          <p>About a third of adults: {pct(litMe.value)} in {litMe.year}, UNESCO's figure — one of the three lowest literacy rates in the World Bank data. Forest covers about {pct(forest.value)} of Mali's land ({forest.year}, FAO).</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Are Malian prices stable?</h2>
+          <p>Mostly. Inflation was {pct(infl.value)} in {L}; 2022's {pct(i(2022))} stands out, and in 2013, 2016 and 2019 the price level even slipped. Modelled unemployment is {pct(unemp!)}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Mali and the Sahel: related pages</h2>
+          <ul>
+            <li><a href={path('/population/mali/')}>Mali's population</a></li>
+            <li><a href={path('/economy/burkina-faso/')}>Burkina Faso's economy</a></li>
+            <li><a href={path('/economy/senegal/')}>Senegal's economy</a></li>
+            <li><a href={path('/economy/guinea/')}>Guinea's economy</a></li>
+            <li><a href={path('/rankings/literacy-rate-by-country/')}>Literacy rate by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Mali's economic record`}
+          subtitle="From 1967, Mali's first GDP year, by decade with 2001 and 2012, then 2015–2025. Missing years: see the CSV."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/mali-economy.csv')} csvName="mali-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Mali's economy explained in five questions</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Literacy: SE.ADT.LITR.ZS (UNESCO); forest: AG.LND.FRST.ZS (FAO), via the World Bank. Remittances are published to 2024. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Malian economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Mali" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

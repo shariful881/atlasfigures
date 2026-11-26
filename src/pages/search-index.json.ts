@@ -36,6 +36,8 @@ export function GET() {
       const A = cities.find((c) => c.slug === pr.a), B = cities.find((c) => c.slug === pr.b);
       return { t: `${A.name} to ${B.name} time`, s: 'Time difference', u: path(`/time/${pr.slug}/`), f: null, k: 'time', a: [A.name, B.name, 'time difference', `${A.name} ${B.name}`] };
     }),
+    { t: 'Bangladesh public holidays 2027', s: 'Holidays · all 29 dates', u: path('/holidays/bangladesh/2027/'), f: null, k: 'time', a: ['holiday', 'holidays', 'chuti', 'Eid', 'Bangladesh', 'public holiday', '2027'] },
+    { t: 'Eid-ul-Fitr 2027 countdown', s: 'Countdown · Bangladesh', u: path('/countdown/eid-ul-fitr/'), f: null, k: 'time', a: ['Eid', 'Eid ul Fitr', 'Ramadan', 'countdown', 'Bangladesh'] },
     { t: 'Time zone converter', s: 'Tool · convert a time between cities', u: path('/time/converter/'), f: null, k: 'section', a: ['converter', 'time zone', 'convert time'] },
     { t: 'World clock', s: 'Section · local time in major cities', u: path('/time/'), f: null, k: 'section', a: ['time', 'clock', 'time zone'] },
     { t: 'Country rankings', s: 'Section · every ranking', u: path('/rankings/'), f: null, k: 'section' },

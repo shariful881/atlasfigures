@@ -1,0 +1,20 @@
+{
+  "slug": "education-spending-by-country",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/edu-115.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; check-wdi.mjs compares all generated WDI values with the original files; then the text was read by hand",
+    "what": "every ranking row (184 countries and areas: order, value and year of each country's latest figure from 2020), the CSV, every figure in the text, FAQ, title, description and JSON-LD; claims: median 4.2% (our calculation) with 101 at 4% or more, high- and low-income medians for 2022, Kiribati, Tuvalu, Micronesia highest, Somalia effectively zero then Nigeria, Zimbabwe, Papua New Guinea, Bangladesh 2.0% (2024) 167th and never above 2.7% since 2000, US 5.4% and UK 5.9% (2021); the World Bank world figure is a median and is not quoted as an average",
+    "against": "World Bank WDI bulk files and indicator metadata (update 11 November 2026, CC BY 4.0; data from the UNESCO Institute for Statistics)",
+    "result": "Before publishing, 'In South Asia, Pakistan' was corrected (the World Bank places Pakistan in its Middle East, North Africa, Afghanistan and Pakistan region). All automated comparisons matched"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: UNESCO government education spending (% of GDP) via World Bank WDI, latest year from 2020."
+    }
+  ]
+}

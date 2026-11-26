@@ -1,9 +1,9 @@
 // Downloadable CSVs behind the economy ranking pages (their Dataset distribution). Values exactly as the
 // World Bank publishes them; rank = position among economies with a value for that year.
-import { econData, econMeta, rankBy, rankingYear, coverageYear, valueIn } from '../../lib/econ';
+import { econData, econMeta, rankBy, rankLatest, rankingYear, coverageYear, valueIn } from '../../lib/econ';
 import { commonName } from '../../lib/names';
 
-const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 'unemploymentPct' | 'remittances' | 'internetPct' | 'mobilePer100' | 'under5Mortality' | 'maternalMortality' | 'exports' | 'imports' | 'landArea' | 'forestArea'; coverage?: boolean; cols: [string, (iso3: string, y: number) => number | string | null][] }> = {
+const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 'unemploymentPct' | 'remittances' | 'internetPct' | 'mobilePer100' | 'under5Mortality' | 'maternalMortality' | 'exports' | 'imports' | 'landArea' | 'forestArea' | 'literacyPct' | 'eduSpendPctGdp' | 'lfpFemale' | 'empAgriPct'; coverage?: boolean; since?: number; cols: [string, (iso3: string, y: number) => number | string | null][] }> = {
   'gdp-by-country': { key: 'gdp', cols: [
     ['gdp_current_usd', (x, y) => valueIn(econData(x).series.gdp, y)],
     ['gdp_growth_pct_constant_prices', (x, y) => valueIn(econData(x).series.gdpGrowthPct, y)],
@@ -54,6 +54,23 @@ const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 
     ['imports_pct_gdp', (x, y) => valueIn(econData(x).series.importsPctGdp, y)],
     ['exports_goods_services_current_usd', (x, y) => valueIn(econData(x).series.exports, y)],
   ] },
+  'female-labor-force-participation-by-country': { key: 'lfpFemale', cols: [
+    ['labour_force_participation_women_pct_15_plus', (x, y) => valueIn(econData(x).series.lfpFemale, y)],
+    ['labour_force_participation_men_pct_15_plus', (x, y) => valueIn(econData(x).series.lfpMale, y)],
+  ] },
+  'employment-in-agriculture-by-country': { key: 'empAgriPct', cols: [
+    ['employment_agriculture_pct', (x, y) => valueIn(econData(x).series.empAgriPct, y)],
+    ['employment_industry_pct', (x, y) => valueIn(econData(x).series.empIndPct, y)],
+    ['employment_services_pct', (x, y) => valueIn(econData(x).series.empSrvPct, y)],
+  ] },
+  'literacy-rate-by-country': { key: 'literacyPct', since: 2015, cols: [
+    ['adult_literacy_pct_ages_15_plus', (x, y) => valueIn(econData(x).series.literacyPct, y)],
+    ['world_bank_income_group', (x) => econData(x).incomeGroup],
+  ] },
+  'education-spending-by-country': { key: 'eduSpendPctGdp', since: 2020, cols: [
+    ['government_education_expenditure_pct_gdp', (x, y) => valueIn(econData(x).series.eduSpendPctGdp, y)],
+    ['world_bank_income_group', (x) => econData(x).incomeGroup],
+  ] },
   'land-area-by-country': { key: 'landArea', cols: [
     ['land_area_sq_km', (x, y) => valueIn(econData(x).series.landArea, y)],
   ] },
@@ -74,12 +91,13 @@ export function getStaticPaths() {
 
 export function GET({ params }: { params: { ranking: string } }) {
   const r = RANKINGS[params.ranking];
-  const y = r.coverage ? coverageYear(r.key) : rankingYear(r.key);
+  const y = r.since ? null : r.coverage ? coverageYear(r.key) : rankingYear(r.key);
   const q = (v: unknown) => (typeof v === 'string' && /[",]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v ?? '');
-  const lines = rankBy(r.key, y).map((e) => [e.rank, q(commonName(e.iso3)), e.iso3, y, ...r.cols.map(([, f]) => q(f(e.iso3, y)))].join(','));
+  const list = r.since ? rankLatest(r.key, r.since) : rankBy(r.key, y!).map((e) => ({ ...e, year: y! }));
+  const lines = list.map((e) => [e.rank, q(commonName(e.iso3)), e.iso3, e.year, ...r.cols.map(([, f]) => q(f(e.iso3, e.year)))].join(','));
   const head = ['rank', 'country_or_area', 'iso3', 'year', ...r.cols.map(([h]) => h)].join(',');
   const note = [
-    `# ${params.ranking}, ${y}. Source: ${econMeta.source} (${econMeta.sourceUrl}), WDI update ${econMeta.indicators.gdp.wdiLastUpdated}. Licence: ${econMeta.licence}.`,
+    `# ${params.ranking}, ${y ?? `latest year from ${r.since} (year column)`}. Source: ${econMeta.source} (${econMeta.sourceUrl}), WDI update ${econMeta.indicators.gdp.wdiLastUpdated}. Licence: ${econMeta.licence}.`,
     '# Values exactly as published by the World Bank; only economies with a value for this year are ranked. The World Bank does not endorse AtlasFigures.',
   ];
   return new Response([...note, head, ...lines].join('\n') + '\n', {

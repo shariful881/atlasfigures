@@ -1,0 +1,20 @@
+{
+  "slug": "employment-in-agriculture-by-country",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/labour-112.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; check-wdi.mjs compares all generated WDI values with the original files; then the text was read by hand",
+    "what": "every ranking row (182 countries and areas, order and value), the industry and services columns, the CSV, every figure in the text, FAQ, title, description and JSON-LD; claims: world 25.8% in agriculture in 2025 against 42.8% in 1991, services 50.6% and ahead of agriculture in every year since 2001, industry between 20% and 25% throughout, Burundi, Mozambique, Niger highest and Singapore, Hong Kong, Macao lowest, 23 countries above half, biggest falls since 1991 in Vietnam, Rwanda, Cambodia, Bangladesh 44.3% (32nd) from 69.9%; definitions and caveats from the indicator notes",
+    "against": "World Bank WDI bulk files and indicator metadata (update 11 November 2026, CC BY 4.0; ILO modelled estimates)",
+    "result": "Before publishing, 'services have employed more than half of workers since 2019' and 'services overtook farming in 2000' were corrected (services fell back below half in 2020–23, and agriculture was marginally ahead in 2000), as caught by assertClaim. All automated comparisons matched"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: ILO modelled employment by sector via World Bank WDI, 2025."
+    }
+  ]
+}
