@@ -1,0 +1,227 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
+import kz from '../../data/countries/kazakhstan.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: a 1992 high, seven years of decline with
+// net departures peaking in 1994, the 1992 level regained only in 2013; fertility that dipped below 2.1 (1996–2003)
+// and then rose more between 2000 and 2020 than in any other country or area; very low density; women outnumbering
+// men in every year into the 2080s. Counts only; the UN files give no causes.
+const PAGE = '/population/kazakhstan/';
+const un = countryData(kz.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (kz.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const hi = un.years.filter((r) => r.year >= 1980 && r.year < 2000).reduce((a, b) => (b.population > a.population ? b : a));
+const low = un.years.filter((r) => r.year > hi.year && r.year < 2010).reduce((a, b) => (b.population < a.population ? b : a));
+const back = un.years.find((r) => r.year > hi.year && r.population > hi.population)!.year;
+assertClaim(hi.year === 1992 && low.year === 1999 && back === 2013, '1992 high, 1999 low, regained in 2013');
+const falls = un.years.filter((r) => r.change < 0).map((r) => r.year);
+assertClaim(falls.join() === '1992,1993,1994,1995,1996,1997,1998', 'negative annual change 1992–1998 only');
+const outTop = un.years.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+assertClaim(outTop.year === 1994, 'largest net departures 1994');
+const sub = un.years.filter((r) => r.year >= 1990 && r.year <= CURRENT_YEAR && r.fertility < 2.1).map((r) => r.year);
+assertClaim(sub.join() === '1996,1997,1998,1999,2000,2001,2002,2003', 'fertility under 2.1 only 1996–2003');
+const tfrLow = un.years.filter((r) => r.year >= 1990 && r.year <= CURRENT_YEAR).reduce((a, b) => (b.fertility < a.fertility ? b : a));
+const tfrHi = un.years.filter((r) => r.year >= 2000 && r.year <= CURRENT_YEAR).reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(tfrLow.year === 2000 && tfrHi.year === 2021, 'fertility low 2000, high since then 2021');
+const lift = (d: any) => at(d, 2020).fertility - at(d, 2000).fertility;
+assertClaim([...wpp].sort((a: any, b: any) => lift(b) - lift(a))[0].iso3 === 'KAZ', 'largest fertility rise 2000–2020 of any country or area');
+const bLow = un.years.filter((r) => r.year >= 1985 && r.year < 2010).reduce((a, b) => (b.births < a.births ? b : a));
+const bTop = un.years.filter((r) => !r.projection).reduce((a, b) => (b.births > a.births ? b : a));
+assertClaim(bLow.year === 1999 && bTop.year === 2021, 'births low 1999, high 2021');
+assertClaim([...big].sort((a: any, b: any) => at(a).densityPerKm2 - at(b).densityPerKm2).slice(0, 3).map((d: any) => d.iso3).join() === 'AUS,CAN,KAZ', 'third-lowest density among countries of ten million or more');
+assertClaim([...wpp].sort((a: any, b: any) => b.landAreaKm2 - a.landAreaKm2).map((d: any) => d.iso3).indexOf('KAZ') === 8, 'ninth-largest land area');
+assertClaim(un.years.filter((r) => r.year <= 2086).every((r) => r.male < r.female) && y[2087].male > y[2087].female, 'women in the majority every year 1950–2086');
+const srLow = un.years.reduce((a, b) => (b.male / b.female < a.male / a.female ? b : a));
+assertClaim(srLow.year === 2000, 'lowest men-to-women ratio in 2000');
+const urbTop = un.years.filter((r) => r.year < 2000 && r.urbanPct != null).reduce((a, b) => (b.urbanPct! > a.urbanPct! ? b : a));
+const urbLow = un.years.filter((r) => r.year >= 1990 && r.year <= CURRENT_YEAR && r.urbanPct != null).reduce((a, b) => (b.urbanPct! < a.urbanPct! ? b : a));
+const urbBack = un.years.find((r) => r.year > 2000 && r.urbanPct != null && r.urbanPct > urbTop.urbanPct!)!.year;
+assertClaim(urbTop.year === 1989 && urbLow.year === 2009 && urbBack === 2017, 'urban share high 1989, low 2009, back above in 2017');
+const uzbPass = un.years.find((r) => at(wpp.find((d: any) => d.iso3 === 'UZB'), r.year).population > r.population)!.year;
+assertClaim(uzbPass === 1977, 'Uzbekistan larger from 1977');
+assertClaim(y[2100].population > y[2099].population, 'still growing in 2100');
+
+const title = `Kazakhstan, ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)}M People, a 1990s Decline and a Baby Rebound | AtlasFigures`;
+const description = `Kazakhstan's ${millions(c.population)} (UN, ${CURRENT_YEAR}) took until 2013 to pass its 1992 high. Fertility fell under 2.1, then rose more from 2000 to 2020 than anywhere else; it is ${dec(c.fertility, 2)} now.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: kz.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'People per km²', value: int(c.densityPerKm2) },
+  { label: 'In 2100', value: millionsShort(y[2100].population) },
+];
+
+const rows = displayRows(un.years, kz.tableYears);
+
+const faq = [
+  { q: "Did Kazakhstan's population shrink after 1991?", a: `Yes. The UN's annual change is negative for each year of 1992–1998; the 1 July count slid from ${millions(hi.population)} (${hi.year}) to a ${low.year} low of ${millions(low.population)}, recovering past the old high in ${back}.` },
+  { q: 'How many people left Kazakhstan in 1994?', a: `Departures beat arrivals by roughly ${int(Math.round(-outTop.netMigrants / 1000))} thousand, more than in any other UN year. The UN files record the balance, not who left.` },
+  { q: 'Why is fertility in Kazakhstan going up?', a: `The UN data show the rise without explaining it: the rate went from ${dec(tfrLow.fertility, 2)} (${tfrLow.year}) to ${dec(tfrHi.fertility, 2)} (${tfrHi.year}) and is ${dec(c.fertility, 2)} now. Between 2000 and 2020 the increase beat every other country and area.` },
+  { q: 'Do women outnumber men in Kazakhstan?', a: `Yes, and in the UN series they do so from 1950 right up to 2086. The ratio is ${dec((c.male / c.female) * 100, 1)} men per 100 women today; it bottomed out at ${dec((srLow.male / srLow.female) * 100, 1)} in ${srLow.year}.` },
+  { q: 'What is the population density of Kazakhstan?', a: `Just ${int(c.densityPerKm2)} per km²; its land area is the world's ninth-largest, and of the nations with ten million-plus people only Australia and Canada are more thinly settled.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: kz.slug, name: kz.name, wikipedia: kz.wikipedia,
+  headline: `Kazakhstan's ${millions(c.population)}: a 1990s fall, a 2013 recovery and the biggest fertility rebound since 2000`,
+  description,
+  datasetName: 'Kazakhstan population, fertility and net migration, 1950–2100',
+  datasetDescription: `Mid-year population of Kazakhstan for selected years from 1950 to ${CURRENT_YEAR} (1992, 1994, 1996, 1999 and 2013 included), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: kz.published, updated: kz.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Kazakhstan"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Kazakhstan", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Kazakhstan: a population that fell, then a birth rate that climbed back</h1>
+        <LiveCounter
+          label="Kazakhstan: estimated residents at this moment"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} base, adding about ${int(c.change / 365)} people daily`}
+        />
+        <p class="answer">
+          With <strong>{millions(c.population)}</strong> residents (UN, {CURRENT_YEAR}), Kazakhstan is well above the <strong>{millions(low.population)}</strong> of {low.year}. After losing population through the 1990s it regained its {hi.year} level in {back}, helped by a fertility rate that rose to {dec(tfrHi.fertility, 2)} in {tfrHi.year}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={kz.updated}>{longDate(kz.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Kazakhstan" code="kz" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>When did Kazakhstan's population fall, and when did it recover?</h2>
+          <p>It hit {millions(hi.population)} in {hi.year}, a high it would not see again for two decades. The UN's annual change stays negative from 1992 through 1998, and by {low.year} the mid-year figure was {millions(low.population)}. {outTop.year} saw the most net departures, around {int(Math.round(-outTop.netMigrants / 1000))} thousand. Only in {back} did the count exceed the {hi.year} figure. The data count the movement but not who moved or why.</p>
+        </div>
+        <LineChart
+          title="Kazakhstan's population, 1950–2100, with the 1990s dip"
+          subtitle="UN mid-year totals; the decade-long fall and recovery are visible before the dashed projection."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Has fertility in Kazakhstan risen again?</h2>
+          <p>Yes, sharply. It slipped under 2.1 from 1996 to 2003, bottoming out at {dec(tfrLow.fertility, 2)} in {tfrLow.year}, then climbed to {dec(tfrHi.fertility, 2)} in {tfrHi.year}; it is {dec(c.fertility, 2)} now. Across 2000–2020 no other country or area recorded a bigger increase. Annual births nearly doubled: {int(Math.round(bLow.births / 1000))} thousand were born in {bLow.year}, {int(Math.round(bTop.births / 1000))} thousand in {bTop.year}.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Births per woman in Kazakhstan">
+          <div><span class="y">{tfrLow.year}</span><div class="v">{dec(tfrLow.fertility, 2)}</div><span class="d">Births per woman</span></div>
+          <div><span class="y">{tfrHi.year}</span><div class="v">{dec(tfrHi.fertility, 2)}</div><span class="d">Births per woman</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{dec(c.fertility, 2)}</div><span class="d">Births per woman</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Why do women outnumber men in Kazakhstan?</h2>
+          <p>The UN figures show it but give no cause. Females exceed males in each UN year between 1950 and 2086; the gap was widest in {srLow.year}, at {dec((srLow.male / srLow.female) * 100, 1)} men per 100 women, and has narrowed to {dec((c.male / c.female) * 100, 1)}. Life expectancy, which dipped from {dec(y[1990].lifeExpectancy, 1)} in 1990 to {dec(y[2000].lifeExpectancy, 1)} in 2000, has since reached {dec(c.lifeExpectancy, 1)}.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Is Kazakhstan one of the least densely settled countries?</h2>
+          <p>Yes. There are just {int(c.densityPerKm2)} people per km², spread over the world's ninth-largest land area. Of nations with ten million or more, only Australia and Canada are emptier. Measured nationally, the urban share rose to {pct(urbTop.urbanPct!)} by {urbTop.year}, slid to {pct(urbLow.urbanPct!)} by {urbLow.year} and climbed back above the {urbTop.year} figure in {urbBack}; today it is {pct(c.urbanPct!)}. Uzbekistan has been the larger of the two Central Asian neighbours since {uzbPass}. On the medium variant growth has not ended by 2100, when {millions(y[2100].population)} live there.</p>
+        </div>
+        <RelatedPages iso3={kz.iso3} name={kz.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Kazakhstan year by year, including 1992, 1999 and 2013"
+          subtitle="The 1992 row is the old high; 1999 is the low point; 2013 is the first row above 1992."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${kz.slug}-population.csv`)}
+          csvName={`${kz.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Kazakhstan: frequently asked</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{kz.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={kz.published}>{longDate(kz.published)}</time> · Updated <time datetime={kz.updated}>{longDate(kz.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Kazakhstan population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Kazakhstan" code="kz" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

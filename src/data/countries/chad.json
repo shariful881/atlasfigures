@@ -1,0 +1,59 @@
+{
+  "slug": "chad",
+  "name": "Chad",
+  "demonym": "Chadian",
+  "capital": "N'Djamena",
+  "iso3": "TCD",
+  "code": "td",
+  "continent": "Africa",
+  "wikipedia": "https://en.wikipedia.org/wiki/Chad",
+  "unName": "Chad",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    1993,
+    2000,
+    2002,
+    2010,
+    2020,
+    2023,
+    2024,
+    2025,
+    2026,
+    2030,
+    2040,
+    2049,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/chad.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area (second in Middle Africa after DR Congo); fourth in Middle Africa; 8.5 times 1950",
+      "Highest fertility of any country or area 2024–2026; 1950, 1993 high, now, 2100 (above 2.1 throughout); births and deaths this year (close to four to one)",
+      "Life expectancy 1950, 2000, now, second-lowest after Nigeria; infant mortality 1950 and now; median age third-lowest among countries above 10 million, low in 2002",
+      "Net migration: largest estimated inflow 2023, inflow 2024, outflow 2025 and now",
+      "2050 and 2100 totals; 27-place climb equal to Mali's, the largest among countries above 10 million; urban share now, flat 2000–2010, majority 2049; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 68 of 68 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Migration is described as counts only; the UN files give no causes."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
