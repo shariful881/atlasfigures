@@ -1,0 +1,63 @@
+{
+  "slug": "guinea-bissau",
+  "name": "Guinea-Bissau",
+  "demonym": "Bissau-Guinean",
+  "capital": "Bissau",
+  "iso3": "GNB",
+  "code": "gw",
+  "continent": "Africa",
+  "wikipedia": "https://en.wikipedia.org/wiki/Guinea-Bissau",
+  "unName": "Guinea-Bissau",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1962,
+    1963,
+    1964,
+    1965,
+    1966,
+    1967,
+    1970,
+    1977,
+    1980,
+    1990,
+    2000,
+    2010,
+    2020,
+    2026,
+    2030,
+    2040,
+    2050,
+    2060,
+    2070,
+    2080,
+    2090,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/guinea-bissau.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area",
+      "Life expectancy low 1963; falls 1964–1966 with net departures 1963–1966 (most 1964); growth every year 1967–2100",
+      "Largest inflow 1977; births above deaths every year 1950–2100; urban minority every year to 2050",
+      "Fertility high 1985, under 2.1 first in 2079; 2100 about double today",
+      "title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) — 69 of 69 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Counts only; no causes given."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
