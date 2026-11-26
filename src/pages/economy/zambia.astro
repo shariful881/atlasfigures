@@ -1,0 +1,166 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/zambia.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/zambia/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const gdpPeak = s.gdp.reduce((a, b) => (b[1] > a[1] ? b : a));
+const pcPeak = s.gdpPerCapita.reduce((a, b) => (b[1] > a[1] ? b : a));
+const iRank = rankBy('inflationPct', L).find((r) => r.iso3 === c.iso3)!.rank;
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const doubleSince = [2020, 2021, 2022, 2023, 2024, L].every((y) => i(y) > 10) && i(2019) < 10;
+const falls = s.gdpGrowthPct.filter(([y, x]) => y > 1998 && x < 0).map(([y]) => y);
+const avg = s.gdpGrowthPct.filter(([y]) => y >= 2000).reduce((a, [, x], _, arr) => a + x / arr.length, 0);
+const netRank = rankBy('internetPct', net!.year).find((r) => r.iso3 === c.iso3)!.rank;
+const netN = rankBy('internetPct', net!.year).length;
+const remMax = s.remittances.reduce((a, b) => (b[1] > a[1] ? b : a));
+const forest = valueIn(s.forestPct, 2024)!;
+
+assertClaim(gdpPeak[0] === 2022 && gdp < gdpPeak[1] && gdp > gdpPeak[1] * 0.98 && pcPeak[0] === 2013, 'GDP just below 2022 peak; per head peak 2013');
+assertClaim(infl.value < i(L - 1) && iRank === 12 && doubleSince && iMax[0] === 1993 && iMax[1] > 183, 'inflation 12th highest, double digits since 2020, 1993 peak 183%');
+assertClaim(falls.length === 1 && falls[0] === 2020 && growth.toFixed(1) === g(L - 1).toFixed(1), 'only fall since 1998 in 2020; growth same rounded rate as 2024');
+assertClaim(Math.round(avg * 10) === 53, 'average growth 5.3% since 2000');
+assertClaim(netN - netRank === 6 && net!.value < 18, 'internet 7th lowest');
+assertClaim(remMax[0] === L && remPct!.value < 1.5, 'record remittances but under 1.5% of GDP');
+assertClaim(Math.round(forest) === 60, 'forest 60% of land in 2024');
+
+const title = `Zambia Economy ${L}: Inflation at ${pct(infl.value)}, GDP ${usd(gdp)} | AtlasFigures`;
+const description = `With ${pct(growth)} real growth, Zambian GDP stood at ${usd(gdp)} in ${L}, just short of its 2022 dollar peak, while consumer prices climbed ${pct(infl.value)} — double digits for a sixth straight year.`;
+
+const faq = [
+  { q: 'Has Zambian inflation come down?', a: `Only slightly, to ${pct(infl.value)} from ${pct(i(L - 1))} a year before — still ${ord(iRank)} worldwide and a sixth straight double-digit year. The 1993 rate was ${pct(iMax[1])}.` },
+  { q: 'Is Zambia\'s economy bigger than before?', a: `In real terms yes, but in dollars ${L} GDP (${usd(gdp)}) stayed just below the 2022 record of ${usd(gdpPeak[1])}. Each Zambian's share, ${usdWhole(perHead)}, is lower than in 2013 (${usdWhole(pcPeak[1])}).` },
+  { q: 'Did output fall in Zambia during 2020?', a: `Yes — by ${pct(Math.abs(g(2020)))}, its only contraction since 1998. Growth returned at ${pct(g(2021))} in 2021 and was ${pct(growth)} in ${L}.` },
+  { q: 'How common is internet use in Zambia?', a: `Uncommon: ${pct(net!.value)} of the population in ${net!.year}, putting Zambia ${ord(netN - netRank + 1)} from the bottom of ${netN} in the ITU figures.` },
+  { q: 'How much of Zambia is forest?', a: `${pct(forest)} of its land in 2024, according to FAO figures compiled by the World Bank.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Zambia's economy in ${L}: steady growth, stubborn double-digit inflation`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Zambian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Zambia', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Zambia's economy: growth with persistent inflation</h1>
+        <p class="answer">
+          Zambian output rose <strong>{pct(growth)}</strong> over {L}, to <strong>{usd(gdp)}</strong>, but inflation of {pct(infl.value)} kept the cost of living rising fast.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Zambia economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Zambia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Six years of double-digit inflation, and a dollar GDP still fractionally below 2022.</p>
+
+        <div class="story-block prose">
+          <h2>How high is inflation in Zambia?</h2>
+          <p>High by world standards: {pct(infl.value)} in {L}, the {ord(iRank)}-highest anywhere on the World Bank list. Since 2020 the yearly rate has not dropped under 10% (2019: {pct(i(2019))}); the all-time peak, {pct(iMax[1])}, dates from 1993.</p>
+        </div>
+        <LineChart
+          title={`Price rises in Zambia since 2000`}
+          subtitle="Annual % change in consumer prices."
+          points={s.inflationPct.filter(([y]) => y >= 2000).map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Has Zambia's GDP recovered its 2022 peak?</h2>
+          <p>Almost. Measured in dollars, {L} output of {usd(gdp)} sat a shade under the {usd(gdpPeak[1])} of 2022, and GDP per person ({usdWhole(perHead)}) has not regained the {usdWhole(pcPeak[1])} touched in 2013. Real growth was {pct(growth)}, the same rounded rate as in {L - 1}, and its 2000–{L} average is {pct(avg)}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>When did Zambia last fall into recession?</h2>
+          <p>In 2020, when output dropped {pct(Math.abs(g(2020)))} — the only fall in GDP since 1998. Recovery came quickly, with {pct(g(2021))} growth in 2021.</p>
+        </div>
+        <LineChart
+          title={`How much Zambian output grew, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="Constant-price GDP, % change per year."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Which other Zambian figures are notable?</h2>
+          <p>Internet use is low: {pct(net!.value)} of Zambians were online in {net!.year}, the {ord(netN - netRank + 1)}-lowest share in the ITU data. Remittances reached an unprecedented {usd(rem!.value)} in {L} yet remain small, at {pct(remPct!.value)} of GDP. Forest covers about {pct(forest)} of the land (2024), and modelled unemployment is {pct(unemp!)}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Zambia and southern Africa: related pages</h2>
+          <ul>
+            <li><a href={path('/population/zambia/')}>Zambia's population</a></li>
+            <li><a href={path('/economy/south-africa/')}>South Africa's economy</a></li>
+            <li><a href={path('/economy/angola/')}>Angola's economy</a></li>
+            <li><a href={path('/economy/tanzania/')}>Tanzania's economy</a></li>
+            <li><a href={path('/rankings/inflation-rate-by-country/')}>Inflation rates compared</a></li>
+            <li><a href={path('/rankings/forest-area-by-country/')}>Forest area by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Zambia, year by year`}
+          subtitle="Decades from 1960 plus 1993–94 and 2013, then 2015 to 2025. Use the CSV for the gaps."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/zambia-economy.csv')} csvName="zambia-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Zambia in figures: what readers ask</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Forest share: FAO forest area, % of land area (AG.LND.FRST.ZS), via the same World Bank database. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Zambian economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Zambia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

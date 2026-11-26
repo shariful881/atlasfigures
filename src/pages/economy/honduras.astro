@@ -1,0 +1,168 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/honduras.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/honduras/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const remShare = rankBy('remittancesPctGdp', L);
+const remPos = remShare.findIndex((r) => r.iso3 === c.iso3) + 1;
+const remUp = (rem!.value / v('remittances', L - 1)! - 1) * 100;
+const remVsExp = rem!.value / valueIn(s.exports, L)!;
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const uMax = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const lac = rankBy('gdp', L).filter((r) => r.region === 'Latin America & Caribbean');
+const lPos = lac.findIndex((r) => r.iso3 === c.iso3) + 1;
+const fa = (y: number) => valueIn(s.forestArea, y)!;
+const fLoss = (1 - fa(2023) / fa(1990)) * 100;
+const lacLoss = rankBy('forestArea', 2023).filter((r) => r.region === 'Latin America & Caribbean').map((r) => { const d = econData(r.iso3).series.forestArea; const a = valueIn(d, 1990); return { iso3: r.iso3, l: a ? 1 - r.value / a : -1 }; }).sort((a, b) => b.l - a.l);
+const fPos = lacLoss.findIndex((x) => x.iso3 === c.iso3) + 1;
+
+assertClaim(isMax(s.remittances) && isMax(s.remittancesPctGdp) && remPos === 4 && remShare.slice(0, 3).map((r) => r.iso3).join() === 'TJK,TON,NPL', 'record remittances, 4th share after Tajikistan, Tonga, Nepal');
+assertClaim(Math.round(remUp) === 25 && remPct!.value > 30 && remVsExp > 0.85 && remVsExp < 0.87, 'remittances +25%, 30% of GDP, 86% of exports');
+assertClaim(isMax(s.gdp) && lPos === 17 && B.gdpRank === 104, 'record GDP; 17th in LAC; 104th');
+assertClaim(worst[0] === 2020 && worst[1] < -8.9 && g(2021) > 12.5 && growth > 3.7 && growth < 3.9, '2020 worst on record; 2021 rebound');
+assertClaim(iMax[0] === 1991 && iMax[1] > 33.9 && i(2022) > 9 && uMax[0] === 2020 && unemp! < 5, 'inflation 1991 peak; unemployment peak 2020');
+assertClaim(Math.round(fLoss) === 22 && fPos === 4 && lacLoss.slice(0, 3).map((x) => x.iso3).join() === 'NIC,PRY,GTM', 'forest -22% since 1990, 4th in LAC');
+
+const title = `Honduras Economy ${L}: Remittances Reach ${pct(remPct!.value)} of GDP | AtlasFigures`;
+const description = `Hondurans working abroad wired home ${usd(rem!.value)} during ${L}: a sum matching ${pct(remPct!.value)} of GDP, fourth-highest worldwide. Output rose ${pct(growth)}, reaching ${usd(gdp)}.`;
+
+const faq = [
+  { q: 'How much do remittances contribute to Honduras?', a: `Close to a third of GDP: ${usd(rem!.value)} in ${L}, or ${pct(remPct!.value)}. Relative to output, just three economies — Tajikistan, Tonga, Nepal — took in more.` },
+  { q: 'Did remittances to Honduras increase in 2025?', a: `Yes, by about ${Math.round(remUp)}% on ${L - 1}, the biggest inflow on record and close to ${Math.round(remVsExp * 100)}% of what Honduras earned from exports of goods and services.` },
+  { q: 'How large is GDP in Honduras?', a: `Honduran GDP totalled ${usd(gdp)} over ${L}: ${ord(lPos)} among the region's economies and ${ord(B.gdpRank!)} in the world; ${usdWhole(perHead)} per Honduran.` },
+  { q: 'What was the worst year for the Honduran economy?', a: `2020, with a ${pct(Math.abs(worst[1]))} fall in real GDP — followed by ${pct(g(2021))} growth in 2021. Unemployment also peaked that year at ${pct(uMax[1])}.` },
+  { q: 'Is Honduras losing its forests?', a: `FAO figures show forest area down about ${Math.round(fLoss)}% between 1990 and 2023, the ${ord(fPos)}-largest proportional loss in the region after Nicaragua, Paraguay and Guatemala.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Honduras's economy in ${L}: record remittances worth almost a third of GDP`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Honduran economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Honduras', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Honduras's economy and the remittance lifeline</h1>
+        <p class="answer">
+          Honduran families received <strong>{usd(rem!.value)}</strong> from relatives abroad in {L} — <strong>{pct(remPct!.value)}</strong> of GDP. Output itself expanded {pct(growth)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Honduras economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Honduras" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Few countries anywhere rely as heavily on money sent home by their emigrants.</p>
+
+        <div class="story-block prose">
+          <h2>How much of Honduran income comes from remittances?</h2>
+          <p>Nearly a third of GDP's worth. Migrants' transfers totalled {usd(rem!.value)} over {L} — a record, matching {pct(remPct!.value)} of GDP and the {ord(remPos)}-largest such share worldwide, behind Tajikistan, Tonga and Nepal. The total jumped about {Math.round(remUp)}% in a year and was close to {Math.round(remVsExp * 100)}% of Honduras's export earnings.</p>
+        </div>
+        <LineChart
+          title={`Remittances to Honduras, ${s.remittances[0][0]}–${L}`}
+          subtitle="Transfers received from Hondurans living abroad, current US dollars per year."
+          points={s.remittances.map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>What is Honduras's place in the regional GDP table?</h2>
+          <p>Seventeenth in its region. Honduran output was worth {usd(gdp)} for {L}, its highest yet and {ord(B.gdpRank!)} globally — {usdWhole(perHead)} a head, or {intDollars(ppp!)} with differences in price levels taken out. Volume growth: {pct(growth)}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How did the pandemic hit Honduras?</h2>
+          <p>Hard. 2020 brought a {pct(Math.abs(worst[1]))} fall in real GDP, the worst year in the series, and modelled unemployment peaked at {pct(uMax[1])}. Output bounced back {pct(g(2021))} in 2021, and unemployment was down to {pct(unemp!)} by {L}. Consumer inflation was {pct(infl.value)} in {L}; its recent peak, {pct(i(2022))} in 2022, was a fraction of 1991's {pct(iMax[1])}.</p>
+        </div>
+        <LineChart
+          title={`Honduran GDP growth, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="Change in real GDP, % per year."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How much forest has Honduras lost?</h2>
+          <p>About {Math.round(fLoss)}% of its forest area between 1990 and 2023, per FAO data published by the World Bank — proportionally the {ord(fPos)}-biggest loss across the region. Forest still covered {pct(valueIn(s.forestPct, 2023)!)} of the land in 2023.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Honduras and Central America: related pages</h2>
+          <ul>
+            <li><a href={path('/population/honduras/')}>Honduras's population</a></li>
+            <li><a href={path('/economy/guatemala/')}>Guatemala's economy</a></li>
+            <li><a href={path('/economy/mexico/')}>Mexico's economy</a></li>
+            <li><a href={path('/economy/dominican-republic/')}>Dominican Republic's economy</a></li>
+            <li><a href={path('/rankings/remittances-by-country/')}>Remittances by country</a></li>
+            <li><a href={path('/rankings/forest-area-by-country/')}>Forest area by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Honduran economy by year`}
+          subtitle="Decade years from 1960, with 1991 and 2009, then 2015–2025; the CSV lists all of them."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/honduras-economy.csv')} csvName="honduras-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Honduras by the numbers: your questions</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Exports: exports of goods and services, current US$ (NE.EXP.GNFS.CD); forest: FAO forest area (AG.LND.FRST.K2, AG.LND.FRST.ZS), all via the World Bank. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Honduran economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Honduras" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>
