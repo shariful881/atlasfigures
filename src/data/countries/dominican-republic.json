@@ -1,0 +1,61 @@
+{
+  "slug": "dominican-republic",
+  "name": "Dominican Republic",
+  "demonym": "Dominican",
+  "capital": "Santo Domingo",
+  "iso3": "DOM",
+  "code": "do",
+  "continent": "Americas",
+  "wikipedia": "https://en.wikipedia.org/wiki/Dominican_Republic",
+  "unName": "Dominican Republic",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1956,
+    1960,
+    1970,
+    1977,
+    1980,
+    1990,
+    1993,
+    2000,
+    2003,
+    2010,
+    2011,
+    2013,
+    2020,
+    2026,
+    2030,
+    2040,
+    2050,
+    2061,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/dominican-republic.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; almost five times the 1950 total",
+      "Net departures every year 1950–2100; largest outflow 2006; births, deaths, natural change and net migration now; peak 2061",
+      "Fertility high 1956, now, below 2.1 in 2030; largest fall since 1956 in Latin America and the Caribbean (1 million+); births peak 1993",
+      "Infant mortality third-highest in the region after Haiti and Bolivia (1 million+); second in the Caribbean",
+      "Urban share 1950, 2011 high, now, 2050; women in the majority every year from 2003, sex ratio now; larger than Haiti 1977–2012 only",
+      "Title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 67 of 67 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
