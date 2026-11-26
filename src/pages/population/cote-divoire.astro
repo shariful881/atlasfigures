@@ -1,0 +1,233 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
+import ci from '../../data/countries/cote-divoire.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: twelvefold growth since 1950, the most of any
+// African country above ten million; net immigration every year to 1998, then net emigration 1999–2014; more men than
+// women; one of the biggest climbs up the world ranking by 2100. Capital wording from Britannica. No causes claimed.
+const PAGE = '/population/cote-divoire/';
+const un = countryData(ci.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BRIT_URL = 'https://www.britannica.com/place/Cote-dIvoire';
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (ci.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const times = c.population / y[1950].population;
+const mult = big.map((d: any) => ({ iso3: d.iso3, region: d.region, m: at(d).population / at(d, 1950).population })).sort((a: any, b: any) => b.m - a.m);
+assertClaim(mult.filter((d: any) => d.region === 'Africa')[0].iso3 === 'CIV' && mult.findIndex((d: any) => d.iso3 === 'CIV') === 3 && mult.slice(0, 3).map((d: any) => d.iso3).join() === 'ARE,JOR,SAU', 'largest multiple of 1950 in Africa; fourth worldwide after UAE, Jordan, Saudi Arabia (countries above ten million)');
+assertClaim(times > 12 && times < 12.5, 'more than twelve times 1950');
+const waf = wpp.filter((d: any) => d.subregion === 'Western Africa').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(waf.indexOf('CIV') === 2, 'third in Western Africa');
+assertClaim(un.years.filter((r) => r.year <= 1998).every((r) => r.netMigrants > 0) && un.years.filter((r) => r.year >= 1999 && r.year <= 2014).every((r) => r.netMigrants < 0), 'net immigration 1950–1998, net emigration 1999–2014');
+const inTop = un.years.filter((r) => r.year <= 1998).reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+const outTop = un.years.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+assertClaim(inTop.year === 1996 && outTop.year === 2013, 'inflow high 1996, outflow high 2013');
+assertClaim(un.years.filter((r) => r.year >= 2015 && r.year <= CURRENT_YEAR).every((r) => Math.abs(r.netMigrants) < 30000), 'roughly balanced since 2015');
+const gTop = un.years.reduce((a, b) => (b.growthRatePct > a.growthRatePct ? b : a));
+assertClaim(gTop.year === 1974, 'fastest growth in 1974');
+const men = (c.male / c.female) * 100;
+const mf = big.filter((d: any) => d.region === 'Africa').sort((a: any, b: any) => at(b).male / at(b).female - at(a).male / at(a).female).map((d: any) => d.iso3);
+assertClaim(mf[0] === 'DZA' && mf[1] === 'CIV' && men > 103 && men < 104, 'second-highest men per 100 women among big African countries after Algeria');
+assertClaim(un.years.every((r) => r.fertility >= 2.1), 'fertility stays at or above 2.1 through 2100');
+const tfrTop = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(tfrTop.year === 1972, 'fertility high in 1972');
+const climb = c.worldRank! - y[2100].worldRank!;
+const climbs = big.map((d: any) => at(d).worldRank - at(d, 2100).worldRank);
+assertClaim(climb === 27 && climb === Math.max(...climbs), 'joint-largest climb in the world ranking to 2100 among countries above ten million');
+assertClaim(un.years.every((r, i, a) => i === 0 || r.population > a[i - 1].population), 'rises every year');
+
+const title = `Côte d'Ivoire Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)}M, Twelvefold Growth Since 1950 | AtlasFigures`;
+const description = `Over twelve times its 1950 size, Côte d'Ivoire now has ${millions(c.population)} inhabitants (UN, ${CURRENT_YEAR}). Net immigration until 1998, net emigration in the years that followed, and ${millions(y[2100].population)} projected for 2100.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: ci.capital, note: 'administrative (Britannica)' },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'Since 1950', value: `×${dec(times, 1)}` },
+  { label: 'In 2100', value: millionsShort(y[2100].population) },
+];
+
+const rows = displayRows(un.years, ci.tableYears);
+
+const faq = [
+  { q: "Côte d'Ivoire's population: how many live there now?", a: `The UN figure for 1 July ${CURRENT_YEAR} is ${millions(c.population)}: ${ord(c.worldRank!)} worldwide and third in Western Africa after Nigeria and Ghana.` },
+  { q: "How much has Côte d'Ivoire grown since 1950?", a: `By a factor of ${dec(times, 1)}: the 1950 count was ${millions(y[1950].population)}, today's is ${millions(c.population)}. No other African nation now above ten million has grown by as large a multiple.` },
+  { q: "Did more people move to Côte d'Ivoire than leave?", a: `Until 1998, yes, every year; ${inTop.year} saw the most, roughly ${int(Math.round(inTop.netMigrants / 1000))} thousand on balance. From 1999 to 2014 the balance was negative, reaching about ${int(Math.round(-outTop.netMigrants / 1000))} thousand net departures in ${outTop.year}; since then it has stayed close to zero.` },
+  { q: "Does Côte d'Ivoire have a male majority?", a: `A slight one: the sex ratio is ${dec(men, 1)} for ${CURRENT_YEAR}, and among Africa's larger nations only Algeria's is higher.` },
+  { q: "Is Abidjan or Yamoussoukro the capital of Côte d'Ivoire?", a: 'Encyclopaedia Britannica lists Yamoussoukro as the administrative capital, designated in 1983, with Abidjan as the de facto capital.' },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: ci.slug, name: ci.name, wikipedia: ci.wikipedia,
+  headline: `Côte d'Ivoire's ${millions(c.population)}: twelvefold growth, a migration reversal and ${millions(y[2100].population)} by 2100`,
+  description,
+  datasetName: "Côte d'Ivoire population, net migration, fertility and sex ratio, 1950–2100",
+  datasetDescription: `Mid-year population of Côte d'Ivoire for selected years from 1950 to ${CURRENT_YEAR} (1996 and 2013 included), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: ci.published, updated: ci.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  extraCitations: [{ name: "Côte d'Ivoire", url: BRIT_URL, publisher: 'Encyclopaedia Britannica' }],
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Côte d'Ivoire"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Côte d'Ivoire", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Côte d'Ivoire: twelve times bigger than in 1950</h1>
+        <LiveCounter
+          label="Côte d'Ivoire: population counter, modelled"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: starts at the mid-${CURRENT_YEAR} total and adds about ${int(c.change / 365)} per day`}
+        />
+        <p class="answer">
+          At <strong>{millions(c.population)}</strong> inhabitants in the UN's {CURRENT_YEAR} estimate, Côte d'Ivoire is more than <strong>twelve times</strong> as populous as in 1950 ({millions(y[1950].population)}), the largest such rise among Africa's bigger nations. For nearly five decades more people arrived than left, and the UN's central path leads to {millions(y[2100].population)} by 2100.
+        </p>
+        <div class="dates"><span>Updated <time datetime={ci.updated}>{longDate(ci.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Côte d'Ivoire" code="ci" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>How did Côte d'Ivoire grow twelvefold?</h2>
+          <p>Through very high birth rates and, for decades, steady immigration. The fertility rate topped out at {dec(tfrTop.fertility, 2)} in {tfrTop.year}; the fastest annual growth, {pct(gTop.growthRatePct)}, came in {gTop.year}. Among countries that now have ten million people or more, only the United Arab Emirates, Jordan and Saudi Arabia have multiplied faster since 1950; none of them is in Africa.</p>
+        </div>
+        <LineChart
+          title="Côte d'Ivoire, 1950–2100: a steep climb that keeps going"
+          subtitle="UN mid-year population, with the medium projection dashed after the estimate years."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Was Côte d'Ivoire a country of immigration?</h2>
+          <p>For almost half a century, yes. The UN records net arrivals in every year from 1950 to 1998; {inTop.year} had the most, close to {int(Math.round(inTop.netMigrants / 1000))} thousand. The sign then flipped, and in each year from 1999 through 2014 the country lost people on balance, as many as {int(Math.round(-outTop.netMigrants / 1000))} thousand in {outTop.year}. Since 2015 the yearly balance has stayed within a few tens of thousands either way; this year it is about {int(Math.round(c.netMigrants / 1000))} thousand in favour of arrivals. The data do not say who moved or why.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Net migration in Côte d'Ivoire, UN estimates">
+          <div><span class="y">{inTop.year}</span><div class="v">+{int(Math.round(inTop.netMigrants / 1000))}k</div><span class="d">Net arrivals</span></div>
+          <div><span class="y">{outTop.year}</span><div class="v">−{int(Math.round(-outTop.netMigrants / 1000))}k</div><span class="d">Net departures</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">+{int(Math.round(c.netMigrants / 1000))}k</div><span class="d">Net arrivals</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Does Côte d'Ivoire have more men than women?</h2>
+          <p>Slightly. The {CURRENT_YEAR} sex ratio is {dec(men, 1)}, meaning that many males for each 100 females, a ratio topped in Africa's larger nations only by Algeria's. The UN figures do not attribute the gap to any cause.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How large will Côte d'Ivoire be by 2100?</h2>
+          <p>The projected 2100 total is {millions(y[2100].population)}, passing {millions(y[2050].population)} along the way in 2050. That would lift it from {ord(c.worldRank!)} to {ord(y[2100].worldRank!)} in the world, a {climb}-place jump that no country now above ten million beats. Fertility, {dec(c.fertility, 2)} today, is still {dec(y[2100].fertility, 2)} in the final projected year. Urban areas, as defined nationally, hold {pct(c.urbanPct!)} of residents.</p>
+        </div>
+        <LineChart
+          title="How many children Ivorian women have, 1950–2050"
+          subtitle="UN births per woman; estimates solid, projection dashed, replacement level drawn at 2.1."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'replacement 2.1' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+        <RelatedPages iso3={ci.iso3} name={ci.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Côte d'Ivoire: the numbers, 1950 to 2100"
+          subtitle="Rows for 1996 and 2013 show the largest net inflow and outflow; rows under the UN projections heading are projected."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${ci.slug}-population.csv`)}
+          csvName={`${ci.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Côte d'Ivoire: questions and answers</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{ci.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, men and women, world rank, regional grouping, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+            <li><a href={BRIT_URL}>Encyclopaedia Britannica, "Côte d'Ivoire"</a>: Yamoussoukro as administrative capital (since 1983), Abidjan as de facto capital.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={ci.published}>{longDate(ci.published)}</time> · Updated <time datetime={ci.updated}>{longDate(ci.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Côte d'Ivoire population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Côte d'Ivoire" code="ci" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
