@@ -11,7 +11,7 @@ import { commonName, iso2 } from './names';
 export type Topic = 'population' | 'economy' | 'energy' | 'telecom' | 'health';
 export const TOPICS: { key: Topic; label: string; text: string }[] = [
   { key: 'population', label: 'Population', text: 'How many people live in each place, and how closely packed they are.' },
-  { key: 'economy', label: 'Economy', text: 'Output, income, prices, jobs and money sent home from abroad.' },
+  { key: 'economy', label: 'Economy', text: 'Output, income, prices, jobs, trade and money sent home from abroad.' },
   { key: 'energy', label: 'Energy and climate', text: 'Fossil CO₂ and how much electricity comes from renewables.' },
   { key: 'telecom', label: 'Internet and mobile', text: 'Who is online and how many phone and broadband lines there are.' },
   { key: 'health', label: 'Health', text: 'Survival of mothers and young children.' },
@@ -63,6 +63,8 @@ export function rankingCards(): RankingCard[] {
     wb('gdp-per-capita-by-country', 'economy', 'GDP per capita by country', 'Output per person, from the richest economies to the poorest.', 'gdpPerCapita', usdWhole, { unit: 'US$ per person', worldLabel: 'World average', leaderLabel: 'Highest' }),
     wb('inflation-rate-by-country', 'economy', 'Inflation rate by country', 'How fast consumer prices rose over the year, and where they fell.', 'inflationPct', pct, { unit: '% a year', leaderLabel: 'Highest' }),
     wb('unemployment-rate-by-country', 'economy', 'Unemployment rate by country', 'Share of the labour force without work, ILO modelled estimates.', 'unemploymentPct', pct, { unit: '% of labour force', leaderLabel: 'Highest', source: 'ILO via World Bank' }),
+    wb('exports-by-country', 'economy', 'Exports by country', 'Goods and services sold abroad, in current US dollars.', 'exports', usd, { coverage: true, unit: 'US$', worldLabel: 'World total', leaderLabel: 'Largest exporter' }),
+    wb('imports-by-country', 'economy', 'Imports by country', 'Goods and services bought from abroad, with each trade balance.', 'imports', usd, { coverage: true, unit: 'US$', worldLabel: 'World total', leaderLabel: 'Largest importer' }),
     wb('remittances-by-country', 'economy', 'Remittances by country', 'Money sent home by people working abroad, in dollars and as a share of GDP.', 'remittances', usd, { unit: 'US$ received', worldLabel: 'World total', leaderLabel: 'Most received' }),
     {
       slug: 'co2-emissions-by-country', href: '/rankings/co2-emissions-by-country/', topic: 'energy',
@@ -82,6 +84,10 @@ export function rankingCards(): RankingCard[] {
     wb('child-mortality-by-country', 'health', 'Child mortality by country', 'Children who die before age five, per 1,000 live births.', 'under5Mortality', (v) => `${v.toFixed(1)} per 1,000`, { unit: 'per 1,000 births', leaderLabel: 'Highest', source: 'UN IGME via World Bank' }),
     wb('maternal-mortality-by-country', 'health', 'Maternal mortality by country', 'Women who die from pregnancy or childbirth, per 100,000 live births.', 'maternalMortality', (v) => `${int(v)} per 100,000`, { unit: 'per 100,000 births', leaderLabel: 'Highest', source: 'UN MMEIG via World Bank' }),
   ];
+  // Every ranking page must be on this list: a new ranking added without a card fails the build.
+  const pages = Object.keys(import.meta.glob('../pages/rankings/*-by-country.astro')).map((k) => k.split('/').pop()!.replace('.astro', ''));
+  const missing = pages.filter((p) => !cards.some((c) => c.slug === p));
+  if (missing.length) throw new Error(`src/lib/catalog.ts: no card for ranking page(s) ${missing.join(', ')}`);
   return cards;
 }
 

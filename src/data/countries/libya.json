@@ -1,0 +1,64 @@
+{
+  "slug": "libya",
+  "name": "Libya",
+  "demonym": "Libyan",
+  "capital": "Tripoli",
+  "iso3": "LBY",
+  "code": "ly",
+  "continent": "Africa",
+  "wikipedia": "https://en.wikipedia.org/wiki/Libya",
+  "unName": "Libya",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1971,
+    1980,
+    1981,
+    1983,
+    1990,
+    2000,
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2020,
+    2022,
+    2023,
+    2024,
+    2026,
+    2030,
+    2040,
+    2050,
+    2075,
+    2086,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/libya.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; about 6.7 times 1950",
+      "2011 net outflow (largest in the series); population falls 1983, 2011, 2012; life expectancy 2010–2012",
+      "2022→2023 deaths and life expectancy",
+      "Fertility high 1971 above 8; largest fall since 1971 among 1 million+; under 2.1 in 2030; sex ratio",
+      "Second-lowest density in Africa after Namibia, second-most urban after Gabon (1 million+); peak 2086",
+      "title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) — 69 of 69 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Counts only; the page states the UN files give no causes for 2011 or 2023."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}

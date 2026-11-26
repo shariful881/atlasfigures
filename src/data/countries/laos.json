@@ -1,0 +1,61 @@
+{
+  "slug": "laos",
+  "name": "Laos",
+  "demonym": "Lao",
+  "capital": "Vientiane",
+  "iso3": "LAO",
+  "code": "la",
+  "continent": "Asia",
+  "wikipedia": "https://en.wikipedia.org/wiki/Laos",
+  "unName": "Lao People's Democratic Republic",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1975,
+    1980,
+    1983,
+    1990,
+    1993,
+    2000,
+    2004,
+    2010,
+    2020,
+    2026,
+    2030,
+    2035,
+    2037,
+    2040,
+    2050,
+    2068,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/laos.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; about 4.7 times 1950",
+      "Lowest density in South-Eastern Asia (1 million+); third-highest infant mortality after Timor-Leste and Myanmar; eighth by population",
+      "Infant mortality 1950/1990/2026, life expectancy 1950 and now",
+      "Fertility high 1983, under 2.1 in 2035; births peak 1993; net migration never positive, largest outflow 2004",
+      "Urban majority 2037; peak 2068; 2100 projection",
+      "title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) — 64 of 64 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Counts only; no causes given."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}

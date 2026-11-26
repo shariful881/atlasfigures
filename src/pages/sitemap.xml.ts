@@ -108,6 +108,11 @@ const pages: { path: string; lastmod: string }[] = [
   { path: '/population/sierra-leone/', lastmod: '2026-11-26' },
   { path: '/population/belarus/', lastmod: '2026-11-26' },
   { path: '/population/togo/', lastmod: '2026-11-26' },
+  { path: '/population/laos/', lastmod: '2026-11-26' },
+  { path: '/population/turkmenistan/', lastmod: '2026-11-26' },
+  { path: '/population/libya/', lastmod: '2026-11-26' },
+  { path: '/population/kyrgyzstan/', lastmod: '2026-11-26' },
+  { path: '/population/hong-kong/', lastmod: '2026-11-26' },
   { path: '/population/yemen/', lastmod: '2026-11-25' },
   { path: '/population/angola/', lastmod: '2026-11-25' },
   { path: '/population/morocco/', lastmod: '2026-11-25' },
@@ -204,7 +209,7 @@ const pages: { path: string; lastmod: string }[] = [
   { path: '/sources/', lastmod: '2026-11-25' },
   { path: '/corrections/', lastmod: '2026-11-25' },
   { path: '/contact/', lastmod: '2026-11-25' },
-  { path: '/privacy/', lastmod: '2026-11-25' },
+  { path: '/privacy/', lastmod: '2026-11-26' },
 ];
 
 export function GET() {

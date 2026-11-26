@@ -1,0 +1,158 @@
+---
+// Site search (task 7). Desktop: a search box in the header with a drop-down list. Mobile (< 768px): the search
+// icon in the app bar opens a full-screen search, like a phone app, with recently viewed pages when empty.
+// The index (/search-index.json) is fetched only when search is first opened. Recent pages live in this browser's
+// localStorage only (never sent anywhere); every read and write is wrapped so private modes keep working.
+import Icon from './Icon.astro';
+import { path } from '../site';
+interface Props { mode: 'desktop' | 'mobile-button' | 'overlay' }
+const { mode } = Astro.props;
+const indexUrl = path('/search-index.json');
+const base = path('/');
+---
+{mode === 'desktop' && (
+  <div class="sbox" role="search">
+    <label class="visually-hidden" for="sbox-in">Search countries and rankings</label>
+    <span class="sbox-ico" aria-hidden="true"><Icon name="search" /></span>
+    <input id="sbox-in" class="s-input" type="search" placeholder="Search countries…" autocomplete="off" spellcheck="false"
+      role="combobox" aria-expanded="false" aria-controls="sbox-list" aria-autocomplete="list" />
+    <kbd class="sbox-kbd" aria-hidden="true">/</kbd>
+    <div class="sbox-panel" hidden><p class="s-head" id="sbox-head" hidden></p><ul id="sbox-list" class="s-list" role="listbox" aria-label="Search results"></ul></div>
+  </div>
+)}
+
+{mode === 'mobile-button' && (
+  <button class="icon-btn" type="button" id="s-open" aria-label="Search countries and rankings" aria-haspopup="dialog"><Icon name="search" /></button>
+)}
+
+{mode === 'overlay' && (
+  <dialog class="sfull" id="sfull" aria-label="Search">
+    <div class="sfull-bar">
+      <button class="icon-btn" type="button" id="s-close" aria-label="Close search"><Icon name="back" /></button>
+      <label class="visually-hidden" for="sfull-in">Search countries and rankings</label>
+      <input id="sfull-in" class="s-input" type="search" placeholder="Search countries, rankings…" autocomplete="off" spellcheck="false" enterkeyhint="go"
+        role="combobox" aria-expanded="true" aria-controls="sfull-list" aria-autocomplete="list" />
+    </div>
+    <div class="sfull-body">
+      <p class="s-head" id="sfull-head">Recently viewed</p>
+      <ul id="sfull-list" class="s-list" role="listbox" aria-labelledby="sfull-head"></ul>
+    </div>
+  </dialog>
+  <script is:inline define:vars={{ indexUrl, base }}>
+    (function () {
+      var data = null, loading = null;
+      var KEY = 'af-recent';
+      function load() {
+        if (data) return Promise.resolve(data);
+        if (!loading) loading = fetch(indexUrl).then(function (r) { return r.json(); }).then(function (d) { data = d; return d; }).catch(function () { loading = null; return []; });
+        return loading;
+      }
+      function norm(s) { return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[’']/g, '').trim(); }
+      function score(e, q) {
+        var t = norm(e.t), best = 0;
+        if (t === q) best = 100; else if (t.indexOf(q) === 0) best = 80; else if ((' ' + t).indexOf(' ' + q) >= 0) best = 60; else if (t.indexOf(q) >= 0) best = 40;
+        (e.a || []).forEach(function (a) { var n = norm(a); if (n === q) best = Math.max(best, 70); else if (n.indexOf(q) === 0) best = Math.max(best, 50); else if (q.length > 3 && n.indexOf(q) >= 0) best = Math.max(best, 20); });
+        if (!best) return 0;
+        var kindBoost = { world: 6, population: 5, ranking: 4, economy: 3, section: 2, info: 0 }[e.k] || 0;
+        return best + kindBoost;
+      }
+      // Several words: the first word ranks the result, every other word must appear in the title, other names or the
+      // subtitle ("bangladesh economy", "india pop").
+      function search(q, max) {
+        var words = norm(q).split(/\s+/).filter(Boolean);
+        if (!words.length) return [];
+        q = words[0];
+        var rest = words.slice(1);
+        return data.map(function (e) {
+          var hay = norm([e.t, e.s].concat(e.a || []).join(' '));
+          var full = norm(words.join(' '));
+          var sc = norm(e.t).indexOf(full) === 0 ? 90 + ({ world: 6, population: 5, ranking: 4, economy: 3, section: 2, info: 0 }[e.k] || 0) : score(e, q);
+          return [rest.every(function (w) { return hay.indexOf(w) >= 0; }) ? sc : 0, e];
+        }).filter(function (x) { return x[0] > 0; })
+          .sort(function (a, b) { return b[0] - a[0] || a[1].t.localeCompare(b[1].t); }).slice(0, max).map(function (x) { return x[1]; });
+      }
+      function recents() { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } }
+      function remember(u) {
+        try { var r = recents().filter(function (x) { return x !== u; }); r.unshift(u); localStorage.setItem(KEY, JSON.stringify(r.slice(0, 8))); } catch (e) {}
+      }
+      // Remember the country/ranking page being viewed now (for "Recently viewed").
+      var here = location.pathname;
+      if (/\/(population|economy|rankings)\/[^/]+\/$/.test(here)) remember(here);
+      var POPULAR = ['population/world/', 'population/india/', 'population/china/', 'population/united-states/', 'population/bangladesh/', 'rankings/population-by-country/', 'rankings/gdp-by-country/'].map(function (p) { return base + p; });
+
+      function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+      function row(e, i, idp) {
+        var ico = e.f ? '<img class="s-flag" src="' + esc(e.f) + '" alt="" width="30" height="20" loading="lazy">' : '<span class="s-kind s-' + e.k + '" aria-hidden="true"></span>';
+        return '<li role="option" id="' + idp + i + '" aria-selected="false"><a href="' + esc(e.u) + '">' + ico + '<span class="s-txt"><span class="s-t">' + esc(e.t) + '</span><span class="s-s">' + esc(e.s) + '</span></span></a></li>';
+      }
+      function render(list, items, idp, emptyMsg) {
+        list.innerHTML = items.length ? items.map(function (e, i) { return row(e, i, idp); }).join('') : '<li class="s-empty">' + esc(emptyMsg) + '</li>';
+        list.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { remember(new URL(a.href).pathname); }); });
+      }
+      function byUrls(urls) { return urls.map(function (u) { return data.filter(function (e) { return e.u === u; })[0]; }).filter(Boolean); }
+      function keys(input, list, onEnterEmpty) {
+        var active = -1;
+        function opts() { return list.querySelectorAll('[role=option]'); }
+        function setActive(n) {
+          var o = opts(); if (!o.length) return;
+          active = (n + o.length) % o.length;
+          o.forEach(function (el, i) { el.setAttribute('aria-selected', i === active ? 'true' : 'false'); });
+          input.setAttribute('aria-activedescendant', o[active].id); o[active].scrollIntoView({ block: 'nearest' });
+        }
+        input.addEventListener('keydown', function (ev) {
+          if (ev.key === 'ArrowDown') { ev.preventDefault(); setActive(active + 1); }
+          else if (ev.key === 'ArrowUp') { ev.preventDefault(); setActive(active - 1); }
+          else if (ev.key === 'Enter') { var o = opts(); var t = o[active >= 0 ? active : 0]; if (t) { ev.preventDefault(); t.querySelector('a').click(); } }
+        });
+        return function reset() { active = -1; input.removeAttribute('aria-activedescendant'); };
+      }
+
+      // ---- desktop box ----
+      var din = document.getElementById('sbox-in');
+      if (din) {
+        var panel = document.querySelector('.sbox-panel'), dlist = document.getElementById('sbox-list');
+        var dreset = keys(din, dlist);
+        function dshow(on) { panel.hidden = !on; din.setAttribute('aria-expanded', on ? 'true' : 'false'); }
+        function dupdate() {
+          load().then(function () {
+            dreset();
+            var q = din.value;
+            var dhead = document.getElementById('sbox-head');
+            if (!norm(q)) { var r = byUrls(recents()); dhead.textContent = r.length ? 'Recently viewed' : 'Popular'; dhead.hidden = false; render(dlist, r.length ? r : byUrls(POPULAR), 'sd-', ''); }
+            else { dhead.hidden = true; render(dlist, search(q, 8), 'sd-', 'No page matches “' + q + '” yet. New countries are added every week.'); }
+            dshow(true);
+          });
+        }
+        din.addEventListener('focus', dupdate);
+        din.addEventListener('input', dupdate);
+        din.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') { dshow(false); din.blur(); } });
+        document.addEventListener('click', function (ev) { if (!ev.target.closest('.sbox')) dshow(false); });
+        document.addEventListener('keydown', function (ev) {
+          if (ev.key === '/' && !/input|textarea|select/i.test(document.activeElement.tagName) && window.innerWidth >= 768) { ev.preventDefault(); din.focus(); }
+        });
+      }
+
+      // ---- mobile full-screen ----
+      var dlg = document.getElementById('sfull'), open = document.getElementById('s-open');
+      if (dlg && open) {
+        var min = document.getElementById('sfull-in'), mlist = document.getElementById('sfull-list'), head = document.getElementById('sfull-head');
+        var mreset = keys(min, mlist);
+        function mupdate() {
+          load().then(function () {
+            mreset();
+            var q = min.value;
+            if (!norm(q)) {
+              var r = byUrls(recents());
+              head.textContent = r.length ? 'Recently viewed' : 'Popular';
+              head.hidden = false;
+              render(mlist, r.length ? r : byUrls(POPULAR), 'sm-', '');
+            } else { head.hidden = true; render(mlist, search(q, 25), 'sm-', 'No page matches “' + q + '” yet. New countries are added every week.'); }
+          });
+        }
+        open.addEventListener('click', function () { dlg.showModal(); min.value = ''; mupdate(); setTimeout(function () { min.focus(); }, 30); });
+        document.getElementById('s-close').addEventListener('click', function () { dlg.close(); });
+        min.addEventListener('input', mupdate);
+      }
+    })();
+  </script>
+)}
