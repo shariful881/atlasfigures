@@ -1,0 +1,61 @@
+{
+  "slug": "kyrgyzstan",
+  "name": "Kyrgyzstan",
+  "demonym": "Kyrgyz",
+  "capital": "Bishkek",
+  "iso3": "KGZ",
+  "code": "kg",
+  "continent": "Asia",
+  "wikipedia": "https://en.wikipedia.org/wiki/Kyrgyzstan",
+  "unName": "Kyrgyzstan",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1963,
+    1970,
+    1979,
+    1980,
+    1990,
+    1992,
+    1993,
+    1994,
+    2000,
+    2010,
+    2016,
+    2019,
+    2020,
+    2026,
+    2030,
+    2040,
+    2050,
+    2061,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/kyrgyzstan.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; more than 4 times 1950",
+      "Net departures every year 1990–1999 (largest 1993), none 2016–2026, largest inflow 2020, projection negative again from 2028; 2010 box",
+      "Fertility low 2001, high 2019; births peak 2019; under 2.1 in 2061; sex ratio 1990 and now",
+      "Urban high 1979, never a majority; second-least urban in Central Asia after Tajikistan; still growing in 2100",
+      "title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) — 67 of 67 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Counts only; no causes given."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
