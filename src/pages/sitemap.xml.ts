@@ -17,6 +17,8 @@ const pages: { path: string; lastmod: string }[] = [
   { path: '/time/singapore/', lastmod: '2026-11-26' },
   { path: '/time/new-delhi/', lastmod: '2026-11-26' },
   { path: '/time/converter/', lastmod: '2026-11-26' },
+  { path: '/holidays/bangladesh/2027/', lastmod: '2026-11-26' },
+  { path: '/countdown/eid-ul-fitr/', lastmod: '2026-11-26' },
   { path: '/time/dhaka-to-london/', lastmod: '2026-11-26' },
   { path: '/time/dhaka-to-new-york/', lastmod: '2026-11-26' },
   { path: '/time/dhaka-to-dubai/', lastmod: '2026-11-26' },
