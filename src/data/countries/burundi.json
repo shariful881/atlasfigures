@@ -1,0 +1,62 @@
+{
+  "slug": "burundi",
+  "name": "Burundi",
+  "demonym": "Burundian",
+  "capital": "Gitega",
+  "iso3": "BDI",
+  "code": "bi",
+  "continent": "Africa",
+  "wikipedia": "https://en.wikipedia.org/wiki/Burundi",
+  "unName": "Burundi",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1971,
+    1972,
+    1973,
+    1980,
+    1990,
+    1992,
+    1993,
+    1994,
+    1997,
+    2000,
+    2010,
+    2015,
+    2020,
+    2026,
+    2030,
+    2040,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/burundi.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density (second among large African countries after Rwanda), land area",
+      "Life expectancy 1971, 1972 (lowest), 1992, 1993; mid-year totals falling only in 1972, 1973, 1993, 1997; largest net outflow 1993, largest net inflow 1994",
+      "Median age and fertility both seventh among countries above 10 million; fertility 1989 high, under 2.1 from 2095; births peak 2015",
+      "Urban share 2000, now (more than tripled), 2050 (no majority by 2050); life-expectancy gain since 2000 (eleventh-largest), now",
+      "Still growing in 2100; 2100 total; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 68 of 68 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file",
+      "Encyclopaedia Britannica, Gitega (read 2026-11-26): named political capital in 2019; Bujumbura economic capital"
+    ],
+    "result": "All figures match. The breaks are described without causes."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}

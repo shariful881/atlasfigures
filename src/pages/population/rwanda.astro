@@ -1,0 +1,240 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
+import rw from '../../data/countries/rwanda.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: the 1994 break in the UN series (population,
+// life expectancy, infant mortality, net migration), with the genocide's death toll cited from Britannica; the 1993 total
+// passed again in 1998; the second-largest life-expectancy gain since 2000; the world's highest fertility 1950–1967; very
+// high density; a fast-rising urban share. Counts only beyond the cited source.
+const PAGE = '/population/rwanda/';
+const un = countryData(rw.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (rw.verification as any).checkedOn as string | undefined;
+const BRIT_URL = 'https://www.britannica.com/place/Rwanda/Genocide-and-aftermath';
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+assertClaim(y[1994].population < y[1993].population && y[1995].population < y[1994].population && y[1996].population > y[1995].population, '1 July totals fell in 1994 and 1995');
+const back = un.years.find((r) => r.year > 1995 && r.population > y[1993].population)!.year;
+assertClaim(back === 1998, '1993 total passed again in 1998');
+const leLow = un.years.reduce((a, b) => (b.lifeExpectancy < a.lifeExpectancy ? b : a));
+const imrTop = un.years.reduce((a, b) => (b.infantMortalityPer1000! > a.infantMortalityPer1000! ? b : a));
+assertClaim(leLow.year === 1994 && imrTop.year === 1994, 'lowest life expectancy and highest infant mortality in 1994');
+const outTop = un.years.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+const inTop = un.years.reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+assertClaim(outTop.year === 1994 && inTop.year === 1996 && -outTop.netMigrants > 2e6 && inTop.netMigrants > 1.3e6, 'net departures above 2 million in 1994; net arrivals above 1.3 million in 1996');
+assertClaim(un.years.filter((r) => r.change < 0).map((r) => r.year).join() === '1994', 'only negative annual change 1994');
+const gain = (d: any) => at(d).lifeExpectancy - at(d, 2000).lifeExpectancy;
+assertClaim([...wpp].sort((a: any, b: any) => gain(b) - gain(a)).slice(0, 2).map((d: any) => d.iso3).join() === 'MWI,RWA', 'second-largest life-expectancy gain since 2000, after Malawi');
+const afBig = big.filter((d: any) => d.region === 'Africa');
+const cut = (d: any) => at(d).infantMortalityPer1000 / at(d, 2000).infantMortalityPer1000;
+assertClaim([...afBig].sort((a: any, b: any) => cut(a) - cut(b))[0].iso3 === 'RWA', 'largest proportional infant-mortality cut since 2000 among large African countries');
+const topYears = Array.from({ length: 40 }, (_, i) => 1950 + i).filter((n) => [...wpp].sort((a: any, b: any) => at(b, n).fertility - at(a, n).fertility)[0].iso3 === 'RWA');
+assertClaim(topYears[0] === 1950 && topYears[topYears.length - 1] === 1967 && topYears.length === 18, 'highest fertility in the world every year 1950–1967');
+const tfrTop = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(tfrTop.year === 1959, 'fertility high 1959');
+const af1 = wpp.filter((d: any) => d.region === 'Africa' && at(d).population >= 1e6);
+assertClaim([...af1].sort((a: any, b: any) => at(b).densityPerKm2 - at(a).densityPerKm2).slice(0, 2).map((d: any) => d.iso3).join() === 'MUS,RWA', 'second-densest African country of a million or more, after Mauritius');
+assertClaim([...big].sort((a: any, b: any) => at(b).densityPerKm2 - at(a).densityPerKm2).slice(0, 3).map((d: any) => d.iso3).join() === 'BGD,TWN,RWA', 'third-densest among countries and areas of ten million or more');
+const urbanHalf = un.years.find((r) => r.urbanPct != null && r.urbanPct > 50)!.year;
+assertClaim(urbanHalf === 2045 && c.urbanPct! > 6 * y[1990].urbanPct!, 'urban share six times 1990; majority 2045');
+const srLow = un.years.reduce((a, b) => (b.male / b.female < a.male / a.female ? b : a));
+assertClaim(srLow.year === 2002, 'fewest men per 100 women in 2002');
+const lost = y[1993].population - y[1995].population;
+const lostPct = (lost / y[1993].population) * 100;
+assertClaim(lostPct > 28 && lostPct < 30, 'about 29% lost 1993–1995');
+assertClaim(c.population > 2.5 * y[1995].population, 'more than two and a half times 1995');
+
+const title = `Rwanda Population ${CURRENT_YEAR} (${(c.population / 1e6).toFixed(1)}M): 1994 in the Data and the Recovery Since | AtlasFigures`;
+const description = `Rwanda counts ${millions(c.population)} (UN, ${CURRENT_YEAR}). Around the 1994 genocide its UN series loses ${dec(lost / 1e6, 1)} million between the 1993 and 1995 mid-year estimates; since 2000 its life expectancy has risen more than almost anywhere.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: rw.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'People per km²', value: int(c.densityPerKm2) },
+  { label: 'Life expectancy', value: dec(c.lifeExpectancy, 1) },
+  { label: 'Urban', value: pct(c.urbanPct!) },
+];
+
+const rows = displayRows(un.years, rw.tableYears);
+
+const faq = [
+  { q: "How did 1994 affect Rwanda's population figures?", a: `The UN series loses ${dec(lost / 1e6, 1)} million between the 1993 and 1995 mid-year estimates, ending at ${millions(y[1995].population)}, and shows departures exceeding arrivals by some ${dec(-outTop.netMigrants / 1e6, 1)} million in 1994 and an estimated life expectancy of ${dec(leLow.lifeExpectancy, 1)} that year. Britannica states that more than 800,000 civilians, primarily Tutsi, were killed in the genocide.` },
+  { q: 'When did Rwanda regain its pre-1994 population?', a: `In ${back}, after net arrivals of roughly ${dec(inTop.netMigrants / 1e6, 1)} million in ${inTop.year} alone.` },
+  { q: 'Where does Rwanda rank for population density?', a: `Third densest among the world's ten-million-plus countries and areas (after Bangladesh and Taiwan), at ${int(c.densityPerKm2)} per km², and second in Africa, behind Mauritius, among countries above a million.` },
+  { q: 'Did Rwandan women once have more children than anywhere else?', a: `Yes, each year from 1950 to 1967 in the UN data; the peak, ${dec(tfrTop.fertility, 2)}, came in ${tfrTop.year}. It is ${dec(c.fertility, 2)} today.` },
+  { q: 'Has life expectancy in Rwanda recovered?', a: `More than recovered: up ${dec(gain({ years: un.years }), 1)} years since 2000, to ${dec(c.lifeExpectancy, 1)}, a gain beaten only by Malawi.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: rw.slug, name: rw.name, wikipedia: rw.wikipedia,
+  headline: `Rwanda's ${millions(c.population)}: the 1994 break in the UN series, a 1998 recovery and one of the biggest gains in lifespan since 2000`,
+  description,
+  datasetName: 'Rwanda population, life expectancy and net migration, 1950–2100',
+  datasetDescription: `Mid-year population of Rwanda for selected years from 1950 to ${CURRENT_YEAR} (every year 1992–1998 included), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: rw.published, updated: rw.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  extraCitations: [{ name: 'Rwanda: Genocide and aftermath', url: BRIT_URL, publisher: 'Encyclopaedia Britannica' }],
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Rwanda"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Rwanda", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Rwanda: the 1994 break and the recovery in the numbers</h1>
+        <LiveCounter
+          label="Rwanda: estimated population at this time"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} level, adding close to ${int(c.change / 365)} people daily`}
+        />
+        <p class="answer">
+          Rwanda's population has more than recovered from the 1990s collapse: the UN estimates <strong>{millions(c.population)}</strong> for {CURRENT_YEAR}, against <strong>{millions(y[1995].population)}</strong> for 1995. Squeezing {int(c.densityPerKm2)} people onto each km², Rwanda is one of the most crowded countries in the world.
+        </p>
+        <div class="dates"><span>Updated <time datetime={rw.updated}>{longDate(rw.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Rwanda" code="rw" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>How did Rwanda's population change in 1994?</h2>
+          <p>It collapsed. Between the 1 July estimates of 1993 and 1995 the population shrank by {dec(lost / 1e6, 1)} million, or {int(Math.round(lostPct))}%, to {millions(y[1995].population)}. The UN's life-expectancy estimate sinks from {dec(y[1993].lifeExpectancy, 1)} (1993) to {dec(leLow.lifeExpectancy, 1)} (1994), infant mortality reaches {dec(imrTop.infantMortalityPer1000!, 1)} per 1,000 live births, and departures exceed arrivals by around {dec(-outTop.netMigrants / 1e6, 1)} million, a record for the series. Britannica states that more than 800,000 civilians, primarily Tutsi, were killed in the genocide. The UN files themselves record only counts.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Rwanda's mid-year population, UN estimates">
+          <div><span class="y">1993</span><div class="v">{millionsShort(y[1993].population)}</div><span class="d">People</span></div>
+          <div><span class="y">1995</span><div class="v">{millionsShort(y[1995].population)}</div><span class="d">People</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{millionsShort(c.population)}</div><span class="d">People</span></div>
+        </div>
+        <LineChart
+          title="Rwanda's population, 1950–2100, with the 1994–1995 drop"
+          subtitle="Mid-year estimates for Rwanda, with each year from 1992 to 1998 plotted; projection dashed."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How fast did Rwanda's population recover?</h2>
+          <p>Within four years. In {inTop.year} alone the UN records net arrivals of some {dec(inTop.netMigrants / 1e6, 1)} million; by {back} the count was above its 1993 level. The sex ratio reached its lowest point in {srLow.year} ({dec((srLow.male / srLow.female) * 100, 1)}) and stands at {dec((c.male / c.female) * 100, 1)} now. The data describe the movements but not who moved.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Has life expectancy in Rwanda caught up since 2000?</h2>
+          <p>Strongly: a newborn's expected lifespan has gone from {dec(y[2000].lifeExpectancy, 1)} to {dec(c.lifeExpectancy, 1)} years, {dec(gain({ years: un.years }), 1)} more, a rise surpassed only by Malawi. Infant mortality, {dec(y[2000].infantMortalityPer1000!, 1)} in 2000, is {dec(c.infantMortalityPer1000!, 1)}, a steeper proportional fall than in any other large African country.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Is Rwanda one of the most crowded countries?</h2>
+          <p>Yes. Among countries and areas home to over ten million, just Bangladesh and Taiwan are denser than its {int(c.densityPerKm2)} per km²; in Africa only Mauritius is, among countries above a million. From 1950 to 1967 no country or area recorded higher fertility than Rwanda, whose rate reached {dec(tfrTop.fertility, 2)} in {tfrTop.year}; it is {dec(c.fertility, 2)} today. On the national definition, urban dwellers made up {pct(y[1990].urbanPct!)} in 1990 and {pct(c.urbanPct!)} today, with a majority projected for {urbanHalf}.</p>
+        </div>
+        <LineChart
+          title="Births per Rwandan woman from 1950, projected to 2050"
+          subtitle="UN estimates, the world's highest from 1950 to 1967, then the dashed medium variant; 2.1 shown."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'at 2.1 births' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+        <RelatedPages iso3={rw.iso3} name={rw.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Rwanda in figures, 1992 through 1998 shown in full"
+          subtitle="Rows for 1994 and 1995 hold the drop; by 1998 the total is higher than in 1993."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${rw.slug}-population.csv`)}
+          csvName={`${rw.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Rwanda: questions people search</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{rw.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+            <li><a href={BRIT_URL}>Encyclopaedia Britannica, "Rwanda: Genocide and aftermath"</a>: more than 800,000 civilians, primarily Tutsi, killed during the 1994 genocide.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={rw.published}>{longDate(rw.published)}</time> · Updated <time datetime={rw.updated}>{longDate(rw.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Rwanda population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Rwanda" code="rw" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

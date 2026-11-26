@@ -1,0 +1,232 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
+import bo from '../../data/countries/bolivia.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: the largest drop in life expectancy between 2019
+// and 2021 of any country or area, recovered by 2023; net emigration in every UN year 1950–2100; the youngest median age,
+// highest fertility and infant mortality and lowest life expectancy and density in South America (countries of a million
+// or more); a male majority 1994–2031; a peak in 2086. Capitals cited from Britannica.
+const PAGE = '/population/bolivia/';
+const un = countryData(bo.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (bo.verification as any).checkedOn as string | undefined;
+const BRIT_URL = 'https://www.britannica.com/place/Bolivia';
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const dip = (d: any) => at(d, 2021).lifeExpectancy - at(d, 2019).lifeExpectancy;
+assertClaim([...wpp].sort((a: any, b: any) => dip(a) - dip(b))[0].iso3 === 'BOL', 'largest life-expectancy drop 2019–2021 of any country or area');
+const leBack = un.years.find((r) => r.year > 2021 && r.lifeExpectancy > y[2019].lifeExpectancy)!.year;
+assertClaim(leBack === 2023, 'above 2019 again in 2023');
+assertClaim(un.years.every((r) => r.netMigrants < 0), 'net emigration every year 1950–2100');
+const outTop = un.years.filter((r) => !r.projection).reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+assertClaim(outTop.year === 1996, 'largest outflow 1996');
+const sam1 = wpp.filter((d: any) => d.subregion === 'South America' && at(d).population >= 1e6);
+assertClaim([...sam1].sort((a: any, b: any) => at(a).medianAge - at(b).medianAge)[0].iso3 === 'BOL', 'youngest median age in South America (1 million+)');
+assertClaim([...sam1].sort((a: any, b: any) => at(b).fertility - at(a).fertility)[0].iso3 === 'BOL', 'highest fertility in South America (1 million+)');
+assertClaim([...sam1].sort((a: any, b: any) => at(b).infantMortalityPer1000 - at(a).infantMortalityPer1000)[0].iso3 === 'BOL', 'highest infant mortality in South America (1 million+)');
+assertClaim([...sam1].sort((a: any, b: any) => at(a).lifeExpectancy - at(b).lifeExpectancy)[0].iso3 === 'BOL', 'lowest life expectancy in South America (1 million+)');
+assertClaim([...sam1].sort((a: any, b: any) => at(a).densityPerKm2 - at(b).densityPerKm2)[0].iso3 === 'BOL', 'lowest density in South America (1 million+)');
+const menYears = un.years.filter((r) => r.male > r.female).map((r) => r.year);
+assertClaim(menYears[0] === 1994 && menYears[menYears.length - 1] === 2031 && menYears.length === 38, 'more men than women 1994–2031 only');
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+assertClaim(peak.year === 2086, 'peak 2086');
+const urbanHalf = un.years.find((r) => r.urbanPct != null && r.urbanPct > 50)!.year;
+const under = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(urbanHalf === 1985 && under === 2047, 'urban majority since 1985; fertility under 2.1 from 2047');
+assertClaim(wpp.filter((d: any) => d.subregion === 'South America').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3).indexOf('BOL') === 7, 'eighth in South America');
+
+const title = `South America's Youngest Population: Bolivia, ${CURRENT_YEAR} (${(c.population / 1e6).toFixed(1)}M) | AtlasFigures`;
+const description = `Bolivia (UN listing: Bolivia, Plurinational State of; ${millions(c.population)} people in ${CURRENT_YEAR}) has South America's youngest population; no country or area saw life expectancy drop further between 2019 and 2021.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Constitutional capital', value: bo.capital },
+    { label: 'Seat of government', value: 'La Paz' },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+  { label: 'People per km²', value: int(c.densityPerKm2) },
+  { label: 'Peak year', value: String(peak.year) },
+];
+
+const rows = displayRows(un.years, bo.tableYears);
+
+const faq = [
+  { q: 'Is the capital of Bolivia La Paz or Sucre?', a: 'Both have a role: Encyclopaedia Britannica calls Sucre the constitutional capital, where the Supreme Court sits, and La Paz the administrative capital, home to the executive and legislature.' },
+  { q: 'Did Bolivian lifespans drop after 2019?', a: `Yes. UN estimates show ${dec(y[2019].lifeExpectancy, 1)} years in 2019 and ${dec(y[2021].lifeExpectancy, 1)} in 2021, a two-year fall no other country or area matched; by ${leBack} it exceeded the 2019 figure again. The data do not state a cause.` },
+  { q: 'Has Bolivia always lost people to emigration?', a: `In net terms, yes: departures outnumber arrivals in all 151 UN years, 1950 to 2100, most of all in ${outTop.year}, at about ${int(Math.round(-outTop.netMigrants / 1000))} thousand.` },
+  { q: 'Does Bolivia have the youngest population in South America?', a: `Yes, counting countries above a million: the median Bolivian is ${dec(c.medianAge, 1)}, and fertility, ${dec(c.fertility, 2)}, is the continent's highest in that group.` },
+  { q: 'When does Bolivia reach its largest population?', a: `In ${peak.year}, with ${millions(peak.population)}; by 2100 it has dipped slightly, to ${millions(y[2100].population)}.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: bo.slug, name: bo.name, wikipedia: bo.wikipedia,
+  headline: `Bolivia's ${millions(c.population)}: South America's youngest, the steepest 2019–21 drop in lifespans and net emigration every year`,
+  description,
+  datasetName: 'Bolivia population, life expectancy and net migration, 1950–2100',
+  datasetDescription: `Mid-year population of Bolivia (UN: Bolivia, Plurinational State of) for selected years from 1950 to ${CURRENT_YEAR} (2019–2021 and 2023 included), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: bo.published, updated: bo.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  extraCitations: [{ name: 'Bolivia', url: BRIT_URL, publisher: 'Encyclopaedia Britannica' }],
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Bolivia"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Bolivia", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Bolivia: South America's youngest population</h1>
+        <LiveCounter
+          label="Bolivia: estimated residents right now"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} level, up roughly ${int(c.change / 365)} people per day`}
+        />
+        <p class="answer">
+          No South American country of a million or more has a younger population than Bolivia, where the median is <strong>{dec(c.medianAge, 1)}</strong> years. The UN's mid-{CURRENT_YEAR} estimate of <strong>{millions(c.population)}</strong> Bolivians live at {int(c.densityPerKm2)} per km², the thinnest settlement of any South American country in that size group.
+        </p>
+        <div class="dates"><span>Updated <time datetime={bo.updated}>{longDate(bo.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Bolivia" code="bo" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Is Bolivia's population the youngest in South America?</h2>
+          <p>Yes, among countries above a million. The median Bolivian is {dec(c.medianAge, 1)}; fertility, {dec(c.fertility, 2)}, is the highest in that group and falls under 2.1 only in {under}. Infant mortality, {dec(c.infantMortalityPer1000!, 1)} per 1,000 live births, is also the continent's highest, and life expectancy, {dec(c.lifeExpectancy, 1)}, the lowest.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Did Bolivia see the world's biggest drop in lifespans after 2019?</h2>
+          <p>Yes. It fell more steeply than in any other country or area: {dec(y[2019].lifeExpectancy, 1)} years in 2019, {dec(y[2020].lifeExpectancy, 1)} in 2020, {dec(y[2021].lifeExpectancy, 1)} in 2021. By {leBack} it had recovered past the 2019 figure. The UN estimates show the fall without its cause.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Life expectancy at birth in Bolivia">
+          <div><span class="y">2019</span><div class="v">{dec(y[2019].lifeExpectancy, 1)}</div><span class="d">Years</span></div>
+          <div><span class="y">2021</span><div class="v">{dec(y[2021].lifeExpectancy, 1)}</div><span class="d">Years</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{dec(c.lifeExpectancy, 1)}</div><span class="d">Years</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Does Bolivia lose people to emigration every year?</h2>
+          <p>In net terms, yes: all UN years, 1950–2100, have more people leaving than coming. The largest estimated outflow, in {outTop.year}, was about {int(Math.round(-outTop.netMigrants / 1000))} thousand; this year it is roughly {int(Math.round(-c.netMigrants / 1000))} thousand. Men have outnumbered women since 1994 and are projected to do so until 2031; today there are {dec((c.male / c.female) * 100, 1)} of them for every 100 women.</p>
+        </div>
+        <LineChart
+          title="Bolivia's population, 1950 to 2100"
+          subtitle="UN 1 July totals; the medium variant is dashed."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How large will Bolivia's population become?</h2>
+          <p>The UN's medium path reaches {millions(peak.population)} in {peak.year} and closes the century at {millions(y[2100].population)}. Bolivians have been mostly urban since {urbanHalf}; the share is {pct(c.urbanPct!)} today. Bolivia is eighth in South America by population. Britannica describes Sucre as the constitutional capital and La Paz as the administrative capital.</p>
+        </div>
+        <LineChart
+          title="Bolivian fertility, estimated and projected, 1950–2050"
+          subtitle="UN estimates and dashed medium variant, with a line at 2.1."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'line 2.1' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+        <RelatedPages iso3={bo.iso3} name={bo.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Bolivia: population rows from 1950 to 2100, 2019–2021 in full"
+          subtitle="Every row has a negative migration balance; lifespans dip in 2020 and 2021."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${bo.slug}-population.csv`)}
+          csvName={`${bo.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Bolivia: questions and short answers</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{bo.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+            <li><a href={BRIT_URL}>Encyclopaedia Britannica, "Bolivia"</a>: Sucre as constitutional capital (Supreme Court); La Paz as administrative capital (executive and legislature).</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={bo.published}>{longDate(bo.published)}</time> · Updated <time datetime={bo.updated}>{longDate(bo.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Bolivia population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Bolivia" code="bo" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
