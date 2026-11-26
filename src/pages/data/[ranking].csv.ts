@@ -3,7 +3,7 @@
 import { econData, econMeta, rankBy, rankLatest, rankingYear, coverageYear, valueIn } from '../../lib/econ';
 import { commonName } from '../../lib/names';
 
-const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 'unemploymentPct' | 'remittances' | 'internetPct' | 'mobilePer100' | 'under5Mortality' | 'maternalMortality' | 'exports' | 'imports' | 'landArea' | 'forestArea' | 'literacyPct' | 'eduSpendPctGdp'; coverage?: boolean; since?: number; cols: [string, (iso3: string, y: number) => number | string | null][] }> = {
+const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 'unemploymentPct' | 'remittances' | 'internetPct' | 'mobilePer100' | 'under5Mortality' | 'maternalMortality' | 'exports' | 'imports' | 'landArea' | 'forestArea' | 'literacyPct' | 'eduSpendPctGdp' | 'lfpFemale' | 'empAgriPct'; coverage?: boolean; since?: number; cols: [string, (iso3: string, y: number) => number | string | null][] }> = {
   'gdp-by-country': { key: 'gdp', cols: [
     ['gdp_current_usd', (x, y) => valueIn(econData(x).series.gdp, y)],
     ['gdp_growth_pct_constant_prices', (x, y) => valueIn(econData(x).series.gdpGrowthPct, y)],
@@ -53,6 +53,15 @@ const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 
     ['imports_goods_services_current_usd', (x, y) => valueIn(econData(x).series.imports, y)],
     ['imports_pct_gdp', (x, y) => valueIn(econData(x).series.importsPctGdp, y)],
     ['exports_goods_services_current_usd', (x, y) => valueIn(econData(x).series.exports, y)],
+  ] },
+  'female-labor-force-participation-by-country': { key: 'lfpFemale', cols: [
+    ['labour_force_participation_women_pct_15_plus', (x, y) => valueIn(econData(x).series.lfpFemale, y)],
+    ['labour_force_participation_men_pct_15_plus', (x, y) => valueIn(econData(x).series.lfpMale, y)],
+  ] },
+  'employment-in-agriculture-by-country': { key: 'empAgriPct', cols: [
+    ['employment_agriculture_pct', (x, y) => valueIn(econData(x).series.empAgriPct, y)],
+    ['employment_industry_pct', (x, y) => valueIn(econData(x).series.empIndPct, y)],
+    ['employment_services_pct', (x, y) => valueIn(econData(x).series.empSrvPct, y)],
   ] },
   'literacy-rate-by-country': { key: 'literacyPct', since: 2015, cols: [
     ['adult_literacy_pct_ages_15_plus', (x, y) => valueIn(econData(x).series.literacyPct, y)],

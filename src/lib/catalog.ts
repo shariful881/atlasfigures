@@ -67,6 +67,8 @@ export function rankingCards(): RankingCard[] {
     wb('unemployment-rate-by-country', 'economy', 'Unemployment rate by country', 'Share of the labour force without work, ILO modelled estimates.', 'unemploymentPct', pct, { unit: '% of labour force', leaderLabel: 'Highest', source: 'ILO via World Bank' }),
     wb('exports-by-country', 'economy', 'Exports by country', 'Goods and services sold abroad, in current US dollars.', 'exports', usd, { coverage: true, unit: 'US$', worldLabel: 'World total', leaderLabel: 'Largest exporter' }),
     wb('imports-by-country', 'economy', 'Imports by country', 'Goods and services bought from abroad, with each trade balance.', 'imports', usd, { coverage: true, unit: 'US$', worldLabel: 'World total', leaderLabel: 'Largest importer' }),
+    wb('female-labor-force-participation-by-country', 'economy', 'Women in the labour force', 'Share of women aged 15+ working or seeking work, with the rate for men.', 'lfpFemale', pct, { unit: '% of women 15+', leaderLabel: 'Highest', source: 'ILO via World Bank' }),
+    wb('employment-in-agriculture-by-country', 'economy', 'Employment in agriculture', 'Share of jobs in farming, with industry and services alongside.', 'empAgriPct', pct, { unit: '% of employment', leaderLabel: 'Highest', source: 'ILO via World Bank' }),
     wb('remittances-by-country', 'economy', 'Remittances by country', 'Money sent home by people working abroad, in dollars and as a share of GDP.', 'remittances', usd, { unit: 'US$ received', worldLabel: 'World total', leaderLabel: 'Most received' }),
     {
       slug: 'co2-emissions-by-country', href: '/rankings/co2-emissions-by-country/', topic: 'energy',

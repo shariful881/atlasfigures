@@ -48,6 +48,11 @@ export const LABELS = {
   'AG.LND.FRST.K2': { key: 'forestArea', label: 'Forest area', unit: 'sq. km' },
   'SE.ADT.LITR.ZS': { key: 'literacyPct', label: 'Adult literacy rate', unit: '% of people ages 15 and above' },
   'SE.XPD.TOTL.GD.ZS': { key: 'eduSpendPctGdp', label: 'Government expenditure on education', unit: '% of GDP' },
+  'SL.TLF.CACT.FE.ZS': { key: 'lfpFemale', label: 'Labour force participation, women', unit: '% of women ages 15+ (modelled ILO estimate)' },
+  'SL.TLF.CACT.MA.ZS': { key: 'lfpMale', label: 'Labour force participation, men', unit: '% of men ages 15+ (modelled ILO estimate)' },
+  'SL.AGR.EMPL.ZS': { key: 'empAgriPct', label: 'Employment in agriculture', unit: '% of total employment (modelled ILO estimate)' },
+  'SL.IND.EMPL.ZS': { key: 'empIndPct', label: 'Employment in industry', unit: '% of total employment (modelled ILO estimate)' },
+  'SL.SRV.EMPL.ZS': { key: 'empSrvPct', label: 'Employment in services', unit: '% of total employment (modelled ILO estimate)' },
 };
 
 // ---------- CSV (same parser rules as build-data.mjs) ----------
