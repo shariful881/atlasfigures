@@ -1,0 +1,207 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
+import svk from '../../data/countries/slovakia.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story, counts only: a 2023 peak; lower totals in
+// 2001–2004, 2021 and 2024–2026; deaths above births 2001–2003 and every year from 2020; 2022 net arrivals the largest
+// and 2025 net departures the largest; the 2021 life-expectancy dip; fourth-lowest urban share in Europe.
+const PAGE = '/population/slovakia/';
+const un = countryData(svk.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (svk.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+assertClaim(peak.year === 2023, 'peak 2023');
+const falls = un.years.filter((r) => r.year <= CURRENT_YEAR && y[r.year - 1] && r.population < y[r.year - 1].population).map((r) => r.year);
+assertClaim(falls.join() === '2001,2002,2003,2004,2021,2024,2025,2026', 'falls 2001–2004, 2021, 2024–2026');
+const natNeg = un.years.filter((r) => r.year <= 2019 && r.naturalChange < 0).map((r) => r.year);
+assertClaim(natNeg.join() === '2001,2002,2003' && un.years.filter((r) => r.year >= 2020).every((r) => r.naturalChange < 0), 'deaths above births 2001–2003 and from 2020');
+const inTop = un.years.reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+const outTop = un.years.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+assertClaim(inTop.year === 2022 && outTop.year === 2025, 'largest inflow 2022, outflow 2025');
+assertClaim(y[2021].lifeExpectancy < y[2019].lifeExpectancy - 3 && y[2022].lifeExpectancy > y[2021].lifeExpectancy + 2, '2021 dip');
+const e1 = wpp.filter((d: any) => d.region === 'Europe' && at(d).population >= 1e6);
+assertClaim([...e1].sort((a: any, b: any) => at(a).urbanPct - at(b).urbanPct).map((d: any) => d.iso3).indexOf('SVK') === 3, 'fourth-lowest urban share in Europe');
+const ratio = y[2100].population / c.population;
+assertClaim(ratio > 0.61 && ratio < 0.64, 'about 62% of today by 2100');
+const since = c.population / y[1950].population;
+assertClaim(since > 1.5 && since < 1.6, 'about 1.6 times 1950');
+
+const title = `Slovakia Population ${CURRENT_YEAR} (${(c.population / 1e6).toFixed(1)}M): Peaked in 2023, Still Half Rural | AtlasFigures`;
+const description = `For ${CURRENT_YEAR}, Slovakia's UN estimate is ${millions(c.population)}, below the 2023 peak. Natural decrease has run every year since 2020; just ${pct(c.urbanPct!)} of Slovaks are urban, one of Europe's lowest shares.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: svk.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Urban', value: pct(c.urbanPct!) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+];
+
+const rows = displayRows(un.years, svk.tableYears);
+
+const faq = [
+  { q: 'When did Slovakia reach its largest population?', a: `In 2023, at ${millions(peak.population)}. The totals for 2024, 2025 and ${CURRENT_YEAR} are each lower.` },
+  { q: 'Do Slovak deaths outnumber births?', a: `Every year since 2020, and earlier in 2001–2003. This year: ${int(c.deaths)} deaths, ${int(c.births)} births.` },
+  { q: 'Is Slovakia still largely rural?', a: `Close to half rural: by national definition ${pct(c.urbanPct!)} urban, the fourth-lowest share among European countries of a million-plus.` },
+  { q: 'What happened to migration in 2022 and 2025?', a: `The UN shows ${int(inTop.netMigrants)} net arrivals in 2022, the most in its series, and ${int(-outTop.netMigrants)} net departures in 2025, the most in the other direction. No reasons are given.` },
+  { q: "What is Slovakia's 2100 projection?", a: `${millions(y[2100].population)}, about 62% of the current figure.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: svk.slug, name: svk.name, wikipedia: svk.wikipedia,
+  headline: `Slovakia's ${millions(c.population)}: a 2023 peak; deaths above births since 2020; barely more than half urban`,
+  description,
+  datasetName: 'Slovakia population, natural change and net migration, 1950–2100',
+  datasetDescription: `Mid-year population of Slovakia for selected years from 1950 to ${CURRENT_YEAR} (each year 2020–2026 included, with 2001 and 2004), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: svk.published, updated: svk.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Slovakia"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Slovakia", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Slovakia: just past its peak, and still close to half rural</h1>
+        <LiveCounter
+          label="Slovakia: estimate of residents now"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`Follows the UN World Population Prospects 2024 mid-${CURRENT_YEAR} total, shrinking by about ${int(-c.change / 365)} a day`}
+        />
+        <p class="answer">
+          Slovaks number <strong>{millions(c.population)}</strong> ({CURRENT_YEAR}, UN estimate), slightly fewer than at the 2023 peak. Only <strong>{pct(c.urbanPct!)}</strong> are counted as urban.
+        </p>
+        <div class="dates"><span>Updated <time datetime={svk.updated}>{longDate(svk.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Slovakia" code="sk" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Has Slovakia started to lose people?</h2>
+          <p>Slowly, since 2023, when it peaked at {millions(peak.population)}; 2024, 2025 and {CURRENT_YEAR} are each lower. Earlier dips came in 2001–2004 and 2021. Further out, the UN projection drops to {millions(y[2050].population)} by 2050 and to {millions(y[2100].population)} by 2100, about 62% of today.</p>
+        </div>
+        <LineChart
+          title="Slovak population, 1950–2100, with the 2023 peak"
+          subtitle="Mid-year values; dashes mark UN projections."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Since when do deaths exceed births in Slovakia?</h2>
+          <p>First in 2001–2003, then every year from 2020 onward. The {CURRENT_YEAR} projection sets {int(c.deaths)} deaths against {int(c.births)} births; fertility is {dec(c.fertility, 2)}. Life expectancy dipped to {dec(y[2021].lifeExpectancy, 1)} years in 2021 from {dec(y[2019].lifeExpectancy, 1)} in 2019, then recovered to {dec(y[2022].lifeExpectancy, 1)}; the files give no cause.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>What did migration do in 2022 and 2025?</h2>
+          <p>Swung hard both ways. 2022 brought {int(inTop.netMigrants)} net arrivals, the largest in the series; 2025 brought {int(-outTop.netMigrants)} net departures, the largest outflow. For {CURRENT_YEAR} the balance is close to zero. The figures are counts only.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>What share of Slovakia counts as urban?</h2>
+          <p>Only just over half: {pct(c.urbanPct!)} by the country's own definition, fourth-lowest in Europe among countries above a million. A majority has lived in towns since {un.years.find((r) => r.urbanPct != null && r.urbanPct > 50)!.year}.</p>
+        </div>
+        <RelatedPages iso3={svk.iso3} name={svk.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Slovak data rows, including 2001, 2004 and 2020 to 2026"
+          subtitle="Totals peak in the 2023 row; net migration swings between 2022 and 2025."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${svk.slug}-population.csv`)}
+          csvName={`${svk.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Slovakia: short factual answers</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{svk.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={svk.published}>{longDate(svk.published)}</time> · Updated <time datetime={svk.updated}>{longDate(svk.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Slovakia population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Slovakia" code="sk" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
