@@ -1,0 +1,224 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
+import hkg from '../../data/countries/hong-kong.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Neutral wording; the UN lists the area as "China, Hong Kong
+// SAR". Story: among countries and areas of a million or more, the lowest fertility, the longest life expectancy, the
+// fewest men per 100 women and the steepest projected fall to 2100 (to about 28% of today); a 2020 peak with lower totals
+// and more deaths than births every year since 2021; births in 2026 the fewest since 1950.
+const PAGE = '/population/hong-kong/';
+const un = countryData(hkg.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (hkg.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const m1 = wpp.filter((d: any) => at(d).population >= 1e6);
+const first = (f: (d: any) => number) => [...m1].sort((a: any, b: any) => f(a) - f(b))[0].iso3;
+assertClaim(first((d) => at(d).fertility) === 'HKG', 'lowest fertility, 1M+');
+assertClaim(first((d) => -at(d).lifeExpectancy) === 'HKG', 'longest life expectancy, 1M+');
+assertClaim(first((d) => at(d).male / at(d).female) === 'HKG', 'fewest men per 100 women, 1M+');
+assertClaim(first((d) => at(d, 2100).population / at(d).population) === 'HKG', 'steepest projected fall to 2100, 1M+');
+const ratio = y[2100].population / c.population;
+assertClaim(ratio > 0.27 && ratio < 0.29, 'about 28% of today by 2100');
+assertClaim([...m1].sort((a: any, b: any) => at(b).densityPerKm2 - at(a).densityPerKm2).slice(0, 2).map((d: any) => d.iso3).join() === 'SGP,HKG', 'second-densest after Singapore, 1M+');
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+assertClaim(peak.year === 2020 && un.years.filter((r) => r.year > 2020).every((r) => r.population < y[r.year - 1].population), 'peak 2020, lower every year after');
+assertClaim(un.years.find((r) => r.naturalChange < 0)!.year === 2021 && un.years.filter((r) => r.year >= 2021).every((r) => r.naturalChange < 0), 'deaths over births every year from 2021');
+const est = un.years.filter((r) => r.year <= CURRENT_YEAR);
+const bLow = est.reduce((a, b) => (b.births < a.births ? b : a));
+const bTop = un.years.reduce((a, b) => (b.births > a.births ? b : a));
+assertClaim(bLow.year === CURRENT_YEAR && bTop.year === 1965, 'fewest births now, most in 1965');
+const tLow = est.reduce((a, b) => (b.fertility < a.fertility ? b : a));
+const tTop = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(tLow.year === 2022 && tTop.year === 1962, 'fertility low 2022, high 1962');
+assertClaim(c.fertility < 1, 'fertility under 1');
+
+const title = `Hong Kong Population ${CURRENT_YEAR} (${(c.population / 1e6).toFixed(1)}M): Lowest Fertility, Longest Lives, Steepest Projected Fall | AtlasFigures`;
+const description = `Hong Kong (UN listing: China, Hong Kong SAR) counts ${millions(c.population)} in ${CURRENT_YEAR}. Fertility of ${dec(c.fertility, 2)} and life expectancy of ${dec(c.lifeExpectancy, 1)} are extremes among places above a million, and the 2100 projection is just ${millions(y[2100].population)}.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Status', value: hkg.capital },
+    { label: 'UN listing', value: hkg.unName },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'Life expectancy', value: dec(c.lifeExpectancy, 1) },
+  { label: 'People per km²', value: int(c.densityPerKm2) },
+];
+
+const rows = displayRows(un.years, hkg.tableYears);
+
+const faq = [
+  { q: 'Does Hong Kong have the lowest fertility rate?', a: `Among countries and areas of a million or more, yes: ${dec(c.fertility, 2)} per woman this year, with the trough, ${dec(tLow.fertility, 2)}, recorded in ${tLow.year}.` },
+  { q: 'Is life expectancy in Hong Kong the world\'s highest?', a: `On UN estimates it is, at ${dec(c.lifeExpectancy, 1)} years, among all places above a million people.` },
+  { q: 'Has Hong Kong started to lose population?', a: `Yes. The 2020 figure, ${millions(peak.population)}, was the top; every later year is lower, and from 2021 deaths have outnumbered births.` },
+  { q: 'What head count is projected for Hong Kong in 2100?', a: `${millions(y[2100].population)}, about 28% of today: the steepest fall projected for any country or area above a million.` },
+  { q: 'Why are men outnumbered in Hong Kong?', a: `The UN data give a sex ratio of ${dec((c.male / c.female) * 100, 1)} males per hundred females, the lowest among places of over a million, without giving reasons.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: hkg.slug, name: hkg.name, wikipedia: hkg.wikipedia,
+  headline: `Hong Kong's ${millions(c.population)}: fertility of ${dec(c.fertility, 2)}, life expectancy of ${dec(c.lifeExpectancy, 1)}, and a projected fall to ${millions(y[2100].population)}`,
+  description,
+  datasetName: 'Hong Kong population, fertility and life expectancy, 1950–2100',
+  datasetDescription: `Mid-year population of Hong Kong (UN listing: China, Hong Kong SAR) for selected years from 1950 to ${CURRENT_YEAR} (every year 2019–2024 included), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: hkg.published, updated: hkg.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Hong Kong"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Hong Kong", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Hong Kong: record-low fertility and record-long lives</h1>
+        <LiveCounter
+          label="Hong Kong: estimated population this minute"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`Mid-${CURRENT_YEAR} UN World Population Prospects 2024 level, falling by roughly ${int(-c.change / 365)} a day`}
+        />
+        <p class="answer">
+          Hong Kong, listed by the UN as China, Hong Kong SAR, has <strong>{millions(c.population)}</strong> residents in {CURRENT_YEAR}. Among places of over a million it has the lowest fertility, <strong>{dec(c.fertility, 2)}</strong>, and the longest life expectancy, <strong>{dec(c.lifeExpectancy, 1)}</strong>.
+        </p>
+        <div class="dates"><span>Updated <time datetime={hkg.updated}>{longDate(hkg.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Hong Kong" code="hk" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Why is Hong Kong's fertility rate so low?</h2>
+          <p>The UN data measure it without explaining it: below one child per woman: {dec(c.fertility, 2)} now, the lowest of any place above a million people, and {dec(tLow.fertility, 2)} at the {tLow.year} trough. In {tTop.year} the figure was {dec(tTop.fertility, 2)}. This year's {int(c.births)} births are the smallest annual total since 1950; {bTop.year} had {int(bTop.births)}.</p>
+        </div>
+        <LineChart
+          title="Hong Kong fertility, 1950–2050, far under 2.1"
+          subtitle="Estimates, then the dashed projection; 2.1 drawn for comparison."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'comparison 2.1' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How fast is Hong Kong's population declining?</h2>
+          <p>Each year since 2020, when the series tops out at {millions(peak.population)}, has been lower than the last, and from 2021 deaths ({int(c.deaths)} this year) have exceeded births. The projection leaves {millions(y[2050].population)} by 2050 and only {millions(y[2100].population)} by 2100, about 28% of today: the steepest projected drop for any country or area above a million.</p>
+        </div>
+        <LineChart
+          title="Hong Kong residents, 1950–2100: up to 2020, then down"
+          subtitle="Mid-year figures; the dashed line after 2023 is the UN projection."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Do Hong Kong residents live the longest?</h2>
+          <p>Among places of a million or more, yes: {dec(c.lifeExpectancy, 1)} years at birth. The population is also unusually female, {dec((c.male / c.female) * 100, 1)} men to 100 women, the lowest in that group, and old: half are over {dec(c.medianAge, 1)}. The UN figures do not explain either pattern.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Is Hong Kong more crowded than anywhere else?</h2>
+          <p>Almost: among million-plus places only Singapore packs more people in than Hong Kong's {int(c.densityPerKm2)} residents to the km².</p>
+        </div>
+        <RelatedPages iso3={hkg.iso3} name={hkg.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Hong Kong by year, with every year 2019–2024"
+          subtitle="From the 2021 row on, each total is below the one before."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${hkg.slug}-population.csv`)}
+          csvName={`${hkg.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Hong Kong, in questions and answers</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{hkg.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={hkg.published}>{longDate(hkg.published)}</time> · Updated <time datetime={hkg.updated}>{longDate(hkg.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Hong Kong population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Hong Kong" code="hk" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
