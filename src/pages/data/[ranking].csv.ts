@@ -3,7 +3,7 @@
 import { econData, econMeta, rankBy, rankLatest, rankingYear, coverageYear, valueIn } from '../../lib/econ';
 import { commonName } from '../../lib/names';
 
-const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 'unemploymentPct' | 'remittances' | 'internetPct' | 'mobilePer100' | 'under5Mortality' | 'maternalMortality' | 'exports' | 'imports' | 'landArea' | 'forestArea' | 'literacyPct' | 'eduSpendPctGdp' | 'lfpFemale' | 'empAgriPct'; coverage?: boolean; since?: number; cols: [string, (iso3: string, y: number) => number | string | null][] }> = {
+const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 'unemploymentPct' | 'remittances' | 'internetPct' | 'mobilePer100' | 'under5Mortality' | 'maternalMortality' | 'exports' | 'imports' | 'landArea' | 'forestArea' | 'literacyPct' | 'eduSpendPctGdp' | 'lfpFemale' | 'empAgriPct' | 'migrantStock' | 'migrantPct'; coverage?: boolean; since?: number; cols: [string, (iso3: string, y: number) => number | string | null][] }> = {
   'gdp-by-country': { key: 'gdp', cols: [
     ['gdp_current_usd', (x, y) => valueIn(econData(x).series.gdp, y)],
     ['gdp_growth_pct_constant_prices', (x, y) => valueIn(econData(x).series.gdpGrowthPct, y)],
@@ -62,6 +62,16 @@ const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 
     ['employment_agriculture_pct', (x, y) => valueIn(econData(x).series.empAgriPct, y)],
     ['employment_industry_pct', (x, y) => valueIn(econData(x).series.empIndPct, y)],
     ['employment_services_pct', (x, y) => valueIn(econData(x).series.empSrvPct, y)],
+  ] },
+  'immigrant-population-by-country': { key: 'migrantStock', cols: [
+    ['international_migrant_stock', (x, y) => valueIn(econData(x).series.migrantStock, y)],
+    ['international_migrant_stock_pct_population', (x, y) => valueIn(econData(x).series.migrantPct, y)],
+    ['international_migrant_stock_2000', (x) => valueIn(econData(x).series.migrantStock, 2000)],
+  ] },
+  'immigrant-percentage-by-country': { key: 'migrantPct', cols: [
+    ['international_migrant_stock_pct_population', (x, y) => valueIn(econData(x).series.migrantPct, y)],
+    ['international_migrant_stock', (x, y) => valueIn(econData(x).series.migrantStock, y)],
+    ['international_migrant_stock_pct_population_1990', (x) => valueIn(econData(x).series.migrantPct, 1990)],
   ] },
   'literacy-rate-by-country': { key: 'literacyPct', since: 2015, cols: [
     ['adult_literacy_pct_ages_15_plus', (x, y) => valueIn(econData(x).series.literacyPct, y)],

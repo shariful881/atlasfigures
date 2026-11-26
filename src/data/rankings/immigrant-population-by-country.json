@@ -1,0 +1,20 @@
+{
+  "slug": "immigrant-population-by-country",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/migration-113.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; check-wdi.mjs compares all generated WDI values with the original files; then the text was read by hand",
+    "what": "every ranking row (215 countries and areas, order and value), the share-of-population and 2000 columns, the CSV, every figure in the text, FAQ, title, description and JSON-LD; claims: world 303.4 million (3.7%) in 2024 against 153.6 million (2.9%) in 1990, almost doubled, one person in 27; US 52.4 million = 17.3% of the world total and more than Germany, Saudi Arabia and the UK combined; top ten 47.9%; largest gains since 2000 US, Saudi Arabia, UK and largest falls Russia (down about a third) and India; Spain more than quadrupled; Colombia about 100,000 in 2000; Bangladesh 2.9 million (25th), most of the rise after 2015, 1.7%; definitions and caveats from the indicator notes",
+    "against": "World Bank WDI bulk files and indicator metadata (update 11 November 2026, CC BY 4.0; UN DESA International Migrant Stock)",
+    "result": "Before publishing, the World Bank refugee series (SM.POP.REFG, SM.POP.REFG.OR, update of 29 October 2025) was rejected: its 2023 values are implausibly large (for example Iran 26.4 million and a world total of 263.0 million refugees), so refugees are not ranked; the Spain and Colombia sentence was reworded. All automated comparisons matched"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: UN DESA International Migrant Stock via World Bank WDI, 2024."
+    }
+  ]
+}
