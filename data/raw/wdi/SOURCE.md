@@ -6,7 +6,7 @@ Downloaded automatically by .github/workflows/fetch-wdi.yml. Do not edit by hand
 - Dataset: World Development Indicators (https://datacatalog.worldbank.org/search/dataset/0037712)
 - Licence: CC BY 4.0 (checked per indicator in the World Bank API metadata, field License_Type)
 - Terms: https://www.worldbank.org/ext/en/legal/terms-conditions/datasets — must not imply World Bank endorsement
-- Downloaded (UTC): 2026-11-26T08:13:59Z
+- Downloaded (UTC): 2026-11-26T09:31:46Z
 
 | Code | Indicator | Licence | WDI last updated | URL | Bytes | SHA-256 |
 |---|---|---|---|---|---|---|
@@ -32,3 +32,5 @@ Downloaded automatically by .github/workflows/fetch-wdi.yml. Do not edit by hand
 | AG.LND.TOTL.K2 | Land area (sq. km) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/AG.LND.TOTL.K2?downloadformat=csv | 24705 | 61482e6488b9297b43b1debc8398759bd3fc93e143bef7d4cece57587ce47ccb |
 | AG.LND.FRST.ZS | Forest area (% of land area) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/AG.LND.FRST.ZS?downloadformat=csv | 77187 | 1964cc0bf6c550cc9d47acc857e4d15beb2c761b38d43f89c67f272cacdce1a4 |
 | AG.LND.FRST.K2 | Forest area (sq. km) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/AG.LND.FRST.K2?downloadformat=csv | 46263 | e02b75f26b618e5515518753f6161d058459af38bc66248b2b8d6be79f31e2b1 |
+| SE.ADT.LITR.ZS | Literacy rate, adult total (% of people ages 15 and above) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SE.ADT.LITR.ZS?downloadformat=csv | 26242 | 4a40a8ef0fdbea4b0637886e80043e85eeb7c757edc2327f9f983e472c51a1e6 |
+| SE.XPD.TOTL.GD.ZS | Government expenditure on education, total (% of GDP) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SE.XPD.TOTL.GD.ZS?downloadformat=csv | 68436 | a8d5a11ae64d9e639ade0243a4f3b31b0e3583bb316e24f592b183cd68f538e7 |

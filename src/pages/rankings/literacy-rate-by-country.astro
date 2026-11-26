@@ -1,0 +1,207 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import WorldMap from '../../components/WorldMap.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/literacy-rate-by-country.json';
+import { econData, econMeta, aggregate, valueIn, rankLatest, latest } from '../../lib/econ';
+import { assertClaim, ord } from '../../lib/figures';
+import { commonName, pagesOf } from '../../lib/names';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/); the literacy data are UNESCO's.
+// Literacy is measured in censuses and surveys held in different years, so each place is ranked on its most
+// recent figure from SINCE onward, and the table shows which year that is.
+const PAGE = '/rankings/literacy-rate-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WDI = 'World Bank, World Development Indicators (UNESCO Institute for Statistics)';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = meta.verification?.checkedOn;
+const name = commonName;
+const M = econMeta.indicators.literacyPct;
+const SINCE = 2015;
+
+const ranked = rankLatest('literacyPct', SINCE);
+const N = ranked.length;
+const WS = aggregate('WLD').series.literacyPct;
+const wl = latest(WS)!, L = wl.year, world = wl.value;
+const w0 = WS[0];
+const byIso = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const p1 = (v: number) => `${v.toFixed(1)}%`;
+const lit = (x: string, y: number) => valueIn(econData(x).series.literacyPct, y);
+const reg = (code: string) => latest(aggregate(code).series.literacyPct)!;
+const ssa = reg('SSF'), sas = reg('SAS');
+const under50 = ranked.filter((r) => r.value < 50);
+const last5 = ranked.slice(-5).reverse();
+const thisYear = ranked.filter((r) => r.year === L).length;
+const hic = ranked.filter((r) => r.incomeGroup === 'High income').length;
+const hicAll = Object.values(import.meta.glob('../../data/wdi/countries/*.json', { eager: true, import: 'default' }) as any[]).filter((d) => d.incomeGroup === 'High income').length;
+const bgd = byIso('BGD');
+const bgd0 = econData('BGD').series.literacyPct[0];
+const top = ranked.filter((r) => r.value >= 99.5);
+const wYears = WS.filter(([y]) => y <= L);
+
+assertClaim(M.aggregation === 'Weighted average' && L === 2024 && N === 119 && thisYear === 29, 'world weighted average; 2024; 119 places since 2015; 29 with 2024');
+assertClaim(last5[0].iso3 === 'TCD' && last5[0].value < 31 && ['NER', 'MLI'].includes(last5[1].iso3) && ['NER', 'MLI'].includes(last5[2].iso3) && last5[3].iso3 === 'AFG', 'Chad lowest, Niger and Mali, Afghanistan');
+assertClaim(under50.length === 8 && under50.every((r) => r.region === 'Sub-Saharan Africa' || r.iso3 === 'AFG'), 'eight below half, all SSA except Afghanistan');
+assertClaim(Math.round(world * 10) === 877 && Math.round(w0[1] * 10) === 654 && w0[0] === 1975 && wYears.every(([, v], i) => i === 0 || v >= wYears[i - 1][1] - 0.15), 'world 87.7% in 2024, 65.4% in 1975, rising');
+assertClaim(Math.round(ssa.value * 10) === 687 && Math.round(sas.value * 10) === 782 && ssa.year === L && sas.year === L, 'SSA 68.7, South Asia 78.2');
+assertClaim(bgd.year === 2022 && Math.round(bgd.value) === 79 && bgd0[0] === 1981 && bgd0[1] < 30 && bgd.value < world, 'Bangladesh 79.0% in 2022, under 30% in 1981');
+assertClaim(hic === 20 && hicAll === 86, '20 of 86 high-income economies report');
+assertClaim(top.length === 11 && ranked.filter((r) => r.value >= 99).length === 16 && ['UZB', 'RUS', 'BLR'].every((x) => byIso(x).value >= 99.5), '11 at 99.5%+, 16 at 99%+, incl. UZB RUS BLR');
+assertClaim((valueIn(WS, 2000)! - w0[1]) / 25 > 2 * (world - valueIn(WS, 2000)!) / (L - 2000), 'gains slower since 2000');
+
+const title = `Literacy Rate by Country: Latest UNESCO Figures for ${N} Countries | AtlasFigures`;
+const description = `${p1(world)} of the world's adults could read and write in ${L}, up from ${p1(w0[1])} in 1975. Latest adult literacy rates for ${N} countries, lowest in Chad (${p1(last5[0].value)}).`;
+
+const cards = [
+  { label: 'World adult literacy', value: p1(world), year: L, note: 'ages 15 and over' },
+  { label: 'In 1975', value: p1(w0[1]), year: 1975, note: 'world' },
+  { label: 'Sub-Saharan Africa', value: p1(ssa.value), year: L, note: 'regional rate' },
+  { label: 'Below one in two', value: String(under50.length), year: `${SINCE}–${L}`, note: 'countries' },
+];
+
+const rows = ranked.map((r) => {
+  const pg = pagesOf(r.iso3); const site = pg.economy ?? pg.population;
+  return {
+    rank: r.rank, iso3: r.iso3, name: name(r.iso3), site, href: site ? path(site) : null, region: r.region,
+    bar: r.value / 100, value: p1(r.value),
+    cells: [String(r.year), r.incomeGroup ?? '–'],
+  };
+});
+const mapFmt = (v: number) => `${Math.round(v)}%`;
+const mapRows = ranked.map((r) => ({ iso3: r.iso3, name: name(r.iso3), rank: r.rank, raw: r.value, value: `${p1(r.value)} (${r.year})` }));
+const regions = [...new Set(ranked.map((r) => r.region))].sort();
+
+const faq = [
+  { q: 'Which country has the lowest literacy rate?', a: `Chad, where ${p1(last5[0].value)} of adults could read and write at the ${last5[0].year} count. Niger and Mali (both ${p1(last5[1].value)}) and Afghanistan (${p1(last5[3].value)}) are next.` },
+  { q: 'What is the world literacy rate?', a: `UNESCO puts it at ${p1(world)} of people aged 15 and over in ${L}, against ${p1(w0[1])} in 1975.` },
+  { q: 'What is the literacy rate in Bangladesh?', a: `${p1(bgd.value)} of adults in ${bgd.year}, the latest year with a figure — up from ${p1(bgd0[1])} in ${bgd0[0]}. That places Bangladesh ${ord(bgd.rank)} of the ${N} countries in this list.` },
+  { q: 'Why are the United States and the United Kingdom not listed?', a: `Most high-income countries no longer report an adult literacy rate to UNESCO; only ${hic} of the ${hicAll} high-income economies in the World Bank data have a figure from ${SINCE} on.` },
+  { q: 'Do the figures all refer to the same year?', a: `No. Literacy is measured in censuses and household surveys held in different years, so each country is shown with its most recent figure from ${SINCE} to ${L}; only ${thisYear} have one for ${L}.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Adult literacy rate by country: latest figures for ${N} countries and areas`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'CreativeWork', name: 'World Development Indicators', url: WDI_URL, publisher: { '@type': 'Organization', name: 'The World Bank' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `Adult literacy rate by country, latest year ${SINCE}–${L}`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Adult literacy rate by country, latest year ${SINCE}–${L}`,
+    description: `Adult literacy rate (percentage of people aged 15 and over) for ${N} countries and areas, each at its most recent year from ${SINCE} to ${L}, ranked, from the World Development Indicators (update of ${longDate(M.wdiLastUpdated)}). The estimates come from the UNESCO Institute for Statistics.`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WDI_URL], temporalCoverage: `${SINCE}/${L}`,
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['Literacy rate, adult total (% of people ages 15 and above)'],
+    dateModified: iso(UPDATED), license: econMeta.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/literacy-rate-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="Literacy rate" back="/rankings/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Rankings', href: '/rankings/' }, { name: 'Literacy rate by country', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>Literacy rate by country</h1>
+    <p class="answer">Worldwide, <strong>{p1(world)}</strong> of people aged 15 and over could read and write in {L}. The lowest rates are in the Sahel — Chad, Niger and Mali — and in Afghanistan, while {ranked.filter((r) => r.value >= 99).length} countries report rates of 99% or more.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`Adult literacy, latest figures`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="map">Map</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="map" aria-label="Map" hidden-mobile>
+      <WorldMap
+        id="map-h" title={`Adult literacy rate, latest year ${SINCE}–${L}`}
+        subtitle="Share of people aged 15 and over who can read and write; darker means higher literacy. Five shades, each holding a similar number of countries; most high-income countries have no recent figure."
+        rows={mapRows} fmt={mapFmt}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+    </section>
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`Adult literacy rate, latest figure ${SINCE}–${L}`}
+        subtitle="Highest first. Each country appears with its most recent UNESCO figure; the year column shows when it was measured."
+        valueLabel="Literacy, %"
+        cols={[{ label: 'Year' }, { label: 'Income group', cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={regions}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        csv={path('/data/literacy-rate-by-country.csv')} csvName="literacy-rate-by-country.csv"
+        licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+      />
+      <p class="note">Bars run to 100%. {N} countries and areas have a literacy figure from {SINCE} onwards; places whose latest figure is older are not listed, and figures from different years are not strictly comparable.</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>How many adults in the world can read and write?</h2>
+        <p>About seven in eight. UNESCO's estimate for {L} is {p1(world)} of everyone aged 15 and over, up from {p1(w0[1])} in 1975 — though the pace of improvement has slowed since 2000.</p>
+      </div>
+      <LineChart
+        title={`World adult literacy rate, ${w0[0]}–${L}`}
+        subtitle="Percentage of people aged 15 and over who can read and write, UNESCO estimate compiled by the World Bank."
+        points={wYears.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+        format="percent" highlight={L} estimateLabel="World Bank data"
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+
+      <div class="story-block prose">
+        <h2>Where is literacy lowest?</h2>
+        <p>In the Sahel. Chad ({p1(last5[0].value)}, {last5[0].year}), Niger ({p1(byIso('NER').value)}) and Mali ({p1(byIso('MLI').value)}) have the lowest recorded rates, and {under50.length} countries are below 50% — all in sub-Saharan Africa apart from <a href={path('/economy/afghanistan/')}>Afghanistan</a> ({p1(byIso('AFG').value)}). Sub-Saharan Africa as a whole stood at {p1(ssa.value)} in {L} and South Asia at {p1(sas.value)}.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>How far has literacy come in Bangladesh?</h2>
+        <p>A long way. Fewer than a third of Bangladeshi adults — {p1(bgd0[1])} — could read and write in {bgd0[0]}; the {bgd.year} figure is {p1(bgd.value)}, still a little below the world rate. <a href={path('/economy/india/')}>India</a> reported {p1(byIso('IND').value)} for {byIso('IND').year} and <a href={path('/economy/pakistan/')}>Pakistan</a> {p1(byIso('PAK').value)} for {byIso('PAK').year}.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Why are most rich countries missing?</h2>
+        <p>Because most of them no longer measure basic literacy: only {hic} of the {hicAll} high-income economies have a UNESCO figure from {SINCE} on. Where rates are reported, {top.length} countries — among them Uzbekistan, Russia and Belarus — record 99.5% or more.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Literacy: questions answered</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(M.wdiLastUpdated)}): literacy rate, adult total, % of people ages 15 and above (SE.ADT.LITR.ZS), from the UNESCO Institute for Statistics. World and regional figures: the World Bank's weighted averages. Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          <li>Related pages: <a href={path('/rankings/education-spending-by-country/')}>education spending by country</a>, <a href={path('/rankings/child-mortality-by-country/')}>child mortality by country</a>.</li>
+        </ul>
+        <p class="note">The adult literacy rate is the share of people aged 15 and over who can both read and write, with understanding, a short simple statement about their everyday life. Literacy is hard to measure: many countries rely on people's own answers in a census or survey, some use years of schooling as a stand-in, and a few test reading directly, so differences between countries should be read with care. Each country is ranked on its latest figure from {SINCE} onwards. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Literacy rate by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+</style>
