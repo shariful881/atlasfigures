@@ -151,7 +151,7 @@ const schema = countrySchema({
 
         <div class="story-block prose">
           <h2>Is infant mortality in Sierra Leone the world's highest?</h2>
-          <p>Yes, in the UN's {CURRENT_YEAR} estimates: {dec(c.infantMortalityPer1000!, 1)} per 1,000 live births. Lifespans have nonetheless lengthened, from {dec(y[1950].lifeExpectancy, 1)} years in 1950 and {dec(y[2000].lifeExpectancy, 1)} in 2000 to {dec(c.lifeExpectancy, 1)} now.</p>
+          <p>Yes. The UN's {CURRENT_YEAR} figure, {dec(c.infantMortalityPer1000!, 1)} deaths before age one for every 1,000 born alive, is the highest anywhere. Lifespans have nonetheless lengthened, from {dec(y[1950].lifeExpectancy, 1)} years in 1950 and {dec(y[2000].lifeExpectancy, 1)} in 2000 to {dec(c.lifeExpectancy, 1)} now.</p>
         </div>
         <LineChart
           title="Life expectancy in Sierra Leone, 1950–2050"

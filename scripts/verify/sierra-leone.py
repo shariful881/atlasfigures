@@ -17,7 +17,7 @@ osum = -sum(K(I, yr, 'NetMigrations') for yr in range(1991, 2000)); assert 9e5 <
 assert [yr for yr in range(1951, y + 1) if P(I, yr) < P(I, yr - 1)] == [1992, 1993] and all(F(yr, 'LEx') < 45 for yr in range(1990, 2000))
 pk = max(R, key=lambda yr: P(I, yr)); tm = max(R, key=lambda yr: F(yr, 'TFR')); r21 = next(yr for yr in R if F(yr, 'TFR') < 2.1); half = next(yr for yr in R if U.get(yr) and U[yr] > 50); assert (pk, tm, r21, half) == (2092, 1987, 2071, 2032)
 exp = exp_base(I, y, U) | {
- 'imr': f"Yes, in the UN's {y} estimates: {F(y, 'IMR'):.1f} per 1,000 live births", 'osum': f"close to {round(osum / 1e4) * 10} thousand altogether, most of all in 1991 ({c(-K(I, out, 'NetMigrations'))})", 'in': f"with {c(K(I, inn, 'NetMigrations'))} net arrivals in 2001",
+ 'imr': f"figure, {F(y, 'IMR'):.1f} deaths before age one", 'osum': f"close to {round(osum / 1e4) * 10} thousand altogether, most of all in 1991 ({c(-K(I, out, 'NetMigrations'))})", 'in': f"with {c(K(I, inn, 'NetMigrations'))} net arrivals in 2001",
  'le': f"from {F(1950, 'LEx'):.1f} years in 1950 and {F(2000, 'LEx'):.1f} in 2000 to {F(y, 'LEx'):.1f} now", 'tfr': f"The fertility peak came in {tm} ({F(tm, 'TFR'):.2f}); the rate now stands at {F(y, 'TFR'):.2f}",
  'pk': f"cresting at {m(P(I, pk))} in {pk}", 'urb': f"majority in {half}", '1995': f"{c(-K(I, 1995, 'NetMigrations'))}",
  'ld': f"peaking at {c(K(I, inn, 'NetMigrations'))} in 2001",
