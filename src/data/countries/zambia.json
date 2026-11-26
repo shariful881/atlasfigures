@@ -1,0 +1,56 @@
+{
+  "slug": "zambia",
+  "name": "Zambia",
+  "demonym": "Zambian",
+  "capital": "Lusaka",
+  "iso3": "ZMB",
+  "code": "zm",
+  "continent": "Africa",
+  "wikipedia": "https://en.wikipedia.org/wiki/Zambia",
+  "unName": "Zambia",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    1998,
+    2000,
+    2009,
+    2010,
+    2020,
+    2026,
+    2030,
+    2034,
+    2040,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/zambia.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; eighth in Eastern Africa; 9.7 times 1950; rises every year",
+      "Urban share 1950, 1980 peak, 2000 low, first higher than 1980 again in 2010, now; urban majority 2034",
+      "Life expectancy 1980, 1998 low, back above 1980 in 2009, now; gain since 2000 third-largest of any country or area",
+      "Median age now and 1980 low; fertility 1975 high, now, under 2.1 in 2098",
+      "Passes Malawi in 2034; 2050 and 2100 totals; rank now and 2100; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 62 of 62 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. The urban and life-expectancy dips are described without causes."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}

@@ -1,0 +1,232 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
+import mw from '../../data/countries/malawi.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: net arrivals through the late 1980s and early
+// 1990s, then large net departures that made the population fall in 1993 and 1994; the biggest gain in life expectancy
+// of any country or area since 2000; infant mortality cut to about a quarter of its 2000 level; dense and very rural.
+// Counts only; the UN files give no causes.
+const PAGE = '/population/malawi/';
+const un = countryData(mw.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (mw.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const falls = un.years.filter((r) => r.change < 0).map((r) => r.year);
+assertClaim(falls.join() === '1993,1994', 'population fell only in 1993 and 1994');
+assertClaim(y[1994].population < y[1993].population && y[1995].population < y[1994].population && y[1993].population > y[1992].population, '1 July totals fall from 1993 to 1995');
+const inTop = un.years.reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+const outTop = un.years.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+assertClaim(inTop.year === 1987 && outTop.year === 1994 && un.years.filter((r) => r.year >= 1984 && r.year <= 1992).every((r) => r.netMigrants > 0), 'net arrivals every year 1984–1992 (high 1987); largest net departures 1994');
+const gain = (d: any) => at(d).lifeExpectancy - at(d, 2000).lifeExpectancy;
+assertClaim([...wpp].sort((a: any, b: any) => gain(b) - gain(a))[0].iso3 === 'MWI', 'largest life-expectancy gain since 2000 of any country or area');
+const leLow = un.years.filter((r) => r.year > 1985 && r.year <= CURRENT_YEAR).reduce((a, b) => (b.lifeExpectancy < a.lifeExpectancy ? b : a));
+assertClaim(leLow.year === 1989, 'lowest life expectancy since the mid-1980s in 1989');
+const leHi = un.years.filter((r) => r.year < 1989).reduce((a, b) => (b.lifeExpectancy > a.lifeExpectancy ? b : a));
+const imrRatio = c.infantMortalityPer1000! / y[2000].infantMortalityPer1000!;
+const afBig = big.filter((d: any) => d.region === 'Africa');
+const imrRank = [...afBig].sort((a: any, b: any) => at(a).infantMortalityPer1000 / at(a, 2000).infantMortalityPer1000 - at(b).infantMortalityPer1000 / at(b, 2000).infantMortalityPer1000).map((d: any) => d.iso3);
+assertClaim(imrRatio > 0.25 && imrRatio < 0.28 && imrRank.slice(0, 2).join() === 'RWA,MWI', 'infant mortality about a quarter of 2000; second-largest proportional cut among big African countries after Rwanda');
+const densAf = [...afBig].sort((a: any, b: any) => at(b).densityPerKm2 - at(a).densityPerKm2).map((d: any) => d.iso3);
+assertClaim(densAf.indexOf('MWI') === 4, 'fifth-densest of the big African countries');
+const lowUrb = [...big].filter((d: any) => at(d).urbanPct != null).sort((a: any, b: any) => at(a).urbanPct - at(b).urbanPct).map((d: any) => d.iso3);
+assertClaim(lowUrb.indexOf('MWI') === 1, 'second-lowest urban share among countries above ten million');
+const tfrTop = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+const under = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(tfrTop.year === 1980 && under === 2081, 'fertility high 1980; under 2.1 from 2081');
+const eaf = wpp.filter((d: any) => d.subregion === 'Eastern Africa').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(eaf.indexOf('MWI') === 6, 'seventh in Eastern Africa');
+
+const title = `Malawi Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)}M, With the Biggest Lifespan Gain Since 2000 | AtlasFigures`;
+const description = `Since 2000 no country or area has added more years of life expectancy than Malawi, whose ${CURRENT_YEAR} population the UN puts at ${millions(c.population)}. The series also shows the population falling between mid-1993 and mid-1995.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: mw.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Life expectancy', value: dec(c.lifeExpectancy, 1) },
+  { label: 'Per km²', value: int(c.densityPerKm2) },
+  { label: 'In 2100', value: millionsShort(y[2100].population) },
+];
+
+const rows = displayRows(un.years, mw.tableYears);
+
+const faq = [
+  { q: 'How big is Malawi\'s population right now?', a: `${millions(c.population)} at 1 July ${CURRENT_YEAR} on the UN's estimate, making Malawi ${ord(c.worldRank!)} worldwide and seventh in Eastern Africa.` },
+  { q: 'Has Malawi ever had a year of population loss?', a: `Two: the UN's 1993 and 1994 years, which run from mid-1993 to mid-1995 and are the only declines in the series. Net departures in those years came to about ${int(Math.round(-y[1993].netMigrants / 1000))} thousand and ${int(Math.round(-y[1994].netMigrants / 1000))} thousand, following more people arriving than leaving in each year of 1984–1992.` },
+  { q: 'How much has life expectancy improved in Malawi?', a: `By ${dec(c.lifeExpectancy - y[2000].lifeExpectancy, 1)} years since 2000 (${dec(y[2000].lifeExpectancy, 1)} then, ${dec(c.lifeExpectancy, 1)} now), a bigger rise than anywhere else in the UN data for that span.` },
+  { q: 'How many people per square kilometre does Malawi have?', a: `${int(c.densityPerKm2)}, the fifth-highest density among Africa's nations above ten million. The urban share, by contrast, is a mere ${pct(c.urbanPct!)}.` },
+  { q: 'Where is Malawi\'s population heading?', a: `Up, steadily. The UN medium variant shows ${millions(y[2050].population)} in 2050, then ${millions(y[2100].population)} in 2100.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: mw.slug, name: mw.name, wikipedia: mw.wikipedia,
+  headline: `Malawi's ${millions(c.population)}: the largest life-expectancy gain since 2000 and a fall between mid-1993 and mid-1995`,
+  description,
+  datasetName: 'Malawi population, migration, life expectancy and infant mortality, 1950–2100',
+  datasetDescription: `Mid-year population of Malawi for selected years from 1950 to ${CURRENT_YEAR} (1992–1995 included), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: mw.published, updated: mw.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Malawi"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Malawi", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Malawi: the world's biggest gain in lifespan since 2000</h1>
+        <LiveCounter
+          label="Malawi: live population estimate"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: the mid-${CURRENT_YEAR} estimate, rising about ${int(c.change / 365)} a day`}
+        />
+        <p class="answer">
+          In the UN's mid-{CURRENT_YEAR} estimate Malawi has <strong>{millions(c.population)}</strong> people. Life expectancy has climbed from {dec(y[2000].lifeExpectancy, 1)} years in 2000 to <strong>{dec(c.lifeExpectancy, 1)}</strong>, the largest rise of any country or area over that time, and infant mortality is roughly a quarter of its 2000 level.
+        </p>
+        <div class="dates"><span>Updated <time datetime={mw.updated}>{longDate(mw.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Malawi" code="mw" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>How much has life expectancy risen in Malawi?</h2>
+          <p>By {dec(c.lifeExpectancy - y[2000].lifeExpectancy, 1)} years since 2000, a rise without equal in the UN data. After a high of {dec(leHi.lifeExpectancy, 1)} in {leHi.year}, the estimate fell to {dec(leLow.lifeExpectancy, 1)} in {leLow.year} and was still {dec(y[2000].lifeExpectancy, 1)} in 2000; it is {dec(c.lifeExpectancy, 1)} today. Infant deaths dropped from {dec(y[2000].infantMortalityPer1000!, 1)} to {dec(c.infantMortalityPer1000!, 1)} per 1,000 live births, a proportional cut beaten among Africa's larger countries only by Rwanda's. The UN figures measure these changes without explaining them.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Life expectancy at birth in Malawi, UN estimates">
+          <div><span class="y">{leLow.year}</span><div class="v">{dec(leLow.lifeExpectancy, 1)}</div><span class="d">Years at birth</span></div>
+          <div><span class="y">2000</span><div class="v">{dec(y[2000].lifeExpectancy, 1)}</div><span class="d">Years at birth</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{dec(c.lifeExpectancy, 1)}</div><span class="d">Years at birth</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Why did Malawi's population fall in the mid-1990s?</h2>
+          <p>Departures briefly outweighed natural growth. Positive net migration in every year of 1984–1992 (biggest in {inTop.year}, near {int(Math.round(inTop.netMigrants / 1000))} thousand) gave way to net departures of roughly {int(Math.round(-y[1993].netMigrants / 1000))} thousand (1993) and {int(Math.round(-outTop.netMigrants / 1000))} thousand (1994). They are the only two years of decline in the series: the 1 July total, {millions(y[1993].population)} in 1993, is down to {millions(y[1995].population)} by 1995. The data count movements; they do not say who moved.</p>
+        </div>
+        <LineChart
+          title="Malawi's population, 1950–2100, with the early-1990s dip"
+          subtitle="UN mid-year totals (each year 1992–1995 shown); dashed after the estimate years."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Is Malawi crowded but rural?</h2>
+          <p>Both. Density, {int(c.densityPerKm2)} per square kilometre, ranks fifth among Africa's nations above ten million; its national-definition urban share, {pct(c.urbanPct!)}, is the second-smallest of any nation that size. World Urbanization Prospects projects {pct(y[2050].urbanPct!)} for 2050.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How large could Malawi grow this century?</h2>
+          <p>To {millions(y[2100].population)}, if the medium projection holds, up from {millions(c.population)} now and {millions(y[2050].population)} in 2050. Fertility, {dec(c.fertility, 2)} births per woman, has come down from {dec(tfrTop.fertility, 2)} in {tfrTop.year} and is projected under 2.1 from {under}. Malawi is seventh in Eastern Africa by population.</p>
+        </div>
+        <LineChart
+          title="Fertility in Malawi: UN estimates and medium projection, 1950–2050"
+          subtitle="Average births per woman, dashed where projected, with a guide line at 2.1."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'guide: 2.1' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+        <RelatedPages iso3={mw.iso3} name={mw.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Malawi year by year, with 1992–1995 in full"
+          subtitle="Rows 1992 to 1995 cover the brief fall; projections follow the estimate years."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${mw.slug}-population.csv`)}
+          csvName={`${mw.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Malawi: what readers want to know</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{mw.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, infant mortality, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={mw.published}>{longDate(mw.published)}</time> · Updated <time datetime={mw.updated}>{longDate(mw.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Malawi population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Malawi" code="mw" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
