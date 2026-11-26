@@ -1,0 +1,165 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/dr-congo.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/dr-congo/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const NORTH_AFRICA = ['DZA', 'EGY', 'LBY', 'MAR', 'TUN'];
+const africa = rankBy('gdp', L).filter((r) => r.region === 'Sub-Saharan Africa' || NORTH_AFRICA.includes(r.iso3));
+const aPos = africa.findIndex((r) => r.iso3 === c.iso3);
+const pcAsc = rankBy('gdpPerCapita', L).slice().reverse();
+const pcLow = pcAsc.findIndex((r) => r.iso3 === c.iso3) + 1;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const negRun = [1989, 1990, 1991, 1992, 1993, 1994, 1996, 1997, 1998, 1999, 2000, 2001];
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const hyper = s.inflationPct.filter(([, x]) => x > 1000).map(([y]) => y);
+const ssaRem = rankBy('remittances', rem!.year).filter((r) => r.region === 'Sub-Saharan Africa');
+const avg4 = ([2022, 2023, 2024, L].reduce((a, y) => a + g(y), 0) / 4);
+
+assertClaim(isMax(s.gdp) && aPos === 10, 'record GDP; eleventh in Africa');
+assertClaim(negRun.every((y) => g(y) < 0) && g(1995) > 0 && g(2002) > 0, 'output fell in every year 1989-2001 except 1995');
+assertClaim(pcLow === 8 && B.pcRank === 179, 'eighth-lowest GDP per person');
+assertClaim([2022, 2023, 2024, L].every((y) => g(y) > 5) && avg4 > 7, 'growth above 5% each year since 2022');
+assertClaim(infl.year === 2016 && s.inflationPct.at(-1)![0] === 2016 && iMax[0] === 1994 && iMax[1] > 23000 && iMax[1] < 24000 && hyper.join() === '1991,1992,1993,1994', 'CPI ends 2016; 1994 peak above 20,000%');
+assertClaim(rem!.year === L && ssaRem[2].iso3 === c.iso3 && isMax(s.remittances), 'record remittances, third in SSA');
+assertClaim(net!.value < 20, 'fewer than one in five online');
+
+const title = `DR Congo Economy ${L}: Record GDP, Among the Poorest | AtlasFigures`;
+const description = `Four years of 5%-plus growth took DR Congo's ${L} output to ${usd(gdp)}, its highest yet. Yet at ${usdWhole(perHead)} a head, only seven economies produce less per inhabitant.`;
+
+const faq = [
+  { q: 'Why is DR Congo poor if its economy is growing?', a: `Growth has topped 5% every year since 2022, yet each inhabitant's share of ${L} output was just ${usdWhole(perHead)}; only seven economies are lower. Total GDP of ${usd(gdp)} is shared among a large population.` },
+  { q: 'Does DR Congo have recent inflation data?', a: `The World Bank series stops in 2016, when consumer prices rose ${pct(infl.value)}; no later year is published there. In 1994 the rate passed 23,000%.` },
+  { q: 'How long did DR Congo\'s economic collapse last?', a: `Real output shrank in every year from 1989 to 2001 except 1995, with the deepest fall, ${pct(Math.abs(g(1993)))}, in 1993.` },
+  { q: 'Is DR Congo one of Africa\'s bigger economies?', a: `Yes, ${ord(aPos + 1)} on the continent in ${L} with ${usd(gdp)}, narrowly ahead of Tanzania.` },
+  { q: 'Do remittances to DR Congo keep rising?', a: `They do: ${L} brought ${usd(rem!.value)}, more than ever before; across Sub-Saharan Africa only two economies received more.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `DR Congo's economy ${L}: record output after four strong years, but the eighth-lowest income per person`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Congolese economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'DR Congo', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>DR Congo's economy: big totals, low incomes</h1>
+        <p class="answer">
+          DR Congo's economy reached <strong>{usd(gdp)}</strong> in {L}, its largest yet, after growing <strong>{pct(growth)}</strong>. Per inhabitant that is a mere {usdWhole(perHead)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`DR Congo economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="DR Congo" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">A decade-long collapse in the 1990s and hyperinflation that peaked in 1994 still shape DR Congo's figures, even after four years of strong growth.</p>
+
+        <div class="story-block prose">
+          <h2>Why does DR Congo stay poor despite fast growth?</h2>
+          <p>Its {usd(gdp)} of GDP in {L}, a record and {ord(aPos + 1)} in Africa, works out at just {usdWhole(perHead)} per inhabitant ({intDollars(ppp!)} with price levels evened out). Only seven economies had a lower dollar figure per person.</p>
+        </div>
+        <LineChart
+          title={`Income per Congolese in dollars, 1960–${L}`}
+          subtitle="Current US dollars per inhabitant."
+          points={s.gdpPerCapita.map(([x, y]) => ({ x, y }))}
+          format="usd" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How long did DR Congo's economy shrink?</h2>
+          <p>For more than a decade. Real GDP fell in every year from 1989 to 2001 apart from 1995; the steepest drop was {pct(Math.abs(g(1993)))} in 1993. Since 2022 growth has stayed above 5%, reaching {pct(growth)} in {L}.</p>
+        </div>
+        <LineChart
+          title={`Congolese real growth, 1961–${L}`}
+          subtitle="Real output, % change on the previous year; 1989–2001 is almost all negative."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Was there hyperinflation in DR Congo?</h2>
+          <p>Yes. Consumer prices rose by more than 1,000% a year from 1991 to 1994, peaking at over 23,000% in 1994. The World Bank's series for DR Congo ends in 2016, with {pct(infl.value)} that year, so no recent rate appears on this page.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Are remittances to DR Congo growing?</h2>
+          <p>Yes. Inflows set another record in {L}, {usd(rem!.value)}, a sum topped in Sub-Saharan Africa only by Nigeria and Kenya. About {pct(net!.value)} of the population was using the internet in {net!.year}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>DR Congo and its region: further reading</h2>
+          <ul>
+            <li><a href={path('/population/dr-congo/')}>DR Congo's population</a></li>
+            <li><a href={path('/economy/tanzania/')}>Tanzania's economy</a></li>
+            <li><a href={path('/economy/uganda/')}>Uganda's economy</a></li>
+            <li><a href={path('/economy/nigeria/')}>Nigeria's economy</a></li>
+            <li><a href={path('/rankings/gdp-per-capita-by-country/')}>Output per person, all countries</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`DR Congo at a glance over the decades (selected years to ${L})`}
+          subtitle="1994 (peak inflation), 2001 (end of the slump) and 2016 (last price figure) sit with 2019 onward; the full run is in the CSV."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/dr-congo-economy.csv')} csvName="dr-congo-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Congolese economy — common queries</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">The country is listed by the World Bank as Congo, Dem. Rep.; the UN name is Democratic Republic of the Congo. "Africa" here means the World Bank's Sub-Saharan Africa region plus Algeria, Egypt, Libya, Morocco and Tunisia. The World Bank notes that multiple or dual exchange rates exist and averages them into an alternative conversion factor. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("DR Congo economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="DR Congo" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>
