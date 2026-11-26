@@ -161,7 +161,7 @@ const schema = [
         <p>The world share passed 50% in {half}. It was {pct(valueIn(W, 2005)!)} in 2005 and reached {pct(world)} in {L} (a population-weighted average of ITU data, calculated by the World Bank).</p>
       </div>
       <LineChart
-        title={`Share of the world using the internet, 1995–${L}`}
+        title={`Share of the world using the internet, ${wYears[0][0]}–${L}`}
         subtitle="Individuals using the internet, % of world population (World Bank weighted average)."
         points={wYears.map(([x, y]) => ({ x, y }))}
         format="percent" highlight={L} estimateLabel="World Bank data"

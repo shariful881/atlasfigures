@@ -161,7 +161,7 @@ const schema = [
         <p>Fiji leads with {ranked[0].value.toFixed(1)} per 100 people, followed by Hong Kong SAR (China) at {ranked[1].value.toFixed(1)} and Montenegro at {ranked[2].value.toFixed(1)}. At the other end, Papua New Guinea had {ranked.at(-1)!.value.toFixed(1)}. By total count China leads with {bn(subsOf('CHN')!)}, then India ({bn(subsOf('IND')!)}); the US follows on {mn(subsOf('USA')!)}.</p>
       </div>
       <LineChart
-        title={`Mobile subscriptions per 100 people, world, 1990–${L}`}
+        title={`Mobile subscriptions per 100 people, world, ${wYears[0][0]}–${L}`}
         subtitle="World Bank weighted world average of ITU data."
         points={wYears.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
         format="plain" unit="per 100 people" highlight={L} estimateLabel="World Bank data"
