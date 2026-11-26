@@ -1,9 +1,9 @@
 // Downloadable CSVs behind the economy ranking pages (their Dataset distribution). Values exactly as the
 // World Bank publishes them; rank = position among economies with a value for that year.
-import { econData, econMeta, rankBy, rankingYear, valueIn } from '../../lib/econ';
+import { econData, econMeta, rankBy, rankingYear, coverageYear, valueIn } from '../../lib/econ';
 import { commonName } from '../../lib/names';
 
-const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 'unemploymentPct' | 'remittances'; cols: [string, (iso3: string, y: number) => number | string | null][] }> = {
+const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 'unemploymentPct' | 'remittances' | 'internetPct' | 'mobilePer100'; coverage?: boolean; cols: [string, (iso3: string, y: number) => number | string | null][] }> = {
   'gdp-by-country': { key: 'gdp', cols: [
     ['gdp_current_usd', (x, y) => valueIn(econData(x).series.gdp, y)],
     ['gdp_growth_pct_constant_prices', (x, y) => valueIn(econData(x).series.gdpGrowthPct, y)],
@@ -24,6 +24,16 @@ const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 
     ['unemployment_2020_pct', (x) => valueIn(econData(x).series.unemploymentPct, 2020)],
     ['world_bank_income_group', (x) => econData(x).incomeGroup],
   ] },
+  'internet-users-by-country': { key: 'internetPct', coverage: true, cols: [
+    ['internet_users_pct_population', (x, y) => valueIn(econData(x).series.internetPct, y)],
+    ['internet_users_2015_pct', (x) => valueIn(econData(x).series.internetPct, 2015)],
+    ['world_bank_income_group', (x) => econData(x).incomeGroup],
+  ] },
+  'mobile-subscriptions-by-country': { key: 'mobilePer100', coverage: true, cols: [
+    ['mobile_subscriptions_per_100_people', (x, y) => valueIn(econData(x).series.mobilePer100, y)],
+    ['mobile_subscriptions', (x, y) => valueIn(econData(x).series.mobileSubs, y)],
+    ['fixed_broadband_per_100_people', (x, y) => valueIn(econData(x).series.broadbandPer100, y)],
+  ] },
   'remittances-by-country': { key: 'remittances', cols: [
     ['remittances_received_current_usd', (x, y) => valueIn(econData(x).series.remittances, y)],
     ['remittances_received_pct_gdp', (x, y) => valueIn(econData(x).series.remittancesPctGdp, y)],
@@ -36,7 +46,7 @@ export function getStaticPaths() {
 
 export function GET({ params }: { params: { ranking: string } }) {
   const r = RANKINGS[params.ranking];
-  const y = rankingYear(r.key);
+  const y = r.coverage ? coverageYear(r.key) : rankingYear(r.key);
   const q = (v: unknown) => (typeof v === 'string' && /[",]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v ?? '');
   const lines = rankBy(r.key, y).map((e) => [e.rank, q(commonName(e.iso3)), e.iso3, y, ...r.cols.map(([, f]) => q(f(e.iso3, y)))].join(','));
   const head = ['rank', 'country_or_area', 'iso3', 'year', ...r.cols.map(([h]) => h)].join(',');

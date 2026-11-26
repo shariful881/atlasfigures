@@ -70,7 +70,8 @@ const ecoFiles = import.meta.glob('../data/economy/*.json', { eager: true, impor
 /** First year with any World Bank value for the page's economy (the CSV starts there). */
 const firstYear = (slug: string) => {
   const iso3 = Object.values(ecoFiles).find((e) => e.slug === slug)!.iso3;
-  return Math.min(...Object.values(econData(iso3).series).filter((s) => s.length).map((s) => s[0][0]));
+  const PAGE_KEYS = ['gdp', 'gdpPerCapita', 'gdpPerCapitaPpp', 'gdpGrowthPct', 'inflationPct', 'unemploymentPct', 'remittances', 'remittancesPctGdp', 'internetPct'] as const;
+  return Math.min(...PAGE_KEYS.map((k) => econData(iso3).series[k]).filter((s) => s?.length).map((s) => s[0][0]));
 };
 export function econSchema(x: EconSchemaInput) {
   const F = firstYear(x.slug);

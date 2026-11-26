@@ -115,7 +115,9 @@ const RANKINGS = { 'gdp-by-country': { key: 'gdp', cell: (v) => (v / 1e9).toLoca
   'gdp-per-capita-by-country': { key: 'gdpPerCapita', cell: whole, csvCol: 'gdp_per_person_current_usd' },
   'inflation-rate-by-country': { key: 'inflationPct', cell: pct, csvCol: 'inflation_consumer_prices_pct' },
   'unemployment-rate-by-country': { key: 'unemploymentPct', cell: pct, csvCol: 'unemployment_pct_modelled_ilo' },
-  'remittances-by-country': { key: 'remittances', cell: (v) => Math.round(v / 1e6).toLocaleString('en-US'), csvCol: 'remittances_received_current_usd' } };
+  'remittances-by-country': { key: 'remittances', cell: (v) => Math.round(v / 1e6).toLocaleString('en-US'), csvCol: 'remittances_received_current_usd' },
+  'internet-users-by-country': { key: 'internetPct', cell: pct, csvCol: 'internet_users_pct_population', coverage: true },
+  'mobile-subscriptions-by-country': { key: 'mobilePer100', cell: (v) => v.toFixed(1), csvCol: 'mobile_subscriptions_per_100_people', coverage: true } };
 const wdiAll = readdirSync('src/data/wdi/countries').map((f) => JSON.parse(readFileSync(join('src/data/wdi/countries', f), 'utf8')));
 const wld = JSON.parse(readFileSync('src/data/wdi/aggregates.json', 'utf8')).aggregates.find((a) => a.code === 'WLD').series;
 for (const [slug, R] of Object.entries(RANKINGS)) {
@@ -125,8 +127,10 @@ for (const [slug, R] of Object.entries(RANKINGS)) {
   const html = readFileSync(file, 'utf8'); const root = parse(html);
   const text = textOf(parse(html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, '')));
   const m = JSON.parse(readFileSync(`src/data/rankings/${slug}.json`, 'utf8'));
-  const L = last(wld[R.key])[0];
-  const want = wdiAll.map((d) => ({ iso3: d.iso3, v: new Map(d.series[R.key]).get(L) })).filter((x) => x.v != null).sort((a, b) => b.v - a.v);
+  // Year: World total's latest year, or for ITU telecom series the newest year with values for >= 80% of reporters.
+  const cov = () => { const n = new Map(); for (const d of wdiAll) for (const [y] of d.series[R.key] ?? []) n.set(y, (n.get(y) ?? 0) + 1); const mx = Math.max(...n.values()); return Math.max(...[...n].filter(([, c]) => c >= 0.8 * mx).map(([y]) => y)); };
+  const L = R.coverage ? cov() : last(wld[R.key])[0];
+  const want = wdiAll.map((d) => ({ iso3: d.iso3, v: new Map(d.series[R.key]).get(L) })).filter((x) => x.v != null).sort((a, b) => b.v - a.v || a.iso3.localeCompare(b.iso3));
   const trs = root.querySelectorAll('table.ranking tbody tr');
   ok(trs.length === want.length, where, `ranking has ${trs.length} rows, World Bank ${want.length} economies with ${L} data`);
   trs.forEach((tr, i) => {

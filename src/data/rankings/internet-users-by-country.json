@@ -1,0 +1,20 @@
+{
+  "slug": "internet-users-by-country",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/telecom-114.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; check-wdi.mjs compares all 129,951 generated WDI values with the original files; then the text was read by hand",
+    "what": "every ranking row (182 economies, order and value), the CSV, every figure in the text, FAQ, title, description and JSON-LD; claims: the three economies at 100% and Denmark fourth, Burundi and Uganda the only ones under 10%, eleven under 20%, 55 at 90% or more, world share above half since 2019, regional and income-group shares, first year above half for Bangladesh, India and Pakistan; definition from the World Bank indicator notes",
+    "against": "World Bank WDI bulk files and indicator metadata (update 11 November 2026, CC BY 4.0; original source ITU World Telecommunication/ICT Indicators Database)",
+    "result": "All automated comparisons matched; before publishing the ranking year was set by country coverage (2024 for internet use, 2023 for mobile) because the World Bank's world estimates run a year or two ahead of country data, and 'phones per person' was changed to 'subscriptions per person'"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: World Bank WDI (ITU) internet users for 2024."
+    }
+  ]
+}

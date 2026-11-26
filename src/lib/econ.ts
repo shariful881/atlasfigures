@@ -7,7 +7,8 @@ import aggregates from '../data/wdi/aggregates.json';
 
 export type IndicatorKey =
   | 'gdp' | 'gdpPerCapita' | 'gdpPerCapitaPpp' | 'gdpGrowthPct' | 'inflationPct'
-  | 'unemploymentPct' | 'remittances' | 'remittancesPctGdp' | 'internetPct';
+  | 'unemploymentPct' | 'remittances' | 'remittancesPctGdp' | 'internetPct'
+  | 'mobilePer100' | 'mobileSubs' | 'broadbandPer100';
 /** [year, value] pairs, years ascending, only years the World Bank publishes a value for. */
 export type Series = [number, number][];
 export type EconData = {
@@ -63,7 +64,7 @@ export function rankBy(key: IndicatorKey, year: number): Ranked[] {
   return Object.values(files)
     .map((d) => ({ iso3: d.iso3, region: d.region, incomeGroup: d.incomeGroup, value: valueIn(d.series[key], year) }))
     .filter((x): x is Omit<Ranked, 'rank'> => x.value != null)
-    .sort((a, b) => b.value - a.value)
+    .sort((a, b) => b.value - a.value || a.iso3.localeCompare(b.iso3))
     .map((x, i) => ({ ...x, rank: i + 1 }));
 }
 /** Economies left out of a ranking for `year`, with their latest year (null = never published). */
@@ -75,3 +76,11 @@ export function notRanked(key: IndicatorKey, year: number) {
 }
 /** Latest year for which a ranking is complete enough: the newest year in which the World total has a value. */
 export const rankingYear = (key: IndicatorKey) => latest(aggregate('WLD').series[key])!.year;
+/** For indicators whose World total runs ahead of country data (ITU telecom series): the newest year in which at
+ *  least `share` of the economies that ever report the series have a value. */
+export function coverageYear(key: IndicatorKey, share = 0.8) {
+  const counts = new Map<number, number>();
+  for (const d of Object.values(files)) for (const [y] of d.series[key] ?? []) counts.set(y, (counts.get(y) ?? 0) + 1);
+  const max = Math.max(...counts.values());
+  return Math.max(...[...counts].filter(([, n]) => n >= share * max).map(([y]) => y));
+}

@@ -1,0 +1,200 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import WorldMap from '../../components/WorldMap.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/internet-users-by-country.json';
+import { econData, econMeta, aggregate, valueIn, rankBy, notRanked, coverageYear } from '../../lib/econ';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { commonName, pagesOf } from '../../lib/names';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/); the data are ITU's.
+const PAGE = '/rankings/internet-users-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WDI = 'World Bank, World Development Indicators (ITU data)';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = meta.verification?.checkedOn;
+const name = commonName;
+const M = econMeta.indicators.internetPct;
+
+const L = coverageYear('internetPct');
+const ranked = rankBy('internetPct', L);
+const N = ranked.length;
+const missing = notRanked('internetPct', L).filter((m) => m.latestYear != null);
+const W = aggregate('WLD').series.internetPct;
+const world = valueIn(W, L)!;
+const byIso = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const full = ranked.filter((r) => r.value >= 99.95);
+const over90 = ranked.filter((r) => r.value >= 90).length;
+const under20 = ranked.filter((r) => r.value < 20);
+const half = W.find(([, v]) => v >= 50)![0];
+const g = (code: string) => valueIn(aggregate(code).series.internetPct, L)!;
+const firstHalf = (x: string) => econData(x).series.internetPct.find(([, v]) => v > 50)?.[0];
+const wYears = W.filter(([y]) => y >= 1995 && y <= L);
+
+assertClaim(M.aggregation === 'Weighted average', 'world figure is a weighted average');
+assertClaim(L === 2024 && N > 175, 'ranking year 2024, most economies covered');
+assertClaim(full.map((r) => r.iso3).join() === 'ARE,BHR,SAU' && ranked[3].iso3 === 'DNK', 'UAE, Bahrain, Saudi Arabia at 100%; Denmark next');
+assertClaim(ranked.at(-1)!.iso3 === 'BDI' && ranked.at(-2)!.iso3 === 'UGA' && under20.length === 11, 'Burundi and Uganda lowest; 11 under 20%');
+assertClaim(half === 2019 && valueIn(W, 2005)! < 16, 'world passed half in 2019, under 16% in 2005');
+assertClaim(g('HIC') > 90 && g('LIC') < 25 && g('SSF') < 35 && g('SAS') > 60, 'income and regional gaps');
+assertClaim(firstHalf('BGD') === 2024 && firstHalf('IND') === 2022 && firstHalf('PAK') === 2024, 'first year above half: Bangladesh 2024, India 2022, Pakistan 2024');
+assertClaim(byIso('USA').value > byIso('CHN').value, 'US above China');
+assertClaim(ranked.at(-1)!.value < 10 && ranked.at(-2)!.value < 10 && ranked.at(-3)!.value >= 10, 'only Burundi and Uganda under 10%');
+
+const title = `Internet Users by Country ${L}: Share of People Online | AtlasFigures`;
+const description = `In ${L}, ${pct(world)} of the world's people were internet users, on ITU figures published by the World Bank. ${N} economies ranked, from the UAE, Bahrain and Saudi Arabia at 100% to Burundi at ${pct(ranked.at(-1)!.value)}.`;
+
+const cards = [
+  { label: 'World', value: pct(world), year: L, note: 'of people online' },
+  { label: 'At 100%', value: String(full.length), year: L, note: 'economies' },
+  { label: '90% or more', value: String(over90), year: L, note: 'economies' },
+  { label: 'Low-income countries', value: pct(g('LIC')), year: L, note: 'online' },
+];
+
+const rows = ranked.map((r) => {
+  const pg = pagesOf(r.iso3); const site = pg.economy ?? pg.population;
+  const v15 = valueIn(econData(r.iso3).series.internetPct, 2015);
+  return {
+    rank: r.rank, iso3: r.iso3, name: name(r.iso3), site, href: site ? path(site) : null, region: r.region,
+    bar: r.value / 100, value: pct(r.value),
+    cells: [v15 != null ? pct(v15) : '–', r.incomeGroup ?? '–'],
+  };
+});
+const mapFmt = (v: number) => `${Math.round(v)}%`;
+const mapRows = ranked.map((r) => ({ iso3: r.iso3, name: name(r.iso3), rank: r.rank, raw: r.value, value: pct(r.value) }));
+const regions = [...new Set(ranked.map((r) => r.region))].sort();
+
+const faq = [
+  { q: 'Which country has the highest share of internet users?', a: `Three Gulf states reported that everyone uses the internet in ${L}: the United Arab Emirates, Bahrain and Saudi Arabia. Denmark follows at ${pct(byIso('DNK').value)}.` },
+  { q: 'Where is internet use lowest?', a: `In Burundi (${pct(ranked.at(-1)!.value)}) and Uganda (${pct(ranked.at(-2)!.value)}). ${under20.length} economies were below 20% in ${L}.` },
+  { q: 'What share of the world is online?', a: `${pct(world)} in ${L}, a population-weighted world average computed by the World Bank. The share first passed half in ${half}; in 2005 it was ${pct(valueIn(W, 2005)!)}.` },
+  { q: 'How many people in Bangladesh use the internet?', a: `${pct(byIso('BGD').value)} of the population in ${L} (${ord(byIso('BGD').rank)} of ${N}), the first year above half. India was at ${pct(byIso('IND').value)} and Pakistan at ${pct(byIso('PAK').value)}.` },
+  { q: 'What counts as an internet user?', a: `Anyone who used the internet from any location in the last three months, on any device — computer, mobile phone, games machine or TV, as ITU defines it.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Internet users by country ${L}: ${N} economies ranked by share of people online`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'CreativeWork', name: 'World Development Indicators', url: WDI_URL, publisher: { '@type': 'Organization', name: 'The World Bank' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `Internet users by country, ${L} (% of population)`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Individuals using the internet by country, ${L} (% of population)`,
+    description: `Share of the population using the internet for ${N} economies in ${L}, ranked, with the 2015 share and World Bank income group, from the World Development Indicators (update of ${longDate(M.wdiLastUpdated)}). The original source is ITU's World Telecommunication/ICT Indicators Database.`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WDI_URL], temporalCoverage: String(L),
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['Individuals using the Internet (% of population)'],
+    dateModified: iso(UPDATED), license: econMeta.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/internet-users-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="Internet users by country" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Internet users by country', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>Internet users by country, {L}</h1>
+    <p class="answer"><strong>{pct(world)}</strong> of the world's population was online in {L}. The United Arab Emirates, Bahrain and Saudi Arabia report <strong>100%</strong>, while in Burundi and Uganda fewer than one person in ten used the internet.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`Internet use ranking, ${L}`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="map">Map</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="map" aria-label="Map" hidden-mobile>
+      <WorldMap
+        id="map-h" title={`Share of each population using the internet, ${L}`}
+        subtitle="Individuals online in the last three months, % of population; the darkest green marks the most connected fifth of economies."
+        rows={mapRows} fmt={mapFmt}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+    </section>
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`People online, economy by economy, ${L}`}
+        subtitle="Internet users as a percentage of the population, most connected first, beside the 2015 share and the World Bank income group."
+        valueLabel="% online"
+        cols={[{ label: 'In 2015' }, { label: 'Income group', cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={regions}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        csv={path('/data/internet-users-by-country.csv')} csvName="internet-users-by-country.csv"
+        licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+      />
+      <p class="note">{missing.length} economies have no {L} figure yet and are not listed; their most recent data are older.</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>Which countries are the most connected?</h2>
+        <p>The United Arab Emirates, Bahrain and Saudi Arabia each reported every resident online in {L}, with Denmark next at {pct(byIso('DNK').value)}. Altogether {over90} economies reached 90% or more; the United States stood at {pct(byIso('USA').value)} and China at {pct(byIso('CHN').value)}.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Where are people least likely to be online?</h2>
+        <p>Burundi ({pct(ranked.at(-1)!.value)}) and Uganda ({pct(ranked.at(-2)!.value)}) are at the bottom, and {under20.length} economies were below one in five. The divide follows income: the World Bank's high-income group averaged {pct(g('HIC'))}, low-income countries {pct(g('LIC'))}. Across Sub-Saharan Africa the share was {pct(g('SSF'))}, in South Asia {pct(g('SAS'))}.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>When did most of the world get online?</h2>
+        <p>The world share passed 50% in {half}. It was {pct(valueIn(W, 2005)!)} in 2005 and reached {pct(world)} in {L} (a population-weighted average of ITU data, calculated by the World Bank).</p>
+      </div>
+      <LineChart
+        title={`Share of the world using the internet, ${wYears[0][0]}–${L}`}
+        subtitle="Individuals using the internet, % of world population (World Bank weighted average)."
+        points={wYears.map(([x, y]) => ({ x, y }))}
+        format="percent" highlight={L} estimateLabel="World Bank data"
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+
+      <div class="story-block prose">
+        <h2>How many Bangladeshis use the internet?</h2>
+        <p>{pct(byIso('BGD').value)} in {L}, {ord(byIso('BGD').rank)} of {N}; never before had over half of <a href={path('/economy/bangladesh/')}>Bangladesh</a>'s population been online. India crossed that line in 2022 and stood at {pct(byIso('IND').value)}; Pakistan, like Bangladesh, passed it in {L}, at {pct(byIso('PAK').value)}.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Internet use by country: questions answered</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(M.wdiLastUpdated)}): individuals using the internet, % of population (IT.NET.USER.ZS), from ITU's World Telecommunication/ICT Indicators Database. World and group figures are the World Bank's weighted averages. Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          <li>Related page: <a href={path('/rankings/mobile-subscriptions-by-country/')}>mobile subscriptions by country</a>.</li>
+        </ul>
+        <p class="note">An internet user is anyone who used the internet from any location in the previous three months. Figures come from household surveys or ITU estimates and are not always strictly comparable between countries. The ranking uses {L}, the latest year with figures for most economies (the World Bank already shows a {L + 1} world estimate, but country data for that year are sparse); only economies with a {L} value are listed. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Internet users by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+</style>
