@@ -1,0 +1,60 @@
+{
+  "slug": "guatemala",
+  "name": "Guatemala",
+  "demonym": "Guatemalan",
+  "capital": "Guatemala City",
+  "iso3": "GTM",
+  "code": "gt",
+  "continent": "Americas",
+  "wikipedia": "https://en.wikipedia.org/wiki/Guatemala",
+  "unName": "Guatemala",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1964,
+    1970,
+    1973,
+    1981,
+    1990,
+    1996,
+    2000,
+    2008,
+    2010,
+    2019,
+    2021,
+    2023,
+    2026,
+    2030,
+    2032,
+    2040,
+    2050,
+    2077,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/guatemala.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density (second in Central America after El Salvador, 1 million+), land area; second in Central America after Mexico; 6.1 times 1950",
+      "Youngest median age in Latin America and the Caribbean (1 million+), then Haiti, Honduras, Bolivia; median 2000, now, 2050; largest fertility fall since 2000 in that group; fertility 1990, 2000, now; 1957 high; under 2.1 from 2032",
+      "Net emigration every year 1964–2100; largest outflow 2000; net migration, births and deaths this year",
+      "Urban share 1973 high, 1981 low, above 1973 again in 1996, majority 2008, now",
+      "Peak 2077, 2100 total; life expectancy 2019, 2021, back above 2019 in 2023, now; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 66 of 66 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Migration described as balances only."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
