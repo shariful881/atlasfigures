@@ -1,0 +1,23 @@
+# Run after `npm run build`: python3 scripts/verify/lithuania.py
+# Independent check of every figure on /population/lithuania/ against the original UN files.
+import sys, json; sys.path.insert(0, "scripts/verify")
+from _un import *
+from _un import _rows
+exp_base = lambda I, y, U: {"population (full)": c(P(I, y)), "population (millions)": m(P(I, y)), "rank": ordn(rank(I, y)), "share": p1(P(I, y) / P("WORLD", y) * 100), "growth": p1(f(I, y, "PopGrowthRate")), "change (full)": c(K(I, y, "PopChange")), "density": c(f(I, y, "PopDensity")), "land": c(land(I)) + " km²", "urban": p1(U[y]), "median": f"{f(I, y, 'MedianAgePop'):.1f}", "tfr": f"{f(I, y, 'TFR'):.2f}", "LE": f"{f(I, y, 'LEx'):.1f}"}
+R = range(1950, 2101)
+big = lambda y, mn, par=None: countries(y, mn, par) if par else countries(y, mn)
+SR = lambda k, yr: f(k, yr, "TPopulationMale1July") / f(k, yr, "TPopulationFemale1July") * 100
+fromTop = lambda k: P(k, y) / max(P(k, yr) for yr in range(1950, y + 1))
+I = 'LTU'; y = 2026; U = urban(I); F = lambda yr, col: f(I, yr, col); yrs = json.load(open('src/data/countries/lithuania.json'))['tableYears']
+NM = lambda yr: K(I, yr, 'NetMigrations'); b1 = countries(y, 1e6)
+assert max(R, key=lambda yr: P(I, yr)) == 1991 and 0.75 < fromTop(I) < 0.76 and sorted(b1, key=fromTop).index(I) == 6
+assert all(NM(yr) < 0 for yr in range(1989, 2019)) and len(range(1989, 2019)) == 30 and all(NM(yr) > 0 for yr in range(2019, 2025)) and NM(2025) < 0 and NM(1988) > 0
+assert min(R, key=NM) == 2010 and max(R, key=NM) == 2022 and [yr for yr in range(1992, 2101) if P(I, yr) > P(I, yr - 1)] == [2020, 2022, 2023, 2024]
+assert all(K(I, yr, 'Deaths') > K(I, yr, 'Births') for yr in range(1994, 2101)) and K(I, 1993, 'Births') > K(I, 1993, 'Deaths')
+assert sorted(b1, key=lambda k: SR(k, y)).index(I) == 9 and all(F(yr, 'TFR') < 2.1 for yr in range(1988, 2101)) and F(1987, 'TFR') >= 2.1 and 0.42 < P(I, 2100) / P(I, y) < 0.44
+exp = exp_base(I, y, U) | {
+ 'pk': f"set against a 1991 count of {m(P(I, 1991))}", 'out': f"the heaviest being 2010 at {c(-NM(2010))}", 'in': f"topped by 2022 with {c(NM(2022))}",
+ 'sr': f"Males number {SR(I, y):.1f} per 100 females", 'fut': f"the medium variant shows {m(P(I, 2100))}", 'nat': f"2026 expects {c(K(I, y, 'Deaths'))} deaths and {c(K(I, y, 'Births'))} births",
+ 'ld': f"2010: {c(-NM(2010))} net departures",
+}
+sys.exit(run('lithuania', I, exp, ['population (millions)', 'ld'], yrs) > 0)
