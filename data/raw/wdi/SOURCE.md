@@ -6,7 +6,7 @@ Downloaded automatically by .github/workflows/fetch-wdi.yml. Do not edit by hand
 - Dataset: World Development Indicators (https://datacatalog.worldbank.org/search/dataset/0037712)
 - Licence: CC BY 4.0 (checked per indicator in the World Bank API metadata, field License_Type)
 - Terms: https://www.worldbank.org/ext/en/legal/terms-conditions/datasets — must not imply World Bank endorsement
-- Downloaded (UTC): 2026-11-26T11:42:06Z
+- Downloaded (UTC): 2026-11-26T11:55:32Z
 
 | Code | Indicator | Licence | WDI last updated | URL | Bytes | SHA-256 |
 |---|---|---|---|---|---|---|
