@@ -1,0 +1,62 @@
+{
+  "slug": "gambia",
+  "name": "Gambia",
+  "demonym": "Gambian",
+  "capital": "Banjul",
+  "iso3": "GMB",
+  "code": "gm",
+  "continent": "Africa",
+  "wikipedia": "https://en.wikipedia.org/wiki/The_Gambia",
+  "unName": "Gambia",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1976,
+    1980,
+    1990,
+    1991,
+    1993,
+    1994,
+    2000,
+    2003,
+    2010,
+    2019,
+    2020,
+    2026,
+    2030,
+    2040,
+    2050,
+    2060,
+    2070,
+    2080,
+    2090,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/gambia.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; about 9.4 times 1950",
+      "Fourth-highest density of African 1 million+ countries after Mauritius, Rwanda, Burundi",
+      "No year of decline and births above deaths every year 1950–2100; net departures every year 1994–2100, largest inflow 1991",
+      "Urban majority from 2003; fertility high 1976, under 2.1 first in 2065; median age 18.8",
+      "title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) — 68 of 68 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Counts only; no causes given."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
