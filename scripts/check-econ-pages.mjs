@@ -125,6 +125,8 @@ const RANKINGS = { 'gdp-by-country': { key: 'gdp', cell: (v) => (v / 1e9).toLoca
   'land-area-by-country': { key: 'landArea', cell: (v) => v.toLocaleString('en-US', { maximumFractionDigits: 1 }), csvCol: 'land_area_sq_km' },
   'forest-area-by-country': { key: 'forestArea', cell: (v) => v.toLocaleString('en-US', { maximumFractionDigits: 1 }), csvCol: 'forest_area_sq_km' },
   // UNESCO education series are reported irregularly: each economy's latest value from `since` on (task 115).
+  'female-labor-force-participation-by-country': { key: 'lfpFemale', cell: (v) => `${v.toFixed(1)}%`, csvCol: 'labour_force_participation_women_pct_15_plus' },
+  'employment-in-agriculture-by-country': { key: 'empAgriPct', cell: (v) => `${v.toFixed(1)}%`, csvCol: 'employment_agriculture_pct' },
   'literacy-rate-by-country': { key: 'literacyPct', cell: (v) => `${v.toFixed(1)}%`, csvCol: 'adult_literacy_pct_ages_15_plus', since: 2015 },
   'education-spending-by-country': { key: 'eduSpendPctGdp', cell: (v) => `${v.toFixed(1)}%`, csvCol: 'government_education_expenditure_pct_gdp', since: 2020 } };
 const wdiAll = readdirSync('src/data/wdi/countries').map((f) => JSON.parse(readFileSync(join('src/data/wdi/countries', f), 'utf8')));

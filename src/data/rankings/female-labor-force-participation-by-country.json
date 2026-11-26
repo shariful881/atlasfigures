@@ -1,0 +1,20 @@
+{
+  "slug": "female-labor-force-participation-by-country",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/labour-112.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; check-wdi.mjs compares all generated WDI values with the original files; then the text was read by hand",
+    "what": "every ranking row (182 countries and areas, order and value), the men's rate and gap columns, the CSV, every figure in the text, FAQ, title, description and JSON-LD; claims: world 48.9% for women and 73.1% for men in 2025, 51.1% in 1991 and lowest in 2020, Madagascar, Solomon Islands, Nigeria highest and Yemen, Afghanistan, Iraq lowest, all ten countries below 20% in the Middle East, North Africa, Afghanistan and Pakistan region, women ahead of men only in Burundi and Moldova, Bangladesh 38.6% (152nd) from 24.6% in 1991, Saudi Arabia 2.3-fold since 1991; definition from the indicator notes",
+    "against": "World Bank WDI bulk files and indicator metadata (update 11 November 2026, CC BY 4.0; ILO modelled estimates)",
+    "result": "All automated comparisons matched; a sentence about unpaid work at home was removed before publishing because the World Bank notes do not state it"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: ILO modelled labour force participation of women and men via World Bank WDI, 2025."
+    }
+  ]
+}

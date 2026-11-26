@@ -1,0 +1,200 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import WorldMap from '../../components/WorldMap.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/female-labor-force-participation-by-country.json';
+import { econData, econMeta, aggregate, valueIn, rankBy, rankingYear } from '../../lib/econ';
+import { assertClaim, ord } from '../../lib/figures';
+import { commonName, pagesOf } from '../../lib/names';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/); the estimates are the ILO's models.
+const PAGE = '/rankings/female-labor-force-participation-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WDI = 'World Bank, World Development Indicators (ILO modelled estimates)';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = meta.verification?.checkedOn;
+const name = commonName;
+const M = econMeta.indicators.lfpFemale;
+const B0 = 1991;
+
+const L = rankingYear('lfpFemale');
+const ranked = rankBy('lfpFemale', L);
+const N = ranked.length;
+const WS = aggregate('WLD').series;
+const wF = valueIn(WS.lfpFemale, L)!, wM = valueIn(WS.lfpMale, L)!, wF0 = valueIn(WS.lfpFemale, B0)!;
+const byIso = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const F = (x: string, y: number) => valueIn(econData(x).series.lfpFemale, y)!;
+const Mv = (x: string, y: number) => valueIn(econData(x).series.lfpMale, y)!;
+const p1 = (v: number) => `${v.toFixed(1)}%`;
+const pts = (v: number) => `${v.toFixed(1)} points`;
+const under20 = ranked.filter((r) => r.value < 20);
+const womenAhead = ranked.filter((r) => Mv(r.iso3, L) < r.value);
+const mena = valueIn(aggregate('MEA').series.lfpFemale, L)!, ssa = valueIn(aggregate('SSF').series.lfpFemale, L)!;
+const bgd = byIso('BGD');
+const bgdSeries = econData('BGD').series.lfpFemale.filter(([y]) => y <= L);
+const wMin = WS.lfpFemale.reduce((a, b) => (b[1] < a[1] ? b : a));
+const last = ranked.slice(-3).reverse();
+const sauX = (F('SAU', L) / F('SAU', B0)).toFixed(1);
+
+assertClaim(M.aggregation === 'Weighted average' && L === 2025 && N === 182, 'weighted average; 2025; 182 places');
+assertClaim(['MDG', 'SLB', 'NGA'].every((x, i) => ranked[i].iso3 === x) && ranked[0].value > 82.5, 'Madagascar, Solomon Islands, Nigeria highest');
+assertClaim(last.map((r) => r.iso3).join() === 'YEM,AFG,IRQ' && last[1].value < 5.2, 'Yemen, Afghanistan, Iraq lowest');
+assertClaim(under20.length === 10 && under20.every((r) => r.region === 'Middle East & North Africa'), 'ten below 20%, all in that region');
+assertClaim(womenAhead.map((r) => r.iso3).sort().join() === 'BDI,MDA', 'women ahead of men only in Burundi and Moldova');
+assertClaim(Math.round(wF * 10) === 489 && Math.round(wM * 10) === 731 && Math.round(wF0 * 10) === 511 && wMin[0] === 2020, 'world 48.9% vs 73.1%; 51.1% in 1991; low in 2020');
+assertClaim(Math.round(mena * 10) === 197 && Math.round(ssa * 10) === 652, 'MENA 19.7, SSA 65.2');
+assertClaim(bgd.rank === 152 && Math.round(bgd.value * 10) === 386 && Math.round(F('BGD', B0) * 10) === 246 && Math.round(Mv('BGD', L) * 10) === 804, 'Bangladesh 38.6% (152nd), 24.6% in 1991, men 80.4%');
+assertClaim(Number(sauX) === 2.3 && byIso('PAK').value < 25 && byIso('IND').value > 32, 'Saudi 2.3x since 1991; Pakistan <25; India 32');
+
+const title = `Female Labour Force Participation by Country ${L} | AtlasFigures`;
+const description = `${p1(wF)} of women aged 15 and over worldwide were in the labour force in ${L}, against ${p1(wM)} of men. The ILO's ${N}-country ranking runs from Madagascar (${p1(ranked[0].value)}) to Yemen (${p1(last[0].value)}).`;
+
+const cards = [
+  { label: 'Women in the labour force', value: p1(wF), year: L, note: 'world, ages 15+' },
+  { label: 'Men', value: p1(wM), year: L, note: 'world, ages 15+' },
+  { label: `Women in ${B0}`, value: p1(wF0), year: B0, note: 'world' },
+  { label: 'Middle East & North Africa', value: p1(mena), year: L, note: 'women, World Bank region' },
+];
+
+const rows = ranked.map((r) => {
+  const pg = pagesOf(r.iso3); const site = pg.economy ?? pg.population;
+  const m = Mv(r.iso3, L);
+  return {
+    rank: r.rank, iso3: r.iso3, name: name(r.iso3), site, href: site ? path(site) : null, region: r.region,
+    bar: r.value / 100, value: p1(r.value),
+    cells: [p1(m), `${(m - r.value).toFixed(1)}`],
+  };
+});
+const mapFmt = (v: number) => `${Math.round(v)}%`;
+const mapRows = ranked.map((r) => ({ iso3: r.iso3, name: name(r.iso3), rank: r.rank, raw: r.value, value: `${p1(r.value)} of women` }));
+const regions = [...new Set(ranked.map((r) => r.region))].sort();
+
+const faq = [
+  { q: 'Which country has the most women in the workforce?', a: `On ILO estimates for ${L}, Madagascar: ${p1(ranked[0].value)} of women aged 15 and over were working or looking for work. Solomon Islands (${p1(ranked[1].value)}) and Nigeria (${p1(ranked[2].value)}) follow.` },
+  { q: 'Where do the fewest women take part in the labour force?', a: `Yemen (${p1(last[0].value)}), Afghanistan (${p1(last[1].value)}) and Iraq (${p1(last[2].value)}). The ${under20.length} countries under 20% all fall in one World Bank region, the one covering North Africa, the Middle East, Afghanistan and Pakistan.` },
+  { q: 'What is the female labour force participation rate in Bangladesh?', a: `${p1(bgd.value)} in ${L}, ${ord(bgd.rank)} of ${N}, up from ${p1(F('BGD', B0))} in ${B0}. For Bangladeshi men the rate is ${p1(Mv('BGD', L))}.` },
+  { q: 'Are there countries where more women than men are in the labour force?', a: `Two, on these estimates: Burundi (${p1(byIso('BDI').value)} of women, ${p1(Mv('BDI', L))} of men) and Moldova (${p1(byIso('MDA').value)} against ${p1(Mv('MDA', L))}).` },
+  { q: 'Is women\'s participation rising worldwide?', a: `Not overall. The world rate was ${p1(wF0)} in ${B0}, dipped to a low of ${p1(wMin[1])} in ${wMin[0]} and was ${p1(wF)} in ${L}. Saudi Arabia's rate has gone up ${sauX}-fold since ${B0}.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Female labour force participation by country ${L}: ${N} countries ranked`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'CreativeWork', name: 'World Development Indicators', url: WDI_URL, publisher: { '@type': 'Organization', name: 'The World Bank' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `Female labour force participation rate by country, ${L}`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Labour force participation of women and men by country, ${L}`,
+    description: `Labour force participation rate of women and of men aged 15 and over for ${N} countries and areas in ${L}, ranked by the female rate, from the World Development Indicators (update of ${longDate(M.wdiLastUpdated)}). The figures are modelled estimates of the International Labour Organization.`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WDI_URL], temporalCoverage: String(L),
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['Labor force participation rate, female (% of female population ages 15+)', 'Labor force participation rate, male (% of male population ages 15+)'],
+    dateModified: iso(UPDATED), license: econMeta.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/female-labor-force-participation-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="Women in work" back="/rankings/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Rankings', href: '/rankings/' }, { name: 'Female labour force participation', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>Female labour force participation by country, {L}</h1>
+    <p class="answer">Just under half of the world's women — <strong>{p1(wF)}</strong> of those aged 15 and over — were working or looking for work in {L}, compared with {p1(wM)} of men. Rates run from over 80% in Madagascar, Solomon Islands and Nigeria to about 5% in Yemen and Afghanistan.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`Women in the labour force, ${L}`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="map">Map</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="map" aria-label="Map" hidden-mobile>
+      <WorldMap
+        id="map-h" title={`Share of women aged 15+ in the labour force, ${L}`}
+        subtitle="ILO modelled estimates; the darker the country, the larger the share of women working or seeking work. The five shades each take in a comparable number of countries."
+        rows={mapRows} fmt={mapFmt}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+    </section>
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`Women's labour force participation rate, ${L}`}
+        subtitle="Highest first, with the rate for men and the gap between them in percentage points (men minus women, our subtraction)."
+        valueLabel="Women, %"
+        cols={[{ label: 'Men, %' }, { label: 'Gap, points', cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={regions}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        csv={path('/data/female-labor-force-participation-by-country.csv')} csvName="female-labor-force-participation-by-country.csv"
+        licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+      />
+      <p class="note">Bar length shows the women's rate on a 0–100 scale. The ILO models a {L} figure for each of the {N} places listed; where the gap is negative, women's rate is the higher one.</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>What share of women work worldwide?</h2>
+        <p>About half. The ILO estimates that {p1(wF)} of women aged 15 and over were in the labour force — employed or actively seeking work — in {L}, {pts(wM - wF)} below the rate for men. The world figure for women has not risen over time: {p1(wF0)} in {B0}, a trough of {p1(wMin[1])} in {wMin[0]}.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Where is women's participation lowest?</h2>
+        <p>Across the Arab world, Iran and Afghanistan. Every one of the {under20.length} countries where fewer than one woman in five is in the labour force sits in a single World Bank grouping, which spans North Africa, the Middle East, Afghanistan and Pakistan and where women's rate averages {p1(mena)}; <a href={path('/economy/afghanistan/')}>Afghanistan</a> ({p1(last[1].value)}) and Yemen ({p1(last[0].value)}) are lowest. Sub-Saharan Africa, at {p1(ssa)}, is the highest region, and only Burundi and Moldova record more women than men in the labour force. <a href={path('/economy/saudi-arabia/')}>Saudi Arabia</a>'s rate has climbed to {p1(byIso('SAU').value)}, {sauX}-fold the {B0} figure.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>How many women in Bangladesh are in the labour force?</h2>
+        <p>{p1(bgd.value)} in {L} — {ord(bgd.rank)} of {N} — against {p1(Mv('BGD', L))} of men. The rate has risen from {p1(F('BGD', B0))} in {B0}. <a href={path('/economy/india/')}>India</a> stands at {p1(byIso('IND').value)} and <a href={path('/economy/pakistan/')}>Pakistan</a> at {p1(byIso('PAK').value)}.</p>
+      </div>
+      <LineChart
+        title={`Bangladesh: women in the labour force, ${bgdSeries[0][0]}–${L}`}
+        subtitle="Share of women aged 15 and over who are employed or looking for work, ILO modelled estimate."
+        points={bgdSeries.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+        format="percent" highlight={L} estimateLabel="World Bank data"
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Women and work: questions answered</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(M.wdiLastUpdated)}): labour force participation rate, female (SL.TLF.CACT.FE.ZS) and male (SL.TLF.CACT.MA.ZS), % of the population aged 15+, modelled estimates of the International Labour Organization (ILOSTAT). World and regional figures: World Bank weighted averages. Gap: our subtraction. Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          <li>Related pages: <a href={path('/rankings/employment-in-agriculture-by-country/')}>employment in agriculture by country</a>, <a href={path('/rankings/unemployment-rate-by-country/')}>unemployment rate by country</a>.</li>
+        </ul>
+        <p class="note">The labour force participation rate is the share of people aged 15 and over who supply labour for the production of goods and services — those in work plus those unemployed and looking for work. The figures are ILO modelled estimates: national labour force surveys and censuses where they exist, and models to fill in years and countries without them, so single-country figures need some caution. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Female labour force participation by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+</style>
