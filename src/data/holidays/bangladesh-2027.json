@@ -1,0 +1,217 @@
+{
+  "slug": "bangladesh-2027",
+  "country": "Bangladesh",
+  "code": "bd",
+  "year": 2027,
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "source": {
+    "name": "Ministry of Public Administration, holiday notification for 2027 (5 November 2026), as reported by Prothom Alo (BSS)",
+    "url": "https://en.prothomalo.com/bangladesh/dv8n7bn17x",
+    "cabinet": "Approved by the cabinet on 2 November 2026: 29 holidays, 15 general and 14 by executive order; 7 fall on Fridays or Saturdays (4 general, 3 executive), leaving 22 effective days off",
+    "cabinetUrl": "https://www.dhakatribune.com/bangladesh/423572/cabinet-approves-29-public-holidays-for-2027",
+    "countsUrl": "https://thefinancialexpress.com.bd/national/govt-publishes-list-of-public-holidays-for-2027"
+  },
+  "reported": {
+    "total": 29,
+    "general": 15,
+    "executive": 14,
+    "onWeekend": 7,
+    "onWeekendGeneral": 4,
+    "onWeekendExecutive": 3,
+    "effective": 22
+  },
+  "holidays": [
+    {
+      "date": "2027-02-21",
+      "name": "International Mother Language Day",
+      "type": "general",
+      "lunar": false
+    },
+    {
+      "date": "2027-03-05",
+      "name": "Jumatul Bida",
+      "type": "general",
+      "lunar": true
+    },
+    {
+      "date": "2027-03-10",
+      "name": "Eid-ul-Fitr",
+      "type": "general",
+      "lunar": true
+    },
+    {
+      "date": "2027-03-26",
+      "name": "Independence and National Day",
+      "type": "general",
+      "lunar": false
+    },
+    {
+      "date": "2027-04-13",
+      "name": "Chaitra Sankranti",
+      "type": "general",
+      "lunar": false,
+      "note": "Rangamati, Khagrachari and Bandarban hill districts only"
+    },
+    {
+      "date": "2027-05-01",
+      "name": "May Day",
+      "type": "general",
+      "lunar": false
+    },
+    {
+      "date": "2027-05-17",
+      "name": "Eid-ul-Azha",
+      "type": "general",
+      "lunar": true
+    },
+    {
+      "date": "2027-05-20",
+      "name": "Buddha Purnima",
+      "type": "general",
+      "lunar": false
+    },
+    {
+      "date": "2027-08-05",
+      "name": "July Mass Uprising Day",
+      "type": "general",
+      "lunar": false
+    },
+    {
+      "date": "2027-08-15",
+      "name": "Eid-e-Miladunnabi",
+      "type": "general",
+      "lunar": true
+    },
+    {
+      "date": "2027-08-25",
+      "name": "Janmashtami",
+      "type": "general",
+      "lunar": false
+    },
+    {
+      "date": "2027-10-10",
+      "name": "Bijoya Dashami (Durga Puja)",
+      "type": "general",
+      "lunar": false
+    },
+    {
+      "date": "2027-11-07",
+      "name": "National Revolution and Solidarity Day",
+      "type": "general",
+      "lunar": false
+    },
+    {
+      "date": "2027-12-16",
+      "name": "Victory Day",
+      "type": "general",
+      "lunar": false
+    },
+    {
+      "date": "2027-12-25",
+      "name": "Christmas Day",
+      "type": "general",
+      "lunar": false
+    },
+    {
+      "date": "2027-01-24",
+      "name": "Shab-e-Barat",
+      "type": "executive",
+      "lunar": true
+    },
+    {
+      "date": "2027-03-07",
+      "name": "Shab-e-Qadr",
+      "type": "executive",
+      "lunar": true
+    },
+    {
+      "date": "2027-03-08",
+      "name": "Eid-ul-Fitr holiday (before Eid)",
+      "type": "executive",
+      "lunar": true
+    },
+    {
+      "date": "2027-03-09",
+      "name": "Eid-ul-Fitr holiday (before Eid)",
+      "type": "executive",
+      "lunar": true
+    },
+    {
+      "date": "2027-03-11",
+      "name": "Eid-ul-Fitr holiday (after Eid)",
+      "type": "executive",
+      "lunar": true
+    },
+    {
+      "date": "2027-03-12",
+      "name": "Eid-ul-Fitr holiday (after Eid)",
+      "type": "executive",
+      "lunar": true
+    },
+    {
+      "date": "2027-04-14",
+      "name": "Pahela Baishakh (Bengali New Year)",
+      "type": "executive",
+      "lunar": false
+    },
+    {
+      "date": "2027-05-15",
+      "name": "Eid-ul-Azha holiday (before Eid)",
+      "type": "executive",
+      "lunar": true
+    },
+    {
+      "date": "2027-05-16",
+      "name": "Eid-ul-Azha holiday (before Eid)",
+      "type": "executive",
+      "lunar": true
+    },
+    {
+      "date": "2027-05-18",
+      "name": "Eid-ul-Azha holiday (after Eid)",
+      "type": "executive",
+      "lunar": true
+    },
+    {
+      "date": "2027-05-19",
+      "name": "Eid-ul-Azha holiday (after Eid)",
+      "type": "executive",
+      "lunar": true
+    },
+    {
+      "date": "2027-05-20",
+      "name": "Eid-ul-Azha holiday (after Eid)",
+      "type": "executive",
+      "lunar": true,
+      "note": "Same day as Buddha Purnima in the published list"
+    },
+    {
+      "date": "2027-06-16",
+      "name": "Ashura",
+      "type": "executive",
+      "lunar": true
+    },
+    {
+      "date": "2027-10-09",
+      "name": "Maha Nabami (Durga Puja)",
+      "type": "executive",
+      "lunar": false
+    }
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "every date and name read from the Prothom Alo (BSS) report of the notification; counts checked against the cabinet reports: 15 general + 14 executive, and exactly 4 general and 3 executive dates on a Friday or Saturday (computed from the dates); scripts/verify/holidays.py compares page, CSV and calendar file with this list",
+    "what": "all 29 dates, names, types; weekday of every date; counts",
+    "against": "Prothom Alo (BSS), Dhaka Tribune, The Financial Express, Daily Sun reports of 2 and 5 November 2026",
+    "result": "All 29 entries match; weekend counts match the reported 4 + 3"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version (task 28)."
+    }
+  ]
+}
