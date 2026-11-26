@@ -1,0 +1,25 @@
+{
+  "slug": "los-angeles-to-new-york",
+  "a": "los-angeles",
+  "b": "new-york",
+  "name": "Los Angeles",
+  "capital": "New York",
+  "demonym": "Angeleno",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/time-pairs.py recomputes the hour table, the gap periods and the shared office hours with Python zoneinfo (system IANA tz 2026e), independent of the ICU copy used to build the page",
+    "what": "hour table (15 January, 15 July), periods of the year with the same gap, office-hour overlap, gap figures in the text, title, description and JSON-LD",
+    "against": "IANA tz database 2026e",
+    "result": "All automated comparisons matched"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version (task 27)."
+    }
+  ]
+}

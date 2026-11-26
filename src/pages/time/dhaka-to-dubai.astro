@@ -1,0 +1,36 @@
+---
+import PairTime from '../../components/PairTime.astro';
+import p from '../../data/pairs/dhaka-to-dubai.json';
+import a from '../../data/cities/dhaka.json';
+import b from '../../data/cities/dubai.json';
+import { JAN, JUL, gapMin, gapPeriods, officeOverlap, hhmm } from '../../lib/pair';
+import { assertClaim } from '../../lib/figures';
+const g = -gapMin(a.tz, b.tz, JAN);
+assertClaim(g === 120 && -gapMin(a.tz, b.tz, JUL) === 120 && gapPeriods(a.tz, b.tz).length === 1, 'Dubai is two hours behind Dhaka all year');
+const o = officeOverlap(a.tz, b.tz, JAN)!;
+assertClaim(o.len === 360, 'six shared office hours');
+const faq = [
+  { q: 'Is Dubai 2 hours behind Bangladesh?', a: 'Yes, every day of the year. Neither the United Arab Emirates nor Bangladesh uses daylight saving time.' },
+  { q: 'If it is midnight in Dhaka, what time is it in Dubai?', a: '10 p.m. the evening before.' },
+  { q: 'What time should I call Dubai from Dhaka?', a: `Any time between ${hhmm(o.from)} and ${hhmm(o.to)} Dhaka time reaches Dubai during its 9-to-5 working day.` },
+];
+---
+<PairTime pair={p} a={a} b={b} faq={faq}
+  title="Dubai vs Dhaka Time: 2 Hours Behind, All Year | AtlasFigures"
+  description="Subtract exactly 2 hours from Dhaka time to get Dubai time, in every season: neither country changes its clocks. Hour-by-hour conversion and the hours when both are at work."
+  h1="Dhaka to Dubai: the time difference"
+  hoursTitle="Dhaka times and the matching Dubai times"
+  hoursSub="Both columns are identical because neither city changes its clocks; shaded rows mark Dhaka office hours."
+  periodsTitle="One fixed gap for the whole year"
+  periodsSub="The two cities never move their clocks, so there is a single period: Dubai two hours behind Dhaka."
+  faqTitle="Bangladesh and UAE time: answers">
+  <Fragment slot="answer">
+    <p><strong>Subtract {g / 60} hours from Dhaka time to get Dubai time</strong>, in every month. Bangladesh keeps UTC+6 and the United Arab Emirates UTC+4, and neither uses daylight saving, so a 6 p.m. meeting in Dhaka is a 4 p.m. one in Dubai, year-round.</p>
+  </Fragment>
+  <Fragment slot="story">
+    <h2>Does the Dhaka–Dubai gap ever change?</h2>
+    <p>No. It is one of the simplest pairings on AtlasFigures: a constant two hours, with no spring or autumn switch on either side to keep track of.</p>
+    <h2>How many working hours do Dhaka and Dubai share?</h2>
+    <p>Six of the eight: from {hhmm(o.from)} to {hhmm(o.to)} in Dhaka, covering the Dubai working day from 09:00 until 15:00.</p>
+  </Fragment>
+</PairTime>

@@ -1,0 +1,200 @@
+---
+// Layout for a two-city time difference page (task 27), e.g. /time/dhaka-to-london/. Every figure comes from the
+// IANA tz data (src/lib/pair.ts). Each page passes its own words (H1, answer, story, table titles, FAQ); the shared
+// parts — clocks, slider, hour table cells, period table cells — are site UI.
+import Base from '../layouts/Base.astro';
+import Flag from './Flag.astro';
+import Icon from './Icon.astro';
+import SourceBadge from './SourceBadge.astro';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../site';
+import { JAN, JUL, Y, gapMin, gapText, gapBadge, gapSeasons, convertWall, hhmm, officeOverlap, utcLabel, offsetMin } from '../lib/pair';
+
+export interface Faq { q: string; a: string }
+interface Props {
+  pair: any; a: any; b: any;
+  title: string; description: string; h1: string;
+  hoursTitle: string; hoursSub: string; periodsTitle: string; periodsSub: string;
+  faqTitle: string; faq: Faq[];
+}
+const { pair: p, a, b, title, description, h1, hoursTitle, hoursSub, periodsTitle, periodsSub, faqTitle, faq } = Astro.props;
+const PAGE = `/time/${p.slug}/`;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const IANA = 'IANA time zone database 2026e', IANA_URL = 'https://www.iana.org/time-zones';
+const gJ = gapMin(a.tz, b.tz, JAN), gL = gapMin(a.tz, b.tz, JUL);
+const { periods, blips } = gapSeasons(a.tz, b.tz);
+const fmtD = (t: number) => new Date(t).toLocaleDateString('en-GB', { timeZone: a.tz, day: 'numeric', month: 'long' });
+const rows = Array.from({ length: 24 }, (_, h) => ({ a: hhmm(h * 60), j: convertWall(a.tz, b.tz, JAN, h * 60), l: convertWall(a.tz, b.tz, JUL, h * 60) }));
+const day = (d: number) => (d > 0 ? ' (next day)' : d < 0 ? ' (previous day)' : '');
+const ovJ = officeOverlap(a.tz, b.tz, JAN), ovL = officeOverlap(a.tz, b.tz, JUL);
+const ov = (o: ReturnType<typeof officeOverlap>) => (o ? `${hhmm(o.from)}–${hhmm(o.to)} in ${a.name} (${gapText(o.len)})` : 'No overlap');
+const schema = [
+  {
+    '@type': 'WebPage', '@id': abs(`${PAGE}#page`), url: abs(PAGE), name: title.replace(' | AtlasFigures', ''), description,
+    isPartOf: { '@id': WEBSITE_ID }, publisher: { '@id': ORG_ID }, inLanguage: 'en', datePublished: iso(p.published), dateModified: iso(p.updated),
+    about: [a, b].map((c) => ({ '@type': 'City', name: c.name, url: abs(`/time/${c.slug}/`), containedInPlace: { '@type': 'Country', name: c.country } })),
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+const checkedOn = p.verification?.checkedOn;
+---
+<Base title={title} description={description} section="time" appTitle={`${a.name} → ${b.name}`} back="/time/"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Time', href: '/time/' }, { name: `${a.name} to ${b.name}`, href: PAGE }]} schema={schema}>
+  <article class="pair-time">
+    <h1>{h1}</h1>
+    <section class="pair-clocks" id="pair" data-a={a.tz} data-b={b.tz} aria-label={`Current time in ${a.name} and ${b.name}`}>
+      <div class="pc"><div class="pc-top"><Flag code={a.code} class="flag" /> <a href={path(`/time/${a.slug}/`)}>{a.name}</a></div><div class="pc-time" data-k="ta">--:--</div><div class="pc-date" data-k="da">&nbsp;</div><div class="pc-off" data-k="oa">{utcLabel(offsetMin(a.tz, JAN))}</div></div>
+      <div class="pc-badge"><span data-k="gap">{gapBadge(gJ)}</span><small>hours</small></div>
+      <div class="pc"><div class="pc-top"><Flag code={b.code} class="flag" /> <a href={path(`/time/${b.slug}/`)}>{b.name}</a></div><div class="pc-time" data-k="tb">--:--</div><div class="pc-date" data-k="db">&nbsp;</div><div class="pc-off" data-k="ob">{utcLabel(offsetMin(b.tz, JAN))}</div></div>
+      <div class="pc-slider">
+        <label for="pair-slide">Drag to pick a time in {a.name}</label>
+        <input id="pair-slide" type="range" min="0" max="95" step="1" value="36" />
+        <p class="pc-out" aria-live="polite"><b data-k="sa">09:00</b> in {a.name} today is <b data-k="sb">–</b> in {b.name}</p>
+      </div>
+    </section>
+
+    <div class="answer"><slot name="answer" /></div>
+    <div class="dates"><span>Updated <time datetime={p.updated}>{longDate(p.updated)}</time></span><SourceBadge source={IANA} url={IANA_URL} checkedOn={checkedOn} /></div>
+
+    <aside class="facts pfacts" aria-labelledby="pf-h">
+      <h2 id="pf-h">{a.name} and {b.name} at a glance</h2>
+      <dl>
+        <dt>Gap in mid-January</dt><dd>{b.name} {gJ === 0 ? 'same time' : `${gapText(gJ)} ${gJ > 0 ? 'ahead' : 'behind'}`}</dd>
+        <dt>Gap in mid-July</dt><dd>{b.name} {gL === 0 ? 'same time' : `${gapText(gL)} ${gL > 0 ? 'ahead' : 'behind'}`}</dd>
+        <dt>Different gaps in {Y}</dt><dd>{new Set(periods.map((x) => x.gap)).size}</dd>
+        <dt>Shared office hours, January</dt><dd>{ov(ovJ)}</dd>
+        <dt>Shared office hours, July</dt><dd>{ov(ovL)}</dd>
+      </dl>
+      <p class="src">Office hours taken as 09:00–17:00 local time in both cities. Source: {IANA}</p>
+    </aside>
+
+    <div class="prose pair-story"><slot name="story" /></div>
+
+    <section class="tcard" aria-labelledby="hrs-h">
+      <header class="tcard-head"><div><h2 id="hrs-h">{hoursTitle}</h2><p class="tcard-sub">{hoursSub}</p></div></header>
+      <div class="table-scroll">
+        <table class="data">
+          <caption class="visually-hidden">Each hour in {a.name} converted to {b.name} time on 15 January and 15 July {Y}</caption>
+          <thead><tr><th scope="col">{a.name}</th><th scope="col">{b.name}, 15 Jan</th><th scope="col">{b.name}, 15 Jul</th></tr></thead>
+          <tbody>{rows.map((r) => <tr class={r.a >= '09:00' && r.a < '17:00' ? 'office' : ''}><th scope="row">{r.a}</th><td>{hhmm(r.j.min)}{day(r.j.day)}</td><td>{hhmm(r.l.min)}{day(r.l.day)}</td></tr>)}</tbody>
+        </table>
+      </div>
+      <footer class="tcard-foot"><SourceBadge source={IANA} url={IANA_URL} checkedOn={checkedOn} variant="footer" /></footer>
+    </section>
+
+    <section class="tcard" aria-labelledby="per-h">
+      <header class="tcard-head"><div><h2 id="per-h">{periodsTitle}</h2><p class="tcard-sub">{periodsSub}</p></div></header>
+      <div class="table-scroll">
+        <table class="data">
+          <caption class="visually-hidden">Periods of {Y} with the same time difference between {a.name} and {b.name}</caption>
+          <thead><tr><th scope="col">From</th><th scope="col">Until</th><th scope="col">{b.name} vs {a.name}</th></tr></thead>
+          <tbody>{periods.map((x, i) => <tr><th scope="row">{i === 0 ? '1 January' : fmtD(x.from)}</th><td>{i === periods.length - 1 ? '31 December' : fmtD(x.to)}</td><td>{x.gap === 0 ? 'Same time' : `${gapBadge(x.gap)} h`}</td></tr>)}</tbody>
+        </table>
+      </div>
+      {blips.length > 0 && <p class="tcard-note">On {blips.length === 1 ? 'one changeover night' : `${blips.length} changeover nights`} both cities switch clocks a few hours apart, so for up to {Math.round(Math.max(...blips.map((x) => x.to - x.from)) / 3600000)} hours the gap is briefly different.</p>}
+      <footer class="tcard-foot"><SourceBadge source={IANA} url={IANA_URL} checkedOn={checkedOn} variant="footer" /></footer>
+    </section>
+
+    <nav class="related-pages pair-related" aria-label="Related time pages">
+      <h2 class="visually-hidden">Related pages</h2>
+      <ul>
+        <li><a href={path(`/time/${a.slug}/`)}><Icon name="time" /> Time in {a.name}</a></li>
+        <li><a href={path(`/time/${b.slug}/`)}><Icon name="time" /> Time in {b.name}</a></li>
+        <li><a href={path('/time/converter/')}><Icon name="time" /> Time zone converter</a></li>
+      </ul>
+    </nav>
+
+    <section class="faq-wrap" aria-labelledby="faq-h">
+      <h2 id="faq-h">{faqTitle}</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={IANA_URL}>IANA time zone database</a> (release 2026e), zones <code>{a.tz}</code> and <code>{b.tz}</code>: offsets and every clock change in {Y}. The live clocks and slider use the copy built into your browser.</li>
+        </ul>
+        <p class="note">The hour table converts each whole hour on 15 January and 15 July {Y}, so it shows both the winter and the summer arrangement. Shared office hours assume 09:00–17:00 in both cities.</p>
+        <p class="note">Published <time datetime={p.published}>{longDate(p.published)}</time> · Updated <time datetime={p.updated}>{longDate(p.updated)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl(`${a.name} to ${b.name} time`, PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+</Base>
+
+<script>
+  const el = document.getElementById('pair');
+  if (el) {
+    const A = el.dataset.a!, B = el.dataset.b!;
+    const q = (k: string) => el.querySelector(`[data-k="${k}"]`) as HTMLElement;
+    const off = (z: string, t: number) => { const s = new Intl.DateTimeFormat('en-US', { timeZone: z, timeZoneName: 'longOffset' }).formatToParts(new Date(t)).find((p) => p.type === 'timeZoneName')!.value; const m = s.match(/GMT([+-])(\d{2}):?(\d{2})?/); return m ? (m[1] === '-' ? -1 : 1) * (+m[2] * 60 + +(m[3] ?? 0)) : 0; };
+    const lab = (m: number) => { const a = Math.abs(m); return `${m < 0 ? '−' : '+'}${Math.floor(a / 60)}${a % 60 ? ':' + String(a % 60).padStart(2, '0') : ''}`; };
+    const hm = (z: string) => new Intl.DateTimeFormat('en-GB', { timeZone: z, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+    const dd = (z: string) => new Intl.DateTimeFormat('en-GB', { timeZone: z, weekday: 'short', day: 'numeric', month: 'short' });
+    const fa = hm(A), fb = hm(B), da = dd(A), db = dd(B);
+    const slide = document.getElementById('pair-slide') as HTMLInputElement;
+    const ymd = (z: string, t: number) => Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: z, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(t).map((x) => [x.type, x.value]));
+    const updateSlide = () => {
+      const now = Date.now(), p = ymd(A, now), mins = +slide.value * 15;
+      const t = Date.UTC(+p.year, +p.month - 1, +p.day) + mins * 60000 - off(A, now) * 60000;
+      q('sa').textContent = `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
+      const bd = ymd(B, t), ad = ymd(A, t);
+      const shift = Date.UTC(+bd.year, +bd.month - 1, +bd.day) - Date.UTC(+ad.year, +ad.month - 1, +ad.day);
+      q('sb').textContent = fb.format(t) + (shift > 0 ? ' tomorrow' : shift < 0 ? ' yesterday' : '');
+    };
+    const tick = () => {
+      const now = Date.now();
+      q('ta').textContent = fa.format(now); q('tb').textContent = fb.format(now);
+      q('da').textContent = da.format(now); q('db').textContent = db.format(now);
+      q('oa').textContent = `UTC${lab(off(A, now))}`; q('ob').textContent = `UTC${lab(off(B, now))}`;
+      q('gap').textContent = lab(off(B, now) - off(A, now));
+    };
+    slide.addEventListener('input', updateSlide);
+    tick(); updateSlide(); setInterval(tick, 1000);
+  }
+</script>
+
+<style>
+  .pair-time { display: grid; grid-template-columns: minmax(0, 1fr) 320px; column-gap: 44px; align-items: start; }
+  .pair-time > * { grid-column: 1; }
+  .pair-time > .pfacts { grid-column: 2; grid-row: 1 / span 4; position: sticky; top: 24px; }
+  .pair-time h1 { margin-bottom: 18px; }
+  .pair-clocks { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: center; background: linear-gradient(150deg, var(--ocean), var(--ocean-2)); border-radius: 24px; padding: 22px 24px; color: #d6e4ec; }
+  .pc { text-align: center; }
+  .pc-top { display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; }
+  .pc-top a { color: #fff; text-decoration: none; }
+  .pc-top :global(.flag) { width: 28px; height: 19px; border-radius: 3px; }
+  .pc-time { font-size: clamp(2.6rem, 6vw, 4rem); font-weight: 800; color: #fff; letter-spacing: -0.02em; line-height: 1.1; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .pc-date { font-size: .9rem; }
+  .pc-off { display: inline-block; margin-top: 8px; font-size: .78rem; font-weight: 700; background: rgba(255,255,255,.12); padding: 3px 10px; border-radius: 999px; }
+  .pc-badge { display: grid; place-items: center; width: 74px; height: 74px; border-radius: 50%; background: #fff; color: var(--ocean); font-weight: 800; font-size: 1.25rem; line-height: 1; text-align: center; }
+  .pc-badge small { font-size: .62rem; font-weight: 600; color: var(--text-3); margin-top: -18px; }
+  .pc-slider { grid-column: 1 / -1; background: rgba(255,255,255,.08); border-radius: var(--r-md); padding: 12px 16px 10px; }
+  .pc-slider label { font-size: .8rem; color: #a9c1d0; }
+  .pc-slider input { width: 100%; accent-color: #5fc39b; height: 28px; }
+  .pc-out { margin: 0; color: #fff; font-size: .98rem; }
+  .pair-time .answer { margin-top: 20px; }
+  .pfacts { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 20px 22px 16px; }
+  .pfacts h2 { font-size: 1rem; margin: 0 0 12px; }
+  .pfacts dl { margin: 0; display: block; font-size: .92rem; }
+  .pfacts dt { color: var(--text-3); font-size: .76rem; text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
+  .pfacts dd { margin: 1px 0 11px; text-align: left; font-weight: 700; color: var(--ocean); font-variant-numeric: normal; }
+  .pfacts .src { font-size: .78rem; color: var(--text-3); margin: 14px 0 0; padding-top: 10px; border-top: 1px solid var(--line); }
+  .tcard { margin-top: 28px; }
+  .tcard-note { font-size: .82rem; color: var(--text-2); margin: 0; padding: 10px 18px; border-top: 1px solid var(--line); }
+  table.data tr.office td, table.data tr.office th { background: var(--contour-2); }
+  .pair-related ul { list-style: none; padding: 0; margin: 28px 0 0; display: flex; flex-wrap: wrap; gap: 10px; }
+  .pair-related a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); text-decoration: none; font-weight: 600; font-size: .92rem; }
+  .pair-related :global(svg) { width: 18px; height: 18px; }
+  .faq-wrap h2 { margin-top: 36px; }
+  @media (max-width: 1023px) { .pair-time { grid-template-columns: minmax(0, 1fr) 260px; column-gap: 24px; } }
+  @media (max-width: 767px) {
+    .pair-time { display: block; }
+    .pair-time h1 { margin: 14px 2px 12px; font-size: 1.55rem; }
+    .pair-clocks { grid-template-columns: 1fr; border-radius: var(--r-lg); padding: 18px 16px; gap: 10px; }
+    .pc-badge { margin: 0 auto; width: 66px; height: 66px; }
+    .pfacts { position: static; margin: 12px 0; border: 0; padding: 16px 18px 12px; }
+    .pair-story { background: var(--surface); border-radius: var(--r-lg); padding: 4px 18px 8px; margin-top: 12px; }
+    .faq-wrap h2 { margin-top: 20px; }
+  }
+</style>

@@ -1,0 +1,36 @@
+---
+import PairTime from '../../components/PairTime.astro';
+import p from '../../data/pairs/los-angeles-to-new-york.json';
+import a from '../../data/cities/los-angeles.json';
+import b from '../../data/cities/new-york.json';
+import { JAN, gapSeasons, officeOverlap, hhmm } from '../../lib/pair';
+import { assertClaim } from '../../lib/figures';
+const { periods: per, blips } = gapSeasons(a.tz, b.tz);
+assertClaim(per.length === 1 && per[0].gap === 180 && blips.length === 2 && blips.every((x) => x.to - x.from === 3 * 3600000), 'New York is three hours ahead of Los Angeles all year, apart from three hours on each changeover night');
+const o = officeOverlap(a.tz, b.tz, JAN)!;
+assertClaim(o.len === 300, 'five shared office hours');
+const faq = [
+  { q: 'Is New York always 3 hours ahead of LA?', a: 'Yes, apart from three hours on each changeover night. Both switch to and from daylight time on the same nights at 2 in the morning on their own clocks, but New York reaches 2 a.m. first, so for those three hours the coasts are 2 or 4 hours apart.' },
+  { q: '9 a.m. on the West Coast is what time in New York?', a: 'Noon.' },
+  { q: 'How much of the work day do the two coasts share?', a: `Five hours: ${hhmm(o.from)} to ${hhmm(o.to)} in Los Angeles, which is noon to 5 p.m. in New York.` },
+];
+---
+<PairTime pair={p} a={a} b={b} faq={faq}
+  title="Los Angeles to New York Time: Always 3 Hours Apart | AtlasFigures"
+  description="Eastern Time runs 3 hours ahead of Pacific Time throughout the year: both switch to and from daylight time on the same nights. Convert Pacific to Eastern Time hour by hour."
+  h1="Pacific to Eastern: Los Angeles and New York time"
+  hoursTitle="Pacific Time hours in Eastern Time"
+  hoursSub="Rows in green are Los Angeles business hours. The two columns match because both coasts change clocks together."
+  periodsTitle="A coast-to-coast gap that never moves"
+  periodsSub="Both cities follow the same US daylight-saving dates, so the year is a single three-hour period apart from the changeover nights."
+  faqTitle="East Coast–West Coast time questions">
+  <Fragment slot="answer">
+    <p><strong>The East Coast is always 3 hours later than Los Angeles</strong>, winter and summer alike. When it is 9 a.m. on the West Coast, it is already noon in New York.</p>
+  </Fragment>
+  <Fragment slot="story">
+    <h2>Does daylight saving change the LA–New York gap?</h2>
+    <p>No. Both cities spring forward on the same March weekend and fall back on the same November one, each at 2 in the morning by its own clock, so the three-hour difference holds through the year; only in the three hours between New York's switch and California's is it briefly 2 or 4 hours.</p>
+    <h2>When is the best time for a coast-to-coast call?</h2>
+    <p>Late morning in Los Angeles, early afternoon in New York. Office hours overlap for five hours, from {hhmm(o.from)} to {hhmm(o.to)} Pacific Time.</p>
+  </Fragment>
+</PairTime>

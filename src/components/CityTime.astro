@@ -54,6 +54,9 @@ const dm = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: '
 const others = Object.values(import.meta.glob('../data/cities/*.json', { eager: true, import: 'default' }) as Record<string, any>).filter((o) => o.slug !== c.slug).sort((a, b) => offsetMin(a.tz, jan) - offsetMin(b.tz, jan));
 const diff = (o: any, at: number) => { const m = offsetMin(o.tz, at) - offsetMin(c.tz, at); if (m === 0) return 'Same time'; const a = Math.abs(m); return `${m > 0 ? '+' : '−'}${Math.floor(a / 60)}${a % 60 ? `:${String(a % 60).padStart(2, '0')}` : ''} h`; };
 const pg = pagesOf(c.iso3);
+const allCities = Object.values(import.meta.glob('../data/cities/*.json', { eager: true, import: 'default' })) as any[];
+const myPairs = (Object.values(import.meta.glob('../data/pairs/*.json', { eager: true, import: 'default' })) as any[]).filter((x) => x.a === c.slug || x.b === c.slug)
+  .map((x) => ({ slug: x.slug, label: `${allCities.find((y) => y.slug === x.a).name} → ${allCities.find((y) => y.slug === x.b).name}` }));
 
 const schema = [
   {
@@ -150,6 +153,8 @@ const checkedOn = c.verification?.checkedOn;
       <ul>
         {pg.population && <li><a href={path(pg.population)}><Icon name="population" /> Population of {c.country}</a></li>}
         {pg.economy && <li><a href={path(pg.economy)}><Icon name="economy" /> Economy of {c.country}</a></li>}
+        {myPairs.map((x) => <li><a href={path(`/time/${x.slug}/`)}><Icon name="time" /> {x.label}</a></li>)}
+        <li><a href={path('/time/converter/')}><Icon name="time" /> Time zone converter</a></li>
         <li><a href={path('/time/')}><Icon name="time" /> All city clocks</a></li>
       </ul>
     </nav>
