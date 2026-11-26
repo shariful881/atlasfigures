@@ -1,0 +1,75 @@
+# Downloads the original energy and CO2 files used by the energy pages (task 110):
+#  - Ember, Yearly Electricity Data (global CSV), licence CC BY 4.0 (stated on ember-energy.org).
+#  - Global Carbon Project, fossil CO2 emissions dataset (Andrew & Peters, Zenodo), licence checked in the
+#    Zenodo record metadata (must be cc-by-4.0, or the run fails).
+# Writes data/raw/energy/ with SOURCE.md (URLs, download time, bytes, SHA-256, licence).
+# Runs on the `dev-data` branch only (second work tab: economy and other data, tasks 101+).
+name: Fetch energy and CO2 data (dev-data)
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev-data]
+    paths:
+      - .github/workflows/fetch-energy.yml
+permissions:
+  contents: write
+env:
+  GCB_RECORD: '23667912'        # Zenodo record of "The Global Carbon Project's fossil CO2 emissions dataset", version 2026v11
+  GCB_VERSION: 'GCB2026v11'
+  EMBER_URL: 'https://files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv'
+jobs:
+  fetch:
+    if: github.ref == 'refs/heads/dev-data'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev-data
+      - name: Download Ember and Global Carbon Project files
+        run: |
+          set -euo pipefail
+          DIR=data/raw/energy
+          rm -rf "$DIR"; mkdir -p "$DIR"
+          UA='AtlasFigures data fetch (github.com/shariful881/atlasfigures)'
+          # Global Carbon Project (Zenodo): check the licence in the record metadata first.
+          curl -fSL --retry 3 -A "$UA" -o "$DIR/gcb-zenodo-record.json" "https://zenodo.org/api/records/$GCB_RECORD"
+          GLIC=$(jq -r '.metadata.license.id' "$DIR/gcb-zenodo-record.json")
+          GVER=$(jq -r '.metadata.version' "$DIR/gcb-zenodo-record.json")
+          GDATE=$(jq -r '.metadata.publication_date' "$DIR/gcb-zenodo-record.json")
+          GDOI=$(jq -r '.doi' "$DIR/gcb-zenodo-record.json")
+          if [ "$GLIC" != "cc-by-4.0" ]; then echo "::error::GCB licence is '$GLIC', not cc-by-4.0"; exit 1; fi
+          ROWS=""
+          for F in "${GCB_VERSION}_MtCO2_flat.csv" "${GCB_VERSION}_MtCO2_flat_metadata.json" "${GCB_VERSION}_percapita_flat.csv" "${GCB_VERSION}_percapita_flat_metadata.json"; do
+            U="https://zenodo.org/records/$GCB_RECORD/files/$F?download=1"
+            curl -fSL --retry 3 -A "$UA" -o "$DIR/$F" "$U"
+            WANT=$(jq -r --arg f "$F" '.files[] | select(.key==$f) | .checksum' "$DIR/gcb-zenodo-record.json" | sed 's/^md5://')
+            GOT=$(md5sum "$DIR/$F" | cut -d' ' -f1)
+            if [ -n "$WANT" ] && [ "$WANT" != "$GOT" ]; then echo "::error::$F md5 $GOT does not match Zenodo $WANT"; exit 1; fi
+            ROWS="$ROWS| Global Carbon Project ($GVER, $GDATE, doi:$GDOI) | $F | CC BY 4.0 (Zenodo: $GLIC) | $U | $(stat -c %s "$DIR/$F") | $(sha256sum "$DIR/$F" | cut -d' ' -f1) |"$'\n'
+          done
+          # Ember yearly electricity data (global).
+          curl -fSL --retry 3 -A "$UA" -o "$DIR/ember-yearly-electricity-global.csv" "$EMBER_URL"
+          head -c 2000 "$DIR/ember-yearly-electricity-global.csv" | head -3
+          ROWS="$ROWS| Ember, Yearly Electricity Data | ember-yearly-electricity-global.csv | CC BY 4.0 (stated on ember-energy.org) | $EMBER_URL | $(stat -c %s "$DIR/ember-yearly-electricity-global.csv") | $(sha256sum "$DIR/ember-yearly-electricity-global.csv" | cut -d' ' -f1) |"$'\n'
+          {
+            echo "# Energy and CO2 — original files"
+            echo
+            echo "Downloaded automatically by .github/workflows/fetch-energy.yml. Do not edit by hand."
+            echo
+            echo "- Global Carbon Project: Andrew, R. M. & Peters, G. P., The Global Carbon Project's fossil CO2 emissions dataset, version $GVER (published $GDATE), Zenodo, https://doi.org/$GDOI — licence CC BY 4.0 (checked in the Zenodo record metadata at download)."
+            echo "- Ember: Yearly Electricity Data, https://ember-energy.org/data/yearly-electricity-data/ — licence CC BY 4.0 (stated on Ember's site; checked by hand 26 November 2026)."
+            echo "- Downloaded (UTC): $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo
+            echo "| Source | File | Licence | URL | Bytes | SHA-256 |"
+            echo "|---|---|---|---|---|---|"
+            printf '%s' "$ROWS"
+          } > "$DIR/SOURCE.md"
+          cat "$DIR/SOURCE.md"
+      - name: Commit to dev-data
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/raw/energy
+          git diff --cached --quiet && { echo 'No change'; exit 0; }
+          git commit -m 'Data: Ember and Global Carbon Project files (energy and CO2)'
+          git push origin HEAD:dev-data
