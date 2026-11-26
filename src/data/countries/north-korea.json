@@ -1,0 +1,61 @@
+{
+  "slug": "north-korea",
+  "name": "North Korea",
+  "demonym": "North Korean",
+  "capital": "Pyongyang",
+  "iso3": "PRK",
+  "code": "kp",
+  "continent": "Asia",
+  "wikipedia": "https://en.wikipedia.org/wiki/North_Korea",
+  "unName": "Democratic People's Republic of Korea",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1951,
+    1952,
+    1953,
+    1960,
+    1970,
+    1980,
+    1990,
+    1994,
+    1995,
+    2000,
+    2002,
+    2003,
+    2010,
+    2020,
+    2026,
+    2030,
+    2032,
+    2040,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/north-korea.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; fourth in Eastern Asia after China, Japan and South Korea; about half South Korea's population",
+      "Fertility under 2.1 every year since 1996; fertility more than double and median age 9.4 years lower than South Korea",
+      "Population falls in each year 1950–1953, back above 1950 by 1958; life expectancy 1950; 1994, 1995–2002 (near 61) and 2003; deaths 1994 and 1995",
+      "Net migration zero 1958–1993, small net outflows since; peak 2032, natural decrease from 2033, 2100 total; rank 1950/now/2100",
+      "Census wording against UNFPA (15 February 2010: the 2008 census as the first since 1993) and Korean War dates against the Population Reference Bureau scorecard; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 75 of 75 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Neutral wording; the page says the UN files give no causes."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}

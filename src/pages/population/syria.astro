@@ -1,0 +1,231 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
+import sy from '../../data/countries/syria.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: a mid-year high in 2011, a fall to a 2016 low
+// with the world's largest net outflow in 2013, net arrivals every year since 2018 (second only to the US in 2023), the
+// 2011 level passed again in 2023, very fast growth now and a peak in 2086. Neutral: counts only, no causes, no parties.
+const PAGE = '/population/syria/';
+const un = countryData(sy.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (sy.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const hi = un.years.filter((r) => r.year <= 2015).reduce((a, b) => (b.population > a.population ? b : a));
+const low = un.years.filter((r) => r.year > hi.year && r.year <= CURRENT_YEAR).reduce((a, b) => (b.population < a.population ? b : a));
+assertClaim(hi.year === 2011 && low.year === 2016, 'mid-year high 2011, low 2016');
+const lost = hi.population - low.population;
+assertClaim(lost > 3.6e6 && lost < 3.8e6, 'about 3.7 million fewer between 2011 and 2016');
+const outTop = un.years.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+const world2013 = [...wpp].sort((a: any, b: any) => at(a, 2013).netMigrants - at(b, 2013).netMigrants)[0].iso3;
+assertClaim(outTop.year === 2013 && world2013 === 'SYR', '2013: largest net outflow in the series and of any country');
+assertClaim(un.years.filter((r) => r.year >= 2011 && r.year <= 2017).every((r) => r.netMigrants < 0) && un.years.filter((r) => r.year >= 2018 && r.year <= CURRENT_YEAR).every((r) => r.netMigrants > 0), 'net departures 2011–2017, net arrivals every year since 2018');
+const in2023 = [...wpp].sort((a: any, b: any) => at(b, 2023).netMigrants - at(a, 2023).netMigrants).map((d: any) => d.iso3);
+assertClaim(in2023[0] === 'USA' && in2023[1] === 'SYR', '2023 net inflow second only to the United States');
+const inTop = un.years.filter((r) => r.year >= 2018).reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+assertClaim(inTop.year === 2023, 'largest recent net inflow in 2023');
+const passed = un.years.find((r) => r.year > hi.year && r.population > hi.population)!.year;
+assertClaim(passed === 2023, 'back above the 2011 level in 2023');
+assertClaim(y[2015].lifeExpectancy < y[2010].lifeExpectancy - 10 && c.lifeExpectancy >= y[2010].lifeExpectancy - 0.2, 'life expectancy down over ten years by 2015, back to the 2010 level');
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const fast = [...big].sort((a: any, b: any) => at(b).growthRatePct - at(a).growthRatePct).map((d: any) => d.iso3);
+assertClaim(fast.indexOf('SYR') === 3, 'fourth-fastest growth among countries above ten million');
+const was = wpp.filter((d: any) => d.subregion === 'Western Asia').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(was.indexOf('SYR') === 4, 'fifth in Western Asia');
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+const natNeg = un.years.find((r) => r.naturalChange < 0)!.year;
+const under = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(peak.year === 2086 && natNeg === 2087 && under === 2047, 'peak 2086, natural decrease 2087, fertility under 2.1 from 2047');
+
+const title = `Syria Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)}M After a Post-2011 Fall and Recovery | AtlasFigures`;
+const description = `At ${millions(c.population)} in ${CURRENT_YEAR} (UN), Syria now exceeds 2011's ${millions(hi.population)}. A fall to ${millions(low.population)} by 2016 gave way to net arrivals from 2018 and growth of ${pct(c.growthRatePct)}.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: sy.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Growth', value: `+${pct(c.growthRatePct)}` },
+  { label: '2016 low', value: millionsShort(low.population) },
+  { label: `Peak, ${peak.year}`, value: millionsShort(peak.population) },
+];
+
+const rows = displayRows(un.years, sy.tableYears);
+
+const faq = [
+  { q: 'How many Syrians live in the country this year?', a: `The UN's estimate for the Syrian Arab Republic is ${millions(c.population)} this year. That ranks ${ord(c.worldRank!)} worldwide and fifth in Western Asia.` },
+  { q: "By how much did Syria's population drop after 2011?", a: `By about ${millions(lost)} between the mid-year totals of 2011 (${millions(hi.population)}) and 2016 (${millions(low.population)}), the UN's figures show.` },
+  { q: 'Has migration to Syria picked up?', a: `In the UN series, yes. Arrivals have outweighed departures annually since 2018, and in ${inTop.year} the surplus reached roughly ${int(Math.round(inTop.netMigrants / 1000))} thousand, a figure only the United States exceeded that year. The data do not identify who arrived.` },
+  { q: 'What is driving Syria\'s population growth?', a: `Both parts of the balance are positive: about ${int(Math.round(c.naturalChange / 1000))} thousand more births than deaths and about ${int(Math.round(c.netMigrants / 1000))} thousand net arrivals this year, for growth of ${pct(c.growthRatePct)}.` },
+  { q: 'Will Syria\'s population ever stop growing?', a: `Yes, late in the century: the UN's central projection tops out in ${peak.year} with ${millions(peak.population)}, and deaths overtake births the following year.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: sy.slug, name: sy.name, wikipedia: sy.wikipedia,
+  headline: `Syria's ${millions(c.population)}: a fall after 2011, net arrivals since 2018 and a peak in ${peak.year}`,
+  description,
+  datasetName: 'Syria population, net migration and life expectancy, 1950–2100',
+  datasetDescription: `Mid-year population of the Syrian Arab Republic for selected years from 1950 to ${CURRENT_YEAR} (each year 2010–2018 included), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: sy.published, updated: sy.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Syria"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Syria', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Syria: a steep fall after 2011, and arrivals again since 2018</h1>
+        <LiveCounter
+          label="Syria: estimated population at this moment"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} anchor with roughly ${int(c.change / 365)} added every day`}
+        />
+        <p class="answer">
+          Syria's population, <strong>{millions(c.population)}</strong> in the UN's {CURRENT_YEAR} figures, is larger than the {millions(hi.population)} of 2011. Between 2011 and 2016 the total fell by some {millions(lost)}; since 2018 each year has brought more arrivals than departures, lifting growth to <strong>{pct(c.growthRatePct)}</strong>, a pace matched by few large nations.
+        </p>
+        <div class="dates"><span>Updated <time datetime={sy.updated}>{longDate(sy.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Syria" code="sy" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>How much did Syria's population fall after 2011?</h2>
+          <p>By roughly {millions(lost)} in five years. Mid-2011 saw {millions(hi.population)}; mid-2016, {millions(low.population)}. Net departures were recorded in every year from 2011 to 2017, the largest in 2013 at about {millions(-outTop.netMigrants)}, more than any other country that year. Life expectancy at birth went from {dec(y[2010].lifeExpectancy, 1)} years in 2010 to {dec(y[2015].lifeExpectancy, 1)} in 2015. These are counts and estimates; the UN files do not give causes.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Net migration in Syria, UN estimates">
+          <div><span class="y">{outTop.year}</span><div class="v">−{(-outTop.netMigrants / 1e6).toFixed(2)}M</div><span class="d">Net departures</span></div>
+          <div><span class="y">{inTop.year}</span><div class="v">+{int(Math.round(inTop.netMigrants / 1000))}k</div><span class="d">Net arrivals</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">+{int(Math.round(c.netMigrants / 1000))}k</div><span class="d">Net arrivals</span></div>
+        </div>
+        <LineChart
+          title="Syria's population, 1950–2100, with every year from 2010 to 2018"
+          subtitle="UN mid-year totals; the dip and recovery after 2011 show clearly, and the projection is dashed."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Has Syria been gaining people through migration since 2018?</h2>
+          <p>Yes. More people have come than gone in every UN estimate since 2018, most of all in {inTop.year}, at about {int(Math.round(inTop.netMigrants / 1000))} thousand, the second-largest net inflow of any country that year after the United States. The surplus is about {int(Math.round(c.netMigrants / 1000))} thousand in {CURRENT_YEAR}. The population passed its 2011 level again in {passed}. Who the newcomers are is not something the UN figures record.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>What is Syria's growth rate today?</h2>
+          <p>At {pct(c.growthRatePct)} in {CURRENT_YEAR}, the fourth-fastest rate among countries with ten million people or more. Around {int(Math.round(c.naturalChange / 1000))} thousand more births than deaths combine with the net arrivals. Fertility, {dec(c.fertility, 2)} per woman, is projected to fall below 2.1 in {under}, and the median age is just {dec(c.medianAge, 1)}.</p>
+        </div>
+        <LineChart
+          title="Syrian fertility, 1950 to 2050"
+          subtitle="Average children per Syrian woman, estimated then projected (dashed), with 2.1 for reference."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'at 2.1' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>What is the long-term outlook for Syria's population?</h2>
+          <p>Growth slows sharply, to {millions(y[2050].population)} by 2050, and the series crests in {peak.year} with {millions(peak.population)}, a year before natural decrease sets in ({natNeg}). Syria is fifth in Western Asia today; its urban share, nationally defined, is {pct(c.urbanPct!)}.</p>
+        </div>
+        <RelatedPages iso3={sy.iso3} name={sy.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Syria: each year 2010–2018, recent years and the projection"
+          subtitle="Rows 2011–2016 show the fall and 2018 onward the rebound; projections follow the estimate years."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${sy.slug}-population.csv`)}
+          csvName={`${sy.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Syria's population: questions answered</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{sy.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={sy.published}>{longDate(sy.published)}</time> · Updated <time datetime={sy.updated}>{longDate(sy.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Syria population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Syria" code="sy" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

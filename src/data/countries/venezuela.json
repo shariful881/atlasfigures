@@ -1,0 +1,61 @@
+{
+  "slug": "venezuela",
+  "name": "Venezuela",
+  "demonym": "Venezuelan",
+  "capital": "Caracas",
+  "iso3": "VEN",
+  "code": "ve",
+  "continent": "Americas",
+  "wikipedia": "https://en.wikipedia.org/wiki/Venezuela",
+  "unName": "Venezuela (Bolivarian Republic of)",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    2000,
+    2010,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2026,
+    2030,
+    2040,
+    2050,
+    2057,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/venezuela.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; fifth in South America; rank 2010, now, 2100",
+      "Estimate-year high 2016; declines in each year 2017–2021 only; mid-year low 2022",
+      "Net departures every year since 2010; 2016, 2018 (largest of any country that year) and 2026 values; cumulative 2015–2026 about 4.9 million",
+      "Natural increase and growth 2026; median age and births 2016 vs now; fertility under 2.1 since 2022",
+      "2016 level regained in 2044; projected peak 2057; 2100 total; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 76 of 76 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Migration is described only as counts; no causes or parties are named."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
