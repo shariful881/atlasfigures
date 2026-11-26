@@ -1,0 +1,60 @@
+name: Deploy to Cloudflare Pages (atlasfigures.com)
+
+# Task 22. Builds main for the real domain and uploads it to the Cloudflare Pages
+# project "atlasfigures". Runs only after the owner has added two repository secrets
+# (Settings → Secrets and variables → Actions): CLOUDFLARE_API_TOKEN (permission:
+# Account → Cloudflare Pages → Edit) and CLOUDFLARE_ACCOUNT_ID. Without them the job
+# is skipped, so nothing changes for the GitHub Pages copy.
+#
+# The site stays out of search (PUBLIC_INDEXABLE=false: noindex + closed robots.txt)
+# until task 23 ("open to Google") changes the repository variable PUBLIC_INDEXABLE.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+    steps:
+      - name: Secrets not set yet — skipping
+        if: env.HAS_TOKEN != 'true'
+        run: echo "CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID are not set; nothing deployed."
+      - uses: actions/checkout@v4
+        if: env.HAS_TOKEN == 'true'
+      - uses: actions/setup-node@v4
+        if: env.HAS_TOKEN == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+        if: env.HAS_TOKEN == 'true'
+      - name: Build and check for atlasfigures.com
+        if: env.HAS_TOKEN == 'true'
+        run: npm run check
+        env:
+          SITE_URL: https://atlasfigures.com
+          SITE_BASE: /
+          PUBLIC_INDEXABLE: ${{ vars.PUBLIC_INDEXABLE || 'false' }}
+      - name: Create the Pages project if it does not exist
+        if: env.HAS_TOKEN == 'true'
+        run: npx --yes wrangler@3 pages project create atlasfigures --production-branch=main || true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Upload to Cloudflare Pages
+        if: env.HAS_TOKEN == 'true'
+        run: npx --yes wrangler@3 pages deploy dist --project-name=atlasfigures --branch=main --commit-hash=${{ github.sha }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

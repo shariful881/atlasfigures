@@ -14,7 +14,7 @@ import { join } from 'node:path';
 import { parse } from 'node-html-parser';
 
 const DIST = process.argv[2] || 'dist';
-const BASE = '/atlasfigures';
+const BASE = (process.env.SITE_BASE ?? '/atlasfigures').replace(/\/$/, '');
 const problems = [];
 let checks = 0;
 const ok = (cond, where, what) => { checks++; if (!cond) problems.push(`${where}: ${what}`); return cond; };

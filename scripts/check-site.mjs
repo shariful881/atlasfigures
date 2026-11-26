@@ -19,7 +19,7 @@ import { execFileSync } from 'node:child_process';
 import { parse } from 'node-html-parser';
 
 const DIST = process.argv[2] || 'dist';
-const BASE = '/atlasfigures';
+const BASE = (process.env.SITE_BASE ?? '/atlasfigures').replace(/\/$/, '');
 const CURRENT_YEAR = 2026;
 const problems = [];
 const fail = (where, what) => problems.push(`${where}: ${what}`);
