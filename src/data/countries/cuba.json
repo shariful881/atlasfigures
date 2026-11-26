@@ -1,0 +1,61 @@
+{
+  "slug": "cuba",
+  "name": "Cuba",
+  "demonym": "Cuban",
+  "capital": "Havana",
+  "iso3": "CUB",
+  "code": "cu",
+  "continent": "Americas",
+  "wikipedia": "https://en.wikipedia.org/wiki/Cuba",
+  "unName": "Cuba",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1963,
+    1965,
+    1970,
+    1978,
+    1980,
+    1990,
+    2000,
+    2010,
+    2012,
+    2013,
+    2019,
+    2020,
+    2021,
+    2022,
+    2026,
+    2030,
+    2040,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/cuba.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area",
+      "Peak 2012; lower every year 2013–2100; amount and share lost since the peak; 2050 and 2100 totals (about half)",
+      "Deaths above births every year from 2019; births, deaths, net departures now; net departures every year 1950–2100; births peak 1965",
+      "Fertility under 2.1 from 1978, first in Latin America and the Caribbean (1 million+), every year since; 1963 high; now",
+      "Lowest infant mortality and second-oldest median age (after Puerto Rico) in the region; life expectancy now and 2021 dip; third in the Caribbean; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 70 of 70 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}

@@ -1,0 +1,232 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
+import cub from '../../data/countries/cuba.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: a peak in 2012 and a lower mid-year total in
+// every year since, projected to continue to 2100 (about half today's size); deaths above births since 2019; net
+// departures in every year 1950–2100; the first country in Latin America and the Caribbean (1 million+) with fertility
+// under 2.1, in 1978; the lowest infant mortality and second-oldest median age in that group.
+const PAGE = '/population/cuba/';
+const un = countryData(cub.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (cub.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+assertClaim(peak.year === 2012, 'peak 2012');
+assertClaim(un.years.filter((r) => r.year > 2012).every((r) => r.population < y[r.year - 1].population), 'lower every year after 2012, to 2100');
+const lost = peak.population - c.population;
+const lostPct = (lost / peak.population) * 100;
+assertClaim(lostPct > 3.5 && lostPct < 3.7, 'about 3.6% below peak');
+const natNeg = un.years.filter((r) => r.naturalChange < 0).map((r) => r.year);
+assertClaim(natNeg[0] === 2019 && un.years.filter((r) => r.year >= 2019).every((r) => r.naturalChange < 0), 'deaths above births every year from 2019');
+assertClaim(un.years.every((r) => r.netMigrants < 0), 'net departures every year 1950–2100');
+const half = y[2100].population / c.population;
+assertClaim(half > 0.5 && half < 0.52, 'about half by 2100');
+const lac1 = wpp.filter((d: any) => d.region === 'Latin America and the Caribbean' && at(d).population >= 1e6);
+const first21 = (d: any) => (d.years.find((r: any) => r.fertility < 2.1) ?? { year: 9999 }).year;
+assertClaim([...lac1].sort((a: any, b: any) => first21(a) - first21(b))[0].iso3 === 'CUB' && first21({ years: un.years }) === 1978, 'first in LAC under 2.1, in 1978');
+assertClaim(un.years.filter((r) => r.year >= 1978 && r.year <= CURRENT_YEAR).every((r) => r.fertility < 2.1), 'under 2.1 every year since 1978');
+const tfrTop = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(tfrTop.year === 1963, 'fertility high 1963');
+const birthTop = un.years.reduce((a, b) => (b.births > a.births ? b : a));
+assertClaim(birthTop.year === 1965 && c.births * 3 < birthTop.births * 1.01 && c.births * 3 > birthTop.births * 0.95, 'births about a third of the 1965 peak');
+assertClaim([...lac1].sort((a: any, b: any) => at(a).infantMortalityPer1000 - at(b).infantMortalityPer1000)[0].iso3 === 'CUB', 'lowest infant mortality in LAC');
+assertClaim([...lac1].sort((a: any, b: any) => at(b).medianAge - at(a).medianAge).slice(0, 2).map((d: any) => d.iso3).join() === 'PRI,CUB', 'second-oldest median age after Puerto Rico');
+assertClaim(y[2021].lifeExpectancy < y[2020].lifeExpectancy - 4 && y[2022].lifeExpectancy > y[2020].lifeExpectancy, '2021 life-expectancy dip');
+const car = wpp.filter((d: any) => d.subregion === 'Caribbean').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(car.slice(0, 3).join() === 'HTI,DOM,CUB', 'third in the Caribbean');
+
+const title = `Cuba Population ${CURRENT_YEAR} (${(c.population / 1e6).toFixed(1)}M): Smaller Every Year Since the 2012 Peak | AtlasFigures`;
+const description = `UN figures for ${CURRENT_YEAR} give Cuba ${millions(c.population)} inhabitants. The total has fallen each year since its 2012 peak, with more deaths than births from 2019 on; by 2100 the medium variant has it near half today's size.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: cub.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'Life expectancy', value: dec(c.lifeExpectancy, 1) },
+];
+
+const rows = displayRows(un.years, cub.tableYears);
+
+const faq = [
+  { q: "Has Cuba's population been shrinking?", a: `Yes. The 2012 high was ${millions(peak.population)}; each year since has been lower, adding up to about ${pct(lostPct)} so far, and the UN projects the decline to run through 2100.` },
+  { q: 'Why is Cuba shrinking?', a: `In the UN figures two things combine: since 2019 deaths have exceeded births (${int(c.deaths)} against ${int(c.births)} this year), and emigrants outnumber immigrants in every year from 1950 on, ${int(-c.netMigrants)} net in ${CURRENT_YEAR}.` },
+  { q: 'When did Cuban fertility fall below replacement?', a: `In 1978, the earliest in the region among countries with over a million people, and it has stayed under 2.1 ever since; it is ${dec(c.fertility, 2)} today.` },
+  { q: 'What age splits the Cuban population in half?', a: `${dec(c.medianAge, 1)} years; in the region, among countries over a million, only Puerto Rico's population is older.` },
+  { q: 'What is the UN outlook for Cuba by 2100?', a: `Roughly half of today: ${millions(y[2100].population)}, after ${millions(y[2050].population)} in 2050.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: cub.slug, name: cub.name, wikipedia: cub.wikipedia,
+  headline: `Cuba's ${millions(c.population)}: a 2012 peak, a decline every year since, and fertility under 2.1 from 1978`,
+  description,
+  datasetName: 'Cuba population, births, deaths and fertility, 1950–2100',
+  datasetDescription: `Mid-year population of Cuba for selected years from 1950 to ${CURRENT_YEAR} (2012, 2013 and 2019–2022 included), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: cub.published, updated: cub.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Cuba"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Cuba", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Cuba: a population past its peak</h1>
+        <LiveCounter
+          label="Cuba: estimated population right this moment"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`Based on UN World Population Prospects 2024 for mid-${CURRENT_YEAR}: a loss of around ${int(-c.change / 365)} people a day`}
+        />
+        <p class="answer">
+          Cuba has been losing population since its 2012 peak and is down to <strong>{millions(c.population)}</strong> in {CURRENT_YEAR}, on the UN's estimate. Fewer births than deaths and steady emigration both pull the total down.
+        </p>
+        <div class="dates"><span>Updated <time datetime={cub.updated}>{longDate(cub.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Cuba" code="cu" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Since when has Cuba been shrinking?</h2>
+          <p>From 2013. The series peaks at {millions(peak.population)} in 2012, and each mid-year estimate since has come in below the previous year's; the {CURRENT_YEAR} figure is {int(lost)} below the peak. In the medium variant the decline never stops, leaving {millions(y[2050].population)} by 2050 and only {millions(y[2100].population)} by 2100, about half of today.</p>
+        </div>
+        <LineChart
+          title="Cuba's population, 1950–2100: the 2012 high and after"
+          subtitle="Estimated to 2023; the dashed projection falls in every year through 2100."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How many more deaths than births does Cuba have?</h2>
+          <p>Some {int(c.deaths - c.births)} this year, and deaths have led in each year from 2019. The projection has {int(c.deaths)} deaths and only {int(c.births)} births, roughly a third of the {int(birthTop.births)} born in {birthTop.year}. Emigration adds to the loss: net departures are recorded for all years 1950–2100, {int(-c.netMigrants)} in {CURRENT_YEAR}.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Cuba this year: births, deaths and net departures (UN)">
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{int(c.births)}</div><span class="d">Births</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{int(c.deaths)}</div><span class="d">Deaths</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{int(-c.netMigrants)}</div><span class="d">Net departures</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>When did Cuba's fertility drop under 2.1?</h2>
+          <p>In 1978, at {dec(y[1978].fertility, 2)}, a first for any country in the region with more than a million inhabitants, and it has not been back above 2.1 since. The rate had been {dec(tfrTop.fertility, 2)} in {tfrTop.year}; it is {dec(c.fertility, 2)} now.</p>
+        </div>
+        <LineChart
+          title="Cuba's fertility rate and the 2.1 line, 1950–2050"
+          subtitle="UN estimates, under the 2.1 line from 1978; medium-variant projection dashed to 2050."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: '2.1 children' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Which Latin American population is older than Cuba's?</h2>
+          <p>Only Puerto Rico's, among the region's nations above one million. Cuba's median age is {dec(c.medianAge, 1)}, and it also has that group's lowest infant mortality rate, just {dec(c.infantMortalityPer1000!, 1)}. Life expectancy, {dec(c.lifeExpectancy, 1)}, fell to {dec(y[2021].lifeExpectancy, 1)} in 2021 and rebounded the following year. By population Cuba ranks third in the Caribbean, after Haiti and the Dominican Republic.</p>
+        </div>
+        <RelatedPages iso3={cub.iso3} name={cub.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Cuba in figures, with the 2012 peak and 2019–2022"
+          subtitle="From the 2013 row on, every total is lower than the last."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${cub.slug}-population.csv`)}
+          csvName={`${cub.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Cuba's population in brief: your questions</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{cub.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={cub.published}>{longDate(cub.published)}</time> · Updated <time datetime={cub.updated}>{longDate(cub.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Cuba population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Cuba" code="cu" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
