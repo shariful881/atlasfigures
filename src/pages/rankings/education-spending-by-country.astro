@@ -1,0 +1,199 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import WorldMap from '../../components/WorldMap.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/education-spending-by-country.json';
+import { econData, econMeta, aggregate, rankLatest, latest } from '../../lib/econ';
+import { assertClaim, ord } from '../../lib/figures';
+import { commonName, pagesOf } from '../../lib/names';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/); the spending data are UNESCO's.
+// Countries report education spending with different delays, so each is ranked on its most recent figure from
+// SINCE onward, and the table shows which year that is.
+const PAGE = '/rankings/education-spending-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WDI = 'World Bank, World Development Indicators (UNESCO Institute for Statistics)';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = meta.verification?.checkedOn;
+const name = commonName;
+const M = econMeta.indicators.eduSpendPctGdp;
+const SINCE = 2020;
+
+const ranked = rankLatest('eduSpendPctGdp', SINCE);
+const N = ranked.length;
+const wm = latest(aggregate('WLD').series.eduSpendPctGdp)!;
+const byIso = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const p1 = (v: number) => `${v.toFixed(1)}%`;
+const vals = ranked.map((r) => r.value).sort((a, b) => a - b);
+const median = N % 2 ? vals[(N - 1) / 2] : (vals[N / 2 - 1] + vals[N / 2]) / 2;
+const atLeast4 = ranked.filter((r) => r.value >= 4).length;
+const grp = (g: string) => latest(aggregate(g).series.eduSpendPctGdp)!;
+const hic = grp('HIC'), lic = grp('LIC');
+const bgd = byIso('BGD');
+const bgdSeries = econData('BGD').series.eduSpendPctGdp.filter(([y]) => y >= 2000);
+const sas = ranked.filter((r) => r.region === 'South Asia');
+const bottom = ranked.slice(-4).reverse();
+const top3 = ranked.slice(0, 3);
+const maxY = ranked.reduce((a, r) => Math.max(a, r.year), 0);
+
+assertClaim(M.aggregation === 'Median' && wm.year === 2023 && N === 184, 'world figure is a median; 2023; 184 places since 2020');
+assertClaim(top3.map((r) => r.iso3).join() === 'KIR,TUV,FSM' && top3[2].value > 11, 'Kiribati, Tuvalu, Micronesia top, all above 11%');
+assertClaim(bottom[0].iso3 === 'SOM' && bottom[0].value < 0.001 && bottom[1].iso3 === 'NGA' && bottom[2].iso3 === 'ZWE' && bottom[3].iso3 === 'PNG' && bottom[1].value < 0.4, 'Somalia ~0, Nigeria, Zimbabwe, Papua New Guinea lowest');
+assertClaim(Math.round(median * 10) === 42 && atLeast4 === 101, 'median 4.2%; 101 at 4% or more');
+assertClaim(hic.value > 4.6 && lic.value < 3.1 && hic.year === 2022 && lic.year === 2022, 'high income 4.7%, low income 3.0% (2022 medians)');
+assertClaim(bgd.year === 2024 && bgd.value > 2 && bgd.value < 2.1 && bgd.rank === 167 && byIso('PAK').rank === 168 && byIso('LKA').rank === 173, 'Bangladesh 2.0% 167th; Pakistan 168th; Sri Lanka 173rd');
+assertClaim(sas.length === 6 && sas[0].iso3 === 'BTN' && byIso('IND').value > 4 && byIso('NPL').value > 3.6, 'Bhutan highest in South Asia; India above 4%');
+assertClaim(bgdSeries.every(([, v]) => v < 2.7) && bgdSeries.length >= 20, 'Bangladesh never above 2.7% since 2000');
+assertClaim(byIso('SWE').rank === 13 && byIso('USA').year === 2021 && byIso('GBR').year === 2021 && byIso('USA').value > 5.4 && byIso('GBR').value > byIso('USA').value, 'Sweden 13th; US 5.4% (2021); UK above US');
+
+const title = `Education Spending by Country: Government Spending as % of GDP | AtlasFigures`;
+const description = `Governments spend a median ${p1(median)} of GDP on education across ${N} countries. Kiribati spends the most (${p1(top3[0].value)}); Bangladesh spends ${p1(bgd.value)}, among the lowest. UNESCO data.`;
+
+const cards = [
+  { label: 'Median country', value: p1(median), year: `${SINCE}–${maxY}`, note: `of GDP, ${N} countries` },
+  { label: 'High-income median', value: p1(hic.value), year: hic.year, note: 'World Bank group' },
+  { label: 'Low-income median', value: p1(lic.value), year: lic.year, note: 'World Bank group' },
+  { label: 'Bangladesh', value: p1(bgd.value), year: bgd.year, note: `${ord(bgd.rank)} of ${N}` },
+];
+
+const rows = ranked.map((r) => {
+  const pg = pagesOf(r.iso3); const site = pg.economy ?? pg.population;
+  return {
+    rank: r.rank, iso3: r.iso3, name: name(r.iso3), site, href: site ? path(site) : null, region: r.region,
+    bar: Math.min(r.value / 10, 1), value: p1(r.value),
+    cells: [String(r.year), r.incomeGroup ?? '–'],
+  };
+});
+const mapFmt = (v: number) => `${v.toFixed(1)}%`;
+const mapRows = ranked.map((r) => ({ iso3: r.iso3, name: name(r.iso3), rank: r.rank, raw: r.value, value: `${p1(r.value)} of GDP (${r.year})` }));
+const regions = [...new Set(ranked.map((r) => r.region))].sort();
+
+const faq = [
+  { q: 'Which country spends the most on education?', a: `Relative to the size of its economy, Kiribati: ${p1(top3[0].value)} of GDP in ${top3[0].year}. Tuvalu (${p1(top3[1].value)}) and Micronesia (${p1(top3[2].value)}), also small Pacific island states, follow.` },
+  { q: 'How much does Bangladesh spend on education?', a: `${p1(bgd.value)} of GDP in ${bgd.year}, ${ord(bgd.rank)} of the ${N} countries listed. Bangladesh has not spent more than 2.7% of GDP in any year since 2000.` },
+  { q: 'How much do governments usually spend on education?', a: `The median across the ${N} countries is ${p1(median)} of GDP, and ${atLeast4} of them spend at least 4%. In the World Bank's income groups the median was ${p1(hic.value)} for high-income and ${p1(lic.value)} for low-income economies in ${hic.year}.` },
+  { q: 'Does the United States spend more on education than the UK?', a: `No, as a share of GDP: in ${byIso('USA').year} America's government spent ${p1(byIso('USA').value)} against Britain's ${p1(byIso('GBR').value)}.` },
+  { q: 'Which countries spend the least?', a: `Somalia's published figure is effectively zero, and Nigeria (${p1(bottom[1].value)}), Zimbabwe (${p1(bottom[2].value)}) and Papua New Guinea (${p1(bottom[3].value)}) report less than 1% of GDP.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Government education spending by country: ${N} countries ranked by % of GDP`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'CreativeWork', name: 'World Development Indicators', url: WDI_URL, publisher: { '@type': 'Organization', name: 'The World Bank' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `Government expenditure on education by country, % of GDP, latest year`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Government expenditure on education by country, % of GDP, latest year from ${SINCE}`,
+    description: `General government expenditure on education as a percentage of GDP for ${N} countries and areas, each at its most recent year from ${SINCE} on, ranked, from the World Development Indicators (update of ${longDate(M.wdiLastUpdated)}). The data come from the UNESCO Institute for Statistics.`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WDI_URL], temporalCoverage: `${SINCE}/${maxY}`,
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['Government expenditure on education, total (% of GDP)'],
+    dateModified: iso(UPDATED), license: econMeta.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/education-spending-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="Education spending" back="/rankings/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Rankings', href: '/rankings/' }, { name: 'Education spending by country', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>Education spending by country</h1>
+    <p class="answer">The typical government spends about <strong>{p1(median)}</strong> of GDP on education — the median of {N} countries' latest figures. Small Pacific island states top the list, while Bangladesh, at {p1(bgd.value)}, is among the lowest spenders.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`Government education spending, latest figures`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="map">Map</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="map" aria-label="Map" hidden-mobile>
+      <WorldMap
+        id="map-h" title={`Government education spending, % of GDP, latest year from ${SINCE}`}
+        subtitle="Darker means a bigger share of national output spent on education by central, regional and local government. Each of the five colours covers a similar count of countries."
+        rows={mapRows} fmt={mapFmt}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+    </section>
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`Education spending as a share of GDP, latest figure from ${SINCE}`}
+        subtitle="Highest first; the year column says which year each country's most recent UNESCO figure covers."
+        valueLabel="% of GDP"
+        cols={[{ label: 'Year' }, { label: 'Income group', cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={regions}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        csv={path('/data/education-spending-by-country.csv')} csvName="education-spending-by-country.csv"
+        licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+      />
+      <p class="note">Bars run to 10% of GDP. Ranked: {N} places reporting in {SINCE} or later; the median is our calculation from those figures.</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>How much of GDP do governments spend on education?</h2>
+        <p>Typically around 4%. Half of the {N} countries spend at least {p1(median)} of GDP, and {atLeast4} spend 4% or more. Richer countries tend to spend a larger share: the World Bank's median was {p1(hic.value)} for high-income economies in {hic.year} against {p1(lic.value)} for low-income ones.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Which countries spend the most and the least?</h2>
+        <p>Kiribati ({p1(top3[0].value)}), Tuvalu ({p1(top3[1].value)}) and Micronesia ({p1(top3[2].value)}) — tiny Pacific economies — lead the ranking; among larger countries, Sweden is {ord(byIso('SWE').rank)} at {p1(byIso('SWE').value)}. At the bottom, Somalia's published figure is effectively zero and <a href={path('/economy/nigeria/')}>Nigeria</a> reports {p1(bottom[1].value)} of GDP. The <a href={path('/economy/united-states/')}>United States</a> spent {p1(byIso('USA').value)} in {byIso('USA').year}, less than the <a href={path('/economy/united-kingdom/')}>United Kingdom</a>'s {p1(byIso('GBR').value)}.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>Where does Bangladesh stand on education spending?</h2>
+        <p>Near the bottom. <a href={path('/economy/bangladesh/')}>Bangladesh</a>'s government spent {p1(bgd.value)} of GDP on education in {bgd.year}, {ord(bgd.rank)} of {N}, and the share has not exceeded 2.7% since 2000. <a href={path('/economy/pakistan/')}>Pakistan</a> ({p1(byIso('PAK').value)}) and <a href={path('/economy/sri-lanka/')}>Sri Lanka</a> ({p1(byIso('LKA').value)}) are similar, while <a href={path('/economy/india/')}>India</a> ({p1(byIso('IND').value)}, {byIso('IND').year}) and Bhutan ({p1(byIso('BTN').value)}) spend more.</p>
+      </div>
+      <LineChart
+        title={`Bangladesh: education spending, ${bgdSeries[0][0]}–${bgd.year}`}
+        subtitle="General government expenditure on education as % of GDP, UNESCO figures via the World Bank; years without a figure are skipped."
+        points={bgdSeries.map(([x, y]) => ({ x, y: Number(y.toFixed(2)) }))}
+        format="percent" highlight={bgd.year} estimateLabel="World Bank data"
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Education spending: questions answered</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(M.wdiLastUpdated)}): government expenditure on education, total, % of GDP (SE.XPD.TOTL.GD.ZS), from the UNESCO Institute for Statistics. Income-group figures: the World Bank's medians. The median of all {N} countries is our calculation. Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          <li>Related pages: <a href={path('/rankings/literacy-rate-by-country/')}>literacy rate by country</a>, <a href={path('/rankings/gdp-by-country/')}>GDP by country</a>.</li>
+        </ul>
+        <p class="note">The figure covers general government spending on education — current, capital and transfers, by central, regional and local government, including money received from international sources. For some countries it covers the education ministry only. Private spending by families is not included. Each country is ranked on its latest figure from {SINCE} onwards, so years differ. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Education spending by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+</style>

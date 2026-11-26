@@ -1,0 +1,20 @@
+{
+  "slug": "literacy-rate-by-country",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/edu-115.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; check-wdi.mjs compares all generated WDI values with the original files; then the text was read by hand",
+    "what": "every ranking row (119 countries and areas: order, value and year of each country's latest figure from 2015), the CSV, every figure in the text, FAQ, title, description and JSON-LD; claims: world 87.7% in 2024 and 65.4% in 1975 with slower gains since 2000, Chad lowest then Niger, Mali and Afghanistan, eight countries below 50% all in sub-Saharan Africa except Afghanistan, 16 at 99% or more, Bangladesh 79.0% (2022) from 29.2% (1981), only 20 of 86 high-income economies report; definition and caveats from the indicator notes",
+    "against": "World Bank WDI bulk files and indicator metadata (update 11 November 2026, CC BY 4.0; data from the UNESCO Institute for Statistics)",
+    "result": "Before publishing, single-year ranking was rejected (no year has more than 56 countries) in favour of each country's latest figure from 2015, shown with its year; the rankings hub note was updated to say so. All automated comparisons matched"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: UNESCO adult literacy rates via World Bank WDI, latest year from 2015."
+    }
+  ]
+}
