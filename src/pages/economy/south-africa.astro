@@ -105,7 +105,7 @@ const schema = econSchema({
           title={`GDP of South Africa, 1960–${L}`}
           subtitle="Current US dollars; the 2011 high has not been regained."
           points={s.gdp.map(([x, y]) => ({ x, y }))}
-          format="usd" highlight={L} estimateLabel="World Bank data"
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
           source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
         />
         <div class="story-block prose">

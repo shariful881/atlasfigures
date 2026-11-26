@@ -1,0 +1,152 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/nepal.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/nepal/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const shareTop = rankBy('remittancesPctGdp', rem!.year);
+const remRank = rankBy('remittances', rem!.year).find((r) => r.iso3 === c.iso3)!.rank;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const lowInflSince = Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y));
+const negs = s.gdpGrowthPct.filter(([, x]) => x < 0).map(([y]) => y);
+const remX = (rem!.value / v('remittances', 2015)!).toFixed(1);
+
+assertClaim(rem!.year === L && shareTop.slice(0, 3).map((r) => r.iso3).join() === 'TJK,TON,NPL' && isMax(s.remittancesPctGdp) && remPct!.value > 30, 'remittances third-highest share of GDP, a record, above 30%');
+assertClaim(isMax(s.remittances) && remRank === 15 && Number(remX) > 2, 'record remittances, 15th, more than double 2015');
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita), 'record GDP and per person');
+assertClaim(infl.year === L && lowInflSince === 2007 && i(2022) > 7, 'inflation lowest since 2007');
+assertClaim(negs.at(-1) === 2020 && negs.at(-2) === 1983, '2020 the only decline since 1983');
+assertClaim(unemp! > 10 && net!.value < 50, 'unemployment above 10%; under half online');
+
+const title = `Nepal Economy ${L}: Remittances Near a Third of GDP | AtlasFigures`;
+const description = `Nepal took in ${usd(rem!.value)} of remittances during ${L}, ${pct(remPct!.value)} of GDP — the third-highest share anywhere. GDP hit a record ${usd(gdp)}; inflation fell to ${pct(infl.value)}.`;
+
+const faq = [
+  { q: 'How dependent is Nepal on remittances?', a: `Very: in ${L} the inflow matched ${pct(remPct!.value)} of GDP, Nepal\'s highest ratio yet. Only Tajikistan and Tonga had higher shares.` },
+  { q: 'Are remittances to Nepal still growing?', a: `They are, and the ${L} total was some ${remX} times 2015\'s, putting Nepal ${ord(remRank)} by value of inflows worldwide.` },
+  { q: 'When did Nepali output last fall?', a: `In 2020, by ${pct(Math.abs(g(2020)))}. Before that, the last decline was in 1983.` },
+  { q: 'Are Nepali prices still rising fast?', a: `Price growth slowed to ${pct(infl.value)} in ${L} from ${pct(i(2022))} in 2022, Nepal\'s calmest year for prices since 2007.` },
+  { q: 'What is GDP per person in Nepal?', a: `${usdWhole(perHead)} in ${L}, its highest so far; ${intDollars(ppp!)} at comparable prices.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Nepal's economy ${L}: remittances near a third of GDP, record output and the lowest inflation since 2007`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Nepali economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Nepal', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Nepal's economy: powered by money from abroad</h1>
+        <p class="answer">
+          In {L} remittances to Nepal totalled <strong>{usd(rem!.value)}</strong>, equal to <strong>{pct(remPct!.value)}</strong> of GDP. The economy grew {pct(growth)} to {usd(gdp)}, its largest yet.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Nepal economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Nepal" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Few countries lean on workers abroad as heavily as Nepal: only two had a higher remittance share of GDP in {L}.</p>
+
+        <div class="story-block prose">
+          <h2>How much of Nepal's economy comes from remittances?</h2>
+          <p>Close to a third. Migrant workers' transfers home came to {usd(rem!.value)} in {L} — the equivalent of {pct(remPct!.value)} of GDP, Nepal's highest share yet. Among all economies only Tajikistan and Tonga were more reliant.</p>
+        </div>
+        <LineChart
+          title={`Remittances as a share of Nepal's GDP`}
+          subtitle="Personal remittances received, % of GDP."
+          points={s.remittancesPctGdp.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Has the amount sent home kept rising?</h2>
+          <p>Yes: {usd(rem!.value)} is about {remX} times the 2015 figure and ranks {ord(remRank)} by value worldwide.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Is Nepal's economy at a record size?</h2>
+          <p>Yes. After {pct(growth)} real growth in {L}, GDP stood at {usd(gdp)}, or {usdWhole(perHead)} per inhabitant ({intDollars(ppp!)} at comparable prices). The only fall in output since 1983 came in 2020.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Are prices and jobs improving in Nepal?</h2>
+          <p>Prices are: inflation eased to {pct(infl.value)}, a pace Nepal last undercut in 2007. Jobs less so — ILO-modelled unemployment stayed at {pct(unemp!)} — while {pct(net!.value)} of Nepalis had internet access.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Nepal and South Asia: related pages</h2>
+          <ul>
+            <li><a href={path('/population/nepal/')}>Nepal's population</a></li>
+            <li><a href={path('/economy/india/')}>India's economy</a></li>
+            <li><a href={path('/economy/bangladesh/')}>Bangladesh's economy</a></li>
+            <li><a href={path('/economy/sri-lanka/')}>Sri Lanka's economy</a></li>
+            <li><a href={path('/rankings/remittances-by-country/')}>Remittances by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Nepal's output, prices and remittances in selected years`}
+          subtitle="Decade rows from 1960, 2015, then 2019 onward; missing years are in the CSV."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/nepal-economy.csv')} csvName="nepal-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Nepal's economy in questions</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">The World Bank notes Nepal's national accounts use a fiscal year ending 14 July. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Nepali economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Nepal" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

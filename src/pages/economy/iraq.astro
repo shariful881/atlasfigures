@@ -87,7 +87,7 @@ const schema = econSchema({
           title={`Iraq's output in current dollars since 1960`}
           subtitle="Current US dollars; the high point is 2022."
           points={s.gdp.map(([x, y]) => ({ x, y }))}
-          format="usd" highlight={L} estimateLabel="World Bank data"
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
           source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
         />
         <div class="story-block prose">

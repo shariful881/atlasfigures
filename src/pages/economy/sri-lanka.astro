@@ -1,0 +1,157 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/sri-lanka.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/sri-lanka/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const inflLow = rankBy('inflationPct', L).slice().reverse();
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const negInfl = s.inflationPct.filter(([, x]) => x < 0).map(([y]) => y);
+const remRank = rankBy('remittances', L).find((r) => r.iso3 === c.iso3)!.rank;
+
+assertClaim(infl.year === L && infl.value < 0 && i(2024) < 0 && inflLow[0].iso3 === c.iso3, 'prices fell in 2024 and 2025; steepest fall in the world');
+assertClaim(iMax[0] === 2022 && iMax[1] > 49 && negInfl.join() === '1960,1966,2024,' + L, '2022 record; earlier falls 1960 and 1966');
+assertClaim([2019, 2020, 2022, 2023].every((y) => g(y) < 0) && g(2021) > 0 && g(2024) > 4.9 && growth > 4.9, 'declines 2019-20 and 2022-23; about 5% growth in 2024-25');
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita) && B.gdpRank === 71, 'record GDP and per person; 71st');
+assertClaim(isMax(s.remittances) && remRank === 29 && unemp! < 4.5, 'record remittances, 29th');
+
+const title = `Sri Lanka Economy ${L}: From 50% Inflation to Falling Prices | AtlasFigures`;
+const description = `Sri Lanka\'s price index sank ${pct(Math.abs(infl.value))} in ${L}, a bigger fall than anywhere else, three years after inflation of ${pct(iMax[1])}. GDP grew ${pct(growth)} to a record ${usd(gdp)}.`;
+
+const faq = [
+  { q: 'Why are prices falling in Sri Lanka?', a: `The data measure the drop without explaining it: a ${signedPct(i(2024))} change in 2024, then ${signedPct(infl.value)} in ${L}, the biggest decline recorded anywhere that year.` },
+  { q: 'What was Sri Lanka\'s inflation peak?', a: `${pct(iMax[1])}, unmatched in a record stretching back to 1960. It slowed to ${pct(i(2023))} in 2023.` },
+  { q: 'Has Sri Lanka\'s economy recovered?', a: `Output fell in 2022 (${signedPct(g(2022))}) and 2023 (${signedPct(g(2023))}), then grew ${pct(g(2024))} in 2024 and ${pct(growth)} in ${L}. Dollar GDP has never been higher: ${usd(gdp)}.` },
+  { q: 'What is income per person in Sri Lanka?', a: `${usdWhole(perHead)} in ${L}, the most so far; purchasing-power adjusted, ${intDollars(ppp!)}.` },
+  { q: 'What are remittances worth to Sri Lanka?', a: `Inflows hit ${usd(rem!.value)} in ${L}, their highest, or ${pct(remPct!.value)} of GDP.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Sri Lanka's economy ${L}: falling prices after the 2022 inflation spike, and 5% growth`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Sri Lankan economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Sri Lanka', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Sri Lanka's economy: from price spike to deflation</h1>
+        <p class="answer">
+          Consumer prices in Sri Lanka fell <strong>{pct(Math.abs(infl.value))}</strong> in {L}, three years after inflation peaked at {pct(iMax[1])}. Real GDP grew <strong>{pct(growth)}</strong> to {usd(gdp)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Sri Lanka economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Sri Lanka" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Sri Lanka has swung from the highest inflation in its records to two years of falling prices, with growth back near 5%.</p>
+
+        <div class="story-block prose">
+          <h2>Are prices in Sri Lanka going down?</h2>
+          <p>Yes, for a second year. The price index slipped {pct(Math.abs(i(2024)))} in 2024, then {pct(Math.abs(infl.value))} in {L}, outdoing every other economy's decline. Before 2024 Sri Lanka had seen falling prices only in 1960 and 1966.</p>
+        </div>
+        <LineChart
+          title={`Sri Lankan inflation, 1960–${L}`}
+          subtitle="Change in consumer prices over the year, %; 2022 is the spike."
+          points={s.inflationPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>What happened in 2022?</h2>
+          <p>Inflation hit {pct(iMax[1])}, a record for the series, and real output fell {pct(Math.abs(g(2022)))}, followed by a further {pct(Math.abs(g(2023)))} in 2023. Output had also dropped in 2019 and 2020.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Is Sri Lanka's economy growing again?</h2>
+          <p>Output expanded by {pct(g(2024))} in 2024 and {pct(growth)} in {L}. In dollar terms it climbed to {usd(gdp)} — a new peak — {ord(B.gdpRank!)} globally; per person, {usdWhole(perHead)}.</p>
+        </div>
+        <LineChart
+          title={`Sri Lanka's real growth, 1961–${L}`}
+          subtitle="GDP at constant prices, annual % change."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Do Sri Lankans abroad send more money home?</h2>
+          <p>More than ever: {usd(rem!.value)} in {L}, worth {pct(remPct!.value)} of GDP and {ord(remRank)} by value worldwide. ILO-modelled unemployment was {pct(unemp!)}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Sri Lanka and the region: related pages</h2>
+          <ul>
+            <li><a href={path('/population/sri-lanka/')}>Sri Lanka's population</a></li>
+            <li><a href={path('/economy/india/')}>India's economy</a></li>
+            <li><a href={path('/economy/nepal/')}>Nepal's economy</a></li>
+            <li><a href={path('/economy/bangladesh/')}>Bangladesh's economy</a></li>
+            <li><a href={path('/rankings/inflation-rate-by-country/')}>Inflation rates worldwide</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Sri Lanka's economic figures for chosen years since 1960`}
+          subtitle="2001 sits alongside 2019 onward; the CSV gives the full series."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/sri-lanka-economy.csv')} csvName="sri-lanka-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Sri Lanka's economy: frequently raised points</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">The World Bank lists Sri Lanka in its South Asia region. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Sri Lankan economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Sri Lanka" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>
