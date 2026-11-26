@@ -1,0 +1,50 @@
+---
+import CityTime from '../../components/CityTime.astro';
+import c from '../../data/cities/new-york.json';
+import { history, hoursAhead, hrs, dayExtremes, hm, assertClaim, JAN, JUL, Y, sunOn } from '../../lib/cityFacts';
+
+const y26 = history(c.tz, Y, Y + 1);
+assertClaim(y26.length === 2 && y26[0].after === -240 && y26[1].after === -300, 'New York is UTC−5 in winter and UTC−4 in summer');
+const old = history(c.tz, 2006, 2007), now7 = history(c.tz, 2007, 2008);
+const wd = (t: number, tz: string) => new Date(t).toLocaleDateString('en-GB', { timeZone: tz, weekday: 'long', day: 'numeric', month: 'long' });
+assertClaim(new Date(old[0].at).getUTCMonth() === 3 && new Date(now7[0].at).getUTCMonth() === 2 && new Date(now7[1].at).getUTCMonth() === 10 && new Date(old[1].at).getUTCMonth() === 9, 'US summer time started in April and ended in October until 2006; from 2007 it runs March to November');
+const nth = (t: number) => Math.ceil(new Date(t).getUTCDate() / 7);
+assertClaim(nth(y26[0].at) === 2 && nth(y26[1].at) === 1, 'DST starts on the second Sunday of March and ends on the first Sunday of November');
+const la = hoursAhead(c.tz, 'America/Los_Angeles', JAN), lon = hoursAhead(c.tz, 'Europe/London', JAN);
+const lonMar = hoursAhead(c.tz, 'Europe/London', Date.UTC(Y, 2, 20, 12));
+assertClaim(la === -3 && hoursAhead(c.tz, 'America/Los_Angeles', JUL) === -3, 'Los Angeles is three hours behind New York');
+assertClaim(lon === 5 && lonMar === 4, 'London is usually five hours ahead, but four in the weeks when US summer time has started and UK has not');
+const ext = dayExtremes(c.lat, c.lon);
+const uk26 = history('Europe/London', Y, Y + 1);
+assertClaim(Math.round((uk26[0].at - y26[0].at) / 86400000) === 21 && Math.round((y26[1].at - uk26[1].at) / 86400000) === 7, 'three weeks in spring and one week in autumn when the gap is four hours');
+const june = sunOn(c.tz, c.lat, c.lon, 6, 21), dec = sunOn(c.tz, c.lat, c.lon, 12, 21);
+const faq = [
+  { q: 'Is New York on EST or EDT now?', a: `Eastern Standard Time (UTC−5) applies from the first Sunday of November to the second Sunday of March; Eastern Daylight Time (UTC−4) the rest of the year. In ${Y} daylight time runs from ${y26[0].date} to ${y26[1].date}.` },
+  { q: 'What is the time difference between New York and London?', a: `Usually ${hrs(lon)} hours, with London ahead. For a few weeks each spring and autumn it is only ${hrs(lonMar)}, because the United States changes its clocks on different Sundays from the UK.` },
+  { q: 'Is New York three hours ahead of California?', a: `Yes, all year. Los Angeles is on Pacific Time, ${hrs(-la)} hours behind Eastern Time, and both cities switch to daylight time on the same night.` },
+  { q: 'What time does the sun set in New York in winter?', a: `Around ${dec.set} on 21 December, after a sunrise at ${dec.rise}. In late June it sets at about ${june.set} Eastern Daylight Time.` },
+];
+---
+<CityTime city={c}
+  title="New York Time Now: Eastern Time (EST/EDT) Clock | AtlasFigures"
+  description={`What time is it in New York City? EST, five hours behind UTC, in the cold months; EDT starting ${y26[0].date.replace(/ \d{4}$/, '')} and ending ${y26[1].date}. Clock, sun times, gaps to other cities.`}
+  h1="Local time in New York City"
+  changesTitle={`US daylight saving dates in New York, ${Y}–${Y + 1}`}
+  changesSub="Second Sunday of March, 2 a.m. becomes 3 a.m.; first Sunday of November, 2 a.m. becomes 1 a.m."
+  sunTitle={`Sun over Manhattan, month by month in ${Y}`}
+  sunSub="On the 21st of each month, in the clock time New Yorkers use that day (EDT from March to early November)."
+  diffTitle="New York's lead or lag on other cities"
+  diffSub="A plus sign marks cities whose clocks read later than New York's. Europe and the US switch on different Sundays, so some gaps change during the year."
+  faqTitle="Eastern Time in New York: quick answers" faq={faq}>
+  <Fragment slot="answer">
+    <p>New York City keeps <strong>Eastern Time</strong>: five hours behind UTC in the winter months (EST) and <strong>UTC−4</strong> during daylight saving (EDT), which in {Y} runs from {y26[0].date} to {y26[1].date}.</p>
+  </Fragment>
+  <Fragment slot="story">
+    <h2>When does daylight saving time start in New York?</h2>
+    <p>On the second Sunday of March, when 2:00 a.m. becomes 3:00 a.m., and it ends on the first Sunday of November. These dates have applied since 2007. In 2006 the city still switched on {wd(old[0].at, c.tz)} and back on {wd(old[1].at, c.tz)}; in 2007 the change came on {wd(now7[0].at, c.tz)} and ended on {wd(now7[1].at, c.tz)}.</p>
+    <h2>Why does the gap to London shrink in March?</h2>
+    <p>Because the two countries switch on different Sundays. US daylight time starts in the second week of March, while the UK waits until the last Sunday of the month, so for three weeks New York is only {hrs(lonMar)} hours behind London instead of {hrs(lon)}. The same happens for one week from late October to early November, when the UK has already turned its clocks back.</p>
+    <h2>How long is a winter day in New York?</h2>
+    <p>Shorter than in London but longer than in Dhaka: {hm(ext.min)} between sunrise and sunset at the December solstice, {hm(ext.max)} in late June.</p>
+  </Fragment>
+</CityTime>

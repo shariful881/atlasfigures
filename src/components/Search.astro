@@ -53,7 +53,7 @@ const base = path('/');
         if (t === q) best = 100; else if (t.indexOf(q) === 0) best = 80; else if ((' ' + t).indexOf(' ' + q) >= 0) best = 60; else if (t.indexOf(q) >= 0) best = 40;
         (e.a || []).forEach(function (a) { var n = norm(a); if (n === q) best = Math.max(best, 70); else if (n.indexOf(q) === 0) best = Math.max(best, 50); else if (q.length > 3 && n.indexOf(q) >= 0) best = Math.max(best, 20); });
         if (!best) return 0;
-        var kindBoost = { world: 6, population: 5, ranking: 4, economy: 3, section: 2, info: 0 }[e.k] || 0;
+        var kindBoost = { world: 6, population: 5, time: 4, ranking: 4, economy: 3, section: 2, info: 0 }[e.k] || 0;
         return best + kindBoost;
       }
       // Several words: the first word ranks the result, every other word must appear in the title, other names or the

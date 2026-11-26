@@ -15,6 +15,7 @@ type Entry = { t: string; s: string; u: string; f?: string | null; k: string; a?
 export function GET() {
   const pop = Object.values(import.meta.glob('../data/countries/*.json', { eager: true, import: 'default' })) as any[];
   const eco = Object.values(import.meta.glob('../data/economy/*.json', { eager: true, import: 'default' })) as any[];
+  const cities = Object.values(import.meta.glob('../data/cities/*.json', { eager: true, import: 'default' })) as any[];
   const aliases = (c: any) => [unName(c.iso3), c.iso3, c.demonym, c.capital].filter((x): x is string => Boolean(x) && x !== c.name);
 
   const entries: Entry[] = [
@@ -25,9 +26,13 @@ export function GET() {
     ...eco.sort((a, b) => a.name.localeCompare(b.name)).map((c) => ({
       t: c.name, s: `Economy · ${econData(c.iso3).region}`, u: path(`/economy/${c.slug}/`), f: flagUrl(c.code), k: 'economy', a: aliases(c),
     })),
+    ...cities.sort((a, b) => a.name.localeCompare(b.name)).map((c) => ({
+      t: `Time in ${c.name}`, s: `Time · ${c.country}`, u: path(`/time/${c.slug}/`), f: flagUrl(c.code), k: 'time', a: [c.name, c.country, c.tz, 'time', 'clock'],
+    })),
     ...rankingCards().map((r) => ({ t: r.title, s: `Ranking · ${r.count} ranked · ${r.year}`, u: path(r.href), f: null, k: 'ranking', a: [r.blurb] })),
     { t: 'Population by country', s: 'Section · every country page', u: path('/population/'), f: null, k: 'section' },
     { t: 'Economy by country', s: 'Section · every country page', u: path('/economy/'), f: null, k: 'section' },
+    { t: 'World clock', s: 'Section · local time in major cities', u: path('/time/'), f: null, k: 'section', a: ['time', 'clock', 'time zone'] },
     { t: 'Country rankings', s: 'Section · every ranking', u: path('/rankings/'), f: null, k: 'section' },
     ...INFO_LINKS.map((l) => ({ t: l.label, s: l.text, u: path(l.href), f: null, k: 'info' })),
   ];

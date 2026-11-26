@@ -22,6 +22,7 @@ assertClaim(bdFertility1970 > 6.5 && bdNow.fertility < 2.2, 'Bangladesh went fro
 // What the site holds right now (counted, never typed)
 const popPages = Object.values(import.meta.glob('../data/countries/*.json', { eager: true, import: 'default' })) as any[];
 const econPages = Object.values(import.meta.glob('../data/economy/*.json', { eager: true, import: 'default' })) as any[];
+const cityPages = Object.values(import.meta.glob('../data/cities/*.json', { eager: true, import: 'default' })) as any[];
 const rankings = rankingCards();
 const nPlaces = countryIndex.countries.length;
 
@@ -47,7 +48,8 @@ const categories = [
     links: [['GDP by country', '/rankings/gdp-by-country/'], ['GDP per capita', '/rankings/gdp-per-capita-by-country/'], ['Inflation rate', '/rankings/inflation-rate-by-country/']] },
   { key: 'rankings' as const, title: 'Rankings', count: `${rankings.length} rankings`, text: `Every country and area on one list, across ${TOPICS.length} topics.`,
     links: [['CO₂ emissions', '/rankings/co2-emissions-by-country/'], ['Internet users', '/rankings/internet-users-by-country/'], ['All rankings', '/rankings/']] },
-  { key: 'time' as const, title: 'Time', count: 'Coming soon', text: 'Local time in every city, time differences and a meeting planner.', links: [] as string[][] },
+  { key: 'time' as const, title: 'Time', count: `${cityPages.length} city clocks`, text: 'Local time, sunrise, sunset and clock changes in major cities.',
+    links: [['Time in London', '/time/london/'], ['Time in New York', '/time/new-york/'], ['World clock', '/time/']] },
 ];
 
 const sources = [
