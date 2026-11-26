@@ -1,0 +1,63 @@
+{
+  "slug": "hungary",
+  "name": "Hungary",
+  "demonym": "Hungarian",
+  "capital": "Budapest",
+  "iso3": "HUN",
+  "code": "hu",
+  "continent": "Europe",
+  "wikipedia": "https://en.wikipedia.org/wiki/Hungary",
+  "unName": "Hungary",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1954,
+    1955,
+    1956,
+    1957,
+    1960,
+    1970,
+    1975,
+    1980,
+    1981,
+    1990,
+    2000,
+    2010,
+    2011,
+    2020,
+    2022,
+    2023,
+    2024,
+    2026,
+    2030,
+    2040,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/hungary.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth (negative), density, land area; about 3% above 1950",
+      "Peak 1980; lower every year since except 2023; about 1.1 million below the peak; 2050 and 2100 totals",
+      "Deaths over births every year 1981–2100; births now (fewest since 1950) and 1954 high; fertility low 2011, now, at or above 2.1 after 1958 only in 1974–1977",
+      "Net outflow 1956 (largest) and 1957; small net gains 1955 and 1958; total lower in 1957",
+      "Sixth in Eastern Europe; median age; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 71 of 71 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Counts only for 1956; no causes given."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}

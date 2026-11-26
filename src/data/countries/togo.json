@@ -1,0 +1,61 @@
+{
+  "slug": "togo",
+  "name": "Togo",
+  "demonym": "Togolese",
+  "capital": "Lomé",
+  "iso3": "TGO",
+  "code": "tg",
+  "continent": "Africa",
+  "wikipedia": "https://en.wikipedia.org/wiki/Togo",
+  "unName": "Togo",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1974,
+    1980,
+    1990,
+    1992,
+    1993,
+    1994,
+    1995,
+    1996,
+    2000,
+    2010,
+    2020,
+    2026,
+    2030,
+    2034,
+    2040,
+    2050,
+    2075,
+    2083,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/togo.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; about 6.3 times 1950 — Togo's rows from the UN interim update of 19 January 2026",
+      "Net outflow 1993 (largest) and the only fall in the series; net arrivals 1994–1996",
+      "Fertility above 2.1 in every year 1950–2100; high 1974; births rising until 2083",
+      "Still growing in 2100, about 2.7 times today; third-densest in Western Africa (1 million+) after Gambia and Nigeria; urban majority 2034",
+      "title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 65 of 65 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match, using the interim update rows. Counts only; no causes given."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
