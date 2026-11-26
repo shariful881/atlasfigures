@@ -1,0 +1,62 @@
+{
+  "slug": "republic-of-the-congo",
+  "name": "Republic of the Congo",
+  "demonym": "Congolese",
+  "capital": "Brazzaville",
+  "iso3": "COG",
+  "code": "cg",
+  "continent": "Africa",
+  "wikipedia": "https://en.wikipedia.org/wiki/Republic_of_the_Congo",
+  "unName": "Congo",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1972,
+    1980,
+    1990,
+    1996,
+    1997,
+    2000,
+    2009,
+    2010,
+    2012,
+    2020,
+    2026,
+    2030,
+    2040,
+    2050,
+    2060,
+    2070,
+    2080,
+    2090,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/republic-of-the-congo.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area — UN listing Congo; about 7.9 times 1950",
+      "1997 life-expectancy dip; infant mortality 1950 and now",
+      "2009 net inflow (largest); net departures 2012–2018",
+      "Urban majority 1983; fourth-most urban in Middle Africa (1 million+) after Gabon, Angola, Equatorial Guinea",
+      "Still growing in 2100, about three times today; fertility above 2.1 every year; high 1972",
+      "title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) — 66 of 66 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Counts only; no causes given."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}

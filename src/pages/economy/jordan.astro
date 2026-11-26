@@ -1,0 +1,163 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/jordan.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/jordan/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const uRank = rankBy('unemploymentPct', L).find((r) => r.iso3 === c.iso3)!.rank;
+const uLowSince = Math.max(...s.unemploymentPct.filter(([y, x]) => y < L && x < unemp!).map(([y]) => y));
+const uMax = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const remPeak = s.remittances.reduce((a, b) => (b[1] > a[1] ? b : a));
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const netRank = rankBy('internetPct', net!.year).find((r) => r.iso3 === c.iso3)!.rank;
+const steady = [2021, 2022, 2023, 2024, L].every((y) => g(y) > 2.5 && g(y) < 4);
+
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita) && B.gdpRank === 89 && B.e.incomeGroup === 'Upper middle income', 'record GDP; 89th; UMIC');
+assertClaim(steady && growth > 2.8, 'growth 2.5-4% each year since 2021');
+assertClaim(uRank === 12 && uLowSince === 2016 && uMax[0] === 1991 && uMax[1] > 21.4 && u(2021) > 19.7, 'unemployment 12th highest, lowest since 2016; peak 1991; 2021 19.8');
+assertClaim(rem!.year === L - 1 && remPeak[0] === 2014 && rem!.value < remPeak[1] * 0.7, 'remittances 2024, well below 2014 peak');
+assertClaim(worst[0] === 1989 && worst[1] < -10.7 && iMax[0] === 1989 && i(2015) < 0 && i(2016) < 0, '1989 worst year and inflation peak; deflation 2015-16');
+assertClaim(netRank === 23 && net!.value > 95.6, 'internet 23rd');
+assertClaim(unemp! > 16 && unemp! < 17.5, 'about one in six');
+
+const title = `Jordan Economy ${L}: Steady Growth, Unemployment Above 16% | AtlasFigures`;
+const description = `Jordan\'s real growth was ${pct(growth)} in ${L}, and GDP hit ${usd(gdp)}. Inflation was only ${pct(infl.value)}, but modelled unemployment stood at ${pct(unemp!)}.`;
+
+const faq = [
+  { q: 'How high is Jordan\'s jobless rate?', a: `Modelled ILO unemployment was ${pct(unemp!)} in ${L}: ${ord(uRank)}-highest worldwide, yet the best Jordanian reading since 2016. It reached ${pct(u(2021))} in 2021 and ${pct(uMax[1])} in 1991.` },
+  { q: 'Is Jordan growing steadily?', a: `Yes, within a narrow 2.5–4% band each year since 2021; ${L} brought ${pct(growth)} and dollar GDP of ${usd(gdp)}.` },
+  { q: 'Does Jordan have an inflation problem?', a: `Not now: ${pct(infl.value)} for ${L}, and consumer prices dropped in both 2015 and 2016. Back in 1989 they jumped ${pct(iMax[1])}.` },
+  { q: 'Are remittances to Jordan back to their 2014 level?', a: `No. Jordan\'s ${rem!.year} inflow (${usd(rem!.value)}, or ${pct(remPct!.value)} of GDP) remains short of 2014\'s ${usd(remPeak[1])}.` },
+  { q: 'What was Jordan\'s worst economic year?', a: `1989, when GDP fell ${pct(Math.abs(worst[1]))} and inflation hit ${pct(iMax[1])}.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Jordan's economy in ${L}: modest steady growth and one of the world's highest jobless rates`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Jordanian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Jordan', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Jordan's economy: stable prices, scarce jobs</h1>
+        <p class="answer">
+          For {L}, Jordan recorded <strong>{pct(growth)}</strong> real growth and a GDP of <strong>{usd(gdp)}</strong>; inflation was {pct(infl.value)} and modelled unemployment {pct(unemp!)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Jordan economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Jordan" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Low inflation and steady growth sit alongside one of the highest unemployment rates in the world.</p>
+
+        <div class="story-block prose">
+          <h2>What pace is Jordan's economy growing at?</h2>
+          <p>Slow but steady: no year since 2021 has fallen outside a 2.5–4% range, and {L} came in at {pct(growth)}. Dollar GDP, {usd(gdp)}, is Jordan's highest so far and {ord(B.gdpRank!)} globally; the country sits in the World Bank's upper-middle-income group.</p>
+        </div>
+        <LineChart
+          title={`How much Jordan's output grew each year, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="Real GDP, % per year."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>What share of Jordanians lack work?</h2>
+          <p>About one in six on the ILO's modelled estimate: {pct(unemp!)} in {L}, {ord(uRank)}-highest worldwide. That is still an improvement on {pct(u(2021))} in 2021, and Jordan's best since 2016.</p>
+        </div>
+        <LineChart
+          title={`Jordan's unemployment rate, ${s.unemploymentPct[0][0]}–${L}`}
+          subtitle="% of labour force, ILO modelled estimate."
+          points={s.unemploymentPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How stable are Jordanian prices?</h2>
+          <p>Very. Inflation ran at {pct(infl.value)} in {L}, and there was outright deflation in 2015 and 2016. The 1989 peak of {pct(iMax[1])} came in the same year as Jordan's deepest output fall, {signedPct(worst[1])}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How connected and how rich are Jordanians?</h2>
+          <p>Highly connected: in {net!.year}, {pct(net!.value)} of residents were internet users, {ord(netRank)} worldwide. GDP per Jordanian was {usdWhole(perHead)} in {L} — {intDollars(ppp!)} at PPP — and the {rem!.year} remittance total was {usd(rem!.value)}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Jordan and the Middle East: related pages</h2>
+          <ul>
+            <li><a href={path('/population/jordan/')}>Jordan's population</a></li>
+            <li><a href={path('/economy/iraq/')}>Iraq's economy</a></li>
+            <li><a href={path('/economy/saudi-arabia/')}>Saudi Arabia's economy</a></li>
+            <li><a href={path('/economy/egypt/')}>Egypt's economy</a></li>
+            <li><a href={path('/rankings/unemployment-rate-by-country/')}>Unemployment league table</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Jordan's key numbers by year`}
+          subtitle="Starts with 1965, Jordan's first GDP year; then 1989, 1991, 2000, 2010, 2014 and the run from 2015 to 2025. The CSV fills in the rest."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/jordan-economy.csv')} csvName="jordan-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Jordan's economy: what readers want to know</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Remittances are published to 2024. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Jordanian economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Jordan" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

@@ -1,0 +1,183 @@
+---
+// "Your country" card for the home page (task 8). Nothing happens until the visitor taps "Show my country":
+// then the country is guessed on the device from its time zone (IANA tz table, src/data/tz-country.json) — no
+// location permission, no IP lookup, nothing sent anywhere. The visitor can change it, and the choice is kept only
+// in this browser's localStorage (Privacy page, "Your country"). Figures come from /your-country.json, built from
+// the same UN data as the ranking pages, and are fetched only after the tap.
+import Icon from './Icon.astro';
+import { path } from '../site';
+const dataUrl = path('/your-country.json');
+---
+<section class="yc" id="your-country" aria-labelledby="yc-h">
+  <div class="yc-ask" id="yc-ask">
+    <span class="yc-ico" aria-hidden="true"><Icon name="population" /></span>
+    <div class="yc-ask-txt">
+      <h2 id="yc-h">Your country</h2>
+      <p>See your own country's figures first. We guess it from your device's time zone, right on your device; nothing is sent to us.</p>
+    </div>
+    <div class="yc-ask-btns">
+      <button type="button" class="yc-btn" id="yc-go">Show my country</button>
+      <button type="button" class="yc-link" id="yc-pick">Choose a country</button>
+      <select id="yc-sel0" class="yc-sel0" aria-label="Choose your country" hidden><option value="">Choose your country…</option></select>
+    </div>
+  </div>
+
+  <div class="yc-card" id="yc-card" hidden>
+    <div class="yc-top">
+      <img class="yc-flag" id="yc-flag" alt="" width="48" height="32" />
+      <div class="yc-name-wrap">
+        <span class="yc-label" id="yc-label">Your country</span>
+        <span class="yc-name" id="yc-name"></span>
+      </div>
+      <span class="yc-rank" id="yc-rank"></span>
+    </div>
+    <div class="yc-now">
+      <span class="yc-now-k"><span class="pulse" aria-hidden="true"></span> People now</span>
+      <span class="yc-now-v" id="yc-now"></span>
+    </div>
+    <dl class="yc-stats">
+      <div><dt>Growth a year</dt><dd id="yc-g"></dd></div>
+      <div><dt>People per km²</dt><dd id="yc-d"></dd></div>
+      <div><dt>Median age</dt><dd id="yc-a"></dd></div>
+    </dl>
+    <div class="yc-links" id="yc-links"></div>
+    <div class="yc-foot">
+      <label class="yc-change">Not your country?
+        <select id="yc-sel" aria-label="Choose your country"></select>
+      </label>
+      <button type="button" class="yc-link" id="yc-forget">Forget</button>
+    </div>
+    <p class="yc-note">Estimate based on UN projections (World Population Prospects 2024, figures for mid-year plus the UN's yearly change). Guessed from your time zone; your choice stays in this browser only.</p>
+  </div>
+</section>
+
+<script is:inline define:vars={{ dataUrl }}>
+  (function () {
+    var KEY = 'af-country';
+    var ask = document.getElementById('yc-ask'), card = document.getElementById('yc-card'), sel = document.getElementById('yc-sel');
+    var data = null, timer = null, current = null;
+    function get() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
+    function set(v) { try { if (v) localStorage.setItem(KEY, v); else localStorage.removeItem(KEY); } catch (e) {} }
+    function load() { return data ? Promise.resolve(data) : fetch(dataUrl).then(function (r) { return r.json(); }).then(function (d) { data = d; return d; }); }
+    function guess(d) {
+      var tz = ''; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+      var cc = d.zones[tz];
+      var hit = cc && d.countries.filter(function (c) { return c.c && c.c.toUpperCase() === cc; })[0];
+      return hit || null;
+    }
+    var nf = function (n) { return Math.floor(n).toLocaleString('en-US'); };
+    function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function show(c, guessed) {
+      current = c; set(c.i);
+      document.getElementById('yc-label').textContent = guessed ? 'Your country · from your time zone' : 'Your country';
+      document.getElementById('yc-name').textContent = c.n;
+      var fl = document.getElementById('yc-flag'); if (c.f) { fl.src = c.f; fl.hidden = false; } else fl.hidden = true;
+      document.getElementById('yc-rank').textContent = '#' + c.r + ' of ' + data.total;
+      document.getElementById('yc-g').textContent = (c.g > 0 ? '+' : '') + c.g.toFixed(1) + '%';
+      document.getElementById('yc-d').textContent = nf(Math.round(c.d));
+      document.getElementById('yc-a').textContent = c.a.toFixed(1);
+      var links = '';
+      if (c.u) links += '<a class="yc-a yc-main" href="' + esc(c.u) + '">' + esc(c.n) + '’s population story</a>';
+      if (c.e) links += '<a class="yc-a" href="' + esc(c.e) + '">Economy</a>';
+      if (!c.u) links += '<a class="yc-a yc-main" href="' + esc(data.ranking) + '">See it in the population ranking</a><span class="yc-soon">Its own page is on the way.</span>';
+      document.getElementById('yc-links').innerHTML = links;
+      sel.value = c.i;
+      ask.hidden = true; card.hidden = false;
+      var t0 = Date.parse(data.year + '-07-01'), perMs = c.ch / (365.25 * 24 * 3600 * 1000), out = document.getElementById('yc-now');
+      clearInterval(timer);
+      var tick = function () { out.textContent = nf(c.p + (Date.now() - t0) * perMs); };
+      tick(); timer = setInterval(tick, 1000);
+    }
+    var sel0 = document.getElementById('yc-sel0');
+    function fill() {
+      if (sel.options.length) return;
+      data.countries.slice().sort(function (a, b) { return a.n.localeCompare(b.n); }).forEach(function (c) {
+        [sel, sel0].forEach(function (s) { var o = document.createElement('option'); o.value = c.i; o.textContent = c.n; s.appendChild(o); });
+      });
+    }
+    function picker(msg) {
+      fill(); sel0.hidden = false; sel0.value = '';
+      document.getElementById('yc-pick').hidden = true;
+      if (msg) ask.querySelector('p').textContent = msg;
+      sel0.focus();
+    }
+    sel0.addEventListener('change', function () { var c = byIso(sel0.value); if (c) show(c, false); });
+    function byIso(i) { return data.countries.filter(function (c) { return c.i === i; })[0]; }
+    document.getElementById('yc-go').addEventListener('click', function () {
+      load().then(function () {
+        fill();
+        var g = guess(data);
+        if (g) show(g, true); else picker('We could not tell your country from your time zone. Choose it from the list instead.');
+      });
+    });
+    document.getElementById('yc-pick').addEventListener('click', function () {
+      load().then(function () { picker(); });
+    });
+    sel.addEventListener('change', function () { var c = byIso(sel.value); if (c) show(c, false); });
+    document.getElementById('yc-forget').addEventListener('click', function () { set(null); clearInterval(timer); card.hidden = true; ask.hidden = false; });
+    var saved = get();
+    if (saved) load().then(function () { fill(); var c = byIso(saved); if (c) show(c, false); }).catch(function () {});
+  })();
+</script>
+
+<style>
+  .yc { margin-top: 28px; }
+  .yc-ask { display: grid; grid-template-columns: 48px 1fr auto; gap: 18px; align-items: center; padding: 20px 24px; background: var(--surface); border: 1px dashed var(--contour); border-radius: var(--r-lg); }
+  .yc-ask[hidden], .yc-card[hidden] { display: none; }
+  .yc-ico { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: var(--contour-2); color: var(--contour); }
+  .yc-ico :global(svg) { width: 24px; height: 24px; }
+  .yc h2 { margin: 0; font-size: 1.15rem; }
+  .yc-ask p { margin: 2px 0 0; font-size: .9rem; color: var(--text-2); }
+  .yc-ask-btns { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .yc-btn { font: inherit; font-weight: 700; font-size: .95rem; color: #fff; background: var(--contour); border: 0; border-radius: 999px; padding: 11px 22px; min-height: 44px; cursor: pointer; white-space: nowrap; }
+  .yc-btn:hover { background: #276b4e; }
+  .yc-sel0 { font: inherit; font-size: .9rem; border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; min-height: 40px; color: var(--ocean); background: var(--surface); max-width: 220px; }
+  .yc-sel0[hidden], .yc-link[hidden] { display: none; }
+  .yc-link { font: inherit; font-size: .85rem; font-weight: 600; color: var(--ocean-2); background: none; border: 0; padding: 6px 8px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+  .yc-card { display: grid; grid-template-columns: 1.1fr 1fr 1.2fr; gap: 14px 28px; align-items: center; padding: 22px 26px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); border-left: 4px solid var(--contour); }
+  .yc-top { display: grid; grid-template-columns: 48px 1fr; gap: 12px; align-items: center; grid-column: 1; grid-row: 1; }
+  .yc-flag { width: 48px; height: 32px; border-radius: 4px; border: 1px solid var(--line); object-fit: cover; }
+  .yc-name-wrap { display: flex; flex-direction: column; min-width: 0; }
+  .yc-label { font-size: .74rem; font-weight: 700; color: var(--contour); text-transform: uppercase; letter-spacing: .04em; }
+  .yc-name { font-size: 1.35rem; font-weight: 800; color: var(--ocean); line-height: 1.15; }
+  .yc-rank { grid-column: 1 / -1; font-size: .85rem; color: var(--text-2); font-weight: 600; }
+  .yc-now { grid-column: 2; grid-row: 1 / span 2; display: flex; flex-direction: column; }
+  .yc-now-k { display: flex; align-items: center; gap: 7px; font-size: .8rem; color: var(--text-2); font-weight: 600; }
+  .yc-now-v { font-size: 1.9rem; font-weight: 800; color: var(--ocean); letter-spacing: -0.02em; }
+  .yc-stats { grid-column: 3; grid-row: 1 / span 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0; }
+  .yc-stats div { background: var(--water-2); border-radius: var(--r-md); padding: 8px 10px; }
+  .yc-stats dt { font-size: .72rem; color: var(--text-2); }
+  .yc-stats dd { margin: 0; font-weight: 700; color: var(--contour); }
+  .yc-links { grid-column: 1 / span 2; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+  :global(.yc-a) { font-weight: 700; font-size: .92rem; text-decoration: none; color: var(--ocean-2); border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; }
+  :global(.yc-a.yc-main) { background: var(--ocean); color: #fff; border-color: var(--ocean); }
+  :global(.yc-a:hover) { border-color: var(--contour); }
+  :global(.yc-a.yc-main:hover) { background: var(--ocean-2); color: #fff; }
+  :global(.yc-soon) { font-size: .82rem; color: var(--text-3); }
+  .yc-foot { grid-column: 3; display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
+  .yc-change { font-size: .82rem; color: var(--text-2); display: flex; align-items: center; gap: 8px; }
+  .yc-change select { font: inherit; font-size: .85rem; max-width: 170px; border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; background: var(--surface); color: var(--ocean); }
+  .yc-note { grid-column: 1 / -1; margin: 0; font-size: .76rem; color: var(--text-3); }
+
+  @media (max-width: 1023px) {
+    .yc-card { grid-template-columns: 1fr 1fr; }
+    .yc-stats { grid-column: 1 / -1; grid-row: auto; }
+    .yc-links { grid-column: 1 / -1; }
+    .yc-foot { grid-column: 1 / -1; justify-content: flex-start; }
+  }
+  @media (max-width: 767px) {
+    .yc { margin-top: 14px; }
+    .yc-ask { grid-template-columns: 40px 1fr; padding: 16px; gap: 12px; border-style: solid; border-color: transparent; }
+    .yc-ico { width: 40px; height: 40px; border-radius: 12px; }
+    .yc-ask-btns { grid-column: 1 / -1; flex-direction: row; justify-content: space-between; }
+    .yc-btn { flex: 1; }
+    .yc-card { grid-template-columns: 1fr; padding: 16px; border: 0; border-left: 4px solid var(--contour); gap: 12px; }
+    .yc-top, .yc-now, .yc-stats, .yc-links, .yc-foot { grid-column: 1; grid-row: auto; }
+    .yc-now-v { font-size: 1.7rem; }
+    .yc-links { flex-direction: column; align-items: stretch; }
+    :global(.yc-a) { text-align: center; padding: 10px 14px; }
+    .yc-foot { justify-content: space-between; }
+    .yc-change select { max-width: 150px; min-height: 40px; }
+  }
+</style>

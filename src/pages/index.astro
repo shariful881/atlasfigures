@@ -4,6 +4,7 @@ import LiveCounter from '../components/LiveCounter.astro';
 import Contours from '../components/Contours.astro';
 import Icon from '../components/Icon.astro';
 import Flag from '../components/Flag.astro';
+import YourCountry from '../components/YourCountry.astro';
 import bd from '../data/countries/bangladesh.json';
 import { worldData, countryData, countryIndex, byYear, billions, millions, people, int, CURRENT_YEAR, assertClaim } from '../lib/figures';
 import { rankBy, rankingYear, usd } from '../lib/econ';
@@ -86,6 +87,8 @@ const sources = [
       />
     </div>
   </section>
+
+  <YourCountry />
 
   <div class="sec-head"><h2>Browse by category</h2></div>
   <div class="cat-grid swipe">
