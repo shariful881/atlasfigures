@@ -1,0 +1,64 @@
+{
+  "slug": "jordan",
+  "name": "Jordan",
+  "demonym": "Jordanian",
+  "capital": "Amman",
+  "iso3": "JOR",
+  "code": "jo",
+  "continent": "Asia",
+  "wikipedia": "https://en.wikipedia.org/wiki/Jordan",
+  "unName": "Jordan",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1967,
+    1970,
+    1980,
+    1990,
+    1991,
+    2000,
+    2006,
+    2010,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2020,
+    2023,
+    2024,
+    2025,
+    2026,
+    2030,
+    2040,
+    2050,
+    2075,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/jordan.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; 1950 total under half a million, about 26 times now; fourth-largest growth since 1950 among 1 million+ after UAE, Qatar, Kuwait",
+      "Net inflows 1990, 2006, 2013, 2014 (largest; third worldwide after the US and Türkiye), 2015",
+      "Net departures 2024 and 2025 (largest outflow; above natural increase); 2025 the only fall in the series",
+      "Births and deaths now (deaths under a fifth of births); births peak 2041; fertility high 1969, now, below 2.1 in 2044",
+      "Urban share now (ninth-highest, 1 million+), urban majority 1970; sixth in Western Asia; 2050 and 2100 totals, still growing in 2100; title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) and interim update zip (eb7846bf…) — 72 of 72 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Counts only; the page states that the UN files give no reasons for the migration flows."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}
