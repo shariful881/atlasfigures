@@ -1,0 +1,161 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/iraq.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/iraq/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const peak = s.gdp.reduce((a, b) => (b[1] > a[1] ? b : a));
+const lowSince = Math.max(...s.gdp.filter(([y, x]) => y < L && x < gdp).map(([y]) => y));
+const uDesc = rankBy('unemploymentPct', L);
+const uPos = uDesc.findIndex((r) => r.iso3 === c.iso3) + 1;
+const uMax = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const lowInflSince = Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y));
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+
+assertClaim(g(2024) < 0 && growth < 0 && g(2023) > 0, 'second consecutive decline');
+assertClaim(peak[0] === 2022 && lowSince === 2021 && B.gdpRank === 53, 'below 2022 peak, lowest since 2021; 53rd');
+assertClaim(uPos === 14 && unemp! > 15 && uMax[0] === 2021, '14th-highest unemployment; peak 2021');
+assertClaim(infl.year === L && lowInflSince === 2019 && infl.value < 1, 'inflation under 1%, lowest since 2019');
+assertClaim(worst[0] === 1991 && g(2003) < -30 && g(2020) < -10, '1991 worst; 2003 and 2020 deep falls');
+assertClaim([2020, 2021, 2022, 2023, 2024, L].every((y) => u(y) > 15), 'unemployment above 15% since 2020');
+assertClaim(remPct!.value < 1 && net!.value > 80, 'remittances under 1% of GDP; four in five online');
+
+const title = `Iraq Economy ${L}: Second Year of Contraction | AtlasFigures`;
+const description = `Iraq's real GDP shrank ${pct(Math.abs(growth))} in ${L} after a ${pct(Math.abs(g(2024)))} fall in 2024. In dollars it was ${usd(gdp)}, the lowest since 2021; unemployment stood at ${pct(unemp!)}.`;
+
+const faq = [
+  { q: 'Is Iraq in recession?', a: `Real output fell in both 2024 (${signedPct(g(2024))}) and ${L} (${signedPct(growth)}), two consecutive annual declines.` },
+  { q: 'Is Iraqi unemployment among the world\'s highest?', a: `ILO modelling gives ${pct(unemp!)} for ${L}, the ${ord(uPos)} highest of the economies covered; the series peaked at ${pct(uMax[1])} in 2021.` },
+  { q: 'What was Iraq\'s GDP at its peak?', a: `${usd(peak[1])} in 2022 in current dollars. By ${L} it had dropped to ${usd(gdp)}.` },
+  { q: 'Is inflation in Iraq low?', a: `Very. The ${L} rise of ${pct(infl.value)} was Iraq\'s gentlest since 2019.` },
+  { q: 'What were Iraq\'s worst years economically?', a: `1991, with a ${pct(Math.abs(worst[1]))} plunge in real GDP, and 2003, with a ${pct(Math.abs(g(2003)))} drop. In 2020 output fell ${pct(Math.abs(g(2020)))}.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Iraq's economy ${L}: a second year of falling output and joblessness above 15%`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Iraqi economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Iraq', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Iraq's economy: two years of decline</h1>
+        <p class="answer">
+          Output in Iraq shrank by <strong>{pct(Math.abs(growth))}</strong> in {L}, a second straight contraction, leaving the economy at <strong>{usd(gdp)}</strong>. Unemployment was {pct(unemp!)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Iraq economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Iraq" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">After a strong 2022, Iraq's output has fallen two years running, while joblessness has stayed above 15% since 2020.</p>
+
+        <div class="story-block prose">
+          <h2>Is Iraq's economy shrinking?</h2>
+          <p>Yes, for a second year. Real GDP contracted {pct(Math.abs(g(2024)))} during 2024 and {pct(Math.abs(growth))} in {L}, following {pct(g(2022))} growth in 2022. In current dollars the economy came to {usd(gdp)}, {ord(B.gdpRank!)} worldwide and its smallest since 2021.</p>
+        </div>
+        <LineChart
+          title={`Iraq's output in current dollars since 1960`}
+          subtitle="Current US dollars; the high point is 2022."
+          points={s.gdp.map(([x, y]) => ({ x, y }))}
+          format="usd" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How severe have Iraq's past downturns been?</h2>
+          <p>Far deeper than today's. The 1991 collapse was {pct(Math.abs(worst[1]))} and the 2003 one {pct(Math.abs(g(2003)))}; in 2020 output dropped {pct(Math.abs(g(2020)))}.</p>
+        </div>
+        <LineChart
+          title={`Growth of Iraq's real GDP, 1961–${L}`}
+          subtitle="Year-on-year %, constant prices; 1991 and 2003 are the deepest falls."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>What share of Iraqis lack a job?</h2>
+          <p>About one in seven people in Iraq's workforce were jobless in {L} ({pct(unemp!)}, ILO estimate) — {ord(uPos)} highest of all economies and close to the series peak of {pct(uMax[1])} in 2021.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Are prices stable in Iraq?</h2>
+          <p>Unusually so: inflation was {pct(infl.value)} in {L}, under any annual rate since 2019. GDP per Iraqi was {usdWhole(perHead)} ({intDollars(ppp!)} at comparable prices); remittances, at {usd(rem!.value)}, were under 1% of GDP, and internet use stood at {pct(net!.value)}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Iraq and the region: other pages</h2>
+          <ul>
+            <li><a href={path('/population/iraq/')}>Iraq's population</a></li>
+            <li><a href={path('/economy/saudi-arabia/')}>Saudi Arabia's economy</a></li>
+            <li><a href={path('/economy/turkey/')}>Turkey's economy</a></li>
+            <li><a href={path('/economy/egypt/')}>Egypt's economy</a></li>
+            <li><a href={path('/rankings/unemployment-rate-by-country/')}>Unemployment around the world</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Iraq's economic record, sampled from 1960 to ${L}`}
+          subtitle="2003 plus 2019 through the latest year; the CSV fills in the gaps."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/iraq-economy.csv')} csvName="iraq-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Iraq's economy at a glance: Q&amp;A</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">GDP per person in the World Bank files swings to implausibly low values in the early 1990s, reflecting the exchange rates used, so this page does not compare today's figure with those years. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Iraqi economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Iraq" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>
