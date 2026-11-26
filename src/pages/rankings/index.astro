@@ -1,8 +1,156 @@
 ---
-import ComingSoon from '../../components/ComingSoon.astro';
+import Base from '../../layouts/Base.astro';
+import Flag from '../../components/Flag.astro';
+import Icon from '../../components/Icon.astro';
+import { abs, path, WEBSITE_ID } from '../../site';
+import { rankingCards, TOPICS } from '../../lib/catalog';
+import { countryIndex } from '../../lib/figures';
+
+const PAGE = '/rankings/';
+const cards = rankingCards();
+const groups = TOPICS.map((t) => ({ ...t, items: cards.filter((c) => c.topic === t.key) })).filter((g) => g.items.length);
+const most = Math.max(...cards.map((c) => c.count));
+const schema = [
+  {
+    '@type': 'CollectionPage',
+    '@id': abs(`${PAGE}#page`),
+    name: 'Country rankings',
+    url: abs(PAGE),
+    isPartOf: { '@id': WEBSITE_ID },
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: cards.length,
+      itemListElement: cards.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.title, url: abs(c.href) })),
+    },
+  },
+];
 ---
-<ComingSoon section="rankings" title="Rankings" lead="Countries ranked on hundreds of measures, each list sourced and explained, coming soon." items={[
-  'Literacy, life expectancy, internet use and many more',
-  'A map view for every ranking',
-  'Each country’s position explained on its own page',
-]} />
+<Base
+  title="Country Rankings: Population, GDP, CO2, Internet and Health | AtlasFigures"
+  description={`${cards.length} rankings of every country and area, from population and GDP to CO2 emissions, internet use and child mortality, each built from the original UN, World Bank, Global Carbon Project or Ember files.`}
+  section="rankings"
+  appTitle="Rankings"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Rankings', href: PAGE }]}
+  schema={schema}
+>
+  <header class="hub-hero">
+    <span class="hub-ico"><Icon name="rankings" /></span>
+    <div>
+      <h1>Country rankings</h1>
+      <p class="answer">{cards.length} rankings across {groups.length} topics, each putting every country and area with data on one list, up to {most} places. Every list comes straight from the original source files, with a full table, a CSV download and the source named on the page.</p>
+    </div>
+  </header>
+
+  <div class="filters topic-filter" role="group" aria-label="Filter by topic">
+    <button type="button" class="on" aria-pressed="true" data-topic="all">All <span class="n">{cards.length}</span></button>
+    {groups.map((g) => <button type="button" aria-pressed="false" data-topic={g.key}>{g.label} <span class="n">{g.items.length}</span></button>)}
+  </div>
+
+  {groups.map((g) => (
+    <section class="topic" data-topic={g.key} aria-labelledby={`t-${g.key}`}>
+      <div class="topic-head">
+        <h2 id={`t-${g.key}`}>{g.label}</h2>
+        <p>{g.text}</p>
+      </div>
+      <div class="rk-list">
+        {g.items.map((c) => (
+          <a class="rk" href={path(c.href)}>
+            <span class="rk-top">
+              <span class="rk-year">{c.year}</span>
+              <span class="rk-count">{c.count} ranked</span>
+            </span>
+            <h3>{c.title}</h3>
+            <p class="rk-blurb">{c.blurb}</p>
+            <span class="rk-figs">
+              {c.world && <span class="rk-world"><span class="k">{c.world.label}</span><span class="v num">{c.world.value}</span></span>}
+              {c.leader && (
+                <span class="rk-first">
+                  <span class="k">{c.leader.label}</span>
+                  <span class="lead">{c.leader.flag && <Flag code={c.leader.flag} class="flag" />}<span class="nm">{c.leader.name}</span></span>
+                  <span class="v num">{c.leader.value}</span>
+                </span>
+              )}
+            </span>
+            <span class="rk-src">Source: {c.source}<span class="chev"><Icon name="chevron" /></span></span>
+          </a>
+        ))}
+      </div>
+    </section>
+  ))}
+
+  <p class="note hub-note">Each ranking uses the latest year for which the source covers most of the world, so years differ between lists. Places without a figure for that year are listed separately on each page, never filled in from older years. Population counts {countryIndex.countries.length} countries and areas from the UN. See our <a href={path('/methodology/')}>methodology</a> and <a href={path('/sources/')}>sources</a>.</p>
+
+  <script is:inline>
+    (function () {
+      var btns = document.querySelectorAll('.topic-filter button'), secs = document.querySelectorAll('section.topic');
+      btns.forEach(function (b) { b.addEventListener('click', function () {
+        btns.forEach(function (x) { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        secs.forEach(function (s) { s.hidden = !(b.dataset.topic === 'all' || s.dataset.topic === b.dataset.topic); });
+      }); });
+    })();
+  </script>
+</Base>
+
+<style>
+  .hub-hero { display: flex; gap: 20px; align-items: flex-start; padding: 28px 30px; margin: 4px 0 22px; border-radius: 24px; background: linear-gradient(135deg, var(--water-2), #fff 70%); border: 1px solid var(--line); }
+  .hub-ico { flex: 0 0 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; background: var(--ocean-2); color: #fff; }
+  .hub-ico :global(svg) { width: 28px; height: 28px; }
+  .hub-hero > div { min-width: 0; }
+  .hub-hero h1 { margin: 0; }
+  .hub-hero .answer { margin: 10px 0 0; max-width: 70ch; }
+  .topic-filter .n { font-size: .78rem; opacity: .7; margin-left: 2px; }
+  .topic[hidden] { display: none; }
+  .topic { margin-top: 34px; }
+  .topic-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid var(--line); }
+  .topic-head h2 { margin: 0; font-size: 1.3rem; }
+  .topic-head p { margin: 0; color: var(--text-3); font-size: .92rem; }
+  .rk-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .rk { display: flex; flex-direction: column; gap: 6px; padding: 20px 22px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); text-decoration: none; color: var(--text); transition: border-color .15s, box-shadow .15s, transform .15s; }
+  .rk:hover { border-color: var(--contour); color: var(--text); box-shadow: 0 12px 28px -18px rgba(18,59,90,.45); transform: translateY(-2px); }
+  .rk-top { display: flex; justify-content: space-between; font-size: .76rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+  .rk-year { color: #fff; background: var(--ocean); border-radius: 6px; padding: 1px 7px; }
+  .rk-count { color: var(--text-3); }
+  .rk h3 { margin: 6px 0 0; font-size: 1.12rem; }
+  .rk-blurb { margin: 0; font-size: .88rem; color: var(--text-2); }
+  .rk-figs { display: grid; gap: 6px; margin: 8px 0 4px; }
+  .rk-world, .rk-first { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 10px; background: var(--water-2); border-radius: var(--r-md); padding: 9px 12px; }
+  .rk-first { grid-template-columns: minmax(0, 1fr) auto; }
+  .rk-first .k { grid-column: 1 / -1; }
+  .rk-figs .k { font-size: .74rem; color: var(--text-3); font-weight: 600; }
+  .rk-figs .v { font-weight: 700; color: var(--contour); font-size: .9rem; text-align: right; white-space: nowrap; }
+  .rk-world .v { color: var(--ocean); }
+  .lead { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .lead :global(.flag) { width: 26px; height: 17px; border-radius: 3px; border: 1px solid var(--line); flex: none; }
+  .lead .nm { font-weight: 700; color: var(--ocean); font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rk-src { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 6px; font-size: .8rem; color: var(--text-3); }
+  .rk-src .chev { color: var(--ocean-2); }
+  .rk-src :global(svg) { width: 18px; height: 18px; }
+  .hub-note { margin-top: 32px; max-width: 80ch; }
+
+  @media (max-width: 1023px) { .rk-list { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 767px) {
+    .hub-hero { padding: 16px; gap: 12px; margin: 12px 0 4px; border: 0; background: var(--surface); border-radius: var(--r-lg); }
+    .hub-ico { flex-basis: 44px; height: 44px; border-radius: 12px; }
+    .hub-ico :global(svg) { width: 22px; height: 22px; }
+    .hub-hero h1 { font-size: 1.5rem; }
+    .hub-hero .answer { font-size: .92rem; background: none; padding: 0; margin: 6px 0 0; }
+    .topic { margin-top: 20px; }
+    .topic-head { border: 0; padding: 0 2px; margin-bottom: 8px; display: block; }
+    .topic-head h2 { font-size: 1.1rem; }
+    .topic-head p { font-size: .82rem; }
+    /* list rows, like a native app */
+    .rk-list { display: block; background: var(--surface); border-radius: var(--r-lg); overflow: hidden; }
+    .rk { border: 0; border-radius: 0; border-bottom: 1px solid var(--line); padding: 14px 16px; gap: 4px; }
+    .rk:last-child { border-bottom: 0; }
+    .rk:hover { transform: none; box-shadow: none; }
+    .rk:active { background: var(--water-2); }
+    .rk h3 { margin: 2px 0 0; font-size: 1rem; }
+    .rk-blurb { display: none; }
+    .rk-figs { grid-template-columns: 1fr 1fr; margin: 6px 0 2px; }
+    .rk-world, .rk-first { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 10px; }
+    .rk-figs .v { text-align: left; font-size: .85rem; }
+    .rk-figs .k { font-size: .68rem; }
+    .lead .nm { font-size: .82rem; }
+    .rk-src { font-size: .74rem; padding-top: 2px; }
+  }
+</style>

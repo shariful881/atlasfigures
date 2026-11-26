@@ -41,8 +41,18 @@ const schema = [
   breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: PAGE }]}
   schema={schema}
 >
-  <h1>Population by country</h1>
-  <p class="answer">Each country has its own page, written around what makes its population story different, with figures from the UN's World Population Prospects 2024. New countries are added every week.</p>
+  <header class="hub-hero">
+    <span class="hub-ico"><Icon name="population" /></span>
+    <div>
+      <h1>Population by country</h1>
+      <p class="answer">Each country has its own page, written around what makes its population story different, with figures from the UN's World Population Prospects 2024. New countries are added every week.</p>
+      <ul class="hub-stats">
+        <li><b class="num">{countries.length}</b><span>country pages</span></li>
+        <li><b class="num">{(world.population / 1e9).toFixed(2)}B</b><span>people in {CURRENT_YEAR}</span></li>
+        {['Asia', 'Africa', 'Europe', 'Americas', 'Oceania'].map((r) => <li><b class="num">{countries.filter((c) => c.cont === r).length}</b><span>in {r}</span></li>)}
+      </ul>
+    </div>
+  </header>
   <p class="note hub-rank">Every country and area in one list: <a href={path('/rankings/population-by-country/')}>population by country</a> · <a href={path('/rankings/population-density-by-country/')}>population density by country</a></p>
   <a class="world-card" href={path('/population/world/')}>
     <Flag code="world" class="flag" />
@@ -53,7 +63,7 @@ const schema = [
   <div class="hub-tools">
     <div class="filters" role="group" aria-label="Filter by continent">
       {['All', 'Asia', 'Africa', 'Europe', 'Americas', 'Oceania'].map((r, i) => (
-        <button type="button" class={i === 0 ? 'on' : ''} aria-pressed={i === 0 ? 'true' : 'false'} data-region={r}>{r}</button>
+        <button type="button" class={i === 0 ? 'on' : ''} aria-pressed={i === 0 ? 'true' : 'false'} data-region={r} id={`f-${r.toLowerCase()}`}>{r}</button>
       ))}
     </div>
     <label class="sort">Sort by
@@ -98,9 +108,22 @@ const schema = [
         region = b.dataset.region; apply();
       }); });
       sel.addEventListener('change', apply);
+      // links such as /population/#f-asia (home page continent tiles) open with that continent selected
+      var start = location.hash && document.getElementById(location.hash.slice(1));
+      if (start && start.dataset && start.dataset.region) { start.click(); }
     })();
   </script>
   <style>
+    .hub-hero { display: flex; gap: 20px; align-items: flex-start; padding: 28px 30px; margin: 4px 0 18px; border-radius: 24px; background: linear-gradient(135deg, var(--water-2), #fff 70%); border: 1px solid var(--line); }
+    .hub-ico { flex: 0 0 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; background: var(--ocean); color: #fff; }
+    .hub-ico :global(svg) { width: 28px; height: 28px; }
+    .hub-hero > div { min-width: 0; }
+    .hub-hero h1 { margin: 0; }
+    .hub-hero .answer { margin: 10px 0 0; max-width: 70ch; }
+    .hub-stats { list-style: none; padding: 0; margin: 18px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+    .hub-stats li { background: #fff; border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px 14px; display: flex; flex-direction: column; min-width: 92px; }
+    .hub-stats b { font-size: 1.2rem; font-weight: 800; color: var(--ocean); line-height: 1.2; }
+    .hub-stats span { font-size: .74rem; color: var(--text-3); }
     .world-card { display: grid; grid-template-columns: 44px 1fr auto 20px; align-items: center; gap: 14px; padding: 14px 18px; margin: 4px 0 18px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); text-decoration: none; color: var(--text); }
     .world-card:hover { background: var(--water-2); }
     .world-card .flag { width: 44px; height: 30px; border-radius: 4px; overflow: hidden; }
@@ -114,6 +137,15 @@ const schema = [
     .sort select { font: inherit; font-weight: 600; color: var(--ocean); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; min-height: 40px; }
     .hub-count { margin: 10px 2px; }
     .list .row[hidden] { display: none; } /* .row sets display:grid, which would otherwise override [hidden] */
+    @media (max-width: 767px) {
+      .hub-hero { padding: 16px; gap: 12px; margin: 12px 0 8px; border: 0; background: var(--surface); border-radius: var(--r-lg); }
+      .hub-ico { flex-basis: 44px; height: 44px; border-radius: 12px; }
+      .hub-hero h1 { font-size: 1.5rem; }
+      .hub-hero .answer { font-size: .92rem; background: none; padding: 0; margin: 6px 0 0; }
+      .hub-stats { flex-wrap: nowrap; overflow-x: auto; margin: 12px 0 0; padding: 0; scrollbar-width: none; }
+      .hub-stats li { flex: none; min-width: 78px; padding: 6px 10px; background: var(--water-2); border: 0; }
+      .world-card { border: 0; }
+    }
     @media (max-width: 767px) { .hub-tools { display: block; } .sort { margin: 8px 0 0; } }
   </style>
 </Base>

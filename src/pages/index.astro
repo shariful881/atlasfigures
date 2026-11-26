@@ -3,8 +3,14 @@ import Base from '../layouts/Base.astro';
 import LiveCounter from '../components/LiveCounter.astro';
 import Contours from '../components/Contours.astro';
 import Icon from '../components/Icon.astro';
+import Flag from '../components/Flag.astro';
 import bd from '../data/countries/bangladesh.json';
-import { worldData, countryData, countryIndex, byYear, billions, millions, int, CURRENT_YEAR, assertClaim } from '../lib/figures';
+import { worldData, countryData, countryIndex, byYear, billions, millions, people, int, CURRENT_YEAR, assertClaim } from '../lib/figures';
+import { rankBy, rankingYear, usd } from '../lib/econ';
+import { byPopulation } from '../lib/popRankings';
+import { rankingCards, TOPICS, CONTINENT } from '../lib/catalog';
+import { commonName, iso2, pagesOf } from '../lib/names';
+import { path } from '../site';
 
 const w = byYear(worldData.years)[CURRENT_YEAR];
 const bdNow = byYear(countryData(bd.iso3).years)[CURRENT_YEAR];
@@ -12,50 +18,326 @@ const bdFertility1970 = byYear(countryData(bd.iso3).years)[1970].fertility;
 const densest = countryIndex.countries.filter((x) => x.population > 10e6).sort((a, b) => b.densityPerKm2 - a.densityPerKm2)[0];
 assertClaim(densest.iso3 === bd.iso3, 'Bangladesh is the most densely populated country of more than 10 million people');
 assertClaim(bdFertility1970 > 6.5 && bdNow.fertility < 2.2, 'Bangladesh went from almost seven births per woman to about two');
-import { path } from '../site';
 
-const tiles = [
-  { key: 'population' as const, title: 'Population', text: 'Every country: how many people, how crowded, and where it is heading by 2050.', live: true },
-  { key: 'time' as const, title: 'Time', text: 'Local time in every city, time differences and a meeting planner.', live: false },
-  { key: 'economy' as const, title: 'Economy', text: 'GDP, income and inflation, with long-run charts and country comparisons.', live: false },
-  { key: 'rankings' as const, title: 'Rankings', text: 'Countries ranked on hundreds of measures, each list sourced and explained.', live: false },
+// What the site holds right now (counted, never typed)
+const popPages = Object.values(import.meta.glob('../data/countries/*.json', { eager: true, import: 'default' })) as any[];
+const econPages = Object.values(import.meta.glob('../data/economy/*.json', { eager: true, import: 'default' })) as any[];
+const rankings = rankingCards();
+const nPlaces = countryIndex.countries.length;
+
+// Largest populations and largest economies (same lists as the ranking pages)
+const topPop = byPopulation().slice(0, 8).map((e) => ({ iso3: e.iso3, value: e.now.population, label: people(e.now.population), href: pagesOf(e.iso3).population ?? '/rankings/population-by-country/' }));
+const gdpYear = rankingYear('gdp');
+const topGdp = rankBy('gdp', gdpYear).slice(0, 8).map((r) => ({ iso3: r.iso3, value: r.value, label: usd(r.value), href: pagesOf(r.iso3).economy ?? '/rankings/gdp-by-country/' }));
+
+// Country pages by continent (UN regions)
+const continents = ['Asia', 'Africa', 'Europe', 'Americas', 'Oceania'].map((c) => ({
+  name: c, id: `f-${c.toLowerCase()}`,
+  n: popPages.filter((p) => CONTINENT[countryData(p.iso3).region] === c).length,
+  places: countryIndex.countries.filter((x) => CONTINENT[(countryData(x.iso3) as any).region] === c).length,
+}));
+
+const popular = ['population-by-country', 'gdp-by-country', 'gdp-per-capita-by-country', 'co2-emissions-by-country', 'internet-users-by-country', 'inflation-rate-by-country']
+  .map((s) => rankings.find((r) => r.slug === s)!);
+
+const categories = [
+  { key: 'population' as const, title: 'Population', count: `${popPages.length} country pages`, text: 'How many people, how crowded, and where each country is heading.',
+    links: [['World population, live', '/population/world/'], ['Population by country', '/rankings/population-by-country/'], ['Population density', '/rankings/population-density-by-country/']] },
+  { key: 'economy' as const, title: 'Economy', count: `${econPages.length} country pages`, text: 'GDP, income per person, growth, inflation and remittances.',
+    links: [['GDP by country', '/rankings/gdp-by-country/'], ['GDP per capita', '/rankings/gdp-per-capita-by-country/'], ['Inflation rate', '/rankings/inflation-rate-by-country/']] },
+  { key: 'rankings' as const, title: 'Rankings', count: `${rankings.length} rankings`, text: `Every country and area on one list, across ${TOPICS.length} topics.`,
+    links: [['CO₂ emissions', '/rankings/co2-emissions-by-country/'], ['Internet users', '/rankings/internet-users-by-country/'], ['All rankings', '/rankings/']] },
+  { key: 'time' as const, title: 'Time', count: 'Coming soon', text: 'Local time in every city, time differences and a meeting planner.', links: [] as string[][] },
+];
+
+const sources = [
+  ['UN World Population Prospects 2024', 'Population, births, deaths and projections to 2100'],
+  ['World Bank World Development Indicators', 'GDP, income, prices, jobs, internet and health'],
+  ['Global Carbon Project', 'Fossil CO₂ by country'],
+  ['Ember', 'Electricity generation by source'],
 ];
 ---
 <Base
   title="World Population Live & Country Statistics | AtlasFigures"
-  description="Live world population and the story behind the numbers for every country: population, time, economy and rankings, with every figure sourced."
+  description="Live world population and the story behind the numbers for every country: population, economy, rankings and more, with every figure sourced."
 >
-  <section class="hero">
-    <h1>Every country, told on its own terms.</h1>
-    <p class="intro">There are about <strong>{billions(w.population)} people</strong> on Earth in {CURRENT_YEAR}, and the UN expects about {millions(w.change)} more this year. AtlasFigures gives every country its own page, written around what makes its figures different, with every number sourced.</p>
-    <LiveCounter
-      label="People on Earth right now"
-      anchorValue={w.population}
-      anchorDate={`${CURRENT_YEAR}-07-01`}
-      perYear={w.change}
-      note={`UN World Population Prospects 2024: figure for 1 July ${CURRENT_YEAR} plus about ${int(w.change / 365)} people a day`}
-    />
+  <section class="home-hero">
+    <Contours />
+    <div class="hh-text">
+      <p class="eyebrow"><span class="pulse" aria-hidden="true"></span> World figures, updated live</p>
+      <h1>Every country, told on its own terms.</h1>
+      <p class="intro">There are about <strong>{billions(w.population)} people</strong> on Earth in {CURRENT_YEAR}, and the UN expects about {millions(w.change)} more this year. AtlasFigures gives every country its own page, written around what makes its figures different, with every number sourced.</p>
+      <ul class="hh-stats" aria-label="What is on AtlasFigures">
+        <li><b class="num">{popPages.length}</b><span>population pages</span></li>
+        <li><b class="num">{econPages.length}</b><span>economy pages</span></li>
+        <li><b class="num">{rankings.length}</b><span>rankings</span></li>
+        <li><b class="num">{nPlaces}</b><span>countries and areas in the data</span></li>
+      </ul>
+    </div>
+    <div class="hh-counter">
+      <LiveCounter
+        label="People on Earth right now"
+        anchorValue={w.population}
+        anchorDate={`${CURRENT_YEAR}-07-01`}
+        perYear={w.change}
+        note={`UN World Population Prospects 2024: figure for 1 July ${CURRENT_YEAR} plus about ${int(w.change / 365)} people a day`}
+      />
+    </div>
   </section>
 
-  <h2>Explore</h2>
-  <div class="section-grid swipe">
-    {tiles.map((t) => (
-      <a class="tile" href={path(`/${t.key}/`)}>
-        <span class="ico"><Icon name={t.key} /></span>
-        <h3>{t.title}</h3>
-        <p>{t.text}</p>
-        <span class={t.live ? 'state on' : 'state'}>{t.live ? 'Open now' : 'Coming soon'}</span>
+  <div class="sec-head"><h2>Browse by category</h2></div>
+  <div class="cat-grid swipe">
+    {categories.map((c) => (
+      <div class={`cat cat-${c.key}${c.links.length ? '' : ' soon'}`}>
+        <a class="cat-main" href={path(`/${c.key}/`)}>
+          <span class="ico"><Icon name={c.key} /></span>
+          <span class="cat-count">{c.count}</span>
+          <h3>{c.title}</h3>
+          <p>{c.text}</p>
+        </a>
+        {c.links.length > 0 && (
+          <ul class="cat-links">
+            {c.links.map(([label, href]) => <li><a href={path(href)}>{label}<Icon name="chevron" /></a></li>)}
+          </ul>
+        )}
+      </div>
+    ))}
+  </div>
+
+  <div class="sec-head">
+    <h2>Popular rankings</h2>
+    <a class="more" href={path('/rankings/')}>All {rankings.length} rankings <Icon name="chevron" /></a>
+  </div>
+  <div class="rk-grid swipe">
+    {popular.map((r) => (
+      <a class="rk-card" href={path(r.href)}>
+        <span class="rk-topic">{TOPICS.find((t) => t.key === r.topic)!.label} · {r.year}</span>
+        <h3>{r.title}</h3>
+        {r.leader && (
+          <span class="rk-leader">
+            <span class="rk-badge">#1</span>
+            {r.leader.flag && <Flag code={r.leader.flag} class="flag" />}
+            <span class="rk-name">{r.leader.name}</span>
+            <span class="rk-val num">{r.leader.value}</span>
+          </span>
+        )}
+        <span class="rk-foot">{r.count} ranked · {r.source}</span>
       </a>
     ))}
   </div>
 
-  <h2>Featured country</h2>
+  <div class="top-lists">
+    <section class="top-card" aria-labelledby="top-pop-h">
+      <header>
+        <h2 id="top-pop-h">Most populous, {CURRENT_YEAR}</h2>
+        <a class="more" href={path('/rankings/population-by-country/')}>Full list <Icon name="chevron" /></a>
+      </header>
+      <ol>
+        {topPop.map((t, i) => (
+          <li><a href={path(t.href)}>
+            <span class="pos num">{i + 1}</span>
+            <Flag code={iso2(t.iso3) ?? 'world'} class="flag" />
+            <span class="nm">{commonName(t.iso3)}</span>
+            <span class="val num">{t.label}</span>
+            <span class="bar" aria-hidden="true"><span style={`width:${(t.value / topPop[0].value) * 100}%`}></span></span>
+          </a></li>
+        ))}
+      </ol>
+      <p class="src">UN World Population Prospects 2024, mid-{CURRENT_YEAR}</p>
+    </section>
+    <section class="top-card" aria-labelledby="top-gdp-h">
+      <header>
+        <h2 id="top-gdp-h">Largest economies, {gdpYear}</h2>
+        <a class="more" href={path('/rankings/gdp-by-country/')}>Full list <Icon name="chevron" /></a>
+      </header>
+      <ol>
+        {topGdp.map((t, i) => (
+          <li><a href={path(t.href)}>
+            <span class="pos num">{i + 1}</span>
+            <Flag code={iso2(t.iso3) ?? 'world'} class="flag" />
+            <span class="nm">{commonName(t.iso3)}</span>
+            <span class="val num">{t.label}</span>
+            <span class="bar eco" aria-hidden="true"><span style={`width:${(t.value / topGdp[0].value) * 100}%`}></span></span>
+          </a></li>
+        ))}
+      </ol>
+      <p class="src">World Bank WDI, GDP in current US dollars</p>
+    </section>
+  </div>
+
+  <div class="sec-head">
+    <h2>Countries by continent</h2>
+    <a class="more" href={path('/population/')}>All country pages <Icon name="chevron" /></a>
+  </div>
+  <div class="cont-grid">
+    {continents.map((c) => (
+      <a class="cont" href={path(`/population/#${c.id}`)}>
+        <span class="cont-name">{c.name}</span>
+        <span class="cont-n num">{c.n}</span>
+        <span class="cont-sub">pages · {c.places} places in the UN data</span>
+        <span class="cont-meter" aria-hidden="true"><span style={`width:${(c.n / c.places) * 100}%`}></span></span>
+      </a>
+    ))}
+  </div>
+
+  <div class="sec-head"><h2>Featured country</h2></div>
   <a class="feature" href={path('/population/bangladesh/')}>
     <div class="body">
+      <Flag code="bd" class="ft-flag" />
       <h3>Bangladesh</h3>
       <div class="big num">{millions(bdNow.population)}</div>
       <p>The most densely populated country of more than 10 million people, and how it went from almost seven births per woman to about two.</p>
+      <span class="ft-cta">Read the Bangladesh story <Icon name="chevron" /></span>
     </div>
     <div class="side"><Contours /></div>
   </a>
+
+  <section class="trust" aria-labelledby="trust-h">
+    <div>
+      <h2 id="trust-h">Where the numbers come from</h2>
+      <p>Figures are taken straight from the original files of the organisations below, checked by hand before a page goes up, and every page lists its own sources.</p>
+      <a class="more" href={path('/sources/')}>See every source <Icon name="chevron" /></a>
+    </div>
+    <ul>
+      {sources.map(([n, t]) => <li><b>{n}</b><span>{t}</span></li>)}
+    </ul>
+  </section>
 </Base>
+
+<style>
+  /* ---- hero ---- */
+  .home-hero { position: relative; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 40px; align-items: center;
+    margin: 28px 0 8px; padding: 44px 44px; border-radius: 28px; overflow: hidden;
+    background: linear-gradient(135deg, var(--water-2) 0%, #fff 55%, var(--contour-2) 140%); border: 1px solid var(--line); }
+  .home-hero > :not(.contours) { position: relative; }
+  .home-hero :global(.contours path) { stroke: rgba(18,59,90,.07); }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: .8rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--contour); background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; margin: 0 0 18px; }
+  .home-hero h1 { max-width: 14ch; margin: 0; }
+  .home-hero .intro { font-size: 1.08rem; color: var(--text-2); max-width: 52ch; margin: 18px 0 0; }
+  .home-hero .intro strong { color: var(--ocean); }
+  .hh-stats { list-style: none; padding: 0; margin: 26px 0 0; display: grid; grid-template-columns: repeat(4, auto); gap: 6px 26px; justify-content: start; }
+  .hh-stats li { display: flex; flex-direction: column; }
+  .hh-stats b { font-size: 1.6rem; font-weight: 800; color: var(--ocean); line-height: 1.1; letter-spacing: -0.02em; }
+  .hh-stats span { font-size: .78rem; color: var(--text-3); max-width: 12ch; line-height: 1.3; }
+  .hh-counter { min-width: 0; }
+  .hh-counter :global(.counter .value) { font-size: clamp(2.2rem, 3.7vw, 3.1rem); }
+  .hh-counter :global(.counter) { box-shadow: 0 18px 40px -18px rgba(18,59,90,.35); border-color: transparent; }
+
+  /* ---- section heads ---- */
+  .sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin: 52px 0 16px; }
+  .sec-head h2 { margin: 0; }
+  .more { display: inline-flex; align-items: center; gap: 4px; font-size: .92rem; font-weight: 600; text-decoration: none; color: var(--ocean-2); white-space: nowrap; }
+  .more :global(svg) { width: 16px; height: 16px; }
+
+  /* ---- categories ---- */
+  .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .cat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); display: flex; flex-direction: column; overflow: hidden; transition: border-color .15s, box-shadow .15s, transform .15s; }
+  .cat:hover { border-color: var(--contour); box-shadow: 0 12px 28px -18px rgba(18,59,90,.45); transform: translateY(-2px); }
+  .cat-main { display: flex; flex-direction: column; gap: 4px; padding: 22px 22px 14px; text-decoration: none; color: var(--text); flex: 1; }
+  .cat-main:hover { color: var(--text); }
+  .cat .ico { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; color: #fff; background: var(--ocean); margin-bottom: 10px; }
+  .cat-economy .ico { background: var(--contour); }
+  .cat-rankings .ico { background: var(--ocean-2); }
+  .cat.soon .ico { background: var(--water); color: var(--ocean); }
+  .cat .ico :global(svg) { width: 22px; height: 22px; }
+  .cat-count { font-size: .78rem; font-weight: 700; color: var(--contour); text-transform: uppercase; letter-spacing: .05em; }
+  .cat.soon .cat-count { color: var(--text-3); }
+  .cat h3 { margin: 0; font-size: 1.25rem; }
+  .cat p { margin: 2px 0 0; font-size: .9rem; color: var(--text-2); }
+  .cat-links { list-style: none; margin: 0; padding: 4px 0; border-top: 1px solid var(--line); background: var(--water-2); }
+  .cat-links a { display: flex; justify-content: space-between; align-items: center; padding: 8px 22px; font-size: .88rem; font-weight: 600; text-decoration: none; color: var(--ocean); }
+  .cat-links a:hover { color: var(--contour); }
+  .cat-links :global(svg) { width: 14px; height: 14px; color: var(--text-3); }
+
+  /* ---- ranking cards ---- */
+  .rk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .rk-card { display: flex; flex-direction: column; gap: 8px; padding: 20px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); text-decoration: none; color: var(--text); transition: border-color .15s, box-shadow .15s; }
+  .rk-card:hover { border-color: var(--contour); color: var(--text); box-shadow: 0 12px 28px -18px rgba(18,59,90,.45); }
+  .rk-topic { font-size: .76rem; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; }
+  .rk-card h3 { margin: 0; font-size: 1.08rem; }
+  .rk-leader { display: grid; grid-template-columns: auto 30px 1fr auto; align-items: center; gap: 10px; background: var(--water-2); border-radius: var(--r-md); padding: 10px 12px; margin-top: 4px; }
+  .rk-badge { font-size: .75rem; font-weight: 800; color: #fff; background: var(--ocean); border-radius: 6px; padding: 2px 6px; }
+  .rk-leader :global(.flag) { width: 30px; height: 20px; border-radius: 3px; border: 1px solid var(--line); }
+  .rk-name { font-weight: 700; color: var(--ocean); font-size: .92rem; line-height: 1.25; }
+  .rk-val { font-weight: 700; color: var(--contour); font-size: .9rem; white-space: nowrap; }
+  .rk-foot { font-size: .8rem; color: var(--text-3); margin-top: auto; }
+
+  /* ---- top lists ---- */
+  .top-lists { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 52px; }
+  .top-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 20px 22px 14px; }
+  .top-card header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+  .top-card h2 { margin: 0; font-size: 1.15rem; }
+  .top-card ol { list-style: none; margin: 0; padding: 0; }
+  .top-card li a { display: grid; grid-template-columns: 22px 30px 1fr auto; grid-template-rows: auto 4px; column-gap: 10px; row-gap: 5px; align-items: center; padding: 9px 4px; text-decoration: none; color: var(--text); border-bottom: 1px solid var(--line); }
+  .top-card li:last-child a { border-bottom: 0; }
+  .top-card li a:hover .nm { color: var(--contour); }
+  .top-card .pos { font-size: .85rem; font-weight: 700; color: var(--text-3); text-align: center; }
+  .top-card :global(.flag) { width: 30px; height: 20px; border-radius: 3px; border: 1px solid var(--line); }
+  .top-card .nm { font-weight: 700; color: var(--ocean); font-size: .95rem; }
+  .top-card .val { font-weight: 700; color: var(--text); font-size: .92rem; }
+  .top-card .bar { grid-column: 3 / 5; height: 4px; background: var(--water-2); border-radius: 2px; overflow: hidden; }
+  .top-card .bar span { display: block; height: 100%; background: var(--ocean-2); border-radius: 2px; }
+  .top-card .bar.eco span { background: var(--contour); }
+  .top-card .src { font-size: .78rem; color: var(--text-3); margin: 10px 0 0; }
+
+  /* ---- continents ---- */
+  .cont-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .cont { display: flex; flex-direction: column; padding: 18px 18px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); text-decoration: none; color: var(--text); }
+  .cont:hover { border-color: var(--contour); color: var(--text); }
+  .cont-name { font-weight: 700; color: var(--ocean); }
+  .cont-n { font-size: 2rem; font-weight: 800; color: var(--ocean); line-height: 1.1; margin-top: 6px; letter-spacing: -0.02em; }
+  .cont-sub { font-size: .78rem; color: var(--text-3); }
+  .cont-meter { height: 5px; background: var(--water-2); border-radius: 3px; margin-top: 12px; overflow: hidden; }
+  .cont-meter span { display: block; height: 100%; background: var(--contour); }
+
+  /* ---- feature + trust ---- */
+  .feature :global(.ft-flag) { width: 48px; height: 32px; border-radius: 4px; margin-bottom: 12px; }
+  .ft-cta { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; font-weight: 700; color: #fff; }
+  .ft-cta :global(svg) { width: 16px; height: 16px; }
+  .trust { display: grid; grid-template-columns: 1fr 1.3fr; gap: 32px; margin-top: 52px; padding: 30px 32px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .trust h2 { margin: 0 0 10px; font-size: 1.25rem; }
+  .trust p { color: var(--text-2); font-size: .95rem; }
+  .trust ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .trust li { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: var(--r-md); background: var(--water-2); border-left: 3px solid var(--contour); }
+  .trust b { color: var(--ocean); font-size: .92rem; }
+  .trust li span { font-size: .82rem; color: var(--text-2); }
+
+  /* ---- tablet ---- */
+  @media (max-width: 1023px) {
+    .home-hero { grid-template-columns: 1fr; padding: 34px; gap: 26px; }
+    .cat-grid { grid-template-columns: repeat(2, 1fr); }
+    .rk-grid { grid-template-columns: repeat(2, 1fr); }
+    .cont-grid { grid-template-columns: repeat(3, 1fr); }
+    .trust { grid-template-columns: 1fr; }
+  }
+
+  /* ---- mobile app ---- */
+  @media (max-width: 767px) {
+    .home-hero { margin: 10px 0 0; padding: 18px 16px 16px; border-radius: var(--r-lg); border: 0; background: linear-gradient(160deg, #fff 0%, var(--water-2) 100%); }
+    .eyebrow { font-size: .7rem; margin-bottom: 12px; }
+    .home-hero h1 { font-size: 1.65rem; }
+    .home-hero .intro { font-size: .95rem; margin-top: 10px; }
+    .hh-stats { grid-template-columns: repeat(4, 1fr); gap: 4px 8px; margin-top: 16px; }
+    .hh-stats b { font-size: 1.2rem; }
+    .hh-stats span { font-size: .66rem; }
+    .hh-counter :global(.counter) { box-shadow: 0 1px 3px rgba(18,59,90,.1); }
+    .sec-head { margin: 26px 2px 10px; }
+    .sec-head h2 { font-size: 1.15rem; }
+    .more { font-size: .85rem; }
+    .cat-grid, .rk-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; margin: 0 -16px; padding: 0 16px 6px; scrollbar-width: none; }
+    .cat-grid::-webkit-scrollbar, .rk-grid::-webkit-scrollbar { display: none; }
+    .cat-grid > *, .rk-grid > * { flex: 0 0 78%; scroll-snap-align: start; }
+    .cat { border: 0; }
+    .cat:hover { transform: none; }
+    .rk-card { border: 0; }
+    .top-lists { grid-template-columns: 1fr; gap: 12px; margin-top: 26px; }
+    .top-card { border: 0; padding: 16px 16px 10px; }
+    .top-card li a { min-height: 44px; }
+    .cont-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; margin: 0 -16px; padding: 0 16px 6px; scrollbar-width: none; }
+    .cont-grid::-webkit-scrollbar { display: none; }
+    .cont { flex: 0 0 40%; scroll-snap-align: start; border: 0; padding: 14px; }
+    .cont-n { font-size: 1.6rem; }
+    .trust { border: 0; padding: 18px 16px; margin-top: 26px; gap: 12px; }
+    .trust ul { grid-template-columns: 1fr; }
+  }
+</style>
