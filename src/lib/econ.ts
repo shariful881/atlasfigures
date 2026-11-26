@@ -8,7 +8,8 @@ import aggregates from '../data/wdi/aggregates.json';
 export type IndicatorKey =
   | 'gdp' | 'gdpPerCapita' | 'gdpPerCapitaPpp' | 'gdpGrowthPct' | 'inflationPct'
   | 'unemploymentPct' | 'remittances' | 'remittancesPctGdp' | 'internetPct'
-  | 'mobilePer100' | 'mobileSubs' | 'broadbandPer100';
+  | 'mobilePer100' | 'mobileSubs' | 'broadbandPer100'
+  | 'under5Mortality' | 'infantMortality' | 'maternalMortality';
 /** [year, value] pairs, years ascending, only years the World Bank publishes a value for. */
 export type Series = [number, number][];
 export type EconData = {

@@ -1,0 +1,162 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/ecuador.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/ecuador/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const lac = rankBy('gdp', L).filter((r) => r.region === 'Latin America & Caribbean');
+const lPos = lac.findIndex((r) => r.iso3 === c.iso3);
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const lowInflSince = Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y));
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const negInfl = s.inflationPct.filter(([, x]) => x < 0).map(([y]) => y);
+const remRank = rankBy('remittances', L).find((r) => r.iso3 === c.iso3)!.rank;
+const remX = (rem!.value / v('remittances', 2015)!).toFixed(1);
+const uLow = Math.max(...s.unemploymentPct.filter(([y, x]) => y < L && x < unemp!).map(([y]) => y));
+
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita) && lPos === 6 && B.gdpRank === 63, 'record GDP and per head; 7th in LAC; 63rd');
+assertClaim(g(L - 1) < 0 && growth > 3.7 && worst[0] === 2020 && worst[1] < -9.2, 'back to growth after 2024 dip; 2020 worst');
+assertClaim(lowInflSince === 2021 && negInfl.join() === '2018,2020' && iMax[0] === 2000 && iMax[1] > 96, 'inflation lowest since 2021; prices fell 2018 and 2020; peak 2000');
+assertClaim(isMax(s.remittances) && remRank === 30 && Number(remX) === 3.2 && remPct!.value > 5.9, 'record remittances 30th, 3.2x 2015');
+assertClaim(uLow === 2013 && unemp! < 3.4, 'unemployment lowest since 2013');
+
+const title = `Ecuador Economy ${L}: Back to ${pct(growth)} Growth, Prices Near Flat | AtlasFigures`;
+const description = `A year after contracting, Ecuador posted ${pct(growth)} growth in ${L}, with GDP at ${usd(gdp)}, inflation of only ${pct(infl.value)} and remittances at an all-time ${usd(rem!.value)}.`;
+
+const faq = [
+  { q: `Is Ecuador out of its ${L - 1} slump?`, a: `Yes. A ${pct(Math.abs(g(L - 1)))} contraction in ${L - 1} gave way to ${pct(growth)} growth in ${L}; Ecuadorian GDP now stands at ${usd(gdp)}, its peak so far, placing seventh among the region\'s economies.` },
+  { q: 'Has Ecuador had deflation?', a: `Briefly: consumer prices fell in 2018 (${signedPct(i(2018))}) and 2020 (${signedPct(i(2020))}). The ${L} rate was ${pct(infl.value)}, the lowest since 2021.` },
+  { q: 'When was Ecuador\'s inflation highest?', a: `In 2000, at ${pct(iMax[1])} — the peak of a series that runs from 1960.` },
+  { q: 'How big are remittances to Ecuador?', a: `Bigger than ever. Inflows for ${L} amounted to ${usd(rem!.value)}, ${remX} times what came in during 2015 and worth ${pct(remPct!.value)} of GDP, which puts Ecuador ${ord(remRank)} among recipients.` },
+  { q: 'What was Ecuador\'s worst year for the economy?', a: `2020, when output shrank ${pct(Math.abs(worst[1]))}. GDP grew ${pct(g(2021))} the following year.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Ecuador's economy in ${L}: recovery from a dip, near-zero inflation, record remittances`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Ecuadorian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Ecuador', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Ecuador's economy: a rebound with flat prices</h1>
+        <p class="answer">
+          Following a {L - 1} dip, Ecuador's output rose <strong>{pct(growth)}</strong> in {L}, reaching <strong>{usd(gdp)}</strong>, while inflation stayed at {pct(infl.value)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Ecuador economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Ecuador" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Out of a one-year contraction, with almost no inflation and more money than ever from Ecuadorians abroad.</p>
+
+        <div class="story-block prose">
+          <h2>Has Ecuador recovered from its {L - 1} contraction?</h2>
+          <p>It did. Output slipped {pct(Math.abs(g(L - 1)))} in {L - 1}, then expanded {pct(growth)} in {L}, so that dollar GDP — {usd(gdp)} — beat every previous year. Among Latin American and Caribbean economies only six are larger; worldwide Ecuador is {ord(B.gdpRank!)}.</p>
+        </div>
+        <LineChart
+          title={`Ecuador: annual real GDP growth, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="Year-over-year % change in constant-price output."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Is inflation a problem in Ecuador?</h2>
+          <p>Not at the moment. Consumer prices crept up {pct(infl.value)} over {L}, the slowest pace since 2021. Ecuador even saw prices fall in 2018 and 2020. In 2000, by contrast, inflation reached {pct(iMax[1])}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Is money from Ecuadorians abroad still rising?</h2>
+          <p>Yes: {L} transfers totalled {usd(rem!.value)} — a peak, and {remX} times the 2015 sum — or {pct(remPct!.value)} of GDP; {remRank - 1} countries received larger sums.</p>
+        </div>
+        <LineChart
+          title={`Remittances received by Ecuadorians, ${s.remittances[0][0]}–${L}`}
+          subtitle="Remittances received by Ecuador in current dollars."
+          points={s.remittances.map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>What do Ecuadorians earn on average?</h2>
+          <p>Per inhabitant, Ecuador's GDP hit {usdWhole(perHead)} in {L}, the most yet (PPP: {intDollars(ppp!)}); meanwhile the World Bank classes the country as upper middle income. Modelled joblessness eased to {pct(unemp!)}, a level last as low in 2013.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Ecuador and the Andes: related pages</h2>
+          <ul>
+            <li><a href={path('/population/ecuador/')}>Ecuador's population</a></li>
+            <li><a href={path('/economy/colombia/')}>Colombia's economy</a></li>
+            <li><a href={path('/economy/peru/')}>Peru's economy</a></li>
+            <li><a href={path('/economy/chile/')}>Chile's economy</a></li>
+            <li><a href={path('/rankings/remittances-by-country/')}>Remittances league table</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Ecuador's economy in key years`}
+          subtitle="Decades since 1960 (2000 is also the inflation record), then 2015 to the latest year; the CSV includes the rest."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/ecuador-economy.csv')} csvName="ecuador-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Ecuador's economy: answers to common questions</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">"Latin America and the Caribbean" is the World Bank region. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Ecuadorian economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Ecuador" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

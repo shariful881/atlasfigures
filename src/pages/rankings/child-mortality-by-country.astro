@@ -1,0 +1,198 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import WorldMap from '../../components/WorldMap.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/child-mortality-by-country.json';
+import { econData, econMeta, aggregate, valueIn, rankBy, notRanked, rankingYear } from '../../lib/econ';
+import { assertClaim, ord } from '../../lib/figures';
+import { commonName, pagesOf } from '../../lib/names';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/); the estimates are the UN IGME's.
+const PAGE = '/rankings/child-mortality-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WDI = 'World Bank, World Development Indicators (UN IGME estimates)';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = meta.verification?.checkedOn;
+const name = commonName;
+const M = econMeta.indicators.under5Mortality;
+
+const L = rankingYear('under5Mortality');
+const ranked = rankBy('under5Mortality', L);
+const N = ranked.length;
+const missing = notRanked('under5Mortality', L).filter((m) => m.latestYear != null);
+const WS = aggregate('WLD').series;
+const world = valueIn(WS.under5Mortality, L)!;
+const world1990 = valueIn(WS.under5Mortality, 1990)!;
+const worldInf = valueIn(WS.infantMortality, L)!;
+const ssa = valueIn(aggregate('SSF').series.under5Mortality, L)!;
+const byIso = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const u5 = (x: string, y: number) => valueIn(econData(x).series.under5Mortality, y);
+const inf = (x: string, y: number) => valueIn(econData(x).series.infantMortality, y);
+const top20Ssa = ranked.slice(0, 20).every((r) => r.region === 'Sub-Saharan Africa');
+const fall = Math.round((1 - world / world1990) * 100);
+const bgdFall = Math.round((1 - byIso('BGD').value / u5('BGD', 1990)!) * 100);
+const wYears = WS.under5Mortality!.filter(([y]) => y >= 1990 && y <= L);
+const f1 = (v: number) => v.toFixed(1);
+
+assertClaim(M.aggregation === 'Weighted average' && L === 2024 && N > 190 && missing.length === 0, 'world weighted average; 2024; every economy with data has 2024');
+assertClaim(['NGA', 'NER', 'SOM'].every((x, i) => ranked[i].iso3 === x) && ranked[0].value > 115 && ranked[2].value > 100, 'Nigeria, Niger, Somalia highest; Somalia above 100');
+assertClaim(top20Ssa, 'top 20 all sub-Saharan Africa');
+assertClaim(ranked.at(-1)!.iso3 === 'SMR' && ranked.at(-2)!.iso3 === 'EST' && ranked.at(-3)!.iso3 === 'LUX' && ranked.at(-1)!.value < 1.5, 'San Marino, Estonia, Luxembourg lowest');
+assertClaim(fall === 60 && world1990 > 93, 'world rate down 60% since 1990');
+assertClaim(valueIn(WS.under5Mortality, 2022)! > valueIn(WS.under5Mortality, 2020)! && valueIn(WS.under5Mortality, 2023)! < valueIn(WS.under5Mortality, 2022)!, 'world rate edged up in 2021-22, then fell');
+assertClaim(byIso('BGD').value < world && bgdFall === 79 && byIso('IND').value < byIso('BGD').value && byIso('PAK').value > world, 'Bangladesh below world, down 79%; India lower; Pakistan above world');
+assertClaim(ssa > 71 && ssa < 72 && byIso('USA').value > byIso('GBR').value && byIso('USA').value > byIso('CHN').value, 'SSA 71; US above UK and China');
+assertClaim(worldInf > world / 2, 'most under-5 deaths in first year');
+
+const title = `Child Mortality by Country ${L}: Under-5 Death Rates Ranked | AtlasFigures`;
+const description = `Worldwide, ${f1(world)} of every 1,000 children born died before turning five in ${L}, down ${fall}% since 1990. The ranking covers ${N} places, from Nigeria at the top to San Marino.`;
+
+const cards = [
+  { label: 'Under-5 deaths', value: f1(world), year: L, note: 'per 1,000 births, world' },
+  { label: 'In 1990', value: f1(world1990), year: 1990, note: 'per 1,000 births, world' },
+  { label: 'Infant deaths', value: f1(worldInf), year: L, note: 'before age 1, per 1,000' },
+  { label: 'Sub-Saharan Africa', value: f1(ssa), year: L, note: 'per 1,000 births' },
+];
+
+const rows = ranked.map((r) => {
+  const pg = pagesOf(r.iso3); const site = pg.economy ?? pg.population;
+  const i = inf(r.iso3, L), b = u5(r.iso3, 1990);
+  return {
+    rank: r.rank, iso3: r.iso3, name: name(r.iso3), site, href: site ? path(site) : null, region: r.region,
+    bar: Math.min(r.value / 120, 1), value: f1(r.value),
+    cells: [i != null ? f1(i) : '–', b != null ? f1(b) : '–'],
+  };
+});
+const mapFmt = (v: number) => `${Math.round(v)}`;
+const mapRows = ranked.map((r) => ({ iso3: r.iso3, name: name(r.iso3), rank: r.rank, raw: r.value, value: `${f1(r.value)} per 1,000` }));
+const regions = [...new Set(ranked.map((r) => r.region))].sort();
+
+const faq = [
+  { q: 'Which country has the highest child mortality rate?', a: `Nigeria, where ${f1(ranked[0].value)} of every 1,000 newborns died before age five in ${L}. Niger (${f1(ranked[1].value)}) and Somalia (${f1(ranked[2].value)}) follow.` },
+  { q: 'Which country has the lowest under-5 mortality?', a: `San Marino, where ${f1(ranked.at(-1)!.value)} children in 1,000 die before five, then Estonia (${f1(ranked.at(-2)!.value)}) and Luxembourg (${f1(ranked.at(-3)!.value)}).` },
+  { q: 'Has child mortality fallen worldwide?', a: `Sharply. The UN IGME puts the global rate at ${f1(world1990)} in 1990 and ${f1(world)} in ${L}, a ${fall}% drop.` },
+  { q: 'What is the child mortality rate in Bangladesh?', a: `${f1(byIso('BGD').value)} for each 1,000 babies born in ${L} — below the world rate and ${bgdFall}% lower than the ${f1(u5('BGD', 1990)!)} of 1990. India stood at ${f1(byIso('IND').value)} and Pakistan at ${f1(byIso('PAK').value)}.` },
+  { q: 'What is the difference between infant and under-5 mortality?', a: `Infant mortality counts deaths before a child\'s first birthday; under-5 mortality counts deaths before the fifth. Worldwide the two rates were ${f1(worldInf)} and ${f1(world)} per 1,000 births in ${L}.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Child mortality by country ${L}: ${N} countries and areas ranked by under-5 deaths per 1,000 births`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'CreativeWork', name: 'World Development Indicators', url: WDI_URL, publisher: { '@type': 'Organization', name: 'The World Bank' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `Under-5 mortality rate by country, ${L}`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Under-5 and infant mortality by country, ${L}`,
+    description: `Under-five mortality rate per 1,000 live births for ${N} countries and areas in ${L}, ranked, with the infant mortality rate and the 1990 under-five rate, from the World Development Indicators (update of ${longDate(M.wdiLastUpdated)}). The estimates are those of the UN Inter-agency Group for Child Mortality Estimation.`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WDI_URL], temporalCoverage: String(L),
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['Mortality rate, under-5 (per 1,000 live births)', 'Mortality rate, infant (per 1,000 live births)'],
+    dateModified: iso(UPDATED), license: econMeta.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/child-mortality-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="Child mortality" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Child mortality by country', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>Child mortality by country, {L}</h1>
+    <p class="answer">Around the world, <strong>{f1(world)}</strong> of every 1,000 children born in {L} were expected to die before their fifth birthday, against {f1(world1990)} in 1990. Rates are highest in Nigeria, Niger and Somalia and lowest in San Marino.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`Child mortality ranking, ${L}`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="map">Map</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="map" aria-label="Map" hidden-mobile>
+      <WorldMap
+        id="map-h" title={`Deaths before age five per 1,000 births, ${L}`}
+        subtitle="UN IGME under-five mortality estimates; darker shading means more children dying young, with roughly equal numbers of places in each of the five colours."
+        rows={mapRows} fmt={mapFmt}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+    </section>
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`Under-5 mortality per 1,000 live births, ${L}`}
+        subtitle="Highest rate first, with the infant (under-1) rate for the same year and the under-5 rate in 1990 for comparison."
+        valueLabel="Under-5, per 1,000"
+        cols={[{ label: 'Infant, per 1,000' }, { label: 'Under-5 in 1990', cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={regions}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        csv={path('/data/child-mortality-by-country.csv')} csvName="child-mortality-by-country.csv"
+        licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+      />
+      <p class="note">Bars run up to 120 deaths per 1,000 births. All {N} countries and areas with a UN IGME estimate have one for {L}.</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>How many children die before age five?</h2>
+        <p>On the {L} estimates, {f1(world)} per 1,000 live births worldwide — {fall}% fewer than in 1990, when the rate was {f1(world1990)}. Most of those deaths happen before a baby turns one: the global infant mortality rate was {f1(worldInf)} per 1,000. The world rate edged up in 2021 and 2022 before falling again in 2023 and {L}.</p>
+      </div>
+      <LineChart
+        title={`Under-5 mortality, world, ${wYears[0][0]}–${L}`}
+        subtitle="Under-five deaths for each 1,000 newborns, as a population-weighted global average compiled by the World Bank."
+        points={wYears.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+        format="plain" unit="per 1,000 births" highlight={L} estimateLabel="World Bank data"
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+
+      <div class="story-block prose">
+        <h2>Where is child mortality highest?</h2>
+        <p>In sub-Saharan Africa, which holds all twenty of the highest rates; its regional average was {f1(ssa)} deaths before age five for every 1,000 births. <a href={path('/economy/nigeria/')}>Nigeria</a> is first at {f1(ranked[0].value)}, ahead of Niger ({f1(ranked[1].value)}) and Somalia ({f1(ranked[2].value)}). At the other end, San Marino ({f1(ranked.at(-1)!.value)}), Estonia and Luxembourg have the lowest rates; the United States, at {f1(byIso('USA').value)}, is above the United Kingdom ({f1(byIso('GBR').value)}) and China ({f1(byIso('CHN').value)}).</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>How has Bangladesh cut child deaths?</h2>
+        <p>The numbers show the scale rather than the method: <a href={path('/economy/bangladesh/')}>Bangladesh</a> brought its under-5 rate down from {f1(u5('BGD', 1990)!)} in 1990 to {f1(byIso('BGD').value)} in {L}, a {bgdFall}% fall that takes it below the world rate. India's rate is {f1(byIso('IND').value)} and Pakistan's {f1(byIso('PAK').value)}, the {ord(byIso('PAK').rank)} highest in the ranking.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Child mortality: questions answered</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(M.wdiLastUpdated)}): mortality rate, under-5 (SH.DYN.MORT) and infant (SP.DYN.IMRT.IN), per 1,000 live births. Estimates by the UN Inter-agency Group for Child Mortality Estimation (UNICEF, WHO, World Bank, UN Population Division). World and regional figures: the World Bank's weighted averages. Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          <li>Related page: <a href={path('/rankings/maternal-mortality-by-country/')}>maternal mortality by country</a>.</li>
+        </ul>
+        <p class="note">The under-5 rate is the probability that a newborn dies before age five if the death rates of that year applied. Complete registration of births and deaths is uncommon in developing countries, so many estimates rest on surveys, censuses and models and carry uncertainty; small differences between countries should not be over-read. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Child mortality by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+</style>

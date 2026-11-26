@@ -1,0 +1,20 @@
+{
+  "slug": "maternal-mortality-by-country",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/health-116.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; check-wdi.mjs compares all 166,440 generated WDI values with the original files; then the text was read by hand",
+    "what": "every ranking row (194 countries and areas, order and value), the CSV, every figure in the text, FAQ, title, description and JSON-LD; claims: Nigeria first, Chad second, Central African Republic and South Sudan tied, 19 of the top 20 in sub-Saharan Africa with Afghanistan 7th, Norway and Belarus lowest, world ratio down 40% since 2000 with a 2021 rise, 16 places higher than in 2000 including the United States; definitions and reliability caveat from the World Bank indicator notes",
+    "against": "World Bank WDI bulk files and indicator metadata (update 11 November 2026, CC BY 4.0; estimates of the UN Maternal Mortality Estimation Inter-Agency Group)",
+    "result": "All automated comparisons matched; the page says the ratios are modelled and should not be compared with older estimation rounds, as the World Bank notes"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: World Bank WDI (UN MMEIG) maternal mortality ratio for 2023."
+    }
+  ]
+}

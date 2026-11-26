@@ -6,7 +6,7 @@ Downloaded automatically by .github/workflows/fetch-wdi.yml. Do not edit by hand
 - Dataset: World Development Indicators (https://datacatalog.worldbank.org/search/dataset/0037712)
 - Licence: CC BY 4.0 (checked per indicator in the World Bank API metadata, field License_Type)
 - Terms: https://www.worldbank.org/ext/en/legal/terms-conditions/datasets — must not imply World Bank endorsement
-- Downloaded (UTC): 2026-11-26T03:56:29Z
+- Downloaded (UTC): 2026-11-26T05:53:41Z
 
 | Code | Indicator | Licence | WDI last updated | URL | Bytes | SHA-256 |
 |---|---|---|---|---|---|---|
@@ -22,3 +22,6 @@ Downloaded automatically by .github/workflows/fetch-wdi.yml. Do not edit by hand
 | IT.CEL.SETS.P2 | Mobile cellular subscriptions (per 100 people) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/IT.CEL.SETS.P2?downloadformat=csv | 84870 | fde5d56c01bfceb0738a01b2627afcbe4cd97352952cdc6f98ff0ce099169078 |
 | IT.CEL.SETS | Mobile cellular subscriptions | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/IT.CEL.SETS?downloadformat=csv | 48562 | 2048ff05de471880e490e2fe72b4cdf44486a345c7e9e5a90adaa12460e39369 |
 | IT.NET.BBND.P2 | Fixed broadband subscriptions (per 100 people) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/IT.NET.BBND.P2?downloadformat=csv | 62300 | 68344b6eca481a57c2ddda50149c068e0ba55f81aec9b6e0eb7a9b8788d65615 |
+| SH.DYN.MORT | Mortality rate, under-5 (per 1,000 live births) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SH.DYN.MORT?downloadformat=csv | 52826 | f18eea5525e681bacd85c169ca938ddd06290af34f7a275228c6f4103a742706 |
+| SP.DYN.IMRT.IN | Mortality rate, infant (per 1,000 live births) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SP.DYN.IMRT.IN?downloadformat=csv | 51294 | bcc07c41d938a03b00c29a6257ca1b6d96c5df0ee2525eab5be94d12e27acc80 |
+| SH.STA.MMRT | Maternal mortality ratio (modeled estimate, per 100,000 live births) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SH.STA.MMRT?downloadformat=csv | 28783 | 5d2669ed5f4c47fe9e4b1b388bbadf8e4226796014fc2e6d73d6771048be478d |
