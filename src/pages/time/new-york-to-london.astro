@@ -1,0 +1,40 @@
+---
+import PairTime from '../../components/PairTime.astro';
+import p from '../../data/pairs/new-york-to-london.json';
+import a from '../../data/cities/new-york.json';
+import b from '../../data/cities/london.json';
+import { JAN, Y, gapMin, gapPeriods, officeOverlap, hhmm } from '../../lib/pair';
+import { assertClaim } from '../../lib/figures';
+const per = gapPeriods(a.tz, b.tz);
+const fours = per.filter((x) => x.gap === 240);
+assertClaim(gapMin(a.tz, b.tz, JAN) === 300 && per.length === 5 && fours.length === 2, 'London is usually 5 hours ahead of New York, 4 in two short spells');
+const d = (t: number) => new Date(t).toLocaleDateString('en-GB', { timeZone: b.tz, day: 'numeric', month: 'long' });
+const days = (x: { from: number; to: number }) => Math.round((x.to - x.from) / 86400000);
+const o = officeOverlap(a.tz, b.tz, JAN)!;
+assertClaim(o.len === 180, 'three shared office hours');
+assertClaim(days(fours[0]) === 21 && days(fours[1]) === 7 && officeOverlap(a.tz, b.tz, fours[0].from + 86400000)!.len === 240, 'three weeks then one week of a four-hour gap, with four shared office hours');
+const faq = [
+  { q: 'Is the New York–London gap 4 or 5 hours?', a: `Five for most of the year. It drops to four from ${d(fours[0].from)} to ${d(fours[0].to)} and again from ${d(fours[1].from)} to ${d(fours[1].to)} ${Y}, the weeks when only the US has changed its clocks.` },
+  { q: 'What time is noon in New York in London?', a: '5 p.m. on most days, or 4 p.m. during the two short mismatch periods in March and late October.' },
+  { q: 'When can New York and London teams meet?', a: `From ${hhmm(o.from)} to ${hhmm(o.to)} New York time, London's 14:00–17:00: three hours of shared office time.` },
+];
+---
+<PairTime pair={p} a={a} b={b} faq={faq}
+  title="New York vs London Time: 5 Hours Apart (Mostly) | AtlasFigures"
+  description={`London runs 5 hours later than New York, except for about four weeks of ${Y} when the US and UK clocks change on different Sundays and the gap is 4 hours. Exact dates and an hour converter.`}
+  h1="New York and London: how many hours apart?"
+  hoursTitle="Each New York hour on a London clock"
+  hoursSub="Highlighted: the New York working day. In mid-January and mid-July the gap is the same five hours."
+  periodsTitle={`The four-hour weeks: New York–London gap in ${Y}`}
+  periodsSub="Both cities use daylight saving, but the US starts three weeks earlier and ends one week later than the UK."
+  faqTitle="New York and London time: what people ask">
+  <Fragment slot="answer">
+    <p><strong>London's clock reads 5 hours later than New York's</strong> for most of the year. For {days(fours[0])} days in spring and {days(fours[1])} in autumn the gap is <strong>4 hours</strong>, because the two countries change their clocks on different Sundays.</p>
+  </Fragment>
+  <Fragment slot="story">
+    <h2>Why is the New York–London gap sometimes only four hours?</h2>
+    <p>American clocks spring forward three weeks before British ones, which wait for the last Sunday in March. In autumn the UK goes back first, a week before the US. In {Y} that means a four-hour gap from {d(fours[0].from)} to {d(fours[0].to)} and from {d(fours[1].from)} to {d(fours[1].to)}.</p>
+    <h2>How much of the working day do the two cities share?</h2>
+    <p>Three hours: New York mornings from {hhmm(o.from)} to {hhmm(o.to)} meet London afternoons. During the four-hour weeks the shared window grows to four hours.</p>
+  </Fragment>
+</PairTime>

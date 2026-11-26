@@ -32,6 +32,11 @@ export function GET() {
     ...rankingCards().map((r) => ({ t: r.title, s: `Ranking · ${r.count} ranked · ${r.year}`, u: path(r.href), f: null, k: 'ranking', a: [r.blurb] })),
     { t: 'Population by country', s: 'Section · every country page', u: path('/population/'), f: null, k: 'section' },
     { t: 'Economy by country', s: 'Section · every country page', u: path('/economy/'), f: null, k: 'section' },
+    ...(Object.values(import.meta.glob('../data/pairs/*.json', { eager: true, import: 'default' })) as any[]).map((pr) => {
+      const A = cities.find((c) => c.slug === pr.a), B = cities.find((c) => c.slug === pr.b);
+      return { t: `${A.name} to ${B.name} time`, s: 'Time difference', u: path(`/time/${pr.slug}/`), f: null, k: 'time', a: [A.name, B.name, 'time difference', `${A.name} ${B.name}`] };
+    }),
+    { t: 'Time zone converter', s: 'Tool · convert a time between cities', u: path('/time/converter/'), f: null, k: 'section', a: ['converter', 'time zone', 'convert time'] },
     { t: 'World clock', s: 'Section · local time in major cities', u: path('/time/'), f: null, k: 'section', a: ['time', 'clock', 'time zone'] },
     { t: 'Country rankings', s: 'Section · every ranking', u: path('/rankings/'), f: null, k: 'section' },
     ...INFO_LINKS.map((l) => ({ t: l.label, s: l.text, u: path(l.href), f: null, k: 'info' })),

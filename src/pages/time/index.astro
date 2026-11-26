@@ -12,6 +12,7 @@ const cities = (Object.values(import.meta.glob('../../data/cities/*.json', { eag
   .map((c) => { const o = offsetsIn(c.tz, Y); return { ...c, std: Math.min(...o), dst: o.length > 1 ? Math.max(...o) : null }; })
   .sort((a, b) => offsetMin(b.tz, JAN) - offsetMin(a.tz, JAN));
 const withDst = cities.filter((c) => c.dst !== null).length;
+const pairs = Object.values(import.meta.glob('../../data/pairs/*.json', { eager: true, import: 'default' })) as any[];
 const schema = [{
   '@type': 'CollectionPage', '@id': abs(`${PAGE}#page`), name: 'World clock', url: abs(PAGE), isPartOf: { '@id': WEBSITE_ID },
   mainEntity: { '@type': 'ItemList', numberOfItems: cities.length, itemListElement: cities.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: `Time in ${c.name}`, url: abs(`/time/${c.slug}/`) })) },
@@ -45,7 +46,12 @@ const schema = [{
       </a>
     ))}
   </div>
-  <p class="note hub-note">Times come from the time zone database built into your browser and update every second. Offsets and daylight-saving rules: IANA time zone database 2026e. More cities, a time difference calculator and a meeting planner are on the way.</p>
+  <h2 class="hub-h">Time difference between two cities</h2>
+  <ul class="pair-links">
+    <li><a class="conv-link" href={path('/time/converter/')}>Time zone converter</a></li>
+    {pairs.map((pr) => <li><a href={path(`/time/${pr.slug}/`)}>{cities.find((c) => c.slug === pr.a).name} → {cities.find((c) => c.slug === pr.b).name}</a></li>)}
+  </ul>
+  <p class="note hub-note">Times come from the time zone database built into your browser and update every second. Offsets and daylight-saving rules: IANA time zone database 2026e. More cities and a meeting planner are on the way.</p>
 
   <script is:inline>
     (function () {
@@ -79,6 +85,10 @@ const schema = [{
     .clock-row .big-time { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; min-width: 4.2ch; }
     .list .row[hidden] { display: none; }
     .hub-note { margin-top: 18px; max-width: 80ch; }
+    .hub-h { font-size: 1.15rem; margin: 28px 0 12px; }
+    .pair-links { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+    .pair-links a { display: inline-block; padding: 9px 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); text-decoration: none; font-weight: 600; }
+    .pair-links a.conv-link { background: var(--ocean); color: #fff; border-color: var(--ocean); }
     @media (max-width: 767px) {
       .hub-hero { padding: 16px; gap: 12px; margin: 12px 0 8px; border: 0; background: var(--surface); border-radius: var(--r-lg); }
       .hub-ico { flex-basis: 44px; height: 44px; border-radius: 12px; }
