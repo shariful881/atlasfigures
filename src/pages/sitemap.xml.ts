@@ -3,7 +3,8 @@
 import { abs } from '../site';
 
 const pages: { path: string; lastmod: string }[] = [
-  { path: '/', lastmod: '2026-11-25' },
+  { path: '/', lastmod: '2026-11-26' },
+  { path: '/rankings/', lastmod: '2026-11-26' },
   { path: '/population/', lastmod: '2026-11-25' },
   { path: '/population/bangladesh/', lastmod: '2026-11-25' },
   { path: '/population/united-states/', lastmod: '2026-11-25' },
