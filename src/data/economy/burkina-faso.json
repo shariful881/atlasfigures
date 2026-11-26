@@ -1,0 +1,47 @@
+{
+  "slug": "burkina-faso",
+  "name": "Burkina Faso",
+  "demonym": "Burkinabè",
+  "capital": "Ouagadougou",
+  "iso3": "BFA",
+  "code": "bf",
+  "continent": "Africa",
+  "wikipedia": "https://en.wikipedia.org/wiki/Burkina_Faso",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1960,
+    1970,
+    1977,
+    1980,
+    1990,
+    2000,
+    2010,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/econ-batch16.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; then the rendered text was read by hand",
+    "what": "Every figure in the direct answer, indicator cards, Key facts, story, comparison figures, table, CSV, FAQ, title, description and JSON-LD, and the claim behind each sentence (records, 'since' years, rank positions, regional comparisons, start and end years of each series, and the literacy, child-mortality and forest figures quoted from other World Bank series)",
+    "against": "World Bank WDI bulk files and country metadata (update 11 November 2026, CC BY 4.0)",
+    "result": "All 3,008 automated comparisons across the five pages matched; before publishing Burkina Faso's 'one of five economies with falling prices' was corrected to the fifth-steepest fall of 12 economies, a 'why' question that the data cannot answer was reworded on the Malawi page, and Malawi's table now shows 1961, the first year of its growth series; remittance series ending in 2023 (Benin) and 2024 (Guinea, Mali, Burkina Faso) are stated on the pages"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: World Bank WDI figures (update of 11 November 2026)."
+    }
+  ]
+}

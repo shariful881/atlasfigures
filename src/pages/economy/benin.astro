@@ -1,0 +1,151 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/benin.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/benin/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const hiSince = Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < L && x >= growth).map(([y]) => y));
+const gRank = rankBy('gdpGrowthPct', L).find((r) => r.iso3 === c.iso3)!.rank;
+const ssaG = rankBy('gdpGrowthPct', L).filter((r) => r.region === 'Sub-Saharan Africa');
+const ssaPos = ssaG.findIndex((r) => r.iso3 === c.iso3) + 1;
+const lastFall = Math.max(...s.gdpGrowthPct.filter(([, x]) => x < 0).map(([y]) => y));
+const run = [2021, 2022, 2023, 2024, L].every((y) => g(y) > 6) && g(2020) < 6;
+const uList = rankBy('unemploymentPct', L); const uLow = uList.length - uList.findIndex((r) => r.iso3 === c.iso3);
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const avg = s.gdpGrowthPct.filter(([y]) => y >= 2000).reduce((a, [, x], _, arr) => a + x / arr.length, 0);
+
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita) && B.gdpRank === 122, 'record GDP; 122nd');
+assertClaim(hiSince === 1990 && gRank === 9 && ssaPos === 4 && ssaG.slice(0, 3).map((r) => r.iso3).join() === 'ETH,RWA,ZWE', 'fastest since 1990; 9th; 4th SSA after ETH RWA ZWE');
+assertClaim(lastFall === 1989 && run, 'no fall since 1989; >6% 2021-25');
+assertClaim(uLow === 13 && unemp! < 1.7 && infl.value < 1.2 && iMax[0] === 1994 && iMax[1] > 38, 'unemployment 13th lowest; inflation 1.1%; peak 1994');
+assertClaim(rem!.year === 2023 && Math.round(avg) === 5, 'remittances end 2023; avg ~5%');
+
+const title = `Benin Economy ${L}: ${pct(growth)} Growth, Fastest Since 1990 | AtlasFigures`;
+const description = `Benin grew ${pct(growth)} in ${L} — its best since 1990 and ninth worldwide — as GDP reached ${usd(gdp)} with inflation of just ${pct(infl.value)}.`;
+
+const faq = [
+  { q: 'Why is Benin in the news for growth?', a: `Its ${pct(growth)} rate for ${L} beat every Beninese year since 1990 and ranked ${ord(gRank)} on Earth — fourth in sub-Saharan Africa, behind Ethiopia, Rwanda and Zimbabwe.` },
+  { q: 'Does Benin\'s economy ever shrink?', a: `Not since 1989 — real GDP has grown every year after that, and by more than 6% in each year from 2021 to ${L}.` },
+  { q: 'Does Benin have low inflation?', a: `Very: the ${L} rise was only ${pct(infl.value)}, a far cry from 1994's ${pct(iMax[1])}.` },
+  { q: 'What is Benin\'s GDP per person?', a: `${usdWhole(perHead)} in ${L}, a record, or ${intDollars(ppp!)} adjusted for purchasing power. The economy as a whole: ${usd(gdp)}, ranked ${ord(B.gdpRank!)}.` },
+  { q: 'What is unemployment like in Benin?', a: `Very low on ILO modelling: ${pct(unemp!)} for ${L}, ${ord(uLow)} from the bottom worldwide.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Benin's economy in ${L}: the fastest growth in 35 years`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Beninese economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Benin', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Benin's economy: thirty-five years without a recession</h1>
+        <p class="answer">
+          At <strong>{pct(growth)}</strong>, Benin's {L} growth was its fastest since 1990; GDP totals <strong>{usd(gdp)}</strong>; prices edged up {pct(infl.value)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Benin economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Benin" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">No recession since 1989 — and five straight years above 6%.</p>
+
+        <div class="story-block prose">
+          <h2>Has Benin's growth reached a new high?</h2>
+          <p>A 35-year high. Output climbed {pct(growth)} in {L}, up from {pct(g(L - 1))} in {L - 1} — Benin's strongest showing since 1990. Only eight economies grew faster in {L}; in sub-Saharan Africa just Ethiopia, Rwanda and Zimbabwe did.</p>
+        </div>
+        <LineChart
+          title={`How much Benin's real GDP grew, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="Per cent change in output each year, inflation removed."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How long has Benin's economy kept growing?</h2>
+          <p>Since 1990 without a break — 1989 was the last year GDP fell. The run has quickened lately: every year from 2021 to {L} topped 6%, and and growth has averaged {pct(avg)} a year over 2000–{L}. Total output is now a record {usd(gdp)} — {usdWhole(perHead)} per Beninese.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>What do prices and jobs look like in Benin?</h2>
+          <p>Calm. Inflation was {pct(infl.value)} in {L}, a world away from 1994's {pct(iMax[1])}. The ILO puts joblessness at {pct(unemp!)}, the {ord(uLow)}-lowest rate it models. Remittances, published to {rem!.year}, came to {usd(rem!.value)} — {pct(remPct!.value)} of GDP.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Benin and West Africa: related pages</h2>
+          <ul>
+            <li><a href={path('/population/benin/')}>Benin's population</a></li>
+            <li><a href={path('/economy/togo/')}>Togo's economy</a></li>
+            <li><a href={path('/economy/nigeria/')}>Nigeria's economy</a></li>
+            <li><a href={path('/economy/burkina-faso/')}>Burkina Faso's economy</a></li>
+            <li><a href={path('/rankings/gdp-by-country/')}>GDP by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Benin's annual figures`}
+          subtitle="Decades since 1960 together with 1989, then 2015–2025 (see the CSV for other years)."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/benin-economy.csv')} csvName="benin-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Benin's economy: points readers raise</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Remittances are published to 2023. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Beninese economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Benin" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>
