@@ -6,7 +6,7 @@ Downloaded automatically by .github/workflows/fetch-wdi.yml. Do not edit by hand
 - Dataset: World Development Indicators (https://datacatalog.worldbank.org/search/dataset/0037712)
 - Licence: CC BY 4.0 (checked per indicator in the World Bank API metadata, field License_Type)
 - Terms: https://www.worldbank.org/ext/en/legal/terms-conditions/datasets — must not imply World Bank endorsement
-- Downloaded (UTC): 2026-11-26T05:53:41Z
+- Downloaded (UTC): 2026-11-26T07:01:04Z
 
 | Code | Indicator | Licence | WDI last updated | URL | Bytes | SHA-256 |
 |---|---|---|---|---|---|---|
@@ -25,3 +25,7 @@ Downloaded automatically by .github/workflows/fetch-wdi.yml. Do not edit by hand
 | SH.DYN.MORT | Mortality rate, under-5 (per 1,000 live births) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SH.DYN.MORT?downloadformat=csv | 52826 | f18eea5525e681bacd85c169ca938ddd06290af34f7a275228c6f4103a742706 |
 | SP.DYN.IMRT.IN | Mortality rate, infant (per 1,000 live births) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SP.DYN.IMRT.IN?downloadformat=csv | 51294 | bcc07c41d938a03b00c29a6257ca1b6d96c5df0ee2525eab5be94d12e27acc80 |
 | SH.STA.MMRT | Maternal mortality ratio (modeled estimate, per 100,000 live births) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SH.STA.MMRT?downloadformat=csv | 28783 | 5d2669ed5f4c47fe9e4b1b388bbadf8e4226796014fc2e6d73d6771048be478d |
+| NE.EXP.GNFS.CD | Exports of goods and services (current US$) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/NE.EXP.GNFS.CD?downloadformat=csv | 114984 | b61dad9210f7900358cbd4647fa9eebefca856f20574b7bf30db2ade17e779c5 |
+| NE.IMP.GNFS.CD | Imports of goods and services (current US$) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/NE.IMP.GNFS.CD?downloadformat=csv | 115507 | aff6ee3ec024f9b91a32929efd9d3095e13df803b5a8ef0f802117c92a307a31 |
+| NE.EXP.GNFS.ZS | Exports of goods and services (% of GDP) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/NE.EXP.GNFS.ZS?downloadformat=csv | 115006 | 4ca3094d866380799534e47b0ef1f57b4b46cc4409085fbfcd1f7e715b4aa974 |
+| NE.IMP.GNFS.ZS | Imports of goods and services (% of GDP) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/NE.IMP.GNFS.ZS?downloadformat=csv | 115631 | e65628a40c9bab68888359f370ae60df19d5cc703f35cb91813645d4ed2de1fa |
