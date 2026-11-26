@@ -1,0 +1,39 @@
+---
+import PairTime from '../../components/PairTime.astro';
+import p from '../../data/pairs/dhaka-to-new-york.json';
+import a from '../../data/cities/dhaka.json';
+import b from '../../data/cities/new-york.json';
+import { JAN, JUL, Y, gapMin, gapPeriods, officeOverlap, convertWall, hhmm } from '../../lib/pair';
+import { assertClaim } from '../../lib/figures';
+const gJ = -gapMin(a.tz, b.tz, JAN), gL = -gapMin(a.tz, b.tz, JUL);
+const per = gapPeriods(a.tz, b.tz);
+assertClaim(gJ === 660 && gL === 600 && per.length === 3, 'New York is 11 hours behind Dhaka in winter and 10 in summer');
+assertClaim(officeOverlap(a.tz, b.tz, JAN) === null && officeOverlap(a.tz, b.tz, JUL) === null, 'office hours never overlap');
+assertClaim(24 * 60 - gJ === 13 * 60 && 24 * 60 - gL === 14 * 60, 'New York 1 p.m. (2 p.m. in summer) is midnight in Dhaka');
+const d = (t: number) => new Date(t).toLocaleDateString('en-GB', { timeZone: a.tz, day: 'numeric', month: 'long' });
+const eve = convertWall(a.tz, b.tz, JAN, 20 * 60), morn = convertWall(a.tz, b.tz, JUL, 7 * 60);
+const faq = [
+  { q: 'How many hours is Bangladesh ahead of New York?', a: `${gJ / 60} hours during US standard time and ${gL / 60} hours while New York is on daylight time (in ${Y}, the ${d(per[1].from)}–${d(per[1].to)} stretch).` },
+  { q: 'Is it already tomorrow in Dhaka when it is evening in New York?', a: `Yes. From 1 p.m. in New York (2 p.m. in summer) onwards, Dhaka has passed midnight and is on the next day.` },
+  { q: 'When can I call Dhaka from New York?', a: `New York evenings reach Dhaka mornings. 8 p.m. in Dhaka in January is ${hhmm(eve.min)} in New York; a 7 a.m. call from Dhaka in July lands at ${hhmm(morn.min)} the previous evening in New York.` },
+];
+---
+<PairTime pair={p} a={a} b={b} faq={faq}
+  title={`Bangladesh to New York Time: 10 or 11 Hours Apart | AtlasFigures`}
+  description={`Dhaka runs ${gJ / 60} hours ahead of New York from November to March and ${gL / 60} during US daylight time (${Y} dates: ${d(per[1].from)} until ${d(per[1].to)}). Convert any hour, see when calls work.`}
+  h1="Time difference: Dhaka vs New York"
+  hoursTitle="Dhaka hours converted to New York"
+  hoursSub="Most Dhaka daytime hours fall in the New York night or the previous evening, marked previous day."
+  periodsTitle={`The gap between Dhaka and New York through ${Y}`}
+  periodsSub="Only New York changes its clocks: eleven hours apart through the northern winter, ten while US daylight saving lasts."
+  faqTitle="Bangladesh–USA time: quick answers">
+  <Fragment slot="answer">
+    <p><strong>The New York clock reads {gJ / 60} hours earlier than Dhaka's</strong> from November to March, and <strong>{gL / 60} hours earlier</strong> during US daylight saving time, which in {Y} began on {d(per[1].from)} and ends on {d(per[1].to)}. A normal working day in one city is the other city's night.</p>
+  </Fragment>
+  <Fragment slot="story">
+    <h2>Do office hours in Dhaka and New York ever overlap?</h2>
+    <p>No. With a gap of {gL / 60} or {gJ / 60} hours, a 9-to-5 day in Dhaka ends before New York wakes up. Calls between the two usually happen in the New York evening, which is early morning of the next day in Dhaka.</p>
+    <h2>Why is the gap 10 hours in summer?</h2>
+    <p>US daylight time begins in spring, a few weeks before Europe's, and ends in early November. Dhaka keeps UTC+6 throughout, so for those months the difference is one hour smaller.</p>
+  </Fragment>
+</PairTime>

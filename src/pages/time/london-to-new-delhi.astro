@@ -1,0 +1,37 @@
+---
+import PairTime from '../../components/PairTime.astro';
+import p from '../../data/pairs/london-to-new-delhi.json';
+import a from '../../data/cities/london.json';
+import b from '../../data/cities/new-delhi.json';
+import { JAN, JUL, Y, gapMin, gapPeriods, officeOverlap, hhmm } from '../../lib/pair';
+import { assertClaim } from '../../lib/figures';
+const gJ = gapMin(a.tz, b.tz, JAN), gL = gapMin(a.tz, b.tz, JUL);
+const per = gapPeriods(a.tz, b.tz);
+assertClaim(gJ === 330 && gL === 270 && per.length === 3, 'India is 5½ hours ahead of London in winter, 4½ in summer');
+const d = (t: number) => new Date(t).toLocaleDateString('en-GB', { timeZone: a.tz, day: 'numeric', month: 'long' });
+const oJ = officeOverlap(a.tz, b.tz, JAN)!, oL = officeOverlap(a.tz, b.tz, JUL)!;
+const faq = [
+  { q: 'Is the UK 4.5 or 5.5 hours behind India?', a: `5½ hours while the UK is on Greenwich Mean Time and 4½ hours during British Summer Time, which in ${Y} runs ${d(per[1].from)}–${d(per[1].to)}.` },
+  { q: 'What time is 9 a.m. in London in India?', a: '2:30 p.m. between October and March, 1:30 p.m. during British Summer Time.' },
+  { q: 'When do London and Delhi offices overlap?', a: `In the London morning: ${hhmm(oJ.from)}–${hhmm(oJ.to)} in winter and ${hhmm(oL.from)}–${hhmm(oL.to)} in summer, London time.` },
+];
+---
+<PairTime pair={p} a={a} b={b} faq={faq}
+  title="UK–India Time Gap: 4½ or 5½ Hours by Season | AtlasFigures"
+  description={`India (New Delhi) leads London by 5½ hours between October and March and by 4½ during British Summer Time (${d(per[1].from)}–${d(per[1].to)} ${Y}). Half-hour conversions for every London hour.`}
+  h1="London to New Delhi: time difference"
+  hoursTitle="London hours on India Standard Time"
+  hoursSub="India's half-hour offset means London's whole hours land on :30 in Delhi. London's 9-to-5 hours are highlighted."
+  periodsTitle={`How the London–India gap moves in ${Y}`}
+  periodsSub="India keeps UTC+5:30 all year; the difference drops by an hour only for the British summer-time months."
+  faqTitle="UK–India time: short answers">
+  <Fragment slot="answer">
+    <p><strong>Clocks in New Delhi run 5½ hours ahead of London's</strong> between October and March, and <strong>4½ hours ahead</strong> during the British summer-time months. The half hour comes from IST's +5:30 offset.</p>
+  </Fragment>
+  <Fragment slot="story">
+    <h2>Why is the UK–India difference never a whole number of hours?</h2>
+    <p>India's clocks sit 5½ hours ahead of UTC, while London is on UTC+0 or UTC+1. Whichever season it is, a whole hour in London becomes half past the hour in Delhi.</p>
+    <h2>How long do London and Delhi share a working day?</h2>
+    <p>{oJ.len / 60} hours in winter, from {hhmm(oJ.from)} to {hhmm(oJ.to)} London time, and {oL.len / 60} hours in summer, from {hhmm(oL.from)} to {hhmm(oL.to)}.</p>
+  </Fragment>
+</PairTime>

@@ -1,0 +1,37 @@
+---
+import PairTime from '../../components/PairTime.astro';
+import p from '../../data/pairs/dhaka-to-london.json';
+import a from '../../data/cities/dhaka.json';
+import b from '../../data/cities/london.json';
+import { JAN, JUL, Y, gapMin, gapPeriods, officeOverlap, hhmm } from '../../lib/pair';
+import { assertClaim } from '../../lib/figures';
+const gJ = -gapMin(a.tz, b.tz, JAN), gL = -gapMin(a.tz, b.tz, JUL); // hours London is behind
+const per = gapPeriods(a.tz, b.tz);
+assertClaim(gJ === 360 && gL === 300 && per.length === 3, 'London is six hours behind Dhaka in winter and five in summer');
+const d = (t: number) => new Date(t).toLocaleDateString('en-GB', { timeZone: a.tz, day: 'numeric', month: 'long' });
+const oJ = officeOverlap(a.tz, b.tz, JAN)!, oL = officeOverlap(a.tz, b.tz, JUL)!;
+const faq = [
+  { q: 'Is London 5 or 6 hours behind Bangladesh?', a: `Both, depending on the season. From ${d(per[1].from)} to ${d(per[1].to)} ${Y}, while the UK is on British Summer Time, London is 5 hours behind Dhaka; the rest of the year it is 6 hours behind.` },
+  { q: 'If it is 9 p.m. in Dhaka, what time is it in London?', a: `3 p.m. in winter and 4 p.m. in summer, on the same day.` },
+  { q: 'What is a good time to call London from Bangladesh?', a: `In the Dhaka afternoon. Office hours overlap from ${hhmm(oJ.from)} to ${hhmm(oJ.to)} Dhaka time in winter and from ${hhmm(oL.from)} to ${hhmm(oL.to)} in summer.` },
+];
+---
+<PairTime pair={p} a={a} b={b} faq={faq}
+  title={`Dhaka to London Time Difference: 5 or 6 Hours? | AtlasFigures`}
+  description={`London is ${gJ / 60} hours behind Dhaka in winter and ${gL / 60} hours behind from ${d(per[1].from)} to ${d(per[1].to)} ${Y}. Hour-by-hour converter and the best times to call.`}
+  h1="Time difference between Dhaka and London"
+  hoursTitle="Every Dhaka hour in London time"
+  hoursSub="Shaded rows are Dhaka office hours. The July column is one hour later because Britain moves its clocks for summer; Bangladesh does not."
+  periodsTitle={`When the Dhaka–London gap changes in ${Y}`}
+  periodsSub="The gap is set by London alone: it narrows to five hours for British Summer Time."
+  faqTitle="Dhaka and London clocks: common questions">
+  <Fragment slot="answer">
+    <p><strong>London is {gJ / 60} hours behind Dhaka</strong> in winter and <strong>{gL / 60} hours behind</strong> while Britain is on summer time, from {d(per[1].from)} to {d(per[1].to)} {Y}. So 3 p.m. in Dhaka is 9 a.m. in a January London, and 10 a.m. in a July one.</p>
+  </Fragment>
+  <Fragment slot="story">
+    <h2>Why does the Dhaka–London gap change if Bangladesh never moves its clocks?</h2>
+    <p>Because London does. Bangladesh stays on UTC+6 all year, while the UK switches between UTC+0 and UTC+1. Each spring the gap drops to {gL / 60} hours and each autumn it widens again to {gJ / 60}.</p>
+    <h2>When are offices open in both cities?</h2>
+    <p>Only in the Dhaka afternoon: from {hhmm(oJ.from)} to {hhmm(oJ.to)} in winter, and from {hhmm(oL.from)} to {hhmm(oL.to)} once London is on British Summer Time, an extra hour of overlap.</p>
+  </Fragment>
+</PairTime>

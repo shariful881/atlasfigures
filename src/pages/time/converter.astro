@@ -1,0 +1,134 @@
+---
+import Base from '../../layouts/Base.astro';
+import Flag from '../../components/Flag.astro';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+import { offsetMin, utcLabel, local } from '../../lib/tz';
+
+const PAGE = '/time/converter/';
+const PUB = '2026-11-26';
+const cities = (Object.values(import.meta.glob('../../data/cities/*.json', { eager: true, import: 'default' })) as any[]).sort((x, y) => offsetMin(y.tz, Date.UTC(2026, 0, 15)) - offsetMin(x.tz, Date.UTC(2026, 0, 15)));
+const pairs = (Object.values(import.meta.glob('../../data/pairs/*.json', { eager: true, import: 'default' })) as any[]);
+const nameOf = (s: string) => cities.find((c) => c.slug === s).name;
+// Static reference: the same instant (12:00 UTC) in every city, mid-January and mid-July 2026
+const at = (m: number) => Date.UTC(2026, m, 15, 12);
+const wall = (tz: string, t: number) => { const l = local(tz, t); return `${String(l.h).padStart(2, '0')}:${String(l.min).padStart(2, '0')}${l.d !== 15 ? (l.d > 15 ? ' (+1 day)' : ' (−1 day)') : ''}`; };
+const faq = [
+  { q: 'How does this converter handle daylight saving?', a: 'It uses the time zone rules built into your browser, which come from the IANA time zone database. Pick a date and the converter applies whatever offset each city uses on that day, including the weeks when one city has changed its clocks and another has not.' },
+  { q: 'Why do some cities show a different date?', a: 'Because the same moment can fall on different calendar days. When it is evening in Los Angeles it is already the next morning in Sydney, Tokyo and Dhaka.' },
+  { q: 'Can I convert to my own time zone?', a: 'Yes. The first row, Your time, uses the time zone of the device you are reading on.' },
+];
+const schema = [
+  { '@type': 'WebPage', '@id': abs(`${PAGE}#page`), url: abs(PAGE), name: 'Time zone converter', isPartOf: { '@id': WEBSITE_ID }, publisher: { '@id': ORG_ID }, datePublished: `${PUB}T12:00:00+06:00`, dateModified: `${PUB}T12:00:00+06:00` },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base title="Time Zone Converter: Convert a Time Between World Cities | AtlasFigures"
+  description="Pick a city, date and time and see the same moment in Dhaka, London, New York, Dubai, Tokyo, Sydney and more, with daylight saving applied for that exact date."
+  section="time" appTitle="Converter" back="/time/" breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Time', href: '/time/' }, { name: 'Converter', href: PAGE }]} schema={schema}>
+  <h1>Time zone converter</h1>
+  <p class="answer">Choose a city, a date and a time to see that moment in every city below. Daylight saving is applied for the date you pick, so the result is right even in the weeks when clocks in different countries have changed on different days.</p>
+
+  <section class="conv" aria-label="Converter">
+    <div class="conv-form">
+      <label>From<select id="cv-city"><option value="local">Your time</option>{cities.map((c) => <option value={c.tz} selected={c.slug === 'dhaka'}>{c.name}</option>)}</select></label>
+      <label>Date<input id="cv-date" type="date" /></label>
+      <label>Time<input id="cv-time" type="time" value="09:00" step="900" /></label>
+      <button type="button" id="cv-now" class="cv-now">Now</button>
+    </div>
+    <ul class="list conv-list" id="cv-list">
+      <li class="row cv-row" data-tz="local"><span class="flag cv-you" aria-hidden="true">You</span><span><span class="name">Your time</span><br /><span class="meta" data-k="z"></span></span><span class="rank" data-k="d"></span><span class="val" data-k="t">–</span></li>
+      {cities.map((c) => (
+        <li class="row cv-row" data-tz={c.tz}><Flag code={c.code} class="flag" /><span><a class="name" href={path(`/time/${c.slug}/`)}>{c.name}</a><br /><span class="meta" data-k="z">{c.country}</span></span><span class="rank" data-k="d"></span><span class="val" data-k="t">–</span></li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="tcard" aria-labelledby="ref-h">
+    <header class="tcard-head"><div><h2 id="ref-h">One moment, ten clocks: 12:00 UTC on 15 January and 15 July 2026</h2><p class="tcard-sub">The same instant read on each city's clock in winter and in summer (northern hemisphere), from the IANA time zone database 2026e.</p></div></header>
+    <div class="table-scroll">
+      <table class="data">
+        <thead><tr><th scope="col">City</th><th scope="col">15 January</th><th scope="col">UTC offset</th><th scope="col">15 July</th><th scope="col">UTC offset</th></tr></thead>
+        <tbody>{cities.map((c) => <tr><th scope="row">{c.name}</th><td>{wall(c.tz, at(0))}</td><td>{utcLabel(offsetMin(c.tz, at(0)))}</td><td>{wall(c.tz, at(6))}</td><td>{utcLabel(offsetMin(c.tz, at(6)))}</td></tr>)}</tbody>
+      </table>
+    </div>
+  </section>
+
+  <h2>Time difference between two cities</h2>
+  <ul class="pair-links">{pairs.map((pr) => <li><a href={path(`/time/${pr.slug}/`)}>{nameOf(pr.a)} → {nameOf(pr.b)}</a></li>)}</ul>
+
+  <section class="faq-wrap" aria-labelledby="faq-h">
+    <h2 id="faq-h">Using the converter</h2>
+    <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+  </section>
+
+  <details class="sources-details" id="sources">
+    <summary><h2>Sources and methodology</h2></summary>
+    <div class="sources-block">
+      <ul class="sources"><li><a href="https://www.iana.org/time-zones">IANA time zone database</a> (release 2026e for the reference table; the live converter uses the copy built into your browser).</li></ul>
+      <p class="note">Published <time datetime={PUB}>{longDate(PUB)}</time> · Updated <time datetime={PUB}>{longDate(PUB)}</time> · By {PUBLISHER}</p>
+      <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Time zone converter', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+    </div>
+  </details>
+</Base>
+
+<script>
+  const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+  const city = $('cv-city') as unknown as HTMLSelectElement, date = $('cv-date'), time = $('cv-time');
+  const me = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const tzOf = (v: string) => (v === 'local' ? me : v);
+  const off = (z: string, t: number) => { const s = new Intl.DateTimeFormat('en-US', { timeZone: z, timeZoneName: 'longOffset' }).formatToParts(new Date(t)).find((p) => p.type === 'timeZoneName')!.value; const m = s.match(/GMT([+-])(\d{2}):?(\d{2})?/); return m ? (m[1] === '-' ? -1 : 1) * (+m[2] * 60 + +(m[3] ?? 0)) : 0; };
+  const lab = (m: number) => { const a = Math.abs(m); return `UTC${m < 0 ? '−' : '+'}${Math.floor(a / 60)}${a % 60 ? ':' + String(a % 60).padStart(2, '0') : ''}`; };
+  const ymd = (z: string, t: number) => new Intl.DateTimeFormat('en-CA', { timeZone: z, year: 'numeric', month: '2-digit', day: '2-digit' }).format(t);
+  function setNow() {
+    const z = tzOf(city.value), now = Date.now();
+    date.value = ymd(z, now);
+    time.value = new Intl.DateTimeFormat('en-GB', { timeZone: z, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(now);
+    run();
+  }
+  function run() {
+    const z = tzOf(city.value);
+    const [y, m, d] = date.value.split('-').map(Number), [h, mi] = time.value.split(':').map(Number);
+    if (!y || isNaN(h)) return;
+    let t = Date.UTC(y, m - 1, d, h, mi);
+    t -= off(z, t) * 60000; t = Date.UTC(y, m - 1, d, h, mi) - off(z, t) * 60000; // second pass settles DST edges
+    const base = ymd(z, t);
+    document.querySelectorAll<HTMLElement>('.cv-row').forEach((r) => {
+      const rz = tzOf(r.dataset.tz!);
+      (r.querySelector('[data-k="t"]') as HTMLElement).textContent = new Intl.DateTimeFormat('en-GB', { timeZone: rz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(t);
+      const rd = ymd(rz, t);
+      (r.querySelector('[data-k="d"]') as HTMLElement).textContent = new Intl.DateTimeFormat('en-GB', { timeZone: rz, weekday: 'short', day: 'numeric', month: 'short' }).format(t) + (rd > base ? ' · next day' : rd < base ? ' · previous day' : '');
+      if (r.dataset.tz === 'local') (r.querySelector('[data-k="z"]') as HTMLElement).textContent = `${me} · ${lab(off(rz, t))}`;
+      else (r.querySelector('[data-k="z"]') as HTMLElement).dataset.off = lab(off(rz, t));
+      r.classList.toggle('is-from', rz === z);
+    });
+  }
+  [city, date, time].forEach((e) => e.addEventListener('input', run));
+  city.addEventListener('change', run);
+  $('cv-now').addEventListener('click', setNow);
+  date.value = ymd(tzOf(city.value), Date.now());
+  run();
+</script>
+
+<style>
+  .conv { margin-top: 18px; }
+  .conv-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; background: linear-gradient(150deg, var(--ocean), var(--ocean-2)); border-radius: 20px 20px 0 0; padding: 18px 20px; }
+  .conv-form label { display: flex; flex-direction: column; gap: 4px; font-size: .78rem; font-weight: 600; color: #a9c1d0; }
+  .conv-form select, .conv-form input { font: inherit; font-size: 1rem; font-weight: 700; color: var(--ocean); background: #fff; border: 0; border-radius: 10px; padding: 9px 12px; min-height: 44px; }
+  .cv-now { font: inherit; font-weight: 700; border: 0; border-radius: 10px; padding: 10px 18px; min-height: 44px; background: #5fc39b; color: var(--ocean); cursor: pointer; }
+  .conv-list { list-style: none; margin: 0; padding: 0; border-radius: 0 0 20px 20px; border-top: 0; }
+  .cv-row { grid-template-columns: 44px 1fr auto auto; }
+  .cv-row .val { font-size: 1.4rem; font-weight: 800; }
+  .cv-row.is-from { background: var(--contour-2); }
+  .cv-you { display: grid; place-items: center; font-size: .68rem; font-weight: 800; color: #fff; background: var(--contour); }
+  .cv-row a.name { text-decoration: none; }
+  .tcard { margin-top: 28px; }
+  .pair-links { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+  .pair-links a { display: inline-block; padding: 9px 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); text-decoration: none; font-weight: 600; }
+  @media (max-width: 767px) {
+    .conv-form { border-radius: var(--r-lg) var(--r-lg) 0 0; padding: 14px; }
+    .conv-form label { flex: 1 1 45%; }
+    .cv-now { flex: 1 1 100%; }
+    .cv-row { grid-template-columns: 40px 1fr auto; }
+    .cv-row .rank { display: none; }
+  }
+</style>
