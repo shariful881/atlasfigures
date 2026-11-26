@@ -6,7 +6,7 @@ Downloaded automatically by .github/workflows/fetch-wdi.yml. Do not edit by hand
 - Dataset: World Development Indicators (https://datacatalog.worldbank.org/search/dataset/0037712)
 - Licence: CC BY 4.0 (checked per indicator in the World Bank API metadata, field License_Type)
 - Terms: https://www.worldbank.org/ext/en/legal/terms-conditions/datasets — must not imply World Bank endorsement
-- Downloaded (UTC): 2026-11-25T12:18:50Z
+- Downloaded (UTC): 2026-11-26T03:56:29Z
 
 | Code | Indicator | Licence | WDI last updated | URL | Bytes | SHA-256 |
 |---|---|---|---|---|---|---|
@@ -19,3 +19,6 @@ Downloaded automatically by .github/workflows/fetch-wdi.yml. Do not edit by hand
 | BX.TRF.PWKR.CD.DT | Personal remittances, received (current US$) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/BX.TRF.PWKR.CD.DT?downloadformat=csv | 89342 | 035f2692b56d75b2df8bc1687e0a143f7cc1a4985dc5754ca6fc334966d5f58f |
 | BX.TRF.PWKR.DT.GD.ZS | Personal remittances, received (% of GDP) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/BX.TRF.PWKR.DT.GD.ZS?downloadformat=csv | 96755 | adcd7fb9a31d9517e6c4189508bf1626525e5ce734a82be0ad4a48780df6acb9 |
 | IT.NET.USER.ZS | Individuals using the Internet (% of population) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/IT.NET.USER.ZS?downloadformat=csv | 50157 | dd28f39561c55c6b9c968342c368d3ab197bf9f7ef32fa6c9f20172ea6c27764 |
+| IT.CEL.SETS.P2 | Mobile cellular subscriptions (per 100 people) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/IT.CEL.SETS.P2?downloadformat=csv | 84870 | fde5d56c01bfceb0738a01b2627afcbe4cd97352952cdc6f98ff0ce099169078 |
+| IT.CEL.SETS | Mobile cellular subscriptions | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/IT.CEL.SETS?downloadformat=csv | 48562 | 2048ff05de471880e490e2fe72b4cdf44486a345c7e9e5a90adaa12460e39369 |
+| IT.NET.BBND.P2 | Fixed broadband subscriptions (per 100 people) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/IT.NET.BBND.P2?downloadformat=csv | 62300 | 68344b6eca481a57c2ddda50149c068e0ba55f81aec9b6e0eb7a9b8788d65615 |
