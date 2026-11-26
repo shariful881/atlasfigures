@@ -33,6 +33,9 @@ export const LABELS = {
   'BX.TRF.PWKR.CD.DT': { key: 'remittances', label: 'Remittances received', unit: 'current US$' },
   'BX.TRF.PWKR.DT.GD.ZS': { key: 'remittancesPctGdp', label: 'Remittances received', unit: '% of GDP' },
   'IT.NET.USER.ZS': { key: 'internetPct', label: 'Internet users', unit: '% of population' },
+  'IT.CEL.SETS.P2': { key: 'mobilePer100', label: 'Mobile subscriptions', unit: 'per 100 people' },
+  'IT.CEL.SETS': { key: 'mobileSubs', label: 'Mobile subscriptions', unit: 'subscriptions' },
+  'IT.NET.BBND.P2': { key: 'broadbandPer100', label: 'Fixed broadband subscriptions', unit: 'per 100 people' },
 };
 
 // ---------- CSV (same parser rules as build-data.mjs) ----------
