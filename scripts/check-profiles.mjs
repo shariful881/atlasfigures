@@ -3,7 +3,8 @@
 //   - country-list.json holds every UN WPP country or area once; slugs unique; pages exist where the list says so
 //   - one profile per country; every live figure = the generated series it came from; ranks recomputed
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
-import { factText } from './build-facts.mjs';
+import { factText, pageFactChecks, applyHandCheck } from './build-facts.mjs';
+const handChecks = pageFactChecks();
 
 let checks = 0; const problems = [];
 const ok = (c, where, msg) => { checks++; if (!c) problems.push(`${where}: ${msg}`); return c; };
@@ -48,6 +49,9 @@ for (const c of list) {
       want = facts[c.iso3] ? factText(facts[c.iso3], st.key, names) : null;
       const chk = facts[c.iso3]?.checks[CHECKED[st.key]];
       if (want != null && chk && chk !== 'agree' && !chk.checked) { ok(got.status === 'to-check' && got.value === want, c.iso3, `${st.id}: sources differ, so it must be "to-check", not ${got.status}`); continue; }
+      const hand = applyHandCheck(handChecks[c.iso3]?.[st.id], want);
+      if (hand?.stale) { ok(got.status === 'to-check', c.iso3, `${st.id}: Wikidata changed since the hand check, so it must be "to-check"`); continue; }
+      if (hand) want = hand.value;
     }
     if (want == null || want === '') { ok(got.status === 'no-data', c.iso3, `${st.id} should be no-data`); continue; }
     ok(got.status === 'live' && got.value === want && (st.src === 'list' || st.src === 'facts' || got.year === year), c.iso3, `${st.id} = ${got.value} (${got.year}), data has ${want} (${year})`);

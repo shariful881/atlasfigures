@@ -5,7 +5,7 @@
 // Output (generated, git-ignored): src/data/profiles/<ISO3>.json and src/data/profiles/index.json.
 // Runs in `npm run data` and before every build. Pages read profiles; nothing here is typed by hand.
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
-import { factText } from './build-facts.mjs';
+import { factText, pageFactChecks, applyHandCheck } from './build-facts.mjs';
 
 const OUT = 'src/data/profiles';
 const list = JSON.parse(readFileSync('src/data/country-list.json', 'utf8')).countries;
@@ -18,6 +18,7 @@ const wdiMeta = JSON.parse(readFileSync('src/data/wdi/meta.json', 'utf8'));
 const wdi = Object.fromEntries(readdirSync('src/data/wdi/countries').map((f) => { const d = JSON.parse(readFileSync(`src/data/wdi/countries/${f}`, 'utf8')); return [d.iso3, d]; }));
 const energy = JSON.parse(readFileSync('src/data/energy/index.json', 'utf8'));
 const facts = JSON.parse(readFileSync('src/data/facts/index.json', 'utf8')); // task 156
+const handChecks = pageFactChecks(); // task 172: single-source facts checked by hand on country pages
 const names = Object.fromEntries(list.map((c) => [c.iso3, c.name]));
 
 const SRC = {
@@ -77,6 +78,9 @@ for (const c of list) {
         text = value;
         const chk = f?.checks[CHECKED[st.key]];
         if (value != null && chk && chk !== 'agree' && !chk.checked) return { id: st.id, label: st.label, status: 'to-check', value, text, source, differ: chk.differ };
+        const hand = applyHandCheck(handChecks[c.iso3]?.[st.id], value);
+        if (hand?.stale) return { id: st.id, label: st.label, status: 'to-check', value, text, source, differ: { wikidata: value, handCheck: handChecks[c.iso3][st.id].wikidata } };
+        if (hand) { value = hand.value; text = value; source = hand.source; }
       } else if (st.src === 'energy') {
         const s = energy.countries[c.iso3]?.series[st.key] ?? [];
         if (s.length) { [year, value] = s.at(-1); if (st.rank) rank = rankOf(enLatest(st.key, year), c.iso3, st.rank === 'low'); }
