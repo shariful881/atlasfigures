@@ -98,11 +98,10 @@ export function grams(blocks, c) {
 export function loadPages(DIST = 'dist') {
   const pages = [];
   for (const [sec] of SECTIONS) {
-    const pagesDir = join(DIST, sec);
-    if (!existsSync(pagesDir)) continue;
-    for (const slug of readdirSync(pagesDir)) {
-      const file = join(pagesDir, slug, 'index.html');
-      if (!existsSync(file) || !countries[sec][slug]) continue; // only written pages
+    for (const slug of Object.keys(countries[sec])) {
+      // country pages live at /country/<slug>/<section>/ (task 148); the rest at /<section>/<slug>/
+      const file = [join(DIST, 'country', slug, sec, 'index.html'), join(DIST, sec, slug, 'index.html')].find((f) => existsSync(f));
+      if (!file) continue; // only written pages that were built
       const p = extract(file, `${sec}/${slug}`);
       if (!p) continue;
       const c = countries[sec][slug];

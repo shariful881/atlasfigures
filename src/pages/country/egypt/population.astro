@@ -1,0 +1,222 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import eg from '../../../data/countries/egypt.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: steady growth toward 200 million, and an urban share that has hardly moved.
+const PAGE = '/country/egypt/population/';
+const un = countryData(eg.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (eg.verification as any).checkedOn as string | undefined;
+
+const times = c.population / y[1950].population;
+assertClaim(times > 5.5 && times < 6, 'between five and six times the 1950 population');
+assertClaim(un.years.every((r, i, a) => !i || r.population > a[i - 1].population) && y[2100].population > 200e6, 'grows every year and passes 200 million');
+const pass200 = un.years.find((r) => r.population >= 200e6)!.year;
+const tfrMax = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+const sub = un.years.find((r) => r.fertility < 2.1)!.year;
+const urbanSpan = un.years.filter((r) => r.year >= 1980 && r.year <= CURRENT_YEAR).map((r) => r.urbanPct!);
+assertClaim(Math.max(...urbanSpan) - Math.min(...urbanSpan) < 2.5 && un.years.every((r) => r.urbanPct == null || r.urbanPct < 50), 'urban share within a narrow band since 1980 and under half through 2050');
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any) => d.years.find((r: any) => r.year === CURRENT_YEAR);
+const africa = wpp.filter((d: any) => d.region === 'Africa').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(africa.slice(0, 3).join() === 'NGA,ETH,EGY', 'third in Africa after Nigeria and Ethiopia');
+assertClaim(c.population > 2 * y[1980].population && c.lifeExpectancy > 2 * y[1950].lifeExpectancy && y[2100].growthRatePct < 0.1, 'more than doubled since 1980; life expectancy doubled; near-zero growth by 2100');
+const birthsDay = Math.round(c.births / 365 / 100) * 100;
+assertClaim(y[1950].infantMortalityPer1000 > 200 && c.infantMortalityPer1000 < 13, 'infant deaths from over 200 to about 12 per 1,000');
+
+const title = `Egypt's Population Is ${(c.population / 1e6).toFixed(1)} Million (${CURRENT_YEAR}) and Heading for 200 Million | AtlasFigures`;
+const description = `Egypt's ${millions(c.population)} people (${CURRENT_YEAR}) are growing ${pct(c.growthRatePct)} a year, with ${dec(c.fertility, 2)} children per woman. The urban share has barely moved since 1980, and 200 million is projected for ${pass200}.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: eg.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Infant deaths per 1,000 births', value: dec(c.infantMortalityPer1000, 1) },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'Added per year', value: `+${millionsShort(c.change)}` },
+  { label: 'Urban', value: pct(c.urbanPct!) },
+];
+
+const rows = displayRows(un.years, eg.tableYears);
+
+const faq = [
+  { q: "What is the size of Egypt's population?", a: `The UN's figure is ${millions(c.population)} for mid-${CURRENT_YEAR}, which puts Egypt ${ord(c.worldRank!)} worldwide and third in Africa.` },
+  { q: 'Will Egypt reach 200 million people?', a: `Yes: the UN medium projection crosses that line in ${pass200}. The total would be ${millions(y[2100].population)} in 2100, still edging upward.` },
+  { q: "When will Egypt's population stop growing?", a: `Not this century, in the UN's medium variant. Growth slows from ${pct(c.growthRatePct)} a year now to ${pct(y[2050].growthRatePct)} in 2050 and almost zero by 2100.` },
+  { q: 'How urbanised is Egypt?', a: `By Egypt's own definition the urban share is ${pct(c.urbanPct!)}, about the same as in 1980 (${pct(y[1980].urbanPct!)}); for 2050 the projection is ${pct(y[2050].urbanPct!)}.` },
+  { q: 'What is the typical age in Egypt?', a: `The median is ${dec(c.medianAge, 1)} years in ${CURRENT_YEAR}: half of Egyptians are younger. That compares with ${dec(y[1950].medianAge, 1)} in 1950 and a projected ${dec(y[2050].medianAge, 1)} in 2050.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: eg.slug, name: eg.name, wikipedia: eg.wikipedia,
+  headline: `Egypt's population in ${CURRENT_YEAR}: ${millions(c.population)}, with 200 million in sight`,
+  description,
+  datasetName: 'Egypt population, density, fertility, median age and urban share, 1950–2100',
+  datasetDescription: `Mid-year population of Egypt for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: eg.published, updated: eg.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Egypt"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Egypt', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Egypt's population, heading for 200 million</h1>
+        <LiveCounter
+          label="Egypt's estimated population at this moment"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} number, with roughly ${int(c.change / 365)} added per day`}
+        />
+        <p class="answer">
+          Egypt's population stands near <strong>{millions(c.population)}</strong> in {CURRENT_YEAR}, the {ord(c.worldRank!)} largest anywhere and third in Africa. It adds about <strong>{millions(c.change)} people a year</strong> and should pass 200 million in {pass200}, going by UN projections.
+        </p>
+        <div class="dates"><span>Updated <time datetime={eg.updated}>{longDate(eg.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Egypt" code="eg" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>How fast is Egypt growing?</h2>
+          <p>At {pct(c.growthRatePct)} in {CURRENT_YEAR}, or about {millions(c.change)} extra people. Births, roughly {int(birthsDay)} a day, far outweigh deaths. Egypt had {millions(y[1950].population)} people in 1950; it now has more than five times as many, and growth continues for the whole century in the medium projection, reaching {millions(y[2100].population)}.</p>
+        </div>
+        <LineChart
+          title="Egypt's population, 1950–2100"
+          subtitle="Mid-year count. The UN projection (dashed) rises past 200 million before 2100, with no peak."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Has Egypt become more urban?</h2>
+          <p>Hardly at all over the past four decades, by its own definition of urban areas. The share was {pct(y[1980].urbanPct!)} in 1980, {pct(y[2000].urbanPct!)} in 2000 and {pct(c.urbanPct!)} in {CURRENT_YEAR}: while the population more than doubled, towns and countryside grew at about the same pace. The UN projects {pct(y[2050].urbanPct!)} in 2050, still below half.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Urban share in Egypt">
+          <div><span class="y">1980</span><div class="v">{pct(y[1980].urbanPct!)}</div><span class="d">Living in urban areas</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{pct(c.urbanPct!)}</div><span class="d">Almost unchanged</span></div>
+          <div><span class="y">2050, UN projection</span><div class="v">{pct(y[2050].urbanPct!)}</div><span class="d">Still under half</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Is fertility in Egypt falling?</h2>
+          <p>Slowly. Women average {dec(c.fertility, 2)} children in {CURRENT_YEAR}, down from {dec(tfrMax.fertility, 2)} in {tfrMax.year} and {dec(y[2000].fertility, 2)} in 2000. It is not projected to dip below 2.1 until {sub}, which is why the population keeps rising for decades.</p>
+        </div>
+        <LineChart
+          title="Egypt's fertility rate, 1950 to 2050"
+          subtitle="Children per woman (UN). Still above 2.1 in 2050 on the projection, shown as a dashed line."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="children per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: '2.1 for replacement' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Where does Egypt rank among African countries?</h2>
+          <p>Third, after Nigeria and Ethiopia. With an average density of {int(c.densityPerKm2)} per km², it ranks {ord(c.worldRank!)} in the world in {CURRENT_YEAR}, a position projected to improve to {ord(y[2050].worldRank!)} by 2050.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How has survival changed in Egypt since 1950?</h2>
+          <p>Dramatically. The UN puts infant deaths at {int(y[1950].infantMortalityPer1000)} per 1,000 births in 1950; by 2000, {int(y[2000].infantMortalityPer1000)}; in {CURRENT_YEAR}, {dec(c.infantMortalityPer1000, 1)}. Life expectancy at birth more than doubled, from {dec(y[1950].lifeExpectancy, 1)} to {dec(c.lifeExpectancy, 1)} years.</p>
+        </div>
+        <RelatedPages iso3={eg.iso3} name={eg.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Egypt's population over time, 1950–2100"
+          subtitle="UN figures for Egypt: estimates to the present, then the medium projection from 2030."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${eg.slug}-population.csv`)}
+          csvName={`${eg.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Egypt's population: frequently asked</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files): population, births, growth, density, fertility, median age, infant mortality, life expectancy, world rank, comparisons with other African countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share 1950–2050.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and adds the UN's projected growth for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={eg.published}>{longDate(eg.published)}</time> · Updated <time datetime={eg.updated}>{longDate(eg.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Egypt population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Egypt" code="eg" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

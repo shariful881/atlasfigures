@@ -1,5 +1,5 @@
 # Run after `npm run build`: python3 scripts/verify/china.py
-# Independent check of every figure on /population/china/ against the original UN files.
+# Independent check of every figure on /country/china/population/ against the original UN files.
 import sys; sys.path.insert(0, 'scripts/verify')
 from _un import *
 I = 'CHN'; y = 2026; U = urban(I)

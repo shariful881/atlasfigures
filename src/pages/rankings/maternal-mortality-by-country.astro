@@ -161,17 +161,17 @@ const schema = [
 
       <div class="story-block prose">
         <h2>Which countries have the most maternal deaths per birth?</h2>
-        <p>Nineteen of the twenty highest ratios are in sub-Saharan Africa, where the regional figure was {ssa}; the exception is Afghanistan, {ord(byIso('AFG').rank)} at {byIso('AFG').value}. <a href={path('/economy/nigeria/')}>Nigeria</a> tops the list with {ranked[0].value}, followed by Chad ({ranked[1].value}) and, tied, the Central African Republic and South Sudan ({ranked[2].value}).</p>
+        <p>Nineteen of the twenty highest ratios are in sub-Saharan Africa, where the regional figure was {ssa}; the exception is Afghanistan, {ord(byIso('AFG').rank)} at {byIso('AFG').value}. <a href={path('/country/nigeria/economy/')}>Nigeria</a> tops the list with {ranked[0].value}, followed by Chad ({ranked[1].value}) and, tied, the Central African Republic and South Sudan ({ranked[2].value}).</p>
       </div>
 
       <div class="story-block prose">
         <h2>Has maternal mortality risen anywhere?</h2>
-        <p>Yes. Set against 2000, the {L} ratio is higher in {rose} places. They include the <a href={path('/economy/united-states/')}>United States</a>, where the ratio went from {mm('USA', 2000)} to {byIso('USA').value} — more than double the United Kingdom's {byIso('GBR').value}.</p>
+        <p>Yes. Set against 2000, the {L} ratio is higher in {rose} places. They include the <a href={path('/country/united-states/economy/')}>United States</a>, where the ratio went from {mm('USA', 2000)} to {byIso('USA').value} — more than double the United Kingdom's {byIso('GBR').value}.</p>
       </div>
 
       <div class="story-block prose">
         <h2>What is the maternal mortality ratio in South Asia?</h2>
-        <p>{sas} per 100,000 births for the region in {L}, below the world figure. <a href={path('/economy/bangladesh/')}>Bangladesh</a> stood at {byIso('BGD').value}, down {bgdFall}% from {mm('BGD', 2000)} in 2000; the Indian ratio was {byIso('IND').value} and the Pakistani one {byIso('PAK').value}.</p>
+        <p>{sas} per 100,000 births for the region in {L}, below the world figure. <a href={path('/country/bangladesh/economy/')}>Bangladesh</a> stood at {byIso('BGD').value}, down {bgdFall}% from {mm('BGD', 2000)} in 2000; the Indian ratio was {byIso('IND').value} and the Pakistani one {byIso('PAK').value}.</p>
       </div>
     </section>
 

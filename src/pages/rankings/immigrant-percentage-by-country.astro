@@ -154,17 +154,17 @@ const schema = [
     <section class="panel" data-panel="story" aria-label="The story">
       <div class="story-block prose">
         <h2>Where do immigrants make up most of the population?</h2>
-        <p>In the Gulf and in very small places. Qatar ({p1(qat.value)}), the <a href={path('/economy/united-arab-emirates/')}>United Arab Emirates</a> ({p1(are.value)}) and Kuwait ({p1(kwt.value)}) are among the {over50} countries and areas where people born elsewhere outnumber those born locally; the rest of that group are mostly micro-states and island territories such as Monaco, Liechtenstein and Aruba. Qatar's share reached {p1(qPeak[1])} in {qPeak[0]}, up from {p1(sh('QAT', B0)!)} in {B0}, before easing.</p>
+        <p>In the Gulf and in very small places. Qatar ({p1(qat.value)}), the <a href={path('/country/united-arab-emirates/economy/')}>United Arab Emirates</a> ({p1(are.value)}) and Kuwait ({p1(kwt.value)}) are among the {over50} countries and areas where people born elsewhere outnumber those born locally; the rest of that group are mostly micro-states and island territories such as Monaco, Liechtenstein and Aruba. Qatar's share reached {p1(qPeak[1])} in {qPeak[0]}, up from {p1(sh('QAT', B0)!)} in {B0}, before easing.</p>
       </div>
 
       <div class="story-block prose">
         <h2>How do the big destination countries compare?</h2>
-        <p>Large numbers do not always mean a large share. Foreign-born residents are {p1(sh('USA', L)!)} of the <a href={path('/economy/united-states/')}>United States</a>, {p1(sh('GBR', L)!)} of the United Kingdom, {p1(sh('DEU', L)!)} of <a href={path('/economy/germany/')}>Germany</a>, {p1(sh('CAN', L)!)} of <a href={path('/economy/canada/')}>Canada</a> and {p1(sh('AUS', L)!)} of <a href={path('/economy/australia/')}>Australia</a>; in <a href={path('/economy/saudi-arabia/')}>Saudi Arabia</a> they are {p1(sh('SAU', L)!)}. High-income economies average {p1(hic)}, whereas low- and middle-income ones average {p1(lmy)} and South Asia only {p1(sas)}.</p>
+        <p>Large numbers do not always mean a large share. Foreign-born residents are {p1(sh('USA', L)!)} of the <a href={path('/country/united-states/economy/')}>United States</a>, {p1(sh('GBR', L)!)} of the United Kingdom, {p1(sh('DEU', L)!)} of <a href={path('/country/germany/economy/')}>Germany</a>, {p1(sh('CAN', L)!)} of <a href={path('/country/canada/economy/')}>Canada</a> and {p1(sh('AUS', L)!)} of <a href={path('/country/australia/economy/')}>Australia</a>; in <a href={path('/country/saudi-arabia/economy/')}>Saudi Arabia</a> they are {p1(sh('SAU', L)!)}. High-income economies average {p1(hic)}, whereas low- and middle-income ones average {p1(lmy)} and South Asia only {p1(sas)}.</p>
       </div>
 
       <div class="story-block prose">
         <h2>Which countries saw the foreign-born share climb fastest?</h2>
-        <p>Measured in percentage points since {B1}, Aruba and Malta rose the most. In <a href={path('/economy/spain/')}>Spain</a>, {p1(sh('ESP', B0)!)} of residents were born abroad in {B0}, {p1(sh('ESP', B1)!)} in {B1} and {p1(esp.value)} by {L}. In South America, <a href={path('/economy/chile/')}>Chile</a> went from {p1(sh('CHL', B1)!)} to {p1(sh('CHL', L)!)} and <a href={path('/economy/colombia/')}>Colombia</a> from {p1(sh('COL', 2015)!)} in 2015 to {p1(sh('COL', L)!)}.</p>
+        <p>Measured in percentage points since {B1}, Aruba and Malta rose the most. In <a href={path('/country/spain/economy/')}>Spain</a>, {p1(sh('ESP', B0)!)} of residents were born abroad in {B0}, {p1(sh('ESP', B1)!)} in {B1} and {p1(esp.value)} by {L}. In South America, <a href={path('/country/chile/economy/')}>Chile</a> went from {p1(sh('CHL', B1)!)} to {p1(sh('CHL', L)!)} and <a href={path('/country/colombia/economy/')}>Colombia</a> from {p1(sh('COL', 2015)!)} in 2015 to {p1(sh('COL', L)!)}.</p>
       </div>
       <LineChart
         title={`Spain: residents born abroad, ${espYears[0][0]}–${L}`}
@@ -176,7 +176,7 @@ const schema = [
 
       <div class="story-block prose">
         <h2>Is Bangladesh's foreign-born share high or low?</h2>
-        <p>Low: {p1(bgd.value)} in {L}, {ord(bgd.rank)} of {N}, although it has more than doubled from {p1(sh('BGD', B0)!)} in {B0}. In absolute terms that is {millions(st('BGD', L)!)} people. <a href={path('/economy/india/')}>India</a>'s share is {p1(byIso('IND').value)}, and <a href={path('/economy/china/')}>China</a>'s {p1(byIso('CHN').value)} is among the lowest anywhere.</p>
+        <p>Low: {p1(bgd.value)} in {L}, {ord(bgd.rank)} of {N}, although it has more than doubled from {p1(sh('BGD', B0)!)} in {B0}. In absolute terms that is {millions(st('BGD', L)!)} people. <a href={path('/country/india/economy/')}>India</a>'s share is {p1(byIso('IND').value)}, and <a href={path('/country/china/economy/')}>China</a>'s {p1(byIso('CHN').value)} is among the lowest anywhere.</p>
       </div>
     </section>
 

@@ -1,0 +1,157 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/saudi-arabia.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/saudi-arabia/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const mena = rankBy('gdp', L).filter((r) => r.region === 'Middle East & North Africa');
+const pcPeak = s.gdpPerCapita.reduce((a, b) => (b[1] > a[1] ? b : a));
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const are = econData('ARE').series.gdp.at(-1)!;
+
+assertClaim(B.gdpRank === 19 && mena[0].iso3 === c.iso3 && are[0] === L - 1 && are[1] < gdp, '19th; largest in the World Bank Middle East & North Africa region (UAE has no latest figure and is smaller)');
+assertClaim(s.gdp.every(([y, x]) => y === L || x < gdp) && pcPeak[0] === 2022 && perHead < pcPeak[1], 'record dollar GDP; per person below the 2022 peak');
+assertClaim(Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < 2022 && x > g(2022)).map(([y]) => y)) === 1976 && Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < L && x > growth).map(([y]) => y)) === 2022, '2022 growth highest since 1976; latest fastest since 2022');
+assertClaim(s.unemploymentPct[0][0] === 1991 && s.unemploymentPct.every(([y, x]) => y === L || x > unemp!) && [2021, 2022, 2023, 2024].every((y) => u(y) > u(y + 1)), 'unemployment the lowest since 1991, down five years running');
+assertClaim(worst[0] === 1982 && worst[1] < -16 && [1982, 1983, 1984, 1985].every((y) => g(y) < 0), '1982-85 slump, 1982 worst');
+assertClaim(net!.value === 100 && infl.year === L && infl.value < 3, 'internet use 100%; inflation under 3%');
+
+const title = `Saudi Arabia Economy ${L}: GDP, Growth, Unemployment | AtlasFigures`;
+const description = `With a record ${usd(gdp)} in ${L}, Saudi Arabia has the largest economy in the Middle East and North Africa. Growth picked up to ${pct(growth)}, and the ${pct(unemp!)} jobless rate is the lowest in data back to 1991.`;
+
+const faq = [
+  { q: 'What is the biggest economy in the Middle East?', a: `Saudi Arabia, in the World Bank's Middle East and North Africa region: ${usd(gdp)} in ${L}. The UAE, with ${usd(are[1])} in ${are[0]}, has no ${L} figure yet.` },
+  { q: 'How fast did Saudi Arabia grow in ' + L + '?', a: `${pct(growth)} in real terms, the fastest since 2022, when growth hit ${pct(g(2022))}, a level not seen since 1976.` },
+  { q: 'Has Saudi unemployment come down?', a: `Yes, five years in a row, to ${pct(unemp!)} in ${L} by the ILO's model, the lowest since 1991.` },
+  { q: 'Is Saudi income per head at a record?', a: `No. Output per Saudi resident (${usdWhole(perHead)} in ${L}) remains under its 2022 level of ${usdWhole(pcPeak[1])}, even though total GDP set a record.` },
+  { q: 'What was the deepest Saudi downturn?', a: `In the early 1980s: output fell four years running from 1982 to 1985, by ${pct(Math.abs(worst[1]))} in 1982 alone.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Saudi Arabia's economy ${L}: the region's largest, with unemployment at its lowest since 1991`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Saudi economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Saudi Arabia', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Saudi Arabia's economy: a record GDP and record-low unemployment</h1>
+        <p class="answer">
+          At a record <strong>{usd(gdp)}</strong> for {L}, Saudi GDP tops every economy in the Middle East and North Africa. Growth strengthened to <strong>{pct(growth)}</strong>, and only {pct(unemp!)} of the workforce was jobless.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Saudi Arabia economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Saudi Arabia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Saudi Arabia's latest numbers combine a record dollar GDP, faster growth and the lowest jobless rate on record, though income per head remains below its 2022 peak.</p>
+
+        <div class="story-block prose">
+          <h2>Does Saudi Arabia have the Middle East's biggest economy?</h2>
+          <p>Yes. Its {L} GDP of {usd(gdp)}, a record in dollars, is the biggest in the World Bank's Middle East &amp; North Africa region and {ord(B.gdpRank!)} in the world. (The United Arab Emirates, at {usd(are[1])} in {are[0]}, has no {L} figure.)</p>
+        </div>
+        <LineChart
+          title={`Saudi Arabia's dollar GDP since 1960`}
+          subtitle="Saudi GDP in current dollars; five-year points to 2015, yearly after that."
+          points={s.gdp.filter(([y]) => y % 5 === 0 || y >= 2019).map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Is Saudi growth speeding up?</h2>
+          <p>Yes. Real output rose {pct(growth)} in {L}, up from {pct(g(2024))} in 2024 and {pct(g(2023))} in 2023, and the strongest pace since 2022. The {pct(g(2022))} recorded in 2022 had been Saudi Arabia's best since 1976. The deepest slump came in the early 1980s, when output shrank four years in a row and by {pct(Math.abs(worst[1]))} in 1982.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Why is Saudi joblessness at a record low?</h2>
+          <p>The World Bank figures chart the decline rather than explain it: the ILO-modelled rate has fallen year after year, from {pct(u(2020))} in 2020 to {pct(unemp!)} in {L}, lower than in any year since the ILO-modelled series begins, in 1991.</p>
+        </div>
+        <LineChart
+          title={`Saudi unemployment rate, 1991–${L}`}
+          subtitle="ILO modelled estimate, per cent."
+          points={s.unemploymentPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Is income per Saudi at a record?</h2>
+          <p>No. Saudi output per head, {usdWhole(perHead)} in {L} ({ord(B.pcRank!)} in the world), still trails the {usdWhole(pcPeak[1])} reached in 2022; measured in PPP dollars it comes to {intDollars(ppp!)}. Inflation was {pct(infl.value)}, and internet use, per the ITU, has reached {pct(net!.value)}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Saudi Arabia and the Gulf: more pages</h2>
+          <ul>
+            <li><a href={path('/country/saudi-arabia/population/')}>Saudi Arabia's population</a></li>
+            <li><a href={path('/country/united-arab-emirates/economy/')}>The UAE economy</a></li>
+            <li><a href={path('/country/egypt/economy/')}>Egypt's economy</a></li>
+            <li><a href={path('/country/turkey/economy/')}>Turkey's economy</a></li>
+            <li><a href={path('/rankings/gdp-by-country/')}>World GDP table</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Saudi economic figures, 1970–${L}`}
+          subtitle="Picks out 1975, 1982 and 2009 plus the latest years; the CSV has the rest."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/saudi-arabia-economy.csv')} csvName="saudi-arabia-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">What people ask about the Saudi economy</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">"Middle East" here means the World Bank's Middle East &amp; North Africa region (which in its current grouping also includes Afghanistan and Pakistan). Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Saudi economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Saudi Arabia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

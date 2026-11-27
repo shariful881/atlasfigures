@@ -1,5 +1,5 @@
 # Run after `npm run build`: python3 scripts/verify/honduras.py
-# Independent check of every figure on /population/honduras/ against the original UN files.
+# Independent check of every figure on /country/honduras/population/ against the original UN files.
 import sys, json; sys.path.insert(0, "scripts/verify")
 from _un import *
 from _un import _rows

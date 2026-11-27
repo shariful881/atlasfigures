@@ -156,7 +156,7 @@ const schema = [
     <section class="panel" data-panel="story" aria-label="The story">
       <div class="story-block prose">
         <h2>Which countries have the most land?</h2>
-        <p>Six countries each hold more than 7 million square kilometres, and together they account for {big6Share.toFixed(1)}% of the world's land: <a href={path('/economy/russia/')}>Russia</a> ({mkm(ranked[0].value)}), <a href={path('/economy/china/')}>China</a> ({mkm(ranked[1].value)}), the <a href={path('/economy/united-states/')}>United States</a> ({mkm(ranked[2].value)}), <a href={path('/economy/canada/')}>Canada</a> ({mkm(ranked[3].value)}), <a href={path('/economy/brazil/')}>Brazil</a> ({mkm(ranked[4].value)}) and <a href={path('/economy/australia/')}>Australia</a> ({mkm(ranked[5].value)}). There is then a big drop to India in seventh place with {mkm(ranked[6].value)}. In all, {over1m} countries have more than a million square kilometres.</p>
+        <p>Six countries each hold more than 7 million square kilometres, and together they account for {big6Share.toFixed(1)}% of the world's land: <a href={path('/country/russia/economy/')}>Russia</a> ({mkm(ranked[0].value)}), <a href={path('/country/china/economy/')}>China</a> ({mkm(ranked[1].value)}), the <a href={path('/country/united-states/economy/')}>United States</a> ({mkm(ranked[2].value)}), <a href={path('/country/canada/economy/')}>Canada</a> ({mkm(ranked[3].value)}), <a href={path('/country/brazil/economy/')}>Brazil</a> ({mkm(ranked[4].value)}) and <a href={path('/country/australia/economy/')}>Australia</a> ({mkm(ranked[5].value)}). There is then a big drop to India in seventh place with {mkm(ranked[6].value)}. In all, {over1m} countries have more than a million square kilometres.</p>
       </div>
 
       <div class="story-block prose">
@@ -189,7 +189,7 @@ const schema = [
 
       <div class="story-block prose">
         <h2>How large is Bangladesh compared with its neighbours?</h2>
-        <p><a href={path('/economy/bangladesh/')}>Bangladesh</a> has {km(bgd.value)} of land and is the {ord(bgd.rank)} largest in the list — yet on UN figures only {bgdPopRank - 1} countries have more people, which is why its <a href={path('/rankings/population-density-by-country/')}>population density</a> is so high. India's land area is about 23 times as large, and Myanmar's ({km(byIso('MMR').value)}) is roughly five times as large.</p>
+        <p><a href={path('/country/bangladesh/economy/')}>Bangladesh</a> has {km(bgd.value)} of land and is the {ord(bgd.rank)} largest in the list — yet on UN figures only {bgdPopRank - 1} countries have more people, which is why its <a href={path('/rankings/population-density-by-country/')}>population density</a> is so high. India's land area is about 23 times as large, and Myanmar's ({km(byIso('MMR').value)}) is roughly five times as large.</p>
       </div>
     </section>
 

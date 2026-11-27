@@ -1,0 +1,162 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/cameroon.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/cameroon/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const ssa = rankBy('gdp', L).filter((r) => r.region === 'Sub-Saharan Africa');
+const sPos = ssa.findIndex((r) => r.iso3 === c.iso3);
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const band = [2021, 2022, 2023, 2024, L].every((y) => g(y) >= 3.2 && g(y) < 3.8);
+const lowInflSince = Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y));
+const hi23Since = Math.max(...s.inflationPct.filter(([y, x]) => y < 2023 && x > i(2023)).map(([y]) => y));
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const slump = [1987, 1988, 1989, 1990, 1991, 1992, 1993].every((y) => g(y) < 0) && g(1986) > 0 && g(1994) > 0;
+const gdpX = (gdp / v('gdp', 2000)!).toFixed(1);
+
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita) && sPos === 11 && B.gdpRank === 91, 'record GDP and per head; 12th in SSA; 91st');
+assertClaim(band && growth > 3.1, 'growth between 3.2% and 3.7% every year since 2021');
+assertClaim(lowInflSince === 2021 && hi23Since === 1995 && i(2023) > 7.3, 'inflation lowest since 2021; 2023 highest since 1995');
+assertClaim(iMax[0] === 1994 && iMax[1] > 35, 'inflation peak 1994');
+assertClaim(slump && g(1993) < -7.8 && g(1988) < -7.7, 'seven straight years of contraction 1987-93');
+assertClaim(Number(gdpX) === 5.6 && rem!.year === L - 1, 'GDP 5.6x 2000; remittances to 2024');
+
+const title = `Cameroon Economy ${L}: Steady 3% Growth, GDP at ${usd(gdp)} | AtlasFigures`;
+const description = `With ${pct(growth)} growth — a pace barely changed since 2021 — Cameroon posted its biggest GDP yet in ${L}, ${usd(gdp)}, and price rises eased to ${pct(infl.value)}.`;
+
+const faq = [
+  { q: 'How steady is growth in Cameroon?', a: `Unusually so: between ${pct(Math.min(g(2021), g(2023), growth))} and ${pct(g(2022))} in every year from 2021 to ${L}, with ${pct(growth)} in ${L}.` },
+  { q: 'How does Cameroon rank in Africa?', a: `${ord(sPos + 1)} in sub-Saharan Africa by ${L} GDP (${usd(gdp)}), and ${ord(B.gdpRank!)} in the world.` },
+  { q: 'Has inflation in Cameroon come off its 2023 high?', a: `Clearly. At ${pct(infl.value)}, the ${L} rate was Cameroon\'s gentlest for four years. In 2023 it hit ${pct(i(2023))}, the most since 1995; the record was ${pct(iMax[1])} in 1994.` },
+  { q: 'Did Cameroon have an economic crisis?', a: `Yes, a long one: seven consecutive years of decline, 1987–1993, with falls of ${pct(Math.abs(g(1988)))} in 1988 and ${pct(Math.abs(g(1993)))} in 1993.` },
+  { q: 'Is Cameroon a middle-income country?', a: `Yes — lower middle income in the World Bank\'s grouping. Each Cameroonian accounted for ${usdWhole(perHead)} of ${L} output on average, a new high; at local price levels that becomes ${intDollars(ppp!)}.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Cameroon's economy in ${L}: five years of growth near 3.5% and cooling prices`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Cameroonian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Cameroon', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Cameroon's economy: slow and steady</h1>
+        <p class="answer">
+          Cameroon added <strong>{pct(growth)}</strong> to real output in {L}, bringing GDP to <strong>{usd(gdp)}</strong>; inflation cooled to {pct(infl.value)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Cameroon economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Cameroon" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Growth in a narrow band around 3.5% for five years, three decades after a seven-year slump.</p>
+
+        <div class="story-block prose">
+          <h2>Is Cameroon growing at a steady pace?</h2>
+          <p>Remarkably so. The {L} rate was {pct(growth)}, and every year since 2021 has landed between {pct(Math.min(g(2021), g(2023), growth))} and {pct(g(2022))}. Dollar output reached {usd(gdp)}, about {gdpX} times its 2000 level, ranking {ord(sPos + 1)} in sub-Saharan Africa.</p>
+        </div>
+        <LineChart
+          title={`Cameroon's real GDP growth rate, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="Annual % change in inflation-adjusted GDP."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How long did Cameroon's late-1980s slump last?</h2>
+          <p>Seven years. Output contracted from 1987 right through 1993, losing {pct(Math.abs(g(1988)))} in 1988 alone and {pct(Math.abs(g(1993)))} in 1993. The recovery began in 1994, when consumer prices also jumped by a record {pct(iMax[1])}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Is inflation in Cameroon easing?</h2>
+          <p>Yes. The 2023 figure of {pct(i(2023))} was Cameroon's steepest since 1995; price growth then slowed to {pct(i(L - 1))} and, in {L}, to {pct(infl.value)} — Cameroon's lowest since 2021.</p>
+        </div>
+        <LineChart
+          title={`Cameroon's inflation, 2000–${L}`}
+          subtitle="Consumer prices, % rise on the previous year."
+          points={s.inflationPct.filter(([y]) => y >= 2000).map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How do Cameroonians fare on jobs, transfers and the internet?</h2>
+          <p>The ILO model puts unemployment at {pct(unemp!)}. Money from relatives abroad totalled {usd(rem!.value)} in {rem!.year}, the latest published year, and by {net!.year} some {pct(net!.value)} of Cameroonians went online.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Cameroon and Central Africa: related pages</h2>
+          <ul>
+            <li><a href={path('/country/cameroon/population/')}>Cameroon's population</a></li>
+            <li><a href={path('/country/nigeria/economy/')}>Nigeria's economy</a></li>
+            <li><a href={path('/country/dr-congo/economy/')}>DR Congo's economy</a></li>
+            <li><a href={path('/country/cote-divoire/economy/')}>Côte d'Ivoire's economy</a></li>
+            <li><a href={path('/rankings/gdp-by-country/')}>GDP league table</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Cameroon's economy in selected years`}
+          subtitle="Decade marks from 1960, 1987–88, 1993–94, then every year from 2015. See the CSV for all years."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/cameroon-economy.csv')} csvName="cameroon-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Cameroon's economy: quick answers</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Remittances are published to 2024. "Sub-Saharan Africa" is the World Bank region. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Cameroonian economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Cameroon" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

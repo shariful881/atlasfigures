@@ -2,7 +2,7 @@
 // contact sheet per width (all pages side by side) and full-length samples of the first pages.
 // Starts `astro preview` on the last build if nothing is listening on the port.
 //
-//   node scripts/tools/shots.mjs /economy/denmark/ /economy/finland/ … [--out shots/142] [--full 2] [--port 4321]
+//   node scripts/tools/shots.mjs /country/denmark/economy/ /country/finland/economy/ … [--out shots/142] [--full 2] [--port 4321]
 //
 // Needs Playwright and Chrome (in this workspace: /opt/npm-tools/node_modules/playwright, /usr/bin/google-chrome;
 // override with PLAYWRIGHT and CHROME env vars).

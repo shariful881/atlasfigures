@@ -1,0 +1,202 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import qat from '../../../data/countries/qatar.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: 243.7 men per 100 women, the widest male
+// surplus of any 1M+ country; about 131 times its 1950 size, second only to the UAE; arrivals peaking in 2007 and the
+// total more than doubling 2004–2010; 2020 the only year of net departures; no year of decline and no year with
+// more deaths than births anywhere in 1950–2100; 99% urban.
+const PAGE = '/country/qatar/population/';
+const un = countryData(qat.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (qat.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const q1 = wpp.filter((d: any) => at(d).population >= 1e6);
+const sr = (d: any) => at(d).male / at(d).female;
+assertClaim([...q1].sort((a: any, b: any) => sr(b) - sr(a))[0].iso3 === 'QAT', 'highest sex ratio of 1M+');
+const since = c.population / y[1950].population;
+assertClaim(since > 130 && since < 132 && [...q1].sort((a: any, b: any) => at(b).population / at(b, 1950).population - at(a).population / at(a, 1950).population).slice(0, 2).map((d: any) => d.iso3).join() === 'ARE,QAT', 'about 131 times 1950, second after UAE');
+const inTop = un.years.reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+assertClaim(inTop.year === 2007, 'largest inflow 2007');
+assertClaim(y[2010].population > 2 * y[2004].population, 'more than doubled 2004–2010');
+assertClaim(un.years.filter((r) => r.netMigrants < 0).map((r) => r.year).join() === '2020', 'only net outflow 2020');
+assertClaim(y[2020].population > y[2019].population, '2020 total still up');
+assertClaim(un.years.every((r) => !y[r.year - 1] || r.population > y[r.year - 1].population), 'no year of decline');
+assertClaim(un.years.every((r) => r.naturalChange > 0), 'births above deaths every year');
+assertClaim(c.urbanPct! > 99 && y[2100].population / c.population > 2.2 && y[2100].population / c.population < 2.4, 'urban 99%, 2100 about 2.3x');
+const repl = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(repl === 2011 && un.years.filter((r) => r.year >= 2011).every((r) => r.fertility < 2.1), 'fertility under 2.1 from 2011');
+
+const title = `Qatar Population ${CURRENT_YEAR} (${(c.population / 1e6).toFixed(1)}M): Widest Male Majority of Any Million-Plus Nation | AtlasFigures`;
+const description = `Qatar's ${CURRENT_YEAR} headcount per the UN: ${millions(c.population)}, which multiplies 1950's count about 131 times. Its ${dec((c.male / c.female) * 100, 1)} males to 100 females is the most lopsided ratio of any million-plus nation; 2020 alone saw more departures than arrivals.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: qat.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Men per 100 women', value: dec((c.male / c.female) * 100, 1) },
+  { label: 'Urban', value: pct(c.urbanPct!) },
+  { label: 'Life expectancy', value: dec(c.lifeExpectancy, 1) },
+];
+
+const rows = displayRows(un.years, qat.tableYears);
+
+const faq = [
+  { q: 'What is the male-to-female ratio in Qatar?', a: `${dec((c.male / c.female) * 100, 1)} to 100 for ${CURRENT_YEAR}; no other nation of a million or more comes close. The UN tables give the count, not the cause.` },
+  { q: 'How much bigger is Qatar than in 1950?', a: `About 131 times: ${int(y[1950].population)} then, ${millions(c.population)} today. Among million-plus nations only the United Arab Emirates has multiplied more.` },
+  { q: 'When did Qatar receive the most newcomers?', a: `In 2007, with ${int(inTop.netMigrants)} net arrivals; between 2004 and 2010 the population more than doubled.` },
+  { q: 'Has Qatar ever had more people leave than arrive?', a: `Once in the UN data: 2020, with ${int(-y[2020].netMigrants)} net departures. The total still edged up that year.` },
+  { q: 'Is there any year in which Qatar shrinks?', a: `No; every year through 2100 adds people, ending at ${millions(y[2100].population)}, and births exceed deaths throughout.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: qat.slug, name: qat.name, wikipedia: qat.wikipedia,
+  headline: `Qatar's ${millions(c.population)}: the widest male surplus of any 1M+ country; 131 times 1950; growth in every year to 2100`,
+  description,
+  datasetName: 'Qatar population, sex ratio and net migration, 1950–2100',
+  datasetDescription: `Mid-year population of Qatar for selected years from 1950 to ${CURRENT_YEAR}, including each year 2004–2008 and 2019–2022, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: qat.published, updated: qat.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Qatar"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Qatar", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Qatar: the most male-heavy population on Earth</h1>
+        <LiveCounter
+          label="Qatar: running population estimate"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`Rolls forward from the UN World Population Prospects 2024 mid-${CURRENT_YEAR} level, gaining around ${int(c.change / 365)} each day`}
+        />
+        <p class="answer">
+          Qatar's {CURRENT_YEAR} population, UN estimates say, is <strong>{millions(c.population)}</strong>, and for each 100 females there are <strong>{dec((c.male / c.female) * 100, 1)}</strong> males.
+        </p>
+        <div class="dates"><span>Updated <time datetime={qat.updated}>{longDate(qat.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Qatar" code="qa" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>How lopsided is Qatar's sex ratio?</h2>
+          <p>More than any other nation holding a million or more: {dec((c.male / c.female) * 100, 1)} males per hundred females, with the United Arab Emirates a distant second. Male residents total {millions(c.male)}, female ones {int(Math.round(c.female / 1e3))} thousand. Why the imbalance exists is not stated in the source.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How quickly did Qatar grow?</h2>
+          <p>Some 131 times over: the 1950 estimate was {int(y[1950].population)} residents; among million-plus nations only the Emirates multiplied more. The steepest stretch came over 2004–2010, as the count went from {int(Math.round(y[2004].population / 1e3))} thousand (2004) to {millions(y[2010].population)} (2010). Net arrivals peaked in 2007 at {int(inTop.netMigrants)}.</p>
+        </div>
+        <LineChart
+          title="Qatar, 1950–2100: a near-unbroken climb"
+          subtitle="People at mid-year; dashed after 2023 for UN projections."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Did anyone leave Qatar on balance?</h2>
+          <p>Just once in the UN series: 2020 shows {int(-y[2020].netMigrants)} net departures, and even then the mid-year count inched up. Births outnumber deaths in every year from 1950 to 2100, and no year registers a fall. Women average {dec(c.fertility, 2)} children, under 2.1 since 2011; {pct(c.urbanPct!)} of residents are urban. The dashed line ends at {millions(y[2100].population)}, a little over double today.</p>
+        </div>
+        <RelatedPages iso3={qat.iso3} name={qat.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Qatar with 2004–2008 and 2019–2022 in detail"
+          subtitle="Look at 2007 for the top net inflow and 2020 for the sole net outflow."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${qat.slug}-population.csv`)}
+          csvName={`${qat.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Qatar: quick answers from UN data</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{qat.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={qat.published}>{longDate(qat.published)}</time> · Updated <time datetime={qat.updated}>{longDate(qat.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Qatar population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Qatar" code="qa" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

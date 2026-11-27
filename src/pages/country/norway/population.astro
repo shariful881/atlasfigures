@@ -1,0 +1,227 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import no from '../../../data/countries/norway.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: a small, thinly settled population that now
+// grows more through migration than through births, among Europe's longest life expectancies, and a projected 2050 crest.
+const PAGE = '/country/norway/population/';
+const un = countryData(no.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (no.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const est = un.years.filter((r) => !r.projection);
+const europe5 = wpp.filter((d: any) => d.region === 'Europe' && at(d).population > 5e6);
+const sparse = [...europe5].sort((a: any, b: any) => at(a).densityPerKm2 - at(b).densityPerKm2).map((d: any) => d.iso3);
+assertClaim(sparse.slice(0, 3).sort().join(',') === 'FIN,NOR,RUS', 'one of the three least densely settled European countries above five million');
+const longLife = [...europe5].sort((a: any, b: any) => at(b).lifeExpectancy - at(a).lifeExpectancy).map((d: any) => d.iso3);
+assertClaim(longLife.slice(0, 4).join(',') === 'CHE,ITA,ESP,NOR', 'fourth-longest life expectancy among European countries above five million');
+const migYears = un.years.filter((r) => r.year >= 2021 && r.year <= CURRENT_YEAR);
+assertClaim(migYears.every((r) => r.netMigrants > r.naturalChange) && y[2020].netMigrants < y[2020].naturalChange, 'migration adds more than natural increase every year since 2021');
+assertClaim(y[2022].growthRatePct > 1.1 && c.growthRatePct < 0.4, 'growth eased from over 1.1% in 2022 to under 0.4%');
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+const natLoss = un.years.find((r) => r.naturalChange < 0)!.year;
+assertClaim(peak.year === 2050 && natLoss === 2036 && un.years.filter((r) => r.year >= natLoss).every((r) => r.naturalChange < 0), 'peak 2050; deaths exceed births from 2036');
+const tfrLow = est.reduce((a, b) => (b.fertility < a.fertility ? b : a));
+const tfrMax = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+const below = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(tfrLow.year === 2023 && tfrMax.year === 1964 && below === 1975 && un.years.filter((r) => r.year >= below).every((r) => r.fertility < 2.1), 'fertility 1964 high, under 2.1 since 1975, lowest in 2023');
+const nzl = wpp.find((d: any) => d.iso3 === 'NZL');
+const nzPass = un.years.find((r) => r.year > CURRENT_YEAR && at(nzl, r.year).population > r.population)!.year;
+assertClaim(nzPass === 2063 && un.years.filter((r) => r.year >= nzPass).every((r) => at(nzl, r.year).population > r.population), 'New Zealand larger from 2063');
+const grew = (c.population / y[1950].population - 1) * 100;
+assertClaim(grew > 70 && grew < 76, 'about three-quarters more people than in 1950');
+
+const title = `Norway Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)} Million, Growing Mainly Through Migration | AtlasFigures`;
+const description = `Only ${int(c.densityPerKm2)} people per km²: Norway's ${millions(c.population)} residents (UN, mid-${CURRENT_YEAR}) are thinly spread. Net migration now adds more than natural increase; the UN expects a crest in 2050 and deaths above births from 2036.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: no.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'People per km²', value: int(c.densityPerKm2) },
+  { label: 'Life expectancy', value: dec(c.lifeExpectancy, 1) },
+  { label: 'Net migration', value: `+${int(c.netMigrants)}` },
+];
+
+const rows = displayRows(un.years, no.tableYears);
+assertClaim(rows.filter((r) => r.year < 1980).some((r) => r.netMigrants < 0) && y[1970].netMigrants < 0 && rows.filter((r) => r.year >= 1980).every((r) => r.netMigrants > 0), 'net migration positive in every table row from 1980');
+
+const faq = [
+  { q: 'How large is Norway\'s population?', a: `${millions(c.population)} at mid-${CURRENT_YEAR}, by UN estimate: ${ord(c.worldRank!)} worldwide, and about three-quarters more than in 1950.` },
+  { q: 'Does migration or natural increase drive Norway\'s growth?', a: `Migration has outweighed it since 2021. This year: about ${int(Math.round(c.netMigrants / 1000))} thousand net arrivals against a natural increase of about ${int(Math.round(c.naturalChange / 1000))} thousand.` },
+  { q: 'Is Norway one of the emptiest countries in Europe?', a: `Among European countries above five million people, only Russia and Finland are as thinly settled; Norway averages ${int(c.densityPerKm2)} people per km².` },
+  { q: 'What is the life expectancy in Norway?', a: `${dec(c.lifeExpectancy, 1)} years at birth, fourth among European countries above five million after Switzerland, Italy and Spain.` },
+  { q: 'When does Norway\'s population stop rising?', a: `Around ${peak.year}. The projected high is ${millions(peak.population)}, and by 2100 the total is down to ${millions(y[2100].population)}.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: no.slug, name: no.name, wikipedia: no.wikipedia,
+  headline: `Norway's ${millions(c.population)}: thinly settled, long-lived and growing through migration`,
+  description,
+  datasetName: 'Norway population, net migration, life expectancy, fertility and urban share, 1950–2100',
+  datasetDescription: `Mid-year population of Norway for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: no.published, updated: no.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Norway"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Norway', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Norway: few people, long lives, growth from abroad</h1>
+        <LiveCounter
+          label="Norway: estimated population at this moment"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} number, plus around ${int(c.change / 365)} each day`}
+        />
+        <p class="answer">
+          Norway's <strong>{millions(c.population)}</strong> people (UN estimate, mid-{CURRENT_YEAR}) rank it {ord(c.worldRank!)} by population, and they are spread at just <strong>{int(c.densityPerKm2)} per km²</strong>. Net migration now adds more people each year than births minus deaths, and lifespans average {dec(c.lifeExpectancy, 1)} years at birth.
+        </p>
+        <div class="dates"><span>Updated <time datetime={no.updated}>{longDate(no.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Norway" code="no" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Why does Norway's growth depend on migration?</h2>
+          <p>Because births now only just outrun deaths. In {CURRENT_YEAR} net migration, at about {int(Math.round(c.netMigrants / 1000))} thousand, outweighs a natural increase of about {int(Math.round(c.naturalChange / 1000))} thousand, and that has held in each year since 2021. Overall growth has eased from {pct(y[2022].growthRatePct)} in 2022 to {pct(c.growthRatePct)}.</p>
+        </div>
+        <LineChart
+          title="Norway's population, 1950–2100: rising to a 2050 crest"
+          subtitle="UN mid-year estimates; dashed medium projection levels off around mid-century."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Is Norway thinly populated?</h2>
+          <p>Very: {int(c.densityPerKm2)} people per km² on {int(un.landAreaKm2)} km² of land, by the UN's measure. Among European countries above five million people only Russia and Finland are similarly thin on the ground. Urban areas, under Norway's own definition, hold {pct(c.urbanPct!)} of residents today, compared with {pct(y[1950].urbanPct!)} in 1950; for 2050 the projection is {pct(y[2050].urbanPct!)}.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Urban share in Norway">
+          <div><span class="y">1950</span><div class="v">{pct(y[1950].urbanPct!)}</div><span class="d">Urban</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{pct(c.urbanPct!)}</div><span class="d">Urban now</span></div>
+          <div><span class="y">2050, UN projection</span><div class="v">{pct(y[2050].urbanPct!)}</div><span class="d">Projected</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Where does Norway rank in Europe for life expectancy?</h2>
+          <p>It is near the top. At {dec(c.lifeExpectancy, 1)} years, Norway ranks fourth among European countries above five million people, behind Switzerland, Italy and Spain. It was already {dec(y[1950].lifeExpectancy, 1)} in 1950, and the projection for 2050 is {dec(y[2050].lifeExpectancy, 1)}.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Are Norwegians having fewer children?</h2>
+          <p>Yes. From its {tfrMax.year} high of {dec(tfrMax.fertility, 2)}, the rate slipped under 2.1 in {below}, has stayed there since, and hit its lowest estimate, {dec(tfrLow.fertility, 2)}, in {tfrLow.year}; it is {dec(c.fertility, 2)} this year. From {natLoss} the UN projects more deaths than births, so the total crests at {millions(peak.population)} around {peak.year} and slips to {millions(y[2100].population)} by 2100. New Zealand, smaller today, is projected to overtake Norway in {nzPass}.</p>
+        </div>
+        <LineChart
+          title="Norwegian fertility since 1950, with projection to 2050"
+          subtitle="UN births per woman; dashed after the estimate years, 2.1 line marked."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'the 2.1 line' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+        <RelatedPages iso3={no.iso3} name={no.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Norway, 1950–2100: the full UN series"
+          subtitle="Net migration turns positive in the 1980 row and stays above zero through 2100."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${no.slug}-population.csv`)}
+          csvName={`${no.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Norway's population: quick answers</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{no.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={no.published}>{longDate(no.published)}</time> · Updated <time datetime={no.updated}>{longDate(no.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Norway population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Norway" code="no" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

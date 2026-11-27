@@ -186,7 +186,7 @@ const schema = [
 
       <div class="story-block prose">
         <h2>How does the ranking change at purchasing power parity?</h2>
-        <p>Adjusting for what money buys moves cheaper countries up. Singapore takes first place at {intDollars(ppp[0].value)}, and <a href={path('/economy/bangladesh/')}>Bangladesh</a> climbs from {ord(byIso('BGD').rank)} at market exchange rates to {ord(pppRank('BGD')!)} at PPP. India ranks {ord(byIso('IND').rank)} in US dollars and {ord(pppRank('IND')!)} at PPP.</p>
+        <p>Adjusting for what money buys moves cheaper countries up. Singapore takes first place at {intDollars(ppp[0].value)}, and <a href={path('/country/bangladesh/economy/')}>Bangladesh</a> climbs from {ord(byIso('BGD').rank)} at market exchange rates to {ord(pppRank('BGD')!)} at PPP. India ranks {ord(byIso('IND').rank)} in US dollars and {ord(pppRank('IND')!)} at PPP.</p>
       </div>
     </section>
 

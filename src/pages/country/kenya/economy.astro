@@ -1,0 +1,165 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/kenya.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/kenya/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const ranked = rankBy('gdp', L);
+const NORTH_AFRICA = ['DZA', 'EGY', 'LBY', 'MAR', 'TUN'];
+const africa = ranked.filter((r) => r.region === 'Sub-Saharan Africa' || NORTH_AFRICA.includes(r.iso3));
+const remR = rankBy('remittances', rem!.year);
+const remRank = remR.find((r) => r.iso3 === c.iso3)!.rank;
+const ssaRem = remR.filter((r) => r.region === 'Sub-Saharan Africa');
+const eth = econData('ETH').series.gdp;
+const ethAt = (y: number) => valueIn(eth, y)!;
+const negs = s.gdpGrowthPct.filter(([, x]) => x < 0).map(([y]) => y);
+const lowInflSince = Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y));
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita), 'GDP and GDP per person at record highs');
+assertClaim(africa.findIndex((r) => r.iso3 === c.iso3) === 5, 'sixth in Africa');
+assertClaim(gdp > ethAt(L) && [2022, 2023, 2024].every((y) => v('gdp', y)! < ethAt(y)) && v('gdp', 2021)! > ethAt(2021), 'back ahead of Ethiopia after 2022-2024');
+assertClaim(negs.join() === '1961,1970,1992,2020', 'four declines since 1961');
+assertClaim(infl.year === L && lowInflSince === 2010, 'inflation lowest since 2010');
+assertClaim(isMax(s.remittances) && rem!.value > 3 * v('remittances', 2015)! && ssaRem[0].iso3 === 'NGA' && ssaRem[1].iso3 === c.iso3 && remRank === 40, 'record remittances, second in SSA, 40th');
+assertClaim(net!.value > 30 && net!.value < 40, 'about a third online');
+
+const title = `Kenya Economy ${L}: Record GDP, Remittances Triple | AtlasFigures`;
+const description = `Kenya's ${L} output, a record ${usd(gdp)}, put it back above Ethiopia. The economy expanded ${pct(growth)}, prices rose ${pct(infl.value)} and transfers from Kenyans overseas peaked at ${usd(rem!.value)}.`;
+
+const faq = [
+  { q: 'Is Kenya bigger than Ethiopia economically?', a: `In ${L}, yes: ${usd(gdp)} against ${usd(ethAt(L))}. Ethiopia's dollar GDP had been larger from 2022 to 2024.` },
+  { q: 'How many times has Kenyan output fallen?', a: `Four, counting from 1961: 1961 itself, 1970, 1992 and 2020, when GDP slipped ${pct(Math.abs(g(2020)))}.` },
+  { q: 'What are diaspora remittances worth to Kenya?', a: `${usd(rem!.value)} arrived in ${rem!.year}, the most ever — over triple what came in 2015. Nigeria is the only Sub-Saharan economy receiving more.` },
+  { q: 'Is Kenyan income per person rising?', a: `${usdWhole(perHead)} in ${L}, its highest yet; allowing for local price levels, ${intDollars(ppp!)}. That figure divides total output by population and says nothing about how income is shared.` },
+  { q: 'What is Kenya\'s inflation rate?', a: `Prices climbed ${pct(infl.value)} during ${L}, the slowest rise since 2010.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Kenya's economy ${L}: record output, ahead of Ethiopia again, and remittances at a new high`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Kenyan economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Kenya', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Kenya's economy: a record year and a lead regained</h1>
+        <p class="answer">
+          Output rose <strong>{pct(growth)}</strong> in {L}, taking Kenya to a record <strong>{usd(gdp)}</strong> and back ahead of Ethiopia. Remittances, at {usd(rem!.value)}, also set a new high.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Kenya economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Kenya" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Kenya's output has fallen in only four years since 1961, and money from Kenyans abroad has more than tripled since 2015.</p>
+
+        <div class="story-block prose">
+          <h2>Is Kenya's economy bigger than Ethiopia's?</h2>
+          <p>Again, yes. In {L} Kenya produced {usd(gdp)} against Ethiopia's {usd(ethAt(L))}, reversing three years (2022–2024) when Ethiopia's dollar total was the larger. Kenya is {ord(B.gdpRank!)} worldwide and sixth in Africa.</p>
+        </div>
+        <LineChart
+          title={`Kenyan GDP, 1960–${L}`}
+          subtitle="Current US dollars; the latest year is the highest on record."
+          points={s.gdp.map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How often has Kenya been in recession?</h2>
+          <p>Seldom. Only four years since 1961 show a drop in real output — 1961, 1970, 1992 and 2020 — and the 2020 dip was a mild {pct(Math.abs(g(2020)))}. In {L} the economy expanded {pct(growth)}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How much money flows home to Kenya?</h2>
+          <p>Transfers from abroad totalled {usd(rem!.value)} in {rem!.year}: triple the 2015 sum and then some, and second only to Nigeria's in Sub-Saharan Africa. They equal {pct(remPct!.value)} of GDP, the {ord(remRank)} largest inflow worldwide.</p>
+        </div>
+        <LineChart
+          title={`Kenya's inflow of remittances, ${s.remittances[0][0]}–${L}`}
+          subtitle="Personal transfers and employee pay sent from abroad, current US dollars."
+          points={s.remittances.map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>What does the average Kenyan produce?</h2>
+          <p>Each Kenyan accounted, on average, for {usdWhole(perHead)} of {L} output — Kenya's best, though only {ord(B.pcRank!)} globally; PPP-adjusted, {intDollars(ppp!)}. Inflation of {pct(infl.value)} was the mildest since 2010, and internet use reached {pct(net!.value)} of the population.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>More on Kenya and the rest of Africa</h2>
+          <ul>
+            <li><a href={path('/country/kenya/population/')}>Kenya's population</a></li>
+            <li><a href={path('/country/ethiopia/economy/')}>Ethiopia's economy</a></li>
+            <li><a href={path('/country/nigeria/economy/')}>Nigeria's economy</a></li>
+            <li><a href={path('/country/south-africa/economy/')}>South Africa's economy</a></li>
+            <li><a href={path('/rankings/remittances-by-country/')}>Remittances by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Kenyan output, prices and remittances, chosen years 1960–${L}`}
+          subtitle="Rows for 1970, 1992 and 2020 — three of the four years output fell — appear alongside recent ones; the CSV has the full run."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/kenya-economy.csv')} csvName="kenya-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Kenya's economy, answered</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">"Africa" here means the World Bank's Sub-Saharan Africa region plus Algeria, Egypt, Libya, Morocco and Tunisia. The World Bank notes Kenya's fiscal year ends on 30 June; national accounts are calendar-year. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Kenyan economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Kenya" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

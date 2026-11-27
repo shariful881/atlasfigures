@@ -163,12 +163,12 @@ const schema = [
 
       <div class="story-block prose">
         <h2>Where is child mortality highest?</h2>
-        <p>In sub-Saharan Africa, which holds all twenty of the highest rates; its regional average was {f1(ssa)} deaths before age five for every 1,000 births. <a href={path('/economy/nigeria/')}>Nigeria</a> is first at {f1(ranked[0].value)}, ahead of Niger ({f1(ranked[1].value)}) and Somalia ({f1(ranked[2].value)}). At the other end, San Marino ({f1(ranked.at(-1)!.value)}), Estonia and Luxembourg have the lowest rates; the United States, at {f1(byIso('USA').value)}, is above the United Kingdom ({f1(byIso('GBR').value)}) and China ({f1(byIso('CHN').value)}).</p>
+        <p>In sub-Saharan Africa, which holds all twenty of the highest rates; its regional average was {f1(ssa)} deaths before age five for every 1,000 births. <a href={path('/country/nigeria/economy/')}>Nigeria</a> is first at {f1(ranked[0].value)}, ahead of Niger ({f1(ranked[1].value)}) and Somalia ({f1(ranked[2].value)}). At the other end, San Marino ({f1(ranked.at(-1)!.value)}), Estonia and Luxembourg have the lowest rates; the United States, at {f1(byIso('USA').value)}, is above the United Kingdom ({f1(byIso('GBR').value)}) and China ({f1(byIso('CHN').value)}).</p>
       </div>
 
       <div class="story-block prose">
         <h2>How has Bangladesh cut child deaths?</h2>
-        <p>The numbers show the scale rather than the method: <a href={path('/economy/bangladesh/')}>Bangladesh</a> brought its under-5 rate down from {f1(u5('BGD', 1990)!)} in 1990 to {f1(byIso('BGD').value)} in {L}, a {bgdFall}% fall that takes it below the world rate. India's rate is {f1(byIso('IND').value)} and Pakistan's {f1(byIso('PAK').value)}, the {ord(byIso('PAK').rank)} highest in the ranking.</p>
+        <p>The numbers show the scale rather than the method: <a href={path('/country/bangladesh/economy/')}>Bangladesh</a> brought its under-5 rate down from {f1(u5('BGD', 1990)!)} in 1990 to {f1(byIso('BGD').value)} in {L}, a {bgdFall}% fall that takes it below the world rate. India's rate is {f1(byIso('IND').value)} and Pakistan's {f1(byIso('PAK').value)}, the {ord(byIso('PAK').rank)} highest in the ranking.</p>
       </div>
     </section>
 

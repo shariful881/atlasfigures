@@ -1,5 +1,5 @@
 # Run after `npm run build`: python3 scripts/verify/dr-congo.py
-# Independent check of every figure on /population/dr-congo/ against the original UN files.
+# Independent check of every figure on /country/dr-congo/population/ against the original UN files.
 import sys; sys.path.insert(0, "scripts/verify")
 from _un import *
 exp_base = lambda I, y, U: {"population (full)": c(P(I, y)), "population (millions)": m(P(I, y)), "rank": ordn(rank(I, y)), "share": p1(P(I, y) / P("WORLD", y) * 100), "growth": p1(f(I, y, "PopGrowthRate")), "growth (+)": "+" + p1(f(I, y, "PopGrowthRate")), "change (full)": c(K(I, y, "PopChange")), "per day": c(K(I, y, "PopChange") / 365), "density": c(f(I, y, "PopDensity")), "land": c(land(I)) + " km²", "urban": p1(U[y]), "median": f"{f(I, y, 'MedianAgePop'):.1f}", "tfr": f"{f(I, y, 'TFR'):.2f}", "LE": f"{f(I, y, 'LEx'):.1f}"}

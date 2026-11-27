@@ -1,5 +1,5 @@
 # Run after `npm run build`: python3 scripts/verify/sweden.py
-# Independent check of every figure on /population/sweden/ against the original UN files.
+# Independent check of every figure on /country/sweden/population/ against the original UN files.
 import sys; sys.path.insert(0, 'scripts/verify')
 from _un import *
 I = 'SWE'; y = 2026; U = urban(I); F = lambda yr, col: f(I, yr, col); yrs = [1950,1960,1970,1980,1990,2000,2010,2020,2026,2030,2040,2050,2075,2100]

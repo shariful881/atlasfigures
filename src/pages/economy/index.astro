@@ -40,7 +40,7 @@ const schema = [
       '@type': 'ItemList',
       itemListOrder: 'https://schema.org/ItemListOrderDescending',
       numberOfItems: countries.length,
-      itemListElement: countries.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: `${c.name} economy`, url: abs(`/economy/${c.slug}/`) })),
+      itemListElement: countries.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: `${c.name} economy`, url: abs(`/country/${c.slug}/economy/`) })),
     },
   },
 ];
@@ -60,7 +60,7 @@ const schema = [
   <h2 class="hub-h">Country economies</h2>
   <div class="list" id="countries">
     {countries.map((c) => (
-      <a class="row" href={path(`/economy/${c.slug}/`)}>
+      <a class="row" href={path(`/country/${c.slug}/economy/`)}>
         <Flag code={c.code} class="flag" />
         <span><span class="name">{c.name}</span><br /><span class="meta">{c.region}{c.gdp.year !== L ? ` · ${c.gdp.year} figures` : ''}</span></span>
         <span class="rank">{usdWhole(c.perHead.value)} per person</span>

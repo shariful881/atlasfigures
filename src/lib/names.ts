@@ -35,6 +35,6 @@ const econPages = new Set((Object.values(import.meta.glob('../data/economy/*.jso
 const slugOf = (set: Set<string>, iso3: string) => [...set].find((x) => x.startsWith(`${iso3}|`))?.split('|')[1] ?? null;
 /** Site paths of the country's own pages, if they exist. */
 export const pagesOf = (iso3: string) => ({
-  population: slugOf(popPages, iso3) ? `/population/${slugOf(popPages, iso3)}/` : null,
-  economy: slugOf(econPages, iso3) ? `/economy/${slugOf(econPages, iso3)}/` : null,
+  population: slugOf(popPages, iso3) ? `/country/${slugOf(popPages, iso3)}/population/` : null,
+  economy: slugOf(econPages, iso3) ? `/country/${slugOf(econPages, iso3)}/economy/` : null,
 });

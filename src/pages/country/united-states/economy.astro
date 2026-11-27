@@ -1,0 +1,172 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/united-states.json';
+import { econData, econMeta, valueIn, usd, usdWhole, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord, byYear, countryData, worldData } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/united-states/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, infl, unemp, net, share } = B;
+const chn = econData('CHN').series.gdp, deu = econData('DEU').series.gdp, jpn = econData('JPN').series.gdp;
+const nextThree = valueIn(chn, L)! + valueIn(deu, L)! + valueIn(jpn, L)!;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const pc1960 = v('gdpPerCapita', 1960)!;
+const popShare = (byYear(countryData('USA').years)[L].population / byYear(worldData.years)[L].population) * 100;
+const cnRatio = (y: number) => valueIn(chn, y)! / v('gdp', y)!;
+assertClaim(cnRatio(L) < cnRatio(2021), 'the US lead over China has widened since 2021');
+
+assertClaim(B.gdpRank === 1 && gdp > nextThree, 'largest economy, bigger than China, Germany and Japan combined');
+assertClaim(B.pcRank === 7, 'seventh in GDP per person');
+assertClaim(infl.year === L - 1, 'no consumer price figure for the latest year yet');
+assertClaim(g(2009) < 0 && g(2020) < 0 && s.gdpGrowthPct.filter(([y, x]) => y > 2000 && x < 0).length === 2, 'only 2009 and 2020 contracted since 2000');
+assertClaim(s.gdpGrowthPct.filter(([y, x]) => y > 1984 && x >= g(2021)).map(([y]) => y).join() === '2021' && g(1984) > g(2021), '2021 growth fastest since 1984');
+assertClaim(i(2022) > 7.9 && i(1981) > i(2022) && s.inflationPct.filter(([y]) => y > 1981 && y !== 2022).every(([, x]) => x < i(2022)), '2022 inflation highest since 1981');
+assertClaim(u(2020) > 8 && u(2010) > u(2020), '2020 unemployment high but below 2010');
+assertClaim(perHead / pc1960 > 29, 'GDP per person about 30 times its 1960 level');
+
+const title = `US Economy ${L}: GDP of ${usd(gdp).replace(' trillion', ' Trillion')} | AtlasFigures`;
+const description = `At ${usd(gdp)} in ${L}, America's GDP is ${pct(share)} of world output and more than China, Germany and Japan put together. Growth, inflation, jobs and income per person, from World Bank data.`;
+
+const faq = [
+  { q: 'How big is the US economy?', a: `In current dollars, World Bank figures put it at ${usd(gdp)} for ${L}. That is ${pct(share)} of global output, ${usd(gdp - nextThree)} ahead of China, Germany and Japan combined.` },
+  { q: 'How much is US GDP per head?', a: `${usdWhole(perHead)} in ${L}, ${ord(B.pcRank!)} in the world and the highest of any large country.` },
+  { q: 'What was US inflation in 2022?', a: `${pct(i(2022))}, the steepest rise in consumer prices since 1981. It fell to ${pct(i(2023))} in 2023 and ${pct(i(2024))} in 2024.` },
+  { q: 'When was the last US recession year?', a: `2020, when real GDP shrank ${pct(Math.abs(g(2020)))}. The previous fall was in 2009 (${signedPct(g(2009))}). In 2021 the economy grew ${pct(g(2021))}, its best year since 1984.` },
+  { q: 'How high is joblessness in America?', a: `Modelled ILO estimates put it at ${pct(unemp!)} for ${L}, down from ${pct(u(2020))} in 2020.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `US economy ${L}: GDP of ${usd(gdp)}, growth, inflation and jobs`,
+  extraCitations: [{ name: 'World Population Prospects 2024', url: 'https://population.un.org/wpp/', publisher: 'United Nations, Department of Economic and Social Affairs, Population Division' }],
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="US economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'United States', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>The US economy</h1>
+        <p class="answer">
+          The United States is the world's largest economy, with <strong>{usd(gdp)}</strong> of output in {L}, or <strong>{usdWhole(perHead)} per person</strong>. That is {pct(share)} of global GDP, made by {pct(popShare)} of the world's population.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`United States economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="United States" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">America's lead in sheer size has widened again since 2021, and its people are among the richest anywhere. The past few years brought a sharp pandemic slump, the strongest rebound in decades and the worst bout of inflation since the early 1980s.</p>
+
+        <div class="story-block prose">
+          <h2>How much bigger is the US economy than China's?</h2>
+          <p>About {usd(gdp - valueIn(chn, L)!)} bigger in {L}: {usd(gdp)} against {usd(valueIn(chn, L)!)}. Add Germany and Japan to China and the three together still fall {usd(gdp - nextThree)} short of the United States. See how every economy compares on our <a href={path('/rankings/gdp-by-country/')}>GDP ranking</a>.</p>
+        </div>
+        <LineChart
+          title={`US GDP, 1960–${L}`}
+          subtitle="Output of goods and services, current dollars."
+          points={s.gdp.filter(([y]) => y % 5 === 0 || y >= 2019).map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How rich are Americans compared with the rest of the world?</h2>
+          <p>Output per head came to {usdWhole(perHead)} in {L}, {ord(B.pcRank!)} in the world and above every other country with a large population. In 1960 it was {usdWhole(pc1960)}; the figure is now roughly {Math.round(perHead / pc1960)} times higher in current dollars. Compare all countries on our <a href={path('/rankings/gdp-per-capita-by-country/')}>GDP per capita ranking</a>.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How fast is the US economy growing?</h2>
+          <p>Real GDP grew by {pct(growth)} in {L}, a little slower than {L - 1}'s {pct(g(L - 1))}. Since 2000 output has fallen in only two years: {signedPct(g(2009))} in 2009, during the financial crisis, and {signedPct(g(2020))} in the pandemic year of 2020. The bounce-back of {pct(g(2021))} in 2021 was the fastest since 1984.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>What happened to US inflation?</h2>
+          <p>Consumer prices jumped {pct(i(2022))} in 2022, the biggest rise since 1981, then slowed to {pct(i(2023))} in 2023 and {pct(i(2024))} in 2024. The World Bank database has no {L} figure for the United States yet, which is why the country is missing from our <a href={path('/rankings/inflation-rate-by-country/')}>inflation ranking</a>.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>What is the US unemployment rate?</h2>
+          <p>{pct(unemp!)} of Americans in the workforce were jobless in {L}, according to modelled ILO numbers. The pandemic pushed it to {pct(u(2020))} in 2020, though that was still below the {pct(u(2010))} reached in 2010, after the financial crisis. About {pct(net!.value)} of Americans used the internet in {net!.year}.</p>
+        </div>
+        <LineChart
+          title={`US unemployment rate, 1991–${L}`}
+          subtitle="Jobless share of the US workforce each year, from ILO modelled estimates."
+          points={s.unemploymentPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+
+        <nav class="related" aria-label="Related pages">
+          <h2>More about the United States and its neighbours</h2>
+          <ul>
+            <li><a href={path('/country/united-states/population/')}>United States population</a></li>
+            <li><a href={path('/country/canada/economy/')}>Canada's economy</a></li>
+            <li><a href={path('/country/mexico/population/')}>Mexico's population</a></li>
+            <li><a href={path('/rankings/unemployment-rate-by-country/')}>Unemployment in every country</a></li>
+            <li><a href={path('/economy/')}>All country economies</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`US economy by year, 1960–${L}`}
+          subtitle="Recession years 2009 and 2020 included, with every year in the CSV."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/united-states-economy.csv')} csvName="united-states-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Quick answers about the US economy</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), remittances, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+            <li><a href="https://population.un.org/wpp/">UN DESA Population Division, World Population Prospects 2024</a>: US and world population, for the US share of the world's people.</li>
+          </ul>
+          <p class="note">Dollar figures are in current prices; growth is in constant prices. The share of the world's people uses UN World Population Prospects 2024 figures for the same year. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('United States economy', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="United States" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

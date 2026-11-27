@@ -1,0 +1,153 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/slovakia.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/slovakia/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const gList = rankBy('gdpGrowthPct', L); const gLow = gList.length - gList.findIndex((r) => r.iso3 === c.iso3);
+const loSince = Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < L && x <= growth).map(([y]) => y));
+const uMin = s.unemploymentPct.reduce((a, b) => (b[1] < a[1] ? b : a)); const uMax = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const i22since = Math.max(...s.inflationPct.filter(([y, x]) => y < 2022 && x >= i(2022)).map(([y]) => y));
+const exPct = (valueIn(s.exports, L)! / gdp) * 100;
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita) && isMax(s.gdpPerCapitaPpp!), 'records in GDP, per head and PPP');
+assertClaim(loSince === 2022 && gLow === 24 && g(2024) > 1.8, '0.8% weakest since 2020, 24th lowest');
+assertClaim(uMin[0] === 2024 && uMax[0] === 2001 && Math.round(u(L) * 10) === 54, 'unemployment 5.4%, series low 5.3% in 2024, peak 19.1% in 2001');
+assertClaim(i22since === 1994 && i(2023) > 10 && i(L) > 3.9, '2022 inflation 12.8% highest since 1994; 10.5% in 2023; 4.0% in 2025');
+assertClaim(Math.round(exPct) === 85 && isMax(s.remittances) && rem!.year === L, 'exports 85% of GDP; record remittances');
+assertClaim(worst[0] === 1991 && s.gdp[0][0] === 1990 && s.gdpGrowthPct[0][0] === 1991, '1991 worst; GDP from 1990');
+
+const title = `Slovakia Economy ${L}: Record Incomes Despite ${pct(growth)} Growth | AtlasFigures`;
+const description = `Slovak output grew only ${pct(growth)} in ${L}, the slowest since 2022, yet GDP (${usd(gdp)}) and income per person (${usdWhole(perHead)}) were at record highs and unemployment near its lowest.`;
+
+const faq = [
+  { q: 'Is the Slovak economy slowing down?', a: `Yes. At ${pct(growth)} in ${L}, growth was below every year after 2022 (when it was ${pct(g(2022))}) and ranked ${ord(gLow)} lowest of 186 economies; 2024 brought ${pct(g(2024))}.` },
+  { q: 'Is Slovak unemployment at a record low?', a: `Almost. The ILO's model gives ${pct(unemp!)} for ${L}, a hair above 2024's ${pct(uMin[1])}, against ${pct(uMax[1])} in 2001.` },
+  { q: 'Was Slovak inflation in 2022 unusually high?', a: `Yes — ${pct(i(2022))}, the most since 1994, followed by ${pct(i(2023))} the next year. It slowed to ${pct(i(2024))} in 2024; ${L} ended at ${pct(infl.value)}.` },
+  { q: 'How much does Slovakia export?', a: `Exports of goods and services were worth ${usd(valueIn(s.exports, L)!)} in ${L} — about ${Math.round(exPct)}% of Slovak GDP.` },
+  { q: 'Are Slovak incomes at a record?', a: `Yes. GDP per person hit ${usdWhole(perHead)} in ${L}; measured at PPP it was ${intDollars(ppp!)}, also the highest yet.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Slovakia's economy in ${L}: slow growth, record incomes and near-record low unemployment`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Slovak economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Slovakia', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Slovakia's economy: record incomes, sluggish growth</h1>
+        <p class="answer">
+          Slovakia's real GDP rose just <strong>{pct(growth)}</strong> in {L}, yet output reached a record <strong>{usd(gdp)}</strong> and unemployment ({pct(unemp!)}) is close to its lowest level in the data.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Slovakia economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Slovakia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Growth has cooled, but incomes are at a peak and joblessness is a fraction of what it was in the early 2000s.</p>
+
+        <div class="story-block prose">
+          <h2>How much did Slovak growth slow in 2025?</h2>
+          <p>Sharply: real output edged up {pct(growth)}, the weakest outcome since 2022, leaving Slovakia {ord(gLow)} from the bottom of 186 economies. Yet in dollars the economy peaked at {usd(gdp)}, and per head ({usdWhole(perHead)}; {intDollars(ppp!)} at PPP) it has never been richer.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How far has Slovak unemployment fallen?</h2>
+          <p>A long way. Nearly one worker in five lacked a job in 2001 ({pct(uMax[1])}, ILO model); the rate bottomed at {pct(uMin[1])} in 2024 and was {pct(unemp!)} in {L}.</p>
+        </div>
+        <LineChart
+          title={`Slovak unemployment rate, ${s.unemploymentPct[0][0]}–${L}`}
+          subtitle="Jobless as % of the Slovak labour force (ILO model)."
+          points={s.unemploymentPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>What happened to Slovak prices after 2021?</h2>
+          <p>They surged. Annual inflation hit {pct(i(2022))} in 2022 — the highest Slovak rate since 1994 — and stayed at {pct(i(2023))} in 2023. By 2024 it had cooled to {pct(i(2024))}, with {pct(infl.value)} recorded in {L}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How open is Slovakia to trade?</h2>
+          <p>Very. Slovak exports of goods and services totalled {usd(valueIn(s.exports, L)!)} for {L}, about {Math.round(exPct)}% of GDP (our calculation from two World Bank series). Inflows from Slovaks working abroad hit an all-time {usd(rem!.value)}, {pct(remPct!.value)} of output. The sharpest contraction in the data was 1991's {pct(Math.abs(worst[1]))}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Slovakia and Central Europe: related pages</h2>
+          <ul>
+            <li><a href={path('/country/slovakia/population/')}>Slovakia's population</a></li>
+            <li><a href={path('/country/poland/economy/')}>Poland's economy</a></li>
+            <li><a href={path('/country/ukraine/economy/')}>Ukraine's economy</a></li>
+            <li><a href={path('/country/germany/economy/')}>Germany's economy</a></li>
+            <li><a href={path('/rankings/unemployment-rate-by-country/')}>Unemployment rates compared</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Slovak economic data by year`}
+          subtitle="1990 (first GDP figure), 1991, 1993, 2000–01, 2007, 2009 and 2010, then every year from 2015; complete in the CSV."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/slovakia-economy.csv')} csvName="slovakia-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Slovakia in figures: reader questions</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Exports: NE.EXP.GNFS.CD (World Bank national accounts); the export share of GDP is our calculation. Slovak GDP data start in 1990 and inflation in 1992. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Slovak economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Slovakia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

@@ -1,0 +1,163 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/united-kingdom.json';
+import { econData, econMeta, valueIn, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/united-kingdom/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, share } = B;
+const ind = econData('IND').series.gdp;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const pc2007 = v('gdpPerCapita', 2007)!;
+const backAbove2007 = s.gdpPerCapita.find(([y, x]) => y > 2007 && x > pc2007)![0];
+const G7 = ['USA', 'GBR', 'DEU', 'JPN', 'FRA', 'ITA', 'CAN'];
+const g7Infl = G7.map((x) => ({ iso3: x, v: valueIn(econData(x).series.inflationPct, L) })).filter((x) => x.v != null);
+
+assertClaim(B.gdpRank === 5 && gdp > valueIn(ind, L)! && [2022, 2023, 2024].every((y) => valueIn(ind, y)! > v('gdp', y)!), 'fifth again, after India led 2022–2024');
+assertClaim(s.gdpGrowthPct.every(([y, x]) => y === 2020 || x > g(2020)) && s.gdpGrowthPct.every(([y, x]) => y === 2021 || x < g(2021)) && s.gdpGrowthPct[0][0] === 1961, '2020 deepest fall and 2021 strongest rise since 1961');
+assertClaim([2023, 2024, L].every((y) => g(y) < 1.5), 'growth below 1.5% for three years');
+assertClaim(Math.abs(g(2020)) > 2 * Math.abs(g(2009)) && g(2009) < 0, '2020 fall more than double 2009');
+assertClaim(unemp! > v('unemploymentPct', 2022)!, 'unemployment up since 2022');
+assertClaim(backAbove2007 === 2024, 'GDP per person in dollars back above 2007 only in 2024');
+assertClaim(s.inflationPct.filter(([y]) => y > 1990 && y !== 2022).every(([, x]) => x < i(2022)) && i(1990) > i(2022), '2022 inflation highest since 1990');
+assertClaim(infl.year === L && g7Infl.every((x) => x.iso3 === c.iso3 || x.v! < infl.value) && g7Infl.length === 6, 'highest inflation of the G7 members with a figure for the latest year');
+
+const title = `UK Economy ${L}: GDP, Inflation and Growth | AtlasFigures`;
+const description = `Fifth in the world again: Britain's ${L} GDP of ${usd(gdp)} edged past India after three years behind. Slow growth, the G7's highest inflation and income per person of ${usdWhole(perHead)}.`;
+
+const faq = [
+  { q: 'Is the UK still the world\'s 5th largest economy?', a: `Yes, in ${L}: ${usd(gdp)} against India's ${usd(valueIn(ind, L)!)}, measured in current US dollars. India had been larger from 2022 to 2024.` },
+  { q: 'How much did the UK economy shrink in 2020?', a: `By ${pct(Math.abs(g(2020)))}, the biggest annual fall in the World Bank series, which starts in 1961. Growth of ${pct(g(2021))} followed in 2021.` },
+  { q: 'Does Britain have the highest inflation in the G7?', a: `Among G7 countries with a ${L} figure, yes: UK consumer prices rose ${pct(infl.value)}. The United States has no ${L} figure in the World Bank data yet.` },
+  { q: 'What is GDP per head in Britain?', a: `${usdWhole(perHead)} per resident in ${L}, or ${intDollars(ppp!)} once price levels are taken into account.` },
+  { q: 'How high is UK unemployment?', a: `Modelled ILO data show ${pct(unemp!)} for ${L}, up from ${pct(v('unemploymentPct', 2022)!)} in 2022.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `UK economy ${L}: GDP of ${usd(gdp)}, slow growth and sticky inflation`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="UK economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'United Kingdom', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>How the British economy is doing</h1>
+        <p class="answer">
+          The UK's output came to <strong>{usd(gdp)}</strong> in {L}, enough to retake fifth place in the world from India. But real growth was only <strong>{pct(growth)}</strong>, and inflation, at {pct(infl.value)}, was the highest among G7 countries reporting a {L} figure.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`United Kingdom economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="United Kingdom" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Britain's recent economic record is one of extremes followed by a long flat stretch: the steepest slump since at least 1961 in 2020, the strongest bounce in 2021, then three years of growth under 1.5%.</p>
+
+        <div class="story-block prose">
+          <h2>Is the UK economy bigger than India's?</h2>
+          <p>Just, in {L}: {usd(gdp)} for Britain and {usd(valueIn(ind, L)!)} for India, in current dollars. For the three years before, 2022 to 2024, India's dollar GDP was the larger of the two. With two economies this close, a few percent of exchange-rate movement is enough to swap them; the <a href={path('/country/india/economy/')}>India economy page</a> tells it from the other side.</p>
+        </div>
+        <LineChart
+          title={`UK GDP, 1960–${L}`}
+          subtitle="The economy's yearly output, current US dollars."
+          points={s.gdp.filter(([y]) => y % 5 === 0 || y >= 2019).map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How hard did the pandemic hit the UK economy?</h2>
+          <p>Output dropped {pct(Math.abs(g(2020)))} in 2020, the deepest fall since the World Bank series begins in 1961 and more than double the {pct(Math.abs(g(2009)))} contraction of 2009. The {pct(g(2021))} rebound in 2021 was the strongest year in the same series. Since then the economy has grown {pct(g(2023))}, {pct(g(2024))} and {pct(growth)} a year.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Are Britons better off than before the financial crisis?</h2>
+          <p>In US dollar terms, only recently. Output per head stood at {usdWhole(pc2007)} in 2007 and did not climb back above that level until {backAbove2007}; in {L} it was {usdWhole(perHead)}, {ord(B.pcRank!)} in the world. Figures in dollars also move with the pound's exchange rate.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How high is inflation in the UK?</h2>
+          <p>High by G7 standards. Prices climbed {pct(i(2022))} in 2022, the most since 1990, and {pct(i(2023))} in 2023. In {L} the rate was {pct(infl.value)}, above every other G7 member with a {L} figure (the United States has none yet). See the <a href={path('/rankings/inflation-rate-by-country/')}>inflation ranking</a>.</p>
+        </div>
+        <LineChart
+          title={`UK consumer price inflation, 1990–${L}`}
+          subtitle="How much prices rose each year."
+          points={s.inflationPct.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+
+        <nav class="related" aria-label="Related pages">
+          <h2>More about Britain and Europe</h2>
+          <ul>
+            <li><a href={path('/country/united-kingdom/population/')}>UK population</a></li>
+            <li><a href={path('/country/germany/population/')}>Germany's population</a></li>
+            <li><a href={path('/country/france/population/')}>France's population</a></li>
+            <li><a href={path('/country/united-states/economy/')}>The US economy</a></li>
+            <li><a href={path('/economy/')}>All country economies</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`UK economy over time, 1960–${L}`}
+          subtitle="The 1970s inflation, the 2009 and 2020 downturns and the years since; the CSV holds every year."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/united-kingdom-economy.csv')} csvName="united-kingdom-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">UK economy: quick answers</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), remittances, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">"G7" here means Canada, France, Germany, Italy, Japan, the United Kingdom and the United States. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('UK economy', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="United Kingdom" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

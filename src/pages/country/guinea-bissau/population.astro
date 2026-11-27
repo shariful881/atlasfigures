@@ -1,0 +1,199 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import gnb from '../../../data/countries/guinea-bissau.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: 1963 life expectancy 35.6, the series low;
+// population down 1964–1966 with the largest net outflow in 1964 and net departures 1963–1966; the largest inflow in
+// 1977; growth every year since 1967 to 2100; births above deaths in every year 1950–2100; urban share below half in
+// every year to 2050 (47.2% now); fertility high of 6.74 in 1985.
+const PAGE = '/country/guinea-bissau/population/';
+const un = countryData(gnb.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (gnb.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const leLow = un.years.reduce((a, b) => (b.lifeExpectancy < a.lifeExpectancy ? b : a));
+assertClaim(leLow.year === 1963, 'lifespan low 1963');
+assertClaim(un.years.filter((r) => r.year >= 1964 && r.year <= 1966).every((r) => r.population < y[r.year - 1].population) && un.years.filter((r) => r.year >= 1967).every((r) => r.population > y[r.year - 1].population), 'falls 1964–1966, growth after');
+const outTop = un.years.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+const inTop = un.years.reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+assertClaim(outTop.year === 1964 && inTop.year === 1977, 'outflow 1964, inflow 1977');
+assertClaim(un.years.every((r) => r.naturalChange > 0), 'births above deaths always');
+assertClaim(un.years.filter((r) => r.year <= 2050 && r.urbanPct != null).every((r) => r.urbanPct! < 50), 'urban minority to 2050');
+const tfrTop = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+const repl = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(tfrTop.year === 1985 && repl === 2079, 'fertility high 1985, under 2.1 in 2079');
+assertClaim(y[2100].population / c.population > 2 && y[2100].population / c.population < 2.1, '2100 about double');
+
+const title = `Guinea-Bissau Population ${CURRENT_YEAR} (${(c.population / 1e6).toFixed(1)}M): West African Nation, Rural Until at Least 2050 | AtlasFigures`;
+const description = `Guinea-Bissau: ${millions(c.population)} for ${CURRENT_YEAR} (UN estimates). Life expectancy hit ${dec(leLow.lifeExpectancy, 1)} years in 1963 and the total fell over 1964–1966; since 1967 it has grown annually. Towns hold ${pct(c.urbanPct!)} and stay below half through 2050.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: gnb.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Urban', value: pct(c.urbanPct!) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+];
+
+const rows = displayRows(un.years, gnb.tableYears);
+
+const faq = [
+  { q: 'What happened in Guinea-Bissau in the 1960s?', a: `UN figures put life expectancy at ${dec(leLow.lifeExpectancy, 1)} years in 1963, its lowest, and show net outflows across 1963–1966, largest in 1964 (${int(-outTop.netMigrants)}). The headcount shrank in 1964, 1965 and 1966. No causes are named.` },
+  { q: 'Is Guinea-Bissau mainly rural?', a: `Yes, ${pct(c.urbanPct!)} urban today, and the UN projection keeps the share under half in every year to 2050.` },
+  { q: 'Which year brought Guinea-Bissau the most newcomers?', a: `1977: ${int(inTop.netMigrants)} more arrived than left.` },
+  { q: 'Have deaths ever outnumbered births in Guinea-Bissau?', a: `Never, from 1950 through 2100, in the UN tables.` },
+  { q: "Guinea-Bissau's 2100 projection?", a: `${millions(y[2100].population)}, about twice today, with an increase in each year.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: gnb.slug, name: gnb.name, wikipedia: gnb.wikipedia,
+  headline: `Guinea-Bissau's ${millions(c.population)}: a 1963 lifespan low; a 1964–1966 decline; growth every year since; mostly rural to 2050`,
+  description,
+  datasetName: 'Guinea-Bissau population, life expectancy and net migration, 1950–2100',
+  datasetDescription: `Mid-year population of Guinea-Bissau for selected years from 1950 to ${CURRENT_YEAR}, including each year 1962–1967 and 1977, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: gnb.published, updated: gnb.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Guinea-Bissau"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Guinea-Bissau", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Guinea-Bissau: a 1960s dip, then six decades of growth</h1>
+        <LiveCounter
+          label="Guinea-Bissau: live estimate of the population"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`Carries forward the UN World Population Prospects 2024 mid-${CURRENT_YEAR} count, gaining near ${int(c.change / 365)} each day`}
+        />
+        <p class="answer">
+          Guinea-Bissau's {CURRENT_YEAR} UN tally comes to <strong>{millions(c.population)}</strong>, with <strong>{pct(c.urbanPct!)}</strong> in towns. Since 1967 the total has gone up annually.
+        </p>
+        <div class="dates"><span>Updated <time datetime={gnb.updated}>{longDate(gnb.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Guinea-Bissau" code="gw" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>How deep was Guinea-Bissau's mid-1960s dip?</h2>
+          <p>Modest but clear. Lifespans bottomed at {dec(leLow.lifeExpectancy, 1)} years in 1963, outflows exceeded inflows in 1963 through 1966 (the most, {int(-outTop.netMigrants)}, in 1964), and the count slid from {int(y[1963].population)} to {int(y[1966].population)}. Why, the dataset does not say.</p>
+        </div>
+        <LineChart
+          title="Guinea-Bissau, 1950–2100: a brief 1960s dip, then steady growth"
+          subtitle="Mid-year population; the projection is dashed."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Is Guinea-Bissau still a rural country?</h2>
+          <p>Mostly: {pct(c.urbanPct!)} urban now, up from {pct(y[1950].urbanPct!)} in 1950, and still short of half at {pct(y[2050].urbanPct!)} in the 2050 projection.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How big is Guinea-Bissau set to become?</h2>
+          <p>About twice its current size, {millions(y[2100].population)}, by 2100. Births outpace deaths in every single year the UN covers. The 1985 fertility peak, {dec(tfrTop.fertility, 2)}, has given way to {dec(c.fertility, 2)} today, and 2.1 is not crossed before 2079. The biggest migration gain came in 1977, {int(inTop.netMigrants)}.</p>
+        </div>
+        <RelatedPages iso3={gnb.iso3} name={gnb.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Guinea-Bissau year rows 1962 to 1967, with 1977"
+          subtitle="The 1963 row holds the lifespan low; the count shrinks across 1964–1966."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${gnb.slug}-population.csv`)}
+          csvName={`${gnb.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Guinea-Bissau, answered with UN data</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{gnb.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={gnb.published}>{longDate(gnb.published)}</time> · Updated <time datetime={gnb.updated}>{longDate(gnb.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Guinea-Bissau population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Guinea-Bissau" code="gw" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

@@ -8,7 +8,7 @@
 // Each draft needs its country words: from the matching editorial JSON (found by file name in
 // src/data/{countries,economy,rankings,cities}/) or given with --names "Name|Demonym|Capital".
 //
-//   node scripts/tools/phrase-check.mjs src/pages/economy/denmark.astro src/pages/economy/finland.astro
+//   node scripts/tools/phrase-check.mjs src/pages/country/denmark/economy.astro src/pages/country/finland/economy.astro
 //   node scripts/tools/phrase-check.mjs draft.txt --names "Denmark|Danish|Copenhagen"
 //   node scripts/tools/phrase-check.mjs --bank [economy|population|rankings|time]   # headings already used
 import { readFileSync, existsSync } from 'node:fs';
@@ -42,8 +42,7 @@ if (bank) {
 const SECTION_DIRS = { population: 'src/data/countries', economy: 'src/data/economy', rankings: 'src/data/rankings', time: 'src/data/cities' };
 function countryWords(file) {
   if (names) { const [name, demonym, capital] = names.split('|'); return { name, demonym, capital }; }
-  const slug = basename(file).replace(/\.(astro|txt)$/, '');
-  const sec = basename(dirname(file));
+  const { slug, sec } = where(file);
   for (const dir of [SECTION_DIRS[sec], ...Object.values(SECTION_DIRS)].filter(Boolean)) {
     const j = `${dir}/${slug}.json`;
     if (existsSync(j)) { const d = JSON.parse(readFileSync(j, 'utf8')); if (d.name || d.demonym || d.capital) return d; }
@@ -55,6 +54,11 @@ function countryWords(file) {
   return {};
 }
 
+// src/pages/country/<slug>/<section>.astro (task 148) or src/pages/<section>/<slug>.astro
+function where(file) {
+  const m = file.match(/country\/([^/]+)\/([a-z-]+)\.(astro|txt)$/);
+  return m ? { slug: m[1], sec: m[2] } : { slug: basename(file).replace(/\.(astro|txt)$/, ''), sec: basename(dirname(file)) };
+}
 const unq = (s) => s.replace(/\$\{[^}]*\}/g, ' 0 ').replace(/\{[^{}]*\}/g, ' 0 ').replace(/\\'/g, "'").replace(/\s+/g, ' ').trim();
 function readDraft(file) {
   const src = readFileSync(file, 'utf8')
@@ -86,7 +90,7 @@ if (!files.length) { console.error('usage: phrase-check.mjs <draft.astro|draft.t
 const drafts = files.map((f) => {
   const c = countryWords(f);
   const { blocks, heads } = readDraft(f);
-  const self = `${basename(dirname(f))}/${basename(f).replace(/\.(astro|txt)$/, '')}`;
+  const { slug: sl, sec: se } = where(f); const self = `${se}/${sl}`;
   return { file: f, self, g: grams(blocks, c), h: new Map(heads.map((x) => [normalize(x, c).join(' '), x])) };
 });
 

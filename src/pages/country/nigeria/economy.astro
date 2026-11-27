@@ -1,0 +1,165 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/nigeria.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/nigeria/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const remRank = rankBy('remittances', rem!.year).find((r) => r.iso3 === c.iso3)!.rank;
+const ranked = rankBy('gdp', L);
+// Africa = World Bank Sub-Saharan Africa plus the North African economies of its Middle East region.
+const NORTH_AFRICA = ['DZA', 'EGY', 'LBY', 'MAR', 'TUN'];
+const africa = ranked.filter((r) => r.region === 'Sub-Saharan Africa' || NORTH_AFRICA.includes(r.iso3));
+const ssaRem = rankBy('remittances', rem!.year).filter((r) => r.region === 'Sub-Saharan Africa');
+const peak = s.gdp.reduce((a, b) => (b[1] > a[1] ? b : a));
+const low24 = Math.max(...s.gdp.filter(([y, x]) => y < 2024 && x < v('gdp', 2024)!).map(([y]) => y));
+const hi24 = Math.max(...s.inflationPct.filter(([y, x]) => y < 2024 && x > i(2024)).map(([y]) => y));
+
+assertClaim(africa.findIndex((r) => r.iso3 === c.iso3) === 2 && africa[0].iso3 === 'ZAF' && africa[1].iso3 === 'EGY', 'third in Africa after South Africa and Egypt');
+assertClaim(peak[0] === 2019 && v('gdp', 2024)! < v('gdp', 2022)! / 2 && low24 === 2006, 'dollar GDP halved from 2022 to 2024, lowest since 2006');
+assertClaim([2021, 2022, 2023, 2024, L].every((y) => g(y) > 0), 'real growth positive every year since 2021');
+assertClaim(hi24 === 1995 && infl.year === L && infl.value < i(2024), '2024 inflation highest since 1995, lower in the latest year');
+assertClaim(ssaRem[0].iso3 === c.iso3 && rem!.year === L, 'largest remittance receiver in Sub-Saharan Africa');
+assertClaim(s.inflationPct.filter(([y]) => y >= 2016).every(([, x]) => x > 10) && i(2015) < 10, 'above 10% every year since 2016');
+assertClaim(s.inflationPct[0][0] === 1960, 'series starts 1960');
+assertClaim(net!.value < 45, 'fewer than half online');
+assertClaim(gdp > v('gdp', 2024)!, 'dollar GDP up in the latest year');
+
+const title = `Nigeria Economy ${L}: GDP in Dollars, Inflation | AtlasFigures`;
+const description = `Third in Africa, Nigeria had GDP of ${usd(gdp)} in ${L}. In dollars it is far below its ${peak[0]} peak of ${usd(peak[1])} although real output has grown each year since 2021; inflation was ${pct(infl.value)}.`;
+
+const faq = [
+  { q: 'Is Nigeria the biggest economy in Africa?', a: `Not on ${L} World Bank figures. South Africa (${usd(africa[0].value)}) and Egypt (${usd(africa[1].value)}) are ahead of Nigeria's ${usd(gdp)}.` },
+  { q: 'Why did Nigeria\'s GDP fall so much in dollars?', a: `The dollar figure dropped from ${usd(v('gdp', 2022)!)} in 2022 to ${usd(v('gdp', 2024)!)} in 2024 while real GDP grew in both 2023 and 2024. A dollar total depends on the exchange rate used to convert the naira as well as on output.` },
+  { q: 'What was Nigeria\'s inflation rate in 2024?', a: `${pct(i(2024))}, a 29-year high. It came down to ${pct(infl.value)} in ${L}.` },
+  { q: 'How much do Nigerians abroad send home?', a: `${usd(rem!.value)} in ${L}, more than any other economy in Sub-Saharan Africa and ${ord(remRank)} worldwide.` },
+  { q: 'How much is Nigeria\'s GDP per person?', a: `${usdWhole(perHead)} for ${L}, ${ord(B.pcRank!)} of the ranked economies; converted with purchasing-power rates instead, ${intDollars(ppp!)}. GDP per person is an average of output, not a measure of what a typical household earns.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Nigeria's economy ${L}: third in Africa, with a dollar GDP far below its 2019 peak`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Nigeria's economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Nigeria', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Nigeria's economy in naira and dollars</h1>
+        <p class="answer">
+          Africa's third-largest economy, Nigeria produced <strong>{usd(gdp)}</strong> in {L}. Real output has grown every year since 2021, but in dollars the economy is less than half its <strong>{peak[0]}</strong> size, and inflation ran at {pct(infl.value)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Nigeria economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Nigeria" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Measured in its own currency Nigeria's economy keeps expanding; measured in dollars it has shrunk dramatically. Both views come from the same World Bank figures.</p>
+
+        <div class="story-block prose">
+          <h2>Is Nigeria still one of Africa's top three economies?</h2>
+          <p>Yes, in third place. Its {usd(gdp)} of output in {L} trails South Africa ({usd(africa[0].value)}) and Egypt ({usd(africa[1].value)}), and places {ord(B.gdpRank!)} in the world. Per resident, output came to {usdWhole(perHead)}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>What happened to Nigeria's GDP in dollars?</h2>
+          <p>It shrank by more than half in two years, from {usd(v('gdp', 2022)!)} (2022) to {usd(v('gdp', 2024)!)} (2024), a level last seen in 2006, before edging up to {usd(gdp)} in {L}. The peak was {usd(peak[1])} in {peak[0]}. Over the same years real GDP kept growing: {pct(g(2023))} in 2023, {pct(g(2024))} in 2024 and {pct(growth)} in {L}. The gap comes from converting naira into dollars.</p>
+        </div>
+        <LineChart
+          title={`Nigeria's GDP in US dollars, 1960–${L}`}
+          subtitle="Dollar GDP at five-year steps to 2015, then each year from 2019; note the 2023–24 drop."
+          points={s.gdp.filter(([y]) => y % 5 === 0 || y >= 2019).map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Is Nigerian inflation easing?</h2>
+          <p>Somewhat. The {L} rate of {pct(infl.value)} is down from {pct(i(2024))} in 2024, which was the steepest annual jump in Nigerian prices since 1995. Every year from 2016 on has seen double-digit inflation.</p>
+        </div>
+        <LineChart
+          title={`Inflation in Nigeria, 1960–${L}`}
+          subtitle="Annual change in consumer prices, per cent."
+          points={s.inflationPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How much money flows into Nigeria from abroad?</h2>
+          <p>{usd(rem!.value)} of personal remittances in {L}, the most in Sub-Saharan Africa and {pct(remPct!.value)} of GDP. About {pct(net!.value)} of Nigerians were internet users in {net!.year}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>More about Nigeria and Africa</h2>
+          <ul>
+            <li><a href={path('/country/nigeria/population/')}>Nigeria's population</a></li>
+            <li><a href={path('/country/egypt/population/')}>Egypt's population</a></li>
+            <li><a href={path('/country/south-africa/population/')}>South Africa's population</a></li>
+            <li><a href={path('/rankings/gdp-by-country/')}>Every economy ranked by GDP</a></li>
+            <li><a href={path('/rankings/inflation-rate-by-country/')}>Inflation by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Nigeria's economy, selected years 1960–${L}`}
+          subtitle="Includes 2006, the 2019 dollar peak and every year since; the CSV lists all years."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/nigeria-economy.csv')} csvName="nigeria-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Nigerian economy: common questions</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">"Africa" here means the World Bank's Sub-Saharan Africa region plus Algeria, Egypt, Libya, Morocco and Tunisia. Because several exchange rates were in use, the World Bank converts Nigeria's 1970–2020 figures with an alternative conversion factor rather than the official rate. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Nigeria's economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Nigeria" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

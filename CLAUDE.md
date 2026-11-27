@@ -12,8 +12,12 @@
   files (verify scripts + reading the changed sentences), and Updated/dateModified/sitemap/changelog are set for
   the real changes. No link list to the owner is needed afterwards (owner, 27 Nov 2026). Everything else (new
   pages, design, tools) still needs explicit approval.
-- **URLs before launch (owner, 27 Nov 2026):** the site is not in Google yet, so URLs may still change. Country
-  pages move to `/country/<slug>/` (hub) and `/country/<slug>/<topic>/` (task 148). From launch on, URLs never change.
+- **URLs before launch (owner, 27 Nov 2026):** the site is not in Google yet, so URLs may still change. From launch
+  on, URLs never change. **Done in task 148:** every country page lives at `/country/<slug>/<topic>/` — files
+  `src/pages/country/<slug>/population.astro` and `src/pages/country/<slug>/economy.astro` (new topics the same way;
+  the hub `/country/<slug>/` comes with task 160). Section hubs stay at `/population/` and `/economy/`; the World
+  page stays at `/population/world/`; rankings, time, holidays, `/data/*.csv` unchanged. All tabs: create and edit
+  country pages ONLY at the new place, link with the new URLs, add sitemap lines as `/country/<slug>/<topic>/`.
 - **Launch pacing (owner, 27 Nov 2026):** the 3–5 countries a day rule starts at launch; until then, finish the project.
 
 ## Second work tab: economy and other data (owner's decision, 25 Nov 2026)
