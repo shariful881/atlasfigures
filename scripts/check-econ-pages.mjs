@@ -138,6 +138,7 @@ for (const [slug, R] of Object.entries(RANKINGS)) {
   const file = join(DIST, 'rankings', slug, 'index.html');
   if (!ok(existsSync(file), where, 'page not built')) continue;
   const html = readFileSync(file, 'utf8'); const root = parse(html);
+  ok(!/\bWRITE\b/.test(html), where, 'unwritten scaffold text (WRITE) left on the page');
   const text = textOf(parse(html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, '')));
   const m = JSON.parse(readFileSync(`src/data/rankings/${slug}.json`, 'utf8'));
   // Year: World total's latest year, or for ITU telecom series the newest year with values for >= 80% of reporters.

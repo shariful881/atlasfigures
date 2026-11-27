@@ -1,9 +1,9 @@
 // Downloadable CSVs behind the economy ranking pages (their Dataset distribution). Values exactly as the
 // World Bank publishes them; rank = position among economies with a value for that year.
-import { econData, econMeta, rankBy, rankLatest, rankingYear, coverageYear, valueIn } from '../../lib/econ';
+import { econData, econMeta, rankBy, rankLatest, rankingYear, coverageYear, valueIn, type IndicatorKey } from '../../lib/econ';
 import { commonName } from '../../lib/names';
 
-const RANKINGS: Record<string, { key: 'gdp' | 'gdpPerCapita' | 'inflationPct' | 'unemploymentPct' | 'remittances' | 'internetPct' | 'mobilePer100' | 'under5Mortality' | 'maternalMortality' | 'exports' | 'imports' | 'landArea' | 'forestArea' | 'literacyPct' | 'eduSpendPctGdp' | 'lfpFemale' | 'empAgriPct' | 'migrantStock' | 'migrantPct'; coverage?: boolean; since?: number; cols: [string, (iso3: string, y: number) => number | string | null][] }> = {
+const RANKINGS: Record<string, { key: IndicatorKey; coverage?: boolean; since?: number; cols: [string, (iso3: string, y: number) => number | string | null][] }> = {
   'gdp-by-country': { key: 'gdp', cols: [
     ['gdp_current_usd', (x, y) => valueIn(econData(x).series.gdp, y)],
     ['gdp_growth_pct_constant_prices', (x, y) => valueIn(econData(x).series.gdpGrowthPct, y)],
