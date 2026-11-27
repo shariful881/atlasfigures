@@ -2,1441 +2,1729 @@
   {
     "iso3": "GAB",
     "item": "http://www.wikidata.org/entity/Q1000",
-    "value": "http://www.wikidata.org/entity/Q41784"
+    "value": "http://www.wikidata.org/entity/Q41784",
+    "valueLabel": ".ga"
   },
   {
     "iso3": "GMB",
     "item": "http://www.wikidata.org/entity/Q1005",
-    "value": "http://www.wikidata.org/entity/Q41758"
+    "value": "http://www.wikidata.org/entity/Q41758",
+    "valueLabel": ".gm"
   },
   {
     "iso3": "GIN",
     "item": "http://www.wikidata.org/entity/Q1006",
-    "value": "http://www.wikidata.org/entity/Q41761"
+    "value": "http://www.wikidata.org/entity/Q41761",
+    "valueLabel": ".gn"
   },
   {
     "iso3": "GNB",
     "item": "http://www.wikidata.org/entity/Q1007",
-    "value": "http://www.wikidata.org/entity/Q41450"
+    "value": "http://www.wikidata.org/entity/Q41450",
+    "valueLabel": ".gw"
   },
   {
     "iso3": "CIV",
     "item": "http://www.wikidata.org/entity/Q1008",
-    "value": "http://www.wikidata.org/entity/Q40333"
+    "value": "http://www.wikidata.org/entity/Q40333",
+    "valueLabel": ".ci"
   },
   {
     "iso3": "CMR",
     "item": "http://www.wikidata.org/entity/Q1009",
-    "value": "http://www.wikidata.org/entity/Q40698"
+    "value": "http://www.wikidata.org/entity/Q40698",
+    "valueLabel": ".cm"
   },
   {
     "iso3": "CPV",
     "item": "http://www.wikidata.org/entity/Q1011",
-    "value": "http://www.wikidata.org/entity/Q41022"
+    "value": "http://www.wikidata.org/entity/Q41022",
+    "valueLabel": ".cv"
   },
   {
     "iso3": "LSO",
     "item": "http://www.wikidata.org/entity/Q1013",
-    "value": "http://www.wikidata.org/entity/Q41794"
+    "value": "http://www.wikidata.org/entity/Q41794",
+    "valueLabel": ".ls"
   },
   {
     "iso3": "LBR",
     "item": "http://www.wikidata.org/entity/Q1014",
-    "value": "http://www.wikidata.org/entity/Q42847"
+    "value": "http://www.wikidata.org/entity/Q42847",
+    "valueLabel": ".lr"
   },
   {
     "iso3": "LBY",
     "item": "http://www.wikidata.org/entity/Q1016",
-    "value": "http://www.wikidata.org/entity/Q42035"
+    "value": "http://www.wikidata.org/entity/Q42035",
+    "valueLabel": ".ly"
   },
   {
     "iso3": "MDG",
     "item": "http://www.wikidata.org/entity/Q1019",
-    "value": "http://www.wikidata.org/entity/Q42781"
+    "value": "http://www.wikidata.org/entity/Q42781",
+    "valueLabel": ".mg"
   },
   {
     "iso3": "MWI",
     "item": "http://www.wikidata.org/entity/Q1020",
-    "value": "http://www.wikidata.org/entity/Q43073"
+    "value": "http://www.wikidata.org/entity/Q43073",
+    "valueLabel": ".mw"
   },
   {
     "iso3": "MRT",
     "item": "http://www.wikidata.org/entity/Q1025",
-    "value": "http://www.wikidata.org/entity/Q42653"
+    "value": "http://www.wikidata.org/entity/Q42653",
+    "valueLabel": ".mr"
   },
   {
     "iso3": "MUS",
     "item": "http://www.wikidata.org/entity/Q1027",
-    "value": "http://www.wikidata.org/entity/Q43076"
+    "value": "http://www.wikidata.org/entity/Q43076",
+    "valueLabel": ".mu"
   },
   {
     "iso3": "MAR",
     "item": "http://www.wikidata.org/entity/Q1028",
-    "value": "http://www.wikidata.org/entity/Q41439"
+    "value": "http://www.wikidata.org/entity/Q41439",
+    "valueLabel": ".ma"
   },
   {
     "iso3": "MOZ",
     "item": "http://www.wikidata.org/entity/Q1029",
-    "value": "http://www.wikidata.org/entity/Q43131"
+    "value": "http://www.wikidata.org/entity/Q43131",
+    "valueLabel": ".mz"
   },
   {
     "iso3": "NAM",
     "item": "http://www.wikidata.org/entity/Q1030",
-    "value": "http://www.wikidata.org/entity/Q42758"
+    "value": "http://www.wikidata.org/entity/Q42758",
+    "valueLabel": ".na"
   },
   {
     "iso3": "NER",
     "item": "http://www.wikidata.org/entity/Q1032",
-    "value": "http://www.wikidata.org/entity/Q43158"
+    "value": "http://www.wikidata.org/entity/Q43158",
+    "valueLabel": ".ne"
   },
   {
     "iso3": "NGA",
     "item": "http://www.wikidata.org/entity/Q1033",
-    "value": "http://www.wikidata.org/entity/Q43151"
+    "value": "http://www.wikidata.org/entity/Q43151",
+    "valueLabel": ".ng"
   },
   {
     "iso3": "UGA",
     "item": "http://www.wikidata.org/entity/Q1036",
-    "value": "http://www.wikidata.org/entity/Q43122"
+    "value": "http://www.wikidata.org/entity/Q43122",
+    "valueLabel": ".ug"
   },
   {
     "iso3": "RWA",
     "item": "http://www.wikidata.org/entity/Q1037",
-    "value": "http://www.wikidata.org/entity/Q43592"
+    "value": "http://www.wikidata.org/entity/Q43592",
+    "valueLabel": ".rw"
   },
   {
     "iso3": "STP",
     "item": "http://www.wikidata.org/entity/Q1039",
-    "value": "http://www.wikidata.org/entity/Q43772"
+    "value": "http://www.wikidata.org/entity/Q43772",
+    "valueLabel": ".st"
   },
   {
     "iso3": "SEN",
     "item": "http://www.wikidata.org/entity/Q1041",
-    "value": "http://www.wikidata.org/entity/Q60117"
+    "value": "http://www.wikidata.org/entity/Q60117",
+    "valueLabel": ".sn"
   },
   {
     "iso3": "SYC",
     "item": "http://www.wikidata.org/entity/Q1042",
-    "value": "http://www.wikidata.org/entity/Q43139"
+    "value": "http://www.wikidata.org/entity/Q43139",
+    "valueLabel": ".sc"
   },
   {
     "iso3": "SLE",
     "item": "http://www.wikidata.org/entity/Q1044",
-    "value": "http://www.wikidata.org/entity/Q43767"
+    "value": "http://www.wikidata.org/entity/Q43767",
+    "valueLabel": ".sl"
   },
   {
     "iso3": "SOM",
     "item": "http://www.wikidata.org/entity/Q1045",
-    "value": "http://www.wikidata.org/entity/Q126480"
+    "value": "http://www.wikidata.org/entity/Q126480",
+    "valueLabel": ".so"
   },
   {
     "iso3": "SDN",
     "item": "http://www.wikidata.org/entity/Q1049",
-    "value": "http://www.wikidata.org/entity/Q43762"
+    "value": "http://www.wikidata.org/entity/Q43762",
+    "valueLabel": ".sd"
   },
   {
     "iso3": "SWZ",
     "item": "http://www.wikidata.org/entity/Q1050",
-    "value": "http://www.wikidata.org/entity/Q43149"
+    "value": "http://www.wikidata.org/entity/Q43149",
+    "valueLabel": ".sz"
   },
   {
     "iso3": "KEN",
     "item": "http://www.wikidata.org/entity/Q114",
-    "value": "http://www.wikidata.org/entity/Q42695"
+    "value": "http://www.wikidata.org/entity/Q42695",
+    "valueLabel": ".ke"
   },
   {
     "iso3": "ETH",
     "item": "http://www.wikidata.org/entity/Q115",
-    "value": "http://www.wikidata.org/entity/Q40363"
+    "value": "http://www.wikidata.org/entity/Q40363",
+    "valueLabel": ".et"
   },
   {
     "iso3": "GHA",
     "item": "http://www.wikidata.org/entity/Q117",
-    "value": "http://www.wikidata.org/entity/Q41634"
+    "value": "http://www.wikidata.org/entity/Q41634",
+    "valueLabel": ".gh"
   },
   {
     "iso3": "VIR",
     "item": "http://www.wikidata.org/entity/Q11703",
-    "value": "http://www.wikidata.org/entity/Q46781"
+    "value": "http://www.wikidata.org/entity/Q46781",
+    "valueLabel": ".vi"
   },
   {
     "iso3": "PRI",
     "item": "http://www.wikidata.org/entity/Q1183",
-    "value": "http://www.wikidata.org/entity/Q47241"
+    "value": "http://www.wikidata.org/entity/Q47241",
+    "valueLabel": ".pr"
   },
   {
     "iso3": "MAF",
     "item": "http://www.wikidata.org/entity/Q126125",
-    "value": "http://www.wikidata.org/entity/Q160295"
+    "value": "http://www.wikidata.org/entity/Q160295",
+    "valueLabel": ".mf"
   },
   {
     "iso3": "ATF",
     "item": "http://www.wikidata.org/entity/Q129003",
-    "value": "http://www.wikidata.org/entity/Q47819"
+    "value": "http://www.wikidata.org/entity/Q47819",
+    "valueLabel": ".tf"
   },
   {
     "iso3": "HMD",
     "item": "http://www.wikidata.org/entity/Q131198",
-    "value": "http://www.wikidata.org/entity/Q43818"
+    "value": "http://www.wikidata.org/entity/Q43818",
+    "valueLabel": ".hm"
   },
   {
     "iso3": "MSR",
     "item": "http://www.wikidata.org/entity/Q13353",
-    "value": "http://www.wikidata.org/entity/Q43587"
+    "value": "http://www.wikidata.org/entity/Q43587",
+    "valueLabel": ".ms"
   },
   {
     "iso3": "GIB",
     "item": "http://www.wikidata.org/entity/Q1410",
-    "value": "http://www.wikidata.org/entity/Q42415"
+    "value": "http://www.wikidata.org/entity/Q42415",
+    "valueLabel": ".gi"
   },
   {
     "iso3": "FRA",
     "item": "http://www.wikidata.org/entity/Q142",
-    "value": "http://www.wikidata.org/entity/Q37271"
+    "value": "http://www.wikidata.org/entity/Q37271",
+    "valueLabel": ".fr"
   },
   {
     "iso3": "GBR",
     "item": "http://www.wikidata.org/entity/Q145",
-    "value": "http://www.wikidata.org/entity/Q37913"
+    "value": "http://www.wikidata.org/entity/Q37913",
+    "valueLabel": ".uk"
   },
   {
     "iso3": "MAC",
     "item": "http://www.wikidata.org/entity/Q14773",
-    "value": "http://www.wikidata.org/entity/Q43539"
+    "value": "http://www.wikidata.org/entity/Q43539",
+    "valueLabel": ".mo"
   },
   {
     "iso3": "CHN",
     "item": "http://www.wikidata.org/entity/Q148",
-    "value": "http://www.wikidata.org/entity/Q11837308"
+    "value": "http://www.wikidata.org/entity/Q11837308",
+    "valueLabel": ".中国"
   },
   {
     "iso3": "CHN",
     "item": "http://www.wikidata.org/entity/Q148",
-    "value": "http://www.wikidata.org/entity/Q11837483"
+    "value": "http://www.wikidata.org/entity/Q11837483",
+    "valueLabel": ".中國"
   },
   {
     "iso3": "CHN",
     "item": "http://www.wikidata.org/entity/Q148",
-    "value": "http://www.wikidata.org/entity/Q38900"
+    "value": "http://www.wikidata.org/entity/Q38900",
+    "valueLabel": ".cn"
   },
   {
     "iso3": "CHN",
     "item": "http://www.wikidata.org/entity/Q148",
-    "value": "http://www.wikidata.org/entity/Q4222408"
+    "value": "http://www.wikidata.org/entity/Q4222408",
+    "valueLabel": ".公司"
   },
   {
     "iso3": "SUN",
     "item": "http://www.wikidata.org/entity/Q15180",
-    "value": "http://www.wikidata.org/entity/Q48369"
+    "value": "http://www.wikidata.org/entity/Q48369",
+    "valueLabel": ".su"
   },
   {
     "iso3": "BRA",
     "item": "http://www.wikidata.org/entity/Q155",
-    "value": "http://www.wikidata.org/entity/Q39889"
+    "value": "http://www.wikidata.org/entity/Q39889",
+    "valueLabel": ".br"
   },
   {
     "iso3": "RUS",
     "item": "http://www.wikidata.org/entity/Q159",
-    "value": "http://www.wikidata.org/entity/Q16524723"
+    "value": "http://www.wikidata.org/entity/Q16524723",
+    "valueLabel": ".рус"
   },
   {
     "iso3": "RUS",
     "item": "http://www.wikidata.org/entity/Q159",
-    "value": "http://www.wikidata.org/entity/Q200439"
+    "value": "http://www.wikidata.org/entity/Q200439",
+    "valueLabel": ".рф"
   },
   {
     "iso3": "RUS",
     "item": "http://www.wikidata.org/entity/Q159",
-    "value": "http://www.wikidata.org/entity/Q36541"
+    "value": "http://www.wikidata.org/entity/Q36541",
+    "valueLabel": ".ru"
   },
   {
     "iso3": "RUS",
     "item": "http://www.wikidata.org/entity/Q159",
-    "value": "http://www.wikidata.org/entity/Q48369"
+    "value": "http://www.wikidata.org/entity/Q48369",
+    "valueLabel": ".su"
   },
   {
     "iso3": "CAN",
     "item": "http://www.wikidata.org/entity/Q16",
-    "value": "http://www.wikidata.org/entity/Q39582"
+    "value": "http://www.wikidata.org/entity/Q39582",
+    "valueLabel": ".ca"
   },
   {
     "iso3": "GUM",
     "item": "http://www.wikidata.org/entity/Q16635",
-    "value": "http://www.wikidata.org/entity/Q43141"
+    "value": "http://www.wikidata.org/entity/Q43141",
+    "valueLabel": ".gu"
   },
   {
     "iso3": "ASM",
     "item": "http://www.wikidata.org/entity/Q16641",
-    "value": "http://www.wikidata.org/entity/Q41731"
+    "value": "http://www.wikidata.org/entity/Q41731",
+    "valueLabel": ".as"
   },
   {
     "iso3": "MNP",
     "item": "http://www.wikidata.org/entity/Q16644",
-    "value": "http://www.wikidata.org/entity/Q43899"
+    "value": "http://www.wikidata.org/entity/Q43899",
+    "valueLabel": ".mp"
   },
   {
     "iso3": "UMI",
     "item": "http://www.wikidata.org/entity/Q16645",
-    "value": "http://www.wikidata.org/entity/Q434184"
+    "value": "http://www.wikidata.org/entity/Q434184",
+    "valueLabel": ".um"
   },
   {
     "iso3": "DDR",
     "item": "http://www.wikidata.org/entity/Q16957",
-    "value": "http://www.wikidata.org/entity/Q435553"
+    "value": "http://www.wikidata.org/entity/Q435553",
+    "valueLabel": ".dd"
   },
   {
     "iso3": "JPN",
     "item": "http://www.wikidata.org/entity/Q17",
-    "value": "http://www.wikidata.org/entity/Q39132"
+    "value": "http://www.wikidata.org/entity/Q39132",
+    "valueLabel": ".jp"
   },
   {
     "iso3": "GLP",
     "item": "http://www.wikidata.org/entity/Q17012",
-    "value": "http://www.wikidata.org/entity/Q42769"
+    "value": "http://www.wikidata.org/entity/Q42769",
+    "valueLabel": ".gp"
   },
   {
     "iso3": "MTQ",
     "item": "http://www.wikidata.org/entity/Q17054",
-    "value": "http://www.wikidata.org/entity/Q42795"
+    "value": "http://www.wikidata.org/entity/Q42795",
+    "valueLabel": ".mq"
   },
   {
     "iso3": "MYT",
     "item": "http://www.wikidata.org/entity/Q17063",
-    "value": "http://www.wikidata.org/entity/Q132639"
+    "value": "http://www.wikidata.org/entity/Q132639",
+    "valueLabel": ".yt"
   },
   {
     "iso3": "REU",
     "item": "http://www.wikidata.org/entity/Q17070",
-    "value": "http://www.wikidata.org/entity/Q46775"
+    "value": "http://www.wikidata.org/entity/Q46775",
+    "valueLabel": ".re"
   },
   {
     "iso3": "TCA",
     "item": "http://www.wikidata.org/entity/Q18221",
-    "value": "http://www.wikidata.org/entity/Q44969"
+    "value": "http://www.wikidata.org/entity/Q44969",
+    "valueLabel": ".tc"
   },
   {
     "iso3": "DEU",
     "item": "http://www.wikidata.org/entity/Q183",
-    "value": "http://www.wikidata.org/entity/Q37251"
+    "value": "http://www.wikidata.org/entity/Q37251",
+    "valueLabel": ".de"
   },
   {
     "iso3": "BLR",
     "item": "http://www.wikidata.org/entity/Q184",
-    "value": "http://www.wikidata.org/entity/Q18109066"
+    "value": "http://www.wikidata.org/entity/Q18109066",
+    "valueLabel": ".бел"
   },
   {
     "iso3": "BLR",
     "item": "http://www.wikidata.org/entity/Q184",
-    "value": "http://www.wikidata.org/entity/Q39870"
+    "value": "http://www.wikidata.org/entity/Q39870",
+    "valueLabel": ".by"
   },
   {
     "iso3": "ISL",
     "item": "http://www.wikidata.org/entity/Q189",
-    "value": "http://www.wikidata.org/entity/Q39896"
+    "value": "http://www.wikidata.org/entity/Q39896",
+    "valueLabel": ".is"
   },
   {
     "iso3": "EST",
     "item": "http://www.wikidata.org/entity/Q191",
-    "value": "http://www.wikidata.org/entity/Q38908"
+    "value": "http://www.wikidata.org/entity/Q38908",
+    "valueLabel": ".ee"
   },
   {
     "iso3": "NOR",
     "item": "http://www.wikidata.org/entity/Q20",
-    "value": "http://www.wikidata.org/entity/Q41060"
+    "value": "http://www.wikidata.org/entity/Q41060",
+    "valueLabel": ".no"
   },
   {
     "iso3": "LVA",
     "item": "http://www.wikidata.org/entity/Q211",
-    "value": "http://www.wikidata.org/entity/Q41629"
+    "value": "http://www.wikidata.org/entity/Q41629",
+    "valueLabel": ".lv"
   },
   {
     "iso3": "UKR",
     "item": "http://www.wikidata.org/entity/Q212",
-    "value": "http://www.wikidata.org/entity/Q40656"
+    "value": "http://www.wikidata.org/entity/Q40656",
+    "valueLabel": ".ua"
   },
   {
     "iso3": "ABW",
     "item": "http://www.wikidata.org/entity/Q21203",
-    "value": "http://www.wikidata.org/entity/Q41442"
+    "value": "http://www.wikidata.org/entity/Q41442",
+    "valueLabel": ".aw"
   },
   {
     "iso3": "CZE",
     "item": "http://www.wikidata.org/entity/Q213",
-    "value": "http://www.wikidata.org/entity/Q37531"
+    "value": "http://www.wikidata.org/entity/Q37531",
+    "valueLabel": ".cz"
   },
   {
     "iso3": "SVK",
     "item": "http://www.wikidata.org/entity/Q214",
-    "value": "http://www.wikidata.org/entity/Q41529"
+    "value": "http://www.wikidata.org/entity/Q41529",
+    "valueLabel": ".sk"
   },
   {
     "iso3": "SVN",
     "item": "http://www.wikidata.org/entity/Q215",
-    "value": "http://www.wikidata.org/entity/Q58723"
+    "value": "http://www.wikidata.org/entity/Q58723",
+    "valueLabel": ".si"
   },
   {
     "iso3": "MDA",
     "item": "http://www.wikidata.org/entity/Q217",
-    "value": "http://www.wikidata.org/entity/Q40324"
+    "value": "http://www.wikidata.org/entity/Q40324",
+    "valueLabel": ".md"
   },
   {
     "iso3": "ROU",
     "item": "http://www.wikidata.org/entity/Q218",
-    "value": "http://www.wikidata.org/entity/Q42677"
+    "value": "http://www.wikidata.org/entity/Q42677",
+    "valueLabel": ".ro"
   },
   {
     "iso3": "BGR",
     "item": "http://www.wikidata.org/entity/Q219",
-    "value": "http://www.wikidata.org/entity/Q140775"
+    "value": "http://www.wikidata.org/entity/Q140775",
+    "valueLabel": ".бг"
   },
   {
     "iso3": "BGR",
     "item": "http://www.wikidata.org/entity/Q219",
-    "value": "http://www.wikidata.org/entity/Q39029"
+    "value": "http://www.wikidata.org/entity/Q39029",
+    "valueLabel": ".bg"
   },
   {
     "iso3": "PSE",
     "item": "http://www.wikidata.org/entity/Q219060",
-    "value": "http://www.wikidata.org/entity/Q43908"
+    "value": "http://www.wikidata.org/entity/Q43908",
+    "valueLabel": ".ps"
   },
   {
     "iso3": "MKD",
     "item": "http://www.wikidata.org/entity/Q221",
-    "value": "http://www.wikidata.org/entity/Q41319"
+    "value": "http://www.wikidata.org/entity/Q41319",
+    "valueLabel": ".mk"
   },
   {
     "iso3": "ALB",
     "item": "http://www.wikidata.org/entity/Q222",
-    "value": "http://www.wikidata.org/entity/Q38291"
+    "value": "http://www.wikidata.org/entity/Q38291",
+    "valueLabel": ".al"
   },
   {
     "iso3": "GRL",
     "item": "http://www.wikidata.org/entity/Q223",
-    "value": "http://www.wikidata.org/entity/Q41454"
+    "value": "http://www.wikidata.org/entity/Q41454",
+    "valueLabel": ".gl"
   },
   {
     "iso3": "HRV",
     "item": "http://www.wikidata.org/entity/Q224",
-    "value": "http://www.wikidata.org/entity/Q41008"
+    "value": "http://www.wikidata.org/entity/Q41008",
+    "valueLabel": ".hr"
   },
   {
     "iso3": "BIH",
     "item": "http://www.wikidata.org/entity/Q225",
-    "value": "http://www.wikidata.org/entity/Q39661"
+    "value": "http://www.wikidata.org/entity/Q39661",
+    "valueLabel": ".ba"
   },
   {
     "iso3": "AZE",
     "item": "http://www.wikidata.org/entity/Q227",
-    "value": "http://www.wikidata.org/entity/Q38414"
+    "value": "http://www.wikidata.org/entity/Q38414",
+    "valueLabel": ".az"
   },
   {
     "iso3": "AND",
     "item": "http://www.wikidata.org/entity/Q228",
-    "value": "http://www.wikidata.org/entity/Q36552"
+    "value": "http://www.wikidata.org/entity/Q36552",
+    "valueLabel": ".ad"
   },
   {
     "iso3": "CYP",
     "item": "http://www.wikidata.org/entity/Q229",
-    "value": "http://www.wikidata.org/entity/Q40459"
+    "value": "http://www.wikidata.org/entity/Q40459",
+    "valueLabel": ".cy"
   },
   {
     "iso3": "GEO",
     "item": "http://www.wikidata.org/entity/Q230",
-    "value": "http://www.wikidata.org/entity/Q40683"
+    "value": "http://www.wikidata.org/entity/Q40683",
+    "valueLabel": ".ge"
   },
   {
     "iso3": "KAZ",
     "item": "http://www.wikidata.org/entity/Q232",
-    "value": "http://www.wikidata.org/entity/Q40619"
+    "value": "http://www.wikidata.org/entity/Q40619",
+    "valueLabel": ".kz"
   },
   {
     "iso3": "KAZ",
     "item": "http://www.wikidata.org/entity/Q232",
-    "value": "http://www.wikidata.org/entity/Q48137"
+    "value": "http://www.wikidata.org/entity/Q48137",
+    "valueLabel": ".қаз"
   },
   {
     "iso3": "MLT",
     "item": "http://www.wikidata.org/entity/Q233",
-    "value": "http://www.wikidata.org/entity/Q41856"
+    "value": "http://www.wikidata.org/entity/Q41856",
+    "valueLabel": ".mt"
   },
   {
     "iso3": "BVT",
     "item": "http://www.wikidata.org/entity/Q23408",
-    "value": "http://www.wikidata.org/entity/Q433729"
+    "value": "http://www.wikidata.org/entity/Q433729",
+    "valueLabel": ".bv"
   },
   {
     "iso3": "MCO",
     "item": "http://www.wikidata.org/entity/Q235",
-    "value": "http://www.wikidata.org/entity/Q42020"
+    "value": "http://www.wikidata.org/entity/Q42020",
+    "valueLabel": ".mc"
   },
   {
     "iso3": "MNE",
     "item": "http://www.wikidata.org/entity/Q236",
-    "value": "http://www.wikidata.org/entity/Q43673"
+    "value": "http://www.wikidata.org/entity/Q43673",
+    "valueLabel": ".me"
   },
   {
     "iso3": "BMU",
     "item": "http://www.wikidata.org/entity/Q23635",
-    "value": "http://www.wikidata.org/entity/Q41028"
+    "value": "http://www.wikidata.org/entity/Q41028",
+    "valueLabel": ".bm"
   },
   {
     "iso3": "VAT",
     "item": "http://www.wikidata.org/entity/Q237",
-    "value": "http://www.wikidata.org/entity/Q42381"
+    "value": "http://www.wikidata.org/entity/Q42381",
+    "valueLabel": ".va"
   },
   {
     "iso3": "SMR",
     "item": "http://www.wikidata.org/entity/Q238",
-    "value": "http://www.wikidata.org/entity/Q43094"
+    "value": "http://www.wikidata.org/entity/Q43094",
+    "valueLabel": ".sm"
   },
   {
     "iso3": "CUB",
     "item": "http://www.wikidata.org/entity/Q241",
-    "value": "http://www.wikidata.org/entity/Q41006"
+    "value": "http://www.wikidata.org/entity/Q41006",
+    "valueLabel": ".cu"
   },
   {
     "iso3": "BLZ",
     "item": "http://www.wikidata.org/entity/Q242",
-    "value": "http://www.wikidata.org/entity/Q39903"
+    "value": "http://www.wikidata.org/entity/Q39903",
+    "valueLabel": ".bz"
   },
   {
     "iso3": "BRB",
     "item": "http://www.wikidata.org/entity/Q244",
-    "value": "http://www.wikidata.org/entity/Q39539"
+    "value": "http://www.wikidata.org/entity/Q39539",
+    "valueLabel": ".bb"
   },
   {
     "iso3": "IDN",
     "item": "http://www.wikidata.org/entity/Q252",
-    "value": "http://www.wikidata.org/entity/Q41102"
+    "value": "http://www.wikidata.org/entity/Q41102",
+    "valueLabel": ".id"
   },
   {
     "iso3": "ANT",
     "item": "http://www.wikidata.org/entity/Q25227",
-    "value": "http://www.wikidata.org/entity/Q40342"
+    "value": "http://www.wikidata.org/entity/Q40342",
+    "valueLabel": ".an"
   },
   {
     "iso3": "AIA",
     "item": "http://www.wikidata.org/entity/Q25228",
-    "value": "http://www.wikidata.org/entity/Q40689"
+    "value": "http://www.wikidata.org/entity/Q40689",
+    "valueLabel": ".ai"
   },
   {
     "iso3": "GGY",
     "item": "http://www.wikidata.org/entity/Q25230",
-    "value": "http://www.wikidata.org/entity/Q41092"
+    "value": "http://www.wikidata.org/entity/Q41092",
+    "valueLabel": ".gg"
   },
   {
     "iso3": "CUW",
     "item": "http://www.wikidata.org/entity/Q25279",
-    "value": "http://www.wikidata.org/entity/Q159410"
+    "value": "http://www.wikidata.org/entity/Q159410",
+    "valueLabel": ".cw"
   },
   {
     "iso3": "VGB",
     "item": "http://www.wikidata.org/entity/Q25305",
-    "value": "http://www.wikidata.org/entity/Q47079"
+    "value": "http://www.wikidata.org/entity/Q47079",
+    "valueLabel": ".vg"
   },
   {
     "iso3": "BLM",
     "item": "http://www.wikidata.org/entity/Q25362",
-    "value": "http://www.wikidata.org/entity/Q316837"
+    "value": "http://www.wikidata.org/entity/Q316837",
+    "valueLabel": ".bl"
   },
   {
     "iso3": "ZAF",
     "item": "http://www.wikidata.org/entity/Q258",
-    "value": "http://www.wikidata.org/entity/Q42754"
+    "value": "http://www.wikidata.org/entity/Q42754",
+    "valueLabel": ".za"
   },
   {
     "iso3": "DZA",
     "item": "http://www.wikidata.org/entity/Q262",
-    "value": "http://www.wikidata.org/entity/Q41039"
+    "value": "http://www.wikidata.org/entity/Q41039",
+    "valueLabel": ".dz"
   },
   {
     "iso3": "SXM",
     "item": "http://www.wikidata.org/entity/Q26273",
-    "value": "http://www.wikidata.org/entity/Q160867"
+    "value": "http://www.wikidata.org/entity/Q160867",
+    "valueLabel": ".sx"
   },
   {
     "iso3": "UZB",
     "item": "http://www.wikidata.org/entity/Q265",
-    "value": "http://www.wikidata.org/entity/Q41846"
+    "value": "http://www.wikidata.org/entity/Q41846",
+    "valueLabel": ".uz"
   },
   {
     "iso3": "COK",
     "item": "http://www.wikidata.org/entity/Q26988",
-    "value": "http://www.wikidata.org/entity/Q42270"
+    "value": "http://www.wikidata.org/entity/Q42270",
+    "valueLabel": ".ck"
   },
   {
     "iso3": "IRL",
     "item": "http://www.wikidata.org/entity/Q27",
-    "value": "http://www.wikidata.org/entity/Q39382"
+    "value": "http://www.wikidata.org/entity/Q39382",
+    "valueLabel": ".ie"
   },
   {
     "iso3": "BES",
     "item": "http://www.wikidata.org/entity/Q27561",
-    "value": "http://www.wikidata.org/entity/Q142380"
+    "value": "http://www.wikidata.org/entity/Q142380",
+    "valueLabel": ".bq"
   },
   {
     "iso3": "BES",
     "item": "http://www.wikidata.org/entity/Q27561",
-    "value": "http://www.wikidata.org/entity/Q493202"
+    "value": "http://www.wikidata.org/entity/Q493202",
+    "valueLabel": ".nl"
   },
   {
     "iso3": "HUN",
     "item": "http://www.wikidata.org/entity/Q28",
-    "value": "http://www.wikidata.org/entity/Q40622"
+    "value": "http://www.wikidata.org/entity/Q40622",
+    "valueLabel": ".hu"
   },
   {
     "iso3": "ESP",
     "item": "http://www.wikidata.org/entity/Q29",
-    "value": "http://www.wikidata.org/entity/Q37883"
+    "value": "http://www.wikidata.org/entity/Q37883",
+    "valueLabel": ".es"
   },
   {
     "iso3": "CHL",
     "item": "http://www.wikidata.org/entity/Q298",
-    "value": "http://www.wikidata.org/entity/Q39885"
+    "value": "http://www.wikidata.org/entity/Q39885",
+    "valueLabel": ".cl"
   },
   {
     "iso3": "NLD",
     "item": "http://www.wikidata.org/entity/Q29999",
-    "value": "http://www.wikidata.org/entity/Q493202"
+    "value": "http://www.wikidata.org/entity/Q493202",
+    "valueLabel": ".nl"
   },
   {
     "iso3": "USA",
     "item": "http://www.wikidata.org/entity/Q30",
-    "value": "http://www.wikidata.org/entity/Q37861"
+    "value": "http://www.wikidata.org/entity/Q37861",
+    "valueLabel": ".us"
   },
   {
     "iso3": "PYF",
     "item": "http://www.wikidata.org/entity/Q30971",
-    "value": "http://www.wikidata.org/entity/Q43914"
+    "value": "http://www.wikidata.org/entity/Q43914",
+    "valueLabel": ".pf"
   },
   {
     "iso3": "BEL",
     "item": "http://www.wikidata.org/entity/Q31",
-    "value": "http://www.wikidata.org/entity/Q39773"
+    "value": "http://www.wikidata.org/entity/Q39773",
+    "valueLabel": ".be"
   },
   {
     "iso3": "NFK",
     "item": "http://www.wikidata.org/entity/Q31057",
-    "value": "http://www.wikidata.org/entity/Q48308"
+    "value": "http://www.wikidata.org/entity/Q48308",
+    "valueLabel": ".nf"
   },
   {
     "iso3": "CXR",
     "item": "http://www.wikidata.org/entity/Q31063",
-    "value": "http://www.wikidata.org/entity/Q43138"
+    "value": "http://www.wikidata.org/entity/Q43138",
+    "valueLabel": ".cx"
   },
   {
     "iso3": "ASC",
     "item": "http://www.wikidata.org/entity/Q31890709",
-    "value": "http://www.wikidata.org/entity/Q8391"
+    "value": "http://www.wikidata.org/entity/Q8391",
+    "valueLabel": ".ac"
   },
   {
     "iso3": "LUX",
     "item": "http://www.wikidata.org/entity/Q32",
-    "value": "http://www.wikidata.org/entity/Q41795"
+    "value": "http://www.wikidata.org/entity/Q41795",
+    "valueLabel": ".lu"
   },
   {
     "iso3": "FIN",
     "item": "http://www.wikidata.org/entity/Q33",
-    "value": "http://www.wikidata.org/entity/Q37164"
+    "value": "http://www.wikidata.org/entity/Q37164",
+    "valueLabel": ".fi"
   },
   {
     "iso3": "SGP",
     "item": "http://www.wikidata.org/entity/Q334",
-    "value": "http://www.wikidata.org/entity/Q41851"
+    "value": "http://www.wikidata.org/entity/Q41851",
+    "valueLabel": ".sg"
   },
   {
     "iso3": "NCL",
     "item": "http://www.wikidata.org/entity/Q33788",
-    "value": "http://www.wikidata.org/entity/Q46769"
+    "value": "http://www.wikidata.org/entity/Q46769",
+    "valueLabel": ".nc"
   },
   {
     "iso3": "CSK",
     "item": "http://www.wikidata.org/entity/Q33946",
-    "value": "http://www.wikidata.org/entity/Q159403"
+    "value": "http://www.wikidata.org/entity/Q159403",
+    "valueLabel": ".cs"
   },
   {
     "iso3": "SWE",
     "item": "http://www.wikidata.org/entity/Q34",
-    "value": "http://www.wikidata.org/entity/Q40442"
+    "value": "http://www.wikidata.org/entity/Q40442",
+    "valueLabel": ".se"
   },
   {
     "iso3": "NIU",
     "item": "http://www.wikidata.org/entity/Q34020",
-    "value": "http://www.wikidata.org/entity/Q44921"
+    "value": "http://www.wikidata.org/entity/Q44921",
+    "valueLabel": ".nu"
   },
   {
     "iso3": "SPM",
     "item": "http://www.wikidata.org/entity/Q34617",
-    "value": "http://www.wikidata.org/entity/Q133434"
+    "value": "http://www.wikidata.org/entity/Q133434",
+    "valueLabel": ".pm"
   },
   {
     "iso3": "SPM",
     "item": "http://www.wikidata.org/entity/Q34617",
-    "value": "http://www.wikidata.org/entity/Q37271"
+    "value": "http://www.wikidata.org/entity/Q37271",
+    "valueLabel": ".fr"
   },
   {
     "iso3": "LIE",
     "item": "http://www.wikidata.org/entity/Q347",
-    "value": "http://www.wikidata.org/entity/Q42641"
+    "value": "http://www.wikidata.org/entity/Q42641",
+    "valueLabel": ".li"
   },
   {
     "iso3": "DNK",
     "item": "http://www.wikidata.org/entity/Q35",
-    "value": "http://www.wikidata.org/entity/Q39509"
+    "value": "http://www.wikidata.org/entity/Q39509",
+    "valueLabel": ".dk"
   },
   {
     "iso3": "SGS",
     "item": "http://www.wikidata.org/entity/Q35086",
-    "value": "http://www.wikidata.org/entity/Q43155"
+    "value": "http://www.wikidata.org/entity/Q43155",
+    "valueLabel": ".gs"
   },
   {
     "iso3": "WLF",
     "item": "http://www.wikidata.org/entity/Q35555",
-    "value": "http://www.wikidata.org/entity/Q44932"
+    "value": "http://www.wikidata.org/entity/Q44932",
+    "valueLabel": ".wf"
   },
   {
     "iso3": "PCN",
     "item": "http://www.wikidata.org/entity/Q35672",
-    "value": "http://www.wikidata.org/entity/Q48275"
+    "value": "http://www.wikidata.org/entity/Q48275",
+    "valueLabel": ".pn"
   },
   {
     "iso3": "POL",
     "item": "http://www.wikidata.org/entity/Q36",
-    "value": "http://www.wikidata.org/entity/Q37907"
+    "value": "http://www.wikidata.org/entity/Q37907",
+    "valueLabel": ".pl"
   },
   {
     "iso3": "CCK",
     "item": "http://www.wikidata.org/entity/Q36004",
-    "value": "http://www.wikidata.org/entity/Q42190"
+    "value": "http://www.wikidata.org/entity/Q42190",
+    "valueLabel": ".cc"
   },
   {
     "iso3": "TKL",
     "item": "http://www.wikidata.org/entity/Q36823",
-    "value": "http://www.wikidata.org/entity/Q43098"
+    "value": "http://www.wikidata.org/entity/Q43098",
+    "valueLabel": ".tk"
   },
   {
     "iso3": "LTU",
     "item": "http://www.wikidata.org/entity/Q37",
-    "value": "http://www.wikidata.org/entity/Q39900"
+    "value": "http://www.wikidata.org/entity/Q39900",
+    "valueLabel": ".lt"
   },
   {
     "iso3": "GUF",
     "item": "http://www.wikidata.org/entity/Q3769",
-    "value": "http://www.wikidata.org/entity/Q42792"
+    "value": "http://www.wikidata.org/entity/Q42792",
+    "valueLabel": ".gf"
   },
   {
     "iso3": "ITA",
     "item": "http://www.wikidata.org/entity/Q38",
-    "value": "http://www.wikidata.org/entity/Q39155"
+    "value": "http://www.wikidata.org/entity/Q39155",
+    "valueLabel": ".it"
   },
   {
     "iso3": "CHE",
     "item": "http://www.wikidata.org/entity/Q39",
-    "value": "http://www.wikidata.org/entity/Q20577158"
+    "value": "http://www.wikidata.org/entity/Q20577158",
+    "valueLabel": ".swiss"
   },
   {
     "iso3": "CHE",
     "item": "http://www.wikidata.org/entity/Q39",
-    "value": "http://www.wikidata.org/entity/Q39676"
+    "value": "http://www.wikidata.org/entity/Q39676",
+    "valueLabel": ".ch"
   },
   {
     "iso3": "BHR",
     "item": "http://www.wikidata.org/entity/Q398",
-    "value": "http://www.wikidata.org/entity/Q39993"
+    "value": "http://www.wikidata.org/entity/Q39993",
+    "valueLabel": ".bh"
   },
   {
     "iso3": "ARM",
     "item": "http://www.wikidata.org/entity/Q399",
-    "value": "http://www.wikidata.org/entity/Q18578153"
+    "value": "http://www.wikidata.org/entity/Q18578153",
+    "valueLabel": ".հայ"
   },
   {
     "iso3": "ARM",
     "item": "http://www.wikidata.org/entity/Q399",
-    "value": "http://www.wikidata.org/entity/Q37245"
+    "value": "http://www.wikidata.org/entity/Q37245",
+    "valueLabel": ".am"
   },
   {
     "iso3": "AUT",
     "item": "http://www.wikidata.org/entity/Q40",
-    "value": "http://www.wikidata.org/entity/Q37715"
+    "value": "http://www.wikidata.org/entity/Q37715",
+    "valueLabel": ".at"
   },
   {
     "iso3": "SRB",
     "item": "http://www.wikidata.org/entity/Q403",
-    "value": "http://www.wikidata.org/entity/Q45155"
+    "value": "http://www.wikidata.org/entity/Q45155",
+    "valueLabel": ".rs"
   },
   {
     "iso3": "SRB",
     "item": "http://www.wikidata.org/entity/Q403",
-    "value": "http://www.wikidata.org/entity/Q48367"
+    "value": "http://www.wikidata.org/entity/Q48367",
+    "valueLabel": ".срб"
   },
   {
     "iso3": "AUS",
     "item": "http://www.wikidata.org/entity/Q408",
-    "value": "http://www.wikidata.org/entity/Q37420"
+    "value": "http://www.wikidata.org/entity/Q37420",
+    "valueLabel": ".au"
   },
   {
     "iso3": "GRC",
     "item": "http://www.wikidata.org/entity/Q41",
-    "value": "http://www.wikidata.org/entity/Q37893"
+    "value": "http://www.wikidata.org/entity/Q37893",
+    "valueLabel": "Q37893"
   },
   {
     "iso3": "GRC",
     "item": "http://www.wikidata.org/entity/Q41",
-    "value": "http://www.wikidata.org/entity/Q60679306"
+    "value": "http://www.wikidata.org/entity/Q60679306",
+    "valueLabel": "Q60679306"
   },
   {
     "iso3": "ARG",
     "item": "http://www.wikidata.org/entity/Q414",
-    "value": "http://www.wikidata.org/entity/Q38300"
+    "value": "http://www.wikidata.org/entity/Q38300",
+    "valueLabel": ".ar"
   },
   {
     "iso3": "PER",
     "item": "http://www.wikidata.org/entity/Q419",
-    "value": "http://www.wikidata.org/entity/Q41954"
+    "value": "http://www.wikidata.org/entity/Q41954",
+    "valueLabel": ".pe"
   },
   {
     "iso3": "PRK",
     "item": "http://www.wikidata.org/entity/Q423",
-    "value": "http://www.wikidata.org/entity/Q42172"
+    "value": "http://www.wikidata.org/entity/Q42172",
+    "valueLabel": ".kp"
   },
   {
     "iso3": "KHM",
     "item": "http://www.wikidata.org/entity/Q424",
-    "value": "http://www.wikidata.org/entity/Q41047"
+    "value": "http://www.wikidata.org/entity/Q41047",
+    "valueLabel": ".kh"
   },
   {
     "iso3": "TUR",
     "item": "http://www.wikidata.org/entity/Q43",
-    "value": "http://www.wikidata.org/entity/Q41104"
+    "value": "http://www.wikidata.org/entity/Q41104",
+    "valueLabel": ".tr"
   },
   {
     "iso3": "IOT",
     "item": "http://www.wikidata.org/entity/Q43448",
-    "value": "http://www.wikidata.org/entity/Q44957"
+    "value": "http://www.wikidata.org/entity/Q44957",
+    "valueLabel": ".io"
   },
   {
     "iso3": "PRT",
     "item": "http://www.wikidata.org/entity/Q45",
-    "value": "http://www.wikidata.org/entity/Q39959"
+    "value": "http://www.wikidata.org/entity/Q39959",
+    "valueLabel": ".pt"
   },
   {
     "iso3": "FRO",
     "item": "http://www.wikidata.org/entity/Q4628",
-    "value": "http://www.wikidata.org/entity/Q41446"
+    "value": "http://www.wikidata.org/entity/Q41446",
+    "valueLabel": ".fo"
   },
   {
     "iso3": "ATA",
     "item": "http://www.wikidata.org/entity/Q51",
-    "value": "http://www.wikidata.org/entity/Q41016"
+    "value": "http://www.wikidata.org/entity/Q41016",
+    "valueLabel": ".aq"
   },
   {
     "iso3": "ALA",
     "item": "http://www.wikidata.org/entity/Q5689",
-    "value": "http://www.wikidata.org/entity/Q40449"
+    "value": "http://www.wikidata.org/entity/Q40449",
+    "valueLabel": ".ax"
   },
   {
     "iso3": "TLS",
     "item": "http://www.wikidata.org/entity/Q574",
-    "value": "http://www.wikidata.org/entity/Q43153"
+    "value": "http://www.wikidata.org/entity/Q43153",
+    "valueLabel": ".tl"
   },
   {
     "iso3": "CYM",
     "item": "http://www.wikidata.org/entity/Q5785",
-    "value": "http://www.wikidata.org/entity/Q43888"
+    "value": "http://www.wikidata.org/entity/Q43888",
+    "valueLabel": ".ky"
   },
   {
     "iso3": "TCD",
     "item": "http://www.wikidata.org/entity/Q657",
-    "value": "http://www.wikidata.org/entity/Q43081"
+    "value": "http://www.wikidata.org/entity/Q43081",
+    "valueLabel": ".td"
   },
   {
     "iso3": "NZL",
     "item": "http://www.wikidata.org/entity/Q664",
-    "value": "http://www.wikidata.org/entity/Q42019"
+    "value": "http://www.wikidata.org/entity/Q42019",
+    "valueLabel": ".nz"
   },
   {
     "iso3": "IND",
     "item": "http://www.wikidata.org/entity/Q668",
-    "value": "http://www.wikidata.org/entity/Q12947844"
+    "value": "http://www.wikidata.org/entity/Q12947844",
+    "valueLabel": ".ਭਾਰਤ"
   },
   {
     "iso3": "IND",
     "item": "http://www.wikidata.org/entity/Q668",
-    "value": "http://www.wikidata.org/entity/Q12947845"
+    "value": "http://www.wikidata.org/entity/Q12947845",
+    "valueLabel": ".இந்தியா"
   },
   {
     "iso3": "IND",
     "item": "http://www.wikidata.org/entity/Q668",
-    "value": "http://www.wikidata.org/entity/Q12947846"
+    "value": "http://www.wikidata.org/entity/Q12947846",
+    "valueLabel": ".భారత్"
   },
   {
     "iso3": "IND",
     "item": "http://www.wikidata.org/entity/Q668",
-    "value": "http://www.wikidata.org/entity/Q12947848"
+    "value": "http://www.wikidata.org/entity/Q12947848",
+    "valueLabel": ".ভারত"
   },
   {
     "iso3": "IND",
     "item": "http://www.wikidata.org/entity/Q668",
-    "value": "http://www.wikidata.org/entity/Q12947849"
+    "value": "http://www.wikidata.org/entity/Q12947849",
+    "valueLabel": ".ભારત"
   },
   {
     "iso3": "IND",
     "item": "http://www.wikidata.org/entity/Q668",
-    "value": "http://www.wikidata.org/entity/Q12950811"
+    "value": "http://www.wikidata.org/entity/Q12950811",
+    "valueLabel": ".بھارت"
   },
   {
     "iso3": "IND",
     "item": "http://www.wikidata.org/entity/Q668",
-    "value": "http://www.wikidata.org/entity/Q13417563"
+    "value": "http://www.wikidata.org/entity/Q13417563",
+    "valueLabel": ".भारत"
   },
   {
     "iso3": "IND",
     "item": "http://www.wikidata.org/entity/Q668",
-    "value": "http://www.wikidata.org/entity/Q15978661"
+    "value": "http://www.wikidata.org/entity/Q15978661",
+    "valueLabel": ".ଭାରତ"
   },
   {
     "iso3": "IND",
     "item": "http://www.wikidata.org/entity/Q668",
-    "value": "http://www.wikidata.org/entity/Q31362419"
+    "value": "http://www.wikidata.org/entity/Q31362419",
+    "valueLabel": ".ഭാരതം"
   },
   {
     "iso3": "IND",
     "item": "http://www.wikidata.org/entity/Q668",
-    "value": "http://www.wikidata.org/entity/Q31362424"
+    "value": "http://www.wikidata.org/entity/Q31362424",
+    "valueLabel": ".ಭಾರತ"
   },
   {
     "iso3": "IND",
     "item": "http://www.wikidata.org/entity/Q668",
-    "value": "http://www.wikidata.org/entity/Q31362427"
+    "value": "http://www.wikidata.org/entity/Q31362427",
+    "valueLabel": ".ভাৰত"
   },
   {
     "iso3": "IND",
     "item": "http://www.wikidata.org/entity/Q668",
-    "value": "http://www.wikidata.org/entity/Q39218"
+    "value": "http://www.wikidata.org/entity/Q39218",
+    "valueLabel": ".in"
   },
   {
     "iso3": "TUV",
     "item": "http://www.wikidata.org/entity/Q672",
-    "value": "http://www.wikidata.org/entity/Q40373"
+    "value": "http://www.wikidata.org/entity/Q40373",
+    "valueLabel": ".tv"
   },
   {
     "iso3": "TON",
     "item": "http://www.wikidata.org/entity/Q678",
-    "value": "http://www.wikidata.org/entity/Q41626"
+    "value": "http://www.wikidata.org/entity/Q41626",
+    "valueLabel": ".to"
   },
   {
     "iso3": "WSM",
     "item": "http://www.wikidata.org/entity/Q683",
-    "value": "http://www.wikidata.org/entity/Q42864"
+    "value": "http://www.wikidata.org/entity/Q42864",
+    "valueLabel": ".ws"
   },
   {
     "iso3": "SLB",
     "item": "http://www.wikidata.org/entity/Q685",
-    "value": "http://www.wikidata.org/entity/Q43829"
+    "value": "http://www.wikidata.org/entity/Q43829",
+    "valueLabel": ".sb"
   },
   {
     "iso3": "VUT",
     "item": "http://www.wikidata.org/entity/Q686",
-    "value": "http://www.wikidata.org/entity/Q42701"
+    "value": "http://www.wikidata.org/entity/Q42701",
+    "valueLabel": ".vu"
   },
   {
     "iso3": "PNG",
     "item": "http://www.wikidata.org/entity/Q691",
-    "value": "http://www.wikidata.org/entity/Q43147"
+    "value": "http://www.wikidata.org/entity/Q43147",
+    "valueLabel": ".pg"
   },
   {
     "iso3": "PLW",
     "item": "http://www.wikidata.org/entity/Q695",
-    "value": "http://www.wikidata.org/entity/Q44083"
+    "value": "http://www.wikidata.org/entity/Q44083",
+    "valueLabel": ".pw"
   },
   {
     "iso3": "NRU",
     "item": "http://www.wikidata.org/entity/Q697",
-    "value": "http://www.wikidata.org/entity/Q42689"
+    "value": "http://www.wikidata.org/entity/Q42689",
+    "valueLabel": ".nr"
   },
   {
     "iso3": "FSM",
     "item": "http://www.wikidata.org/entity/Q702",
-    "value": "http://www.wikidata.org/entity/Q40423"
+    "value": "http://www.wikidata.org/entity/Q40423",
+    "valueLabel": ".fm"
   },
   {
     "iso3": "MHL",
     "item": "http://www.wikidata.org/entity/Q709",
-    "value": "http://www.wikidata.org/entity/Q41789"
+    "value": "http://www.wikidata.org/entity/Q41789",
+    "valueLabel": ".mh"
   },
   {
     "iso3": "KIR",
     "item": "http://www.wikidata.org/entity/Q710",
-    "value": "http://www.wikidata.org/entity/Q42030"
+    "value": "http://www.wikidata.org/entity/Q42030",
+    "valueLabel": ".ki"
   },
   {
     "iso3": "MNG",
     "item": "http://www.wikidata.org/entity/Q711",
-    "value": "http://www.wikidata.org/entity/Q42873"
+    "value": "http://www.wikidata.org/entity/Q42873",
+    "valueLabel": ".mn"
   },
   {
     "iso3": "FJI",
     "item": "http://www.wikidata.org/entity/Q712",
-    "value": "http://www.wikidata.org/entity/Q39878"
+    "value": "http://www.wikidata.org/entity/Q39878",
+    "valueLabel": ".fj"
   },
   {
     "iso3": "VEN",
     "item": "http://www.wikidata.org/entity/Q717",
-    "value": "http://www.wikidata.org/entity/Q42760"
+    "value": "http://www.wikidata.org/entity/Q42760",
+    "valueLabel": ".ve"
   },
   {
     "iso3": "SUR",
     "item": "http://www.wikidata.org/entity/Q730",
-    "value": "http://www.wikidata.org/entity/Q43102"
+    "value": "http://www.wikidata.org/entity/Q43102",
+    "valueLabel": ".sr"
   },
   {
     "iso3": "PRY",
     "item": "http://www.wikidata.org/entity/Q733",
-    "value": "http://www.wikidata.org/entity/Q43161"
+    "value": "http://www.wikidata.org/entity/Q43161",
+    "valueLabel": ".py"
   },
   {
     "iso3": "GUY",
     "item": "http://www.wikidata.org/entity/Q734",
-    "value": "http://www.wikidata.org/entity/Q41448"
+    "value": "http://www.wikidata.org/entity/Q41448",
+    "valueLabel": ".gy"
   },
   {
     "iso3": "ECU",
     "item": "http://www.wikidata.org/entity/Q736",
-    "value": "http://www.wikidata.org/entity/Q41113"
+    "value": "http://www.wikidata.org/entity/Q41113",
+    "valueLabel": ".ec"
   },
   {
     "iso3": "COL",
     "item": "http://www.wikidata.org/entity/Q739",
-    "value": "http://www.wikidata.org/entity/Q39657"
+    "value": "http://www.wikidata.org/entity/Q39657",
+    "valueLabel": ".co"
   },
   {
     "iso3": "BOL",
     "item": "http://www.wikidata.org/entity/Q750",
-    "value": "http://www.wikidata.org/entity/Q40510"
+    "value": "http://www.wikidata.org/entity/Q40510",
+    "valueLabel": ".bo"
   },
   {
     "iso3": "TTO",
     "item": "http://www.wikidata.org/entity/Q754",
-    "value": "http://www.wikidata.org/entity/Q43118"
+    "value": "http://www.wikidata.org/entity/Q43118",
+    "valueLabel": ".tt"
   },
   {
     "iso3": "VCT",
     "item": "http://www.wikidata.org/entity/Q757",
-    "value": "http://www.wikidata.org/entity/Q42863"
+    "value": "http://www.wikidata.org/entity/Q42863",
+    "valueLabel": ".vc"
   },
   {
     "iso3": "LCA",
     "item": "http://www.wikidata.org/entity/Q760",
-    "value": "http://www.wikidata.org/entity/Q42648"
+    "value": "http://www.wikidata.org/entity/Q42648",
+    "valueLabel": ".lc"
   },
   {
     "iso3": "KNA",
     "item": "http://www.wikidata.org/entity/Q763",
-    "value": "http://www.wikidata.org/entity/Q43146"
+    "value": "http://www.wikidata.org/entity/Q43146",
+    "valueLabel": ".kn"
   },
   {
     "iso3": "JAM",
     "item": "http://www.wikidata.org/entity/Q766",
-    "value": "http://www.wikidata.org/entity/Q41943"
+    "value": "http://www.wikidata.org/entity/Q41943",
+    "valueLabel": ".jm"
   },
   {
     "iso3": "GRD",
     "item": "http://www.wikidata.org/entity/Q769",
-    "value": "http://www.wikidata.org/entity/Q41435"
+    "value": "http://www.wikidata.org/entity/Q41435",
+    "valueLabel": ".gd"
   },
   {
     "iso3": "URY",
     "item": "http://www.wikidata.org/entity/Q77",
-    "value": "http://www.wikidata.org/entity/Q41848"
+    "value": "http://www.wikidata.org/entity/Q41848",
+    "valueLabel": ".uy"
   },
   {
     "iso3": "GTM",
     "item": "http://www.wikidata.org/entity/Q774",
-    "value": "http://www.wikidata.org/entity/Q41781"
+    "value": "http://www.wikidata.org/entity/Q41781",
+    "valueLabel": ".gt"
   },
   {
     "iso3": "BHS",
     "item": "http://www.wikidata.org/entity/Q778",
-    "value": "http://www.wikidata.org/entity/Q40514"
+    "value": "http://www.wikidata.org/entity/Q40514",
+    "valueLabel": ".bs"
   },
   {
     "iso3": "ATG",
     "item": "http://www.wikidata.org/entity/Q781",
-    "value": "http://www.wikidata.org/entity/Q37539"
+    "value": "http://www.wikidata.org/entity/Q37539",
+    "valueLabel": ".ag"
   },
   {
     "iso3": "HND",
     "item": "http://www.wikidata.org/entity/Q783",
-    "value": "http://www.wikidata.org/entity/Q41025"
+    "value": "http://www.wikidata.org/entity/Q41025",
+    "valueLabel": ".hn"
   },
   {
     "iso3": "DMA",
     "item": "http://www.wikidata.org/entity/Q784",
-    "value": "http://www.wikidata.org/entity/Q41032"
+    "value": "http://www.wikidata.org/entity/Q41032",
+    "valueLabel": ".dm"
   },
   {
     "iso3": "JEY",
     "item": "http://www.wikidata.org/entity/Q785",
-    "value": "http://www.wikidata.org/entity/Q42662"
+    "value": "http://www.wikidata.org/entity/Q42662",
+    "valueLabel": ".je"
   },
   {
     "iso3": "DOM",
     "item": "http://www.wikidata.org/entity/Q786",
-    "value": "http://www.wikidata.org/entity/Q41002"
+    "value": "http://www.wikidata.org/entity/Q41002",
+    "valueLabel": ".do"
   },
   {
     "iso3": "EGY",
     "item": "http://www.wikidata.org/entity/Q79",
-    "value": "http://www.wikidata.org/entity/Q40381"
+    "value": "http://www.wikidata.org/entity/Q40381",
+    "valueLabel": ".eg"
   },
   {
     "iso3": "EGY",
     "item": "http://www.wikidata.org/entity/Q79",
-    "value": "http://www.wikidata.org/entity/Q914712"
+    "value": "http://www.wikidata.org/entity/Q914712",
+    "valueLabel": ".مصر"
   },
   {
     "iso3": "HTI",
     "item": "http://www.wikidata.org/entity/Q790",
-    "value": "http://www.wikidata.org/entity/Q41110"
+    "value": "http://www.wikidata.org/entity/Q41110",
+    "valueLabel": ".ht"
   },
   {
     "iso3": "SLV",
     "item": "http://www.wikidata.org/entity/Q792",
-    "value": "http://www.wikidata.org/entity/Q42665"
+    "value": "http://www.wikidata.org/entity/Q42665",
+    "valueLabel": ".sv"
   },
   {
     "iso3": "IRN",
     "item": "http://www.wikidata.org/entity/Q794",
-    "value": "http://www.wikidata.org/entity/Q12950808"
+    "value": "http://www.wikidata.org/entity/Q12950808",
+    "valueLabel": "ایران."
   },
   {
     "iso3": "IRN",
     "item": "http://www.wikidata.org/entity/Q794",
-    "value": "http://www.wikidata.org/entity/Q41774"
+    "value": "http://www.wikidata.org/entity/Q41774",
+    "valueLabel": ".ir"
   },
   {
     "iso3": "IRQ",
     "item": "http://www.wikidata.org/entity/Q796",
-    "value": "http://www.wikidata.org/entity/Q41768"
+    "value": "http://www.wikidata.org/entity/Q41768",
+    "valueLabel": ".iq"
   },
   {
     "iso3": "CRI",
     "item": "http://www.wikidata.org/entity/Q800",
-    "value": "http://www.wikidata.org/entity/Q40973"
+    "value": "http://www.wikidata.org/entity/Q40973",
+    "valueLabel": ".cr"
   },
   {
     "iso3": "ISR",
     "item": "http://www.wikidata.org/entity/Q801",
-    "value": "http://www.wikidata.org/entity/Q1833465"
+    "value": "http://www.wikidata.org/entity/Q1833465",
+    "valueLabel": "ישראל."
   },
   {
     "iso3": "ISR",
     "item": "http://www.wikidata.org/entity/Q801",
-    "value": "http://www.wikidata.org/entity/Q40467"
+    "value": "http://www.wikidata.org/entity/Q40467",
+    "valueLabel": ".il"
   },
   {
     "iso3": "PAN",
     "item": "http://www.wikidata.org/entity/Q804",
-    "value": "http://www.wikidata.org/entity/Q41948"
+    "value": "http://www.wikidata.org/entity/Q41948",
+    "valueLabel": ".pa"
   },
   {
     "iso3": "YEM",
     "item": "http://www.wikidata.org/entity/Q805",
-    "value": "http://www.wikidata.org/entity/Q42842"
+    "value": "http://www.wikidata.org/entity/Q42842",
+    "valueLabel": ".ye"
   },
   {
     "iso3": "JOR",
     "item": "http://www.wikidata.org/entity/Q810",
-    "value": "http://www.wikidata.org/entity/Q12950805"
+    "value": "http://www.wikidata.org/entity/Q12950805",
+    "valueLabel": ".الاردن"
   },
   {
     "iso3": "JOR",
     "item": "http://www.wikidata.org/entity/Q810",
-    "value": "http://www.wikidata.org/entity/Q42634"
+    "value": "http://www.wikidata.org/entity/Q42634",
+    "valueLabel": ".jo"
   },
   {
     "iso3": "NIC",
     "item": "http://www.wikidata.org/entity/Q811",
-    "value": "http://www.wikidata.org/entity/Q487644"
+    "value": "http://www.wikidata.org/entity/Q487644",
+    "valueLabel": ".ni"
   },
   {
     "iso3": "KGZ",
     "item": "http://www.wikidata.org/entity/Q813",
-    "value": "http://www.wikidata.org/entity/Q41723"
+    "value": "http://www.wikidata.org/entity/Q41723",
+    "valueLabel": ".kg"
   },
   {
     "iso3": "KWT",
     "item": "http://www.wikidata.org/entity/Q817",
-    "value": "http://www.wikidata.org/entity/Q42672"
+    "value": "http://www.wikidata.org/entity/Q42672",
+    "valueLabel": ".kw"
   },
   {
     "iso3": "LAO",
     "item": "http://www.wikidata.org/entity/Q819",
-    "value": "http://www.wikidata.org/entity/Q41926"
+    "value": "http://www.wikidata.org/entity/Q41926",
+    "valueLabel": ".la"
   },
   {
     "iso3": "LBN",
     "item": "http://www.wikidata.org/entity/Q822",
-    "value": "http://www.wikidata.org/entity/Q41835"
+    "value": "http://www.wikidata.org/entity/Q41835",
+    "valueLabel": ".lb"
   },
   {
     "iso3": "MDV",
     "item": "http://www.wikidata.org/entity/Q826",
-    "value": "http://www.wikidata.org/entity/Q43753"
+    "value": "http://www.wikidata.org/entity/Q43753",
+    "valueLabel": ".mv"
   },
   {
     "iso3": "MYS",
     "item": "http://www.wikidata.org/entity/Q833",
-    "value": "http://www.wikidata.org/entity/Q43127"
+    "value": "http://www.wikidata.org/entity/Q43127",
+    "valueLabel": ".my"
   },
   {
     "iso3": "MMR",
     "item": "http://www.wikidata.org/entity/Q836",
-    "value": "http://www.wikidata.org/entity/Q41636"
+    "value": "http://www.wikidata.org/entity/Q41636",
+    "valueLabel": ".mm"
   },
   {
     "iso3": "NPL",
     "item": "http://www.wikidata.org/entity/Q837",
-    "value": "http://www.wikidata.org/entity/Q43582"
+    "value": "http://www.wikidata.org/entity/Q43582",
+    "valueLabel": ".np"
   },
   {
     "iso3": "YUG",
     "item": "http://www.wikidata.org/entity/Q838261",
-    "value": "http://www.wikidata.org/entity/Q433723"
+    "value": "http://www.wikidata.org/entity/Q433723",
+    "valueLabel": ".yu"
   },
   {
     "iso3": "OMN",
     "item": "http://www.wikidata.org/entity/Q842",
-    "value": "http://www.wikidata.org/entity/Q43132"
+    "value": "http://www.wikidata.org/entity/Q43132",
+    "valueLabel": ".om"
   },
   {
     "iso3": "SJM",
     "item": "http://www.wikidata.org/entity/Q842829",
-    "value": "http://www.wikidata.org/entity/Q433715"
+    "value": "http://www.wikidata.org/entity/Q433715",
+    "valueLabel": ".sj"
   },
   {
     "iso3": "PAK",
     "item": "http://www.wikidata.org/entity/Q843",
-    "value": "http://www.wikidata.org/entity/Q43150"
+    "value": "http://www.wikidata.org/entity/Q43150",
+    "valueLabel": ".pk"
   },
   {
     "iso3": "QAT",
     "item": "http://www.wikidata.org/entity/Q846",
-    "value": "http://www.wikidata.org/entity/Q43117"
+    "value": "http://www.wikidata.org/entity/Q43117",
+    "valueLabel": ".qa"
   },
   {
     "iso3": "SAU",
     "item": "http://www.wikidata.org/entity/Q851",
-    "value": "http://www.wikidata.org/entity/Q137014"
+    "value": "http://www.wikidata.org/entity/Q137014",
+    "valueLabel": "AlSaudiah"
   },
   {
     "iso3": "SAU",
     "item": "http://www.wikidata.org/entity/Q851",
-    "value": "http://www.wikidata.org/entity/Q41433"
+    "value": "http://www.wikidata.org/entity/Q41433",
+    "valueLabel": ".sa"
   },
   {
     "iso3": "LKA",
     "item": "http://www.wikidata.org/entity/Q854",
-    "value": "http://www.wikidata.org/entity/Q136682"
+    "value": "http://www.wikidata.org/entity/Q136682",
+    "valueLabel": ".இலங்கை"
   },
   {
     "iso3": "LKA",
     "item": "http://www.wikidata.org/entity/Q854",
-    "value": "http://www.wikidata.org/entity/Q41035"
+    "value": "http://www.wikidata.org/entity/Q41035",
+    "valueLabel": ".lk"
   },
   {
     "iso3": "SYR",
     "item": "http://www.wikidata.org/entity/Q858",
-    "value": "http://www.wikidata.org/entity/Q42778"
+    "value": "http://www.wikidata.org/entity/Q42778",
+    "valueLabel": ".sy"
   },
   {
     "iso3": "TJK",
     "item": "http://www.wikidata.org/entity/Q863",
-    "value": "http://www.wikidata.org/entity/Q42033"
+    "value": "http://www.wikidata.org/entity/Q42033",
+    "valueLabel": ".tj"
   },
   {
     "iso3": "HKG",
     "item": "http://www.wikidata.org/entity/Q8646",
-    "value": "http://www.wikidata.org/entity/Q41639"
+    "value": "http://www.wikidata.org/entity/Q41639",
+    "valueLabel": ".hk"
   },
   {
     "iso3": "TWN",
     "item": "http://www.wikidata.org/entity/Q865",
-    "value": "http://www.wikidata.org/entity/Q43824"
+    "value": "http://www.wikidata.org/entity/Q43824",
+    "valueLabel": ".tw"
   },
   {
     "iso3": "THA",
     "item": "http://www.wikidata.org/entity/Q869",
-    "value": "http://www.wikidata.org/entity/Q43133"
+    "value": "http://www.wikidata.org/entity/Q43133",
+    "valueLabel": ".th"
   },
   {
     "iso3": "TKM",
     "item": "http://www.wikidata.org/entity/Q874",
-    "value": "http://www.wikidata.org/entity/Q41824"
+    "value": "http://www.wikidata.org/entity/Q41824",
+    "valueLabel": ".tm"
   },
   {
     "iso3": "ARE",
     "item": "http://www.wikidata.org/entity/Q878",
-    "value": "http://www.wikidata.org/entity/Q136728"
+    "value": "http://www.wikidata.org/entity/Q136728",
+    "valueLabel": ".امارات"
   },
   {
     "iso3": "ARE",
     "item": "http://www.wikidata.org/entity/Q878",
-    "value": "http://www.wikidata.org/entity/Q37239"
+    "value": "http://www.wikidata.org/entity/Q37239",
+    "valueLabel": ".ae"
   },
   {
     "iso3": "VNM",
     "item": "http://www.wikidata.org/entity/Q881",
-    "value": "http://www.wikidata.org/entity/Q42683"
+    "value": "http://www.wikidata.org/entity/Q42683",
+    "valueLabel": ".vn"
   },
   {
     "iso3": "KOR",
     "item": "http://www.wikidata.org/entity/Q884",
-    "value": "http://www.wikidata.org/entity/Q12579915"
+    "value": "http://www.wikidata.org/entity/Q12579915",
+    "valueLabel": ".한국"
   },
   {
     "iso3": "KOR",
     "item": "http://www.wikidata.org/entity/Q884",
-    "value": "http://www.wikidata.org/entity/Q41853"
+    "value": "http://www.wikidata.org/entity/Q41853",
+    "valueLabel": ".kr"
   },
   {
     "iso3": "AFG",
     "item": "http://www.wikidata.org/entity/Q889",
-    "value": "http://www.wikidata.org/entity/Q37407"
+    "value": "http://www.wikidata.org/entity/Q37407",
+    "valueLabel": ".af"
   },
   {
     "iso3": "BGD",
     "item": "http://www.wikidata.org/entity/Q902",
-    "value": "http://www.wikidata.org/entity/Q39144"
+    "value": "http://www.wikidata.org/entity/Q39144",
+    "valueLabel": ".bd"
   },
   {
     "iso3": "BGD",
     "item": "http://www.wikidata.org/entity/Q902",
-    "value": "http://www.wikidata.org/entity/Q4545424"
+    "value": "http://www.wikidata.org/entity/Q4545424",
+    "valueLabel": ".বাংলা"
   },
   {
     "iso3": "MLI",
     "item": "http://www.wikidata.org/entity/Q912",
-    "value": "http://www.wikidata.org/entity/Q42026"
+    "value": "http://www.wikidata.org/entity/Q42026",
+    "valueLabel": ".ml"
   },
   {
     "iso3": "AGO",
     "item": "http://www.wikidata.org/entity/Q916",
-    "value": "http://www.wikidata.org/entity/Q39006"
+    "value": "http://www.wikidata.org/entity/Q39006",
+    "valueLabel": ".ao"
   },
   {
     "iso3": "BTN",
     "item": "http://www.wikidata.org/entity/Q917",
-    "value": "http://www.wikidata.org/entity/Q40001"
+    "value": "http://www.wikidata.org/entity/Q40001",
+    "valueLabel": ".bt"
   },
   {
     "iso3": "BRN",
     "item": "http://www.wikidata.org/entity/Q921",
-    "value": "http://www.wikidata.org/entity/Q41199"
+    "value": "http://www.wikidata.org/entity/Q41199",
+    "valueLabel": ".bn"
   },
   {
     "iso3": "TZA",
     "item": "http://www.wikidata.org/entity/Q924",
-    "value": "http://www.wikidata.org/entity/Q43159"
+    "value": "http://www.wikidata.org/entity/Q43159",
+    "valueLabel": ".tz"
   },
   {
     "iso3": "PHL",
     "item": "http://www.wikidata.org/entity/Q928",
-    "value": "http://www.wikidata.org/entity/Q41840"
+    "value": "http://www.wikidata.org/entity/Q41840",
+    "valueLabel": ".ph"
   },
   {
     "iso3": "CAF",
     "item": "http://www.wikidata.org/entity/Q929",
-    "value": "http://www.wikidata.org/entity/Q41191"
+    "value": "http://www.wikidata.org/entity/Q41191",
+    "valueLabel": ".cf"
   },
   {
     "iso3": "TGO",
     "item": "http://www.wikidata.org/entity/Q945",
-    "value": "http://www.wikidata.org/entity/Q42860"
+    "value": "http://www.wikidata.org/entity/Q42860",
+    "valueLabel": ".tg"
   },
   {
     "iso3": "TUN",
     "item": "http://www.wikidata.org/entity/Q948",
-    "value": "http://www.wikidata.org/entity/Q43163"
+    "value": "http://www.wikidata.org/entity/Q43163",
+    "valueLabel": ".tn"
   },
   {
     "iso3": "ZMB",
     "item": "http://www.wikidata.org/entity/Q953",
-    "value": "http://www.wikidata.org/entity/Q41842"
+    "value": "http://www.wikidata.org/entity/Q41842",
+    "valueLabel": ".zm"
   },
   {
     "iso3": "ZWE",
     "item": "http://www.wikidata.org/entity/Q954",
-    "value": "http://www.wikidata.org/entity/Q42286"
+    "value": "http://www.wikidata.org/entity/Q42286",
+    "valueLabel": ".zw"
   },
   {
     "iso3": "SSD",
     "item": "http://www.wikidata.org/entity/Q958",
-    "value": "http://www.wikidata.org/entity/Q717118"
+    "value": "http://www.wikidata.org/entity/Q717118",
+    "valueLabel": ".ss"
   },
   {
     "iso3": "MEX",
     "item": "http://www.wikidata.org/entity/Q96",
-    "value": "http://www.wikidata.org/entity/Q40979"
+    "value": "http://www.wikidata.org/entity/Q40979",
+    "valueLabel": ".mx"
   },
   {
     "iso3": "BEN",
     "item": "http://www.wikidata.org/entity/Q962",
-    "value": "http://www.wikidata.org/entity/Q41100"
+    "value": "http://www.wikidata.org/entity/Q41100",
+    "valueLabel": ".bj"
   },
   {
     "iso3": "BWA",
     "item": "http://www.wikidata.org/entity/Q963",
-    "value": "http://www.wikidata.org/entity/Q40989"
+    "value": "http://www.wikidata.org/entity/Q40989",
+    "valueLabel": ".bw"
   },
   {
     "iso3": "FLK",
     "item": "http://www.wikidata.org/entity/Q9648",
-    "value": "http://www.wikidata.org/entity/Q42625"
+    "value": "http://www.wikidata.org/entity/Q42625",
+    "valueLabel": ".fk"
   },
   {
     "iso3": "BFA",
     "item": "http://www.wikidata.org/entity/Q965",
-    "value": "http://www.wikidata.org/entity/Q41195"
+    "value": "http://www.wikidata.org/entity/Q41195",
+    "valueLabel": ".bf"
   },
   {
     "iso3": "BDI",
     "item": "http://www.wikidata.org/entity/Q967",
-    "value": "http://www.wikidata.org/entity/Q41988"
+    "value": "http://www.wikidata.org/entity/Q41988",
+    "valueLabel": ".bi"
   },
   {
     "iso3": "IMN",
     "item": "http://www.wikidata.org/entity/Q9676",
-    "value": "http://www.wikidata.org/entity/Q42050"
+    "value": "http://www.wikidata.org/entity/Q42050",
+    "valueLabel": ".im"
   },
   {
     "iso3": "COM",
     "item": "http://www.wikidata.org/entity/Q970",
-    "value": "http://www.wikidata.org/entity/Q42843"
+    "value": "http://www.wikidata.org/entity/Q42843",
+    "valueLabel": ".km"
   },
   {
     "iso3": "COG",
     "item": "http://www.wikidata.org/entity/Q971",
-    "value": "http://www.wikidata.org/entity/Q39906"
+    "value": "http://www.wikidata.org/entity/Q39906",
+    "valueLabel": ".cg"
   },
   {
     "iso3": "COD",
     "item": "http://www.wikidata.org/entity/Q974",
-    "value": "http://www.wikidata.org/entity/Q40673"
+    "value": "http://www.wikidata.org/entity/Q40673",
+    "valueLabel": ".cd"
   },
   {
     "iso3": "DJI",
     "item": "http://www.wikidata.org/entity/Q977",
-    "value": "http://www.wikidata.org/entity/Q41012"
+    "value": "http://www.wikidata.org/entity/Q41012",
+    "valueLabel": ".dj"
   },
   {
     "iso3": "GNQ",
     "item": "http://www.wikidata.org/entity/Q983",
-    "value": "http://www.wikidata.org/entity/Q41460"
+    "value": "http://www.wikidata.org/entity/Q41460",
+    "valueLabel": ".gq"
   },
   {
     "iso3": "ERI",
     "item": "http://www.wikidata.org/entity/Q986",
-    "value": "http://www.wikidata.org/entity/Q41019"
+    "value": "http://www.wikidata.org/entity/Q41019",
+    "valueLabel": ".er"
   }
 ]

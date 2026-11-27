@@ -35,13 +35,6 @@
     "valueLabel": "Ben Nevis"
   },
   {
-    "iso3": "GBR",
-    "item": "http://www.wikidata.org/entity/Q145",
-    "metres": "1344.53",
-    "value": "http://www.wikidata.org/entity/Q104674",
-    "valueLabel": "Ben Nevis"
-  },
-  {
     "iso3": "VAT",
     "item": "http://www.wikidata.org/entity/Q237",
     "metres": "75",
@@ -297,20 +290,6 @@
     "iso3": "NLD",
     "item": "http://www.wikidata.org/entity/Q29999",
     "metres": "870",
-    "value": "http://www.wikidata.org/entity/Q1301834",
-    "valueLabel": "Mount Scenery"
-  },
-  {
-    "iso3": "BES",
-    "item": "http://www.wikidata.org/entity/Q27561",
-    "metres": "887",
-    "value": "http://www.wikidata.org/entity/Q1301834",
-    "valueLabel": "Mount Scenery"
-  },
-  {
-    "iso3": "NLD",
-    "item": "http://www.wikidata.org/entity/Q29999",
-    "metres": "887",
     "value": "http://www.wikidata.org/entity/Q1301834",
     "valueLabel": "Mount Scenery"
   },
@@ -745,13 +724,6 @@
     "iso3": "SWE",
     "item": "http://www.wikidata.org/entity/Q34",
     "metres": "2096.8",
-    "value": "http://www.wikidata.org/entity/Q214011",
-    "valueLabel": "Kebnekaise"
-  },
-  {
-    "iso3": "SWE",
-    "item": "http://www.wikidata.org/entity/Q34",
-    "metres": "2135",
     "value": "http://www.wikidata.org/entity/Q214011",
     "valueLabel": "Kebnekaise"
   },
@@ -1296,62 +1268,6 @@
   {
     "iso3": "CHN",
     "item": "http://www.wikidata.org/entity/Q148",
-    "metres": "8844.43",
-    "value": "http://www.wikidata.org/entity/Q513",
-    "valueLabel": "Mount Everest"
-  },
-  {
-    "iso3": "NPL",
-    "item": "http://www.wikidata.org/entity/Q837",
-    "metres": "8844.43",
-    "value": "http://www.wikidata.org/entity/Q513",
-    "valueLabel": "Mount Everest"
-  },
-  {
-    "iso3": "CHN",
-    "item": "http://www.wikidata.org/entity/Q148",
-    "metres": "8847.93",
-    "value": "http://www.wikidata.org/entity/Q513",
-    "valueLabel": "Mount Everest"
-  },
-  {
-    "iso3": "NPL",
-    "item": "http://www.wikidata.org/entity/Q837",
-    "metres": "8847.93",
-    "value": "http://www.wikidata.org/entity/Q513",
-    "valueLabel": "Mount Everest"
-  },
-  {
-    "iso3": "CHN",
-    "item": "http://www.wikidata.org/entity/Q148",
-    "metres": "8848",
-    "value": "http://www.wikidata.org/entity/Q513",
-    "valueLabel": "Mount Everest"
-  },
-  {
-    "iso3": "NPL",
-    "item": "http://www.wikidata.org/entity/Q837",
-    "metres": "8848",
-    "value": "http://www.wikidata.org/entity/Q513",
-    "valueLabel": "Mount Everest"
-  },
-  {
-    "iso3": "CHN",
-    "item": "http://www.wikidata.org/entity/Q148",
-    "metres": "8848.361418",
-    "value": "http://www.wikidata.org/entity/Q513",
-    "valueLabel": "Mount Everest"
-  },
-  {
-    "iso3": "NPL",
-    "item": "http://www.wikidata.org/entity/Q837",
-    "metres": "8848.361418",
-    "value": "http://www.wikidata.org/entity/Q513",
-    "valueLabel": "Mount Everest"
-  },
-  {
-    "iso3": "CHN",
-    "item": "http://www.wikidata.org/entity/Q148",
     "metres": "8848.86",
     "value": "http://www.wikidata.org/entity/Q513",
     "valueLabel": "Mount Everest"
@@ -1360,20 +1276,6 @@
     "iso3": "NPL",
     "item": "http://www.wikidata.org/entity/Q837",
     "metres": "8848.86",
-    "value": "http://www.wikidata.org/entity/Q513",
-    "valueLabel": "Mount Everest"
-  },
-  {
-    "iso3": "CHN",
-    "item": "http://www.wikidata.org/entity/Q148",
-    "metres": "8850",
-    "value": "http://www.wikidata.org/entity/Q513",
-    "valueLabel": "Mount Everest"
-  },
-  {
-    "iso3": "NPL",
-    "item": "http://www.wikidata.org/entity/Q837",
-    "metres": "8850",
     "value": "http://www.wikidata.org/entity/Q513",
     "valueLabel": "Mount Everest"
   },
@@ -1397,13 +1299,6 @@
     "metres": "4643",
     "value": "http://www.wikidata.org/entity/Q519822",
     "valueLabel": "Khazret Sultan"
-  },
-  {
-    "iso3": "CXR",
-    "item": "http://www.wikidata.org/entity/Q31063",
-    "metres": "357",
-    "value": "http://www.wikidata.org/entity/Q524471",
-    "valueLabel": "Murray Hill, Christmas Island"
   },
   {
     "iso3": "CXR",
@@ -1458,76 +1353,6 @@
     "iso3": "ITA",
     "item": "http://www.wikidata.org/entity/Q38",
     "metres": "4805.59",
-    "value": "http://www.wikidata.org/entity/Q583",
-    "valueLabel": "Mont Blanc"
-  },
-  {
-    "iso3": "FRA",
-    "item": "http://www.wikidata.org/entity/Q142",
-    "metres": "4807.02",
-    "value": "http://www.wikidata.org/entity/Q583",
-    "valueLabel": "Mont Blanc"
-  },
-  {
-    "iso3": "ITA",
-    "item": "http://www.wikidata.org/entity/Q38",
-    "metres": "4807.02",
-    "value": "http://www.wikidata.org/entity/Q583",
-    "valueLabel": "Mont Blanc"
-  },
-  {
-    "iso3": "FRA",
-    "item": "http://www.wikidata.org/entity/Q142",
-    "metres": "4807.81",
-    "value": "http://www.wikidata.org/entity/Q583",
-    "valueLabel": "Mont Blanc"
-  },
-  {
-    "iso3": "ITA",
-    "item": "http://www.wikidata.org/entity/Q38",
-    "metres": "4807.81",
-    "value": "http://www.wikidata.org/entity/Q583",
-    "valueLabel": "Mont Blanc"
-  },
-  {
-    "iso3": "FRA",
-    "item": "http://www.wikidata.org/entity/Q142",
-    "metres": "4808.06",
-    "value": "http://www.wikidata.org/entity/Q583",
-    "valueLabel": "Mont Blanc"
-  },
-  {
-    "iso3": "ITA",
-    "item": "http://www.wikidata.org/entity/Q38",
-    "metres": "4808.06",
-    "value": "http://www.wikidata.org/entity/Q583",
-    "valueLabel": "Mont Blanc"
-  },
-  {
-    "iso3": "FRA",
-    "item": "http://www.wikidata.org/entity/Q142",
-    "metres": "4808.72",
-    "value": "http://www.wikidata.org/entity/Q583",
-    "valueLabel": "Mont Blanc"
-  },
-  {
-    "iso3": "ITA",
-    "item": "http://www.wikidata.org/entity/Q38",
-    "metres": "4808.72",
-    "value": "http://www.wikidata.org/entity/Q583",
-    "valueLabel": "Mont Blanc"
-  },
-  {
-    "iso3": "FRA",
-    "item": "http://www.wikidata.org/entity/Q142",
-    "metres": "4810.02",
-    "value": "http://www.wikidata.org/entity/Q583",
-    "valueLabel": "Mont Blanc"
-  },
-  {
-    "iso3": "ITA",
-    "item": "http://www.wikidata.org/entity/Q38",
-    "metres": "4810.02",
     "value": "http://www.wikidata.org/entity/Q583",
     "valueLabel": "Mont Blanc"
   },
@@ -1815,13 +1640,6 @@
     "iso3": "GTM",
     "item": "http://www.wikidata.org/entity/Q774",
     "metres": "4203",
-    "value": "http://www.wikidata.org/entity/Q818467",
-    "valueLabel": "Volcán Tajumulco"
-  },
-  {
-    "iso3": "GTM",
-    "item": "http://www.wikidata.org/entity/Q774",
-    "metres": "4220",
     "value": "http://www.wikidata.org/entity/Q818467",
     "valueLabel": "Volcán Tajumulco"
   },
