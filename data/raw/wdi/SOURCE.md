@@ -6,7 +6,7 @@ Downloaded automatically by .github/workflows/fetch-wdi.yml. Do not edit by hand
 - Dataset: World Development Indicators (https://datacatalog.worldbank.org/search/dataset/0037712)
 - Licence: CC BY 4.0 (checked per indicator in the World Bank API metadata, field License_Type)
 - Terms: https://www.worldbank.org/ext/en/legal/terms-conditions/datasets — must not imply World Bank endorsement
-- Downloaded (UTC): 2026-11-27T06:19:13Z
+- Downloaded (UTC): 2026-11-27T06:24:43Z
 
 | Code | Indicator | Licence | WDI last updated | URL | Bytes | SHA-256 |
 |---|---|---|---|---|---|---|
@@ -79,7 +79,6 @@ Downloaded automatically by .github/workflows/fetch-wdi.yml. Do not edit by hand
 | SH.XPD.CHEX.GD.ZS | Current health expenditure (% of GDP) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SH.XPD.CHEX.GD.ZS?downloadformat=csv | 51191 | 18b9427471a07e18d0234bfa864f752f3a85b798ce8820ade12774431845d8a1 |
 | SH.XPD.CHEX.PC.CD | Current health expenditure per capita (current US$) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SH.XPD.CHEX.PC.CD?downloadformat=csv | 57089 | fb242be6e7883a99eb227028fd982fd6abdc12506f2285ba7fb76093969e0be3 |
 | SH.XPD.OOPC.CH.ZS | Out-of-pocket expenditure (% of current health expenditure) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SH.XPD.OOPC.CH.ZS?downloadformat=csv | 53846 | 2ff530c544de8f1ccc96bb2764e3c663afa611d2b12f1b67fd6d3f9c79db811b |
-| SH.UHC.SRVS.CV.XD | UHC service coverage index | CC BY-4.0 | 2025-10-29 | https://api.worldbank.org/v2/en/indicator/SH.UHC.SRVS.CV.XD?downloadformat=csv | 20124 | fa1f1c19fa29f39374467374babe6988c4a3ec9ddc0b88dd43f2e4ac94254a0c |
 | SH.IMM.MEAS | Immunization, measles (% of children ages 12-23 months) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SH.IMM.MEAS?downloadformat=csv | 43496 | ba9206ccedee92753ad5860df368cf5b0a486a0f0a7fa0e9d5b818270cf79b76 |
 | SH.IMM.IDPT | Immunization, DPT (% of children ages 12-23 months) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SH.IMM.IDPT?downloadformat=csv | 43411 | c055d75013c4489ecb4b5b46feb3c873eefa1ac0b546dab545d7abef50c4db94 |
 | SH.STA.DIAB.ZS | Diabetes prevalence (% of population ages 20 to 79) | CC BY-4.0 | 2026-11-11 | https://api.worldbank.org/v2/en/indicator/SH.STA.DIAB.ZS?downloadformat=csv | 15939 | 00d2fea4bb979b2bbcb46469ffa6e5cc5011504d4a2b5b706ceb04fa1a8c5e17 |
