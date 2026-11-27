@@ -76,7 +76,7 @@
     },
     {
      "id": "tz",
-     "label": "Time zones (UTC offset in 2026; winter/summer)",
+     "label": "Time zones (UTC offset, 2026)",
      "src": "facts",
      "key": "timeZones"
     },

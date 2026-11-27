@@ -1,0 +1,79 @@
+---
+// One topic's statistics on a country hub or topic page (task 160): titled card, one row per live statistic —
+// label (linked to its ranking page where one exists), value with unit, year, world rank and source.
+// Desktop: table; mobile: stacked list rows. Values are the profile's text, never typed by hand.
+// Fixed site UI (row labels repeat on every country), so check-unique leaves `.stat-list` out.
+import { type ProfileStat, rankText, sourceShort, RANKING_OF } from '../lib/profile';
+import { path } from '../site';
+interface Props {
+  id: string; title: string; section: string; stats: (ProfileStat & { text: string })[];
+  more?: { href: string; label: string }; caption?: string;
+}
+const { id, title, section, stats, more, caption } = Astro.props;
+const unitOf = (s: ProfileStat) => {
+  const u = s.unit ?? '';
+  if (!u) return '';
+  if (s.text!.endsWith('%') && u.startsWith('%')) return u.slice(1).trim();
+  if (s.text!.startsWith('$') && /US\$/.test(u)) return u.replace(/^current US\$$/, 'current US$');
+  if (s.text!.startsWith('Int$')) return '';
+  return u;
+};
+---
+<section class="stat-list" id={id} aria-labelledby={`${id}-h`} data-section={section}>
+  <header class="sl-head">
+    <h3 id={`${id}-h`}>{title}</h3>
+    {more && <a class="sl-more" href={path(more.href)}>{more.label} ›</a>}
+  </header>
+  <table class="sl-table">
+    {caption && <caption class="visually-hidden">{caption}</caption>}
+    <colgroup><col class="c-l" /><col class="c-v" /><col class="c-y" /><col class="c-r" /><col class="c-s" /></colgroup>
+    <thead><tr><th scope="col">Statistic</th><th scope="col">Value</th><th scope="col">Year</th><th scope="col">World rank</th><th scope="col" class="sl-src">Source</th></tr></thead>
+    <tbody>
+      {stats.map((s) => {
+        const r = RANKING_OF[`${section}.${s.id}`];
+        const u = unitOf(s);
+        return (
+          <tr data-stat={`${section}.${s.id}`}>
+            <th scope="row">{r ? <a href={path(`/rankings/${r}/`)}>{s.label}</a> : s.label}</th>
+            <td class="sl-v"><span class="sl-n" data-value>{s.text}</span>{u && <span class="sl-u"> {u}</span>}</td>
+            <td class="sl-y">{s.year ?? ''}{s.projection && <span class="sl-proj"> UN projection</span>}</td>
+            <td class="sl-r">{rankText(s)}</td>
+            <td class="sl-src">{sourceShort(s.source)}</td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+</section>
+<style>
+  .stat-list { background: var(--card, #fff); border: 1px solid var(--line, #e3e8ee); border-radius: 14px; padding: 14px 16px 6px; margin: 14px 0; }
+  .sl-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+  .sl-head h3 { margin: 0; font-size: 1.05rem; }
+  .sl-more { font-size: .9rem; white-space: nowrap; }
+  .sl-table { width: 100%; border-collapse: collapse; font-size: .93rem; table-layout: fixed; }
+  .sl-table col.c-l { width: 31%; } .sl-table col.c-v { width: 27%; } .sl-table col.c-y { width: 11%; } .sl-table col.c-r { width: 16%; } .sl-table col.c-s { width: 15%; }
+  .sl-table thead th { text-align: left; font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .02em; color: var(--muted, #5b6b7b); padding: 6px 8px 6px 0; border-bottom: 1px solid var(--line, #e3e8ee); }
+  .sl-table tbody th, .sl-table td { padding: 8px 8px 8px 0; border-bottom: 1px solid var(--line, #eef1f4); vertical-align: top; text-align: left; font-weight: 400; }
+  .sl-table tbody tr:last-child > * { border-bottom: 0; }
+  .sl-v { font-weight: 600; }
+  .sl-proj { display: block; }
+  .sl-u, .sl-proj { font-weight: 400; color: var(--muted, #5b6b7b); font-size: .85em; white-space: normal; }
+  .sl-y, .sl-r, .sl-src { color: var(--muted, #5b6b7b); }
+  .sl-src { font-size: .82rem; }
+  .sl-v { overflow-wrap: anywhere; }
+  @media (max-width: 767px) {
+    .stat-list { padding: 12px 12px 4px; border-radius: 12px; }
+    .sl-table thead { display: none; }
+    .sl-table, .sl-table tbody { display: block; }
+    .sl-table colgroup { display: none; }
+    .sl-table tr { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 9px 0; border-bottom: 1px solid var(--line, #eef1f4); }
+    .sl-table tbody tr:last-child { border-bottom: 0; }
+    .sl-table tbody th, .sl-table td { padding: 0; border: 0; }
+    .sl-table tbody th { grid-column: 1; }
+    .sl-v { grid-column: 2; grid-row: 1; text-align: right; white-space: normal; }
+    .sl-y, .sl-r { grid-column: 1 / -1; font-size: .8rem; }
+    .sl-proj { display: inline; }
+    .sl-y:empty, .sl-r:empty { display: none; }
+    .sl-src { display: none; }
+  }
+</style>

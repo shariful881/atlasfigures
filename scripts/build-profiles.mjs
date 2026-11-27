@@ -30,7 +30,7 @@ const SRC = {
 // which fact a second source checks (a differing check → "to-check", not live)
 const CHECKED = { currency: 'currency', languages: 'languages', callingCode: 'callingCode', tld: 'tld', neighbours: 'neighbours', highestPoint: 'highestPoint', drivingSide: 'drivingSide' };
 const fmtv = {
-  int: (v) => Math.round(v).toLocaleString('en-US'), pct: (v) => `${v.toFixed(1)}%`, dec1: (v) => v.toFixed(1), dec2: (v) => v.toFixed(2),
+  int: (v) => Math.round(v).toLocaleString('en-US'), pct: (v) => `${v.toFixed(1).replace(/^-0\.0$/, '0.0')}%`, dec1: (v) => v.toFixed(1), dec2: (v) => v.toFixed(2),
   usd: (v) => (Math.abs(v) >= 1e12 ? `$${(v / 1e12).toFixed(2)} trillion` : Math.abs(v) >= 1e9 ? `$${(v / 1e9).toFixed(1)} billion` : Math.abs(v) >= 1e6 ? `$${(v / 1e6).toFixed(1)} million` : `$${Math.round(v).toLocaleString('en-US')}`),
   usdWhole: (v) => `$${Math.round(v).toLocaleString('en-US')}`, intd: (v) => `Int$${Math.round(v).toLocaleString('en-US')}`,
 };
@@ -82,7 +82,7 @@ for (const c of list) {
       }
       if (value == null || value === '') return { id: st.id, label: st.label, status: 'no-data', source };
       if (text == null) text = fmtv[st.fmt](value);
-      return { id: st.id, label: st.label, status: 'live', value, text, unit: st.unit ?? null, year, projection: projection || undefined, rank: rank?.rank, of: rank?.of, source };
+      return { id: st.id, label: st.label, status: 'live', value, text, unit: st.unit ?? null, year, projection: projection || undefined, rank: rank?.rank, of: rank?.of, rankBy: rank ? st.rank : undefined, source };
     }),
   }));
   const all = sections.flatMap((s) => s.stats);

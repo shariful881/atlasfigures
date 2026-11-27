@@ -22,6 +22,13 @@ for (const [dir, topic] of [['src/data/countries', 'population'], ['src/data/eco
     e.pages.push(topic);
   }
 }
+// hubs and topic pages written from task 160 on (src/data/country-pages/<slug>.json: pages.hub, pages.health …)
+if (existsSync('src/data/country-pages')) for (const f of readdirSync('src/data/country-pages')) {
+  const j = JSON.parse(readFileSync(`src/data/country-pages/${f}`, 'utf8'));
+  const e = (ed[j.iso3] ??= { pages: [] });
+  for (const k of ['slug', 'name', 'demonym', 'capital']) if (j[k] && !e[k]) e[k] = j[k];
+  for (const t of Object.keys(j.pages)) if (!e.pages.includes(t)) e.pages.push(t);
+}
 const slugify = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/&/g, ' and ').replace(/['’.]/g, '').replace(/\(.*?\)/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const SLUG = { HKG: 'hong-kong', MAC: 'macao', VAT: 'vatican-city', MAF: 'saint-martin', SXM: 'sint-maarten', FSM: 'micronesia', VIR: 'us-virgin-islands', FLK: 'falkland-islands', TWN: 'taiwan', PSE: 'palestine', BES: 'caribbean-netherlands' };
 

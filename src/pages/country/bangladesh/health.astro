@@ -1,0 +1,265 @@
+---
+// Bangladesh health (task 160): the first country topic page. Figures from the World Bank WDI files
+// (src/data/wdi/, which check-wdi compares with the original zips) and the country profile; none typed by hand.
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import StatList from '../../../components/StatList.astro';
+import TopicTable from '../../../components/TopicTable.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import pg from '../../../data/country-pages/bangladesh.json';
+import { econData, econMeta, econIndex, valueIn } from '../../../lib/econ';
+import { profile, stat, liveStats, ordinal } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../../site';
+import { HEALTH_COLS } from '../../../lib/topics';
+
+const PAGE = '/country/bangladesh/health/';
+const meta = pg.pages.health;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (meta as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+const last = (k: keyof typeof s) => s[k].at(-1)!;
+
+const u5 = st('u5'), infant = st('infant'), neo = st('neonatal'), mat = st('maternal');
+const doc = st('doctors'), nurse = st('nurses'), beds = st('beds');
+const hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop');
+const measles = st('measles'), dpt = st('dpt'), stunt = st('stunting'), hunger = st('undernour');
+const diab = st('diabetes'), tob = st('tobacco');
+const U = u5.year!;
+
+// claims behind the sentences
+const u5_90 = v('under5Mortality', 1990);
+const fifth = Number(u5.value) / u5_90;
+assertClaim(fifth > 0.19 && fifth < 0.22, 'under-5 deaths about a fifth of the 1990 rate');
+const drop1519 = v('under5Mortality', 2015) - v('under5Mortality', 2019), drop2024 = v('under5Mortality', 2020) - v('under5Mortality', 2024);
+assertClaim(drop1519 > 5 && drop2024 < 1 && U === 2024, 'a fall of more than 5 points in 2015–2019 but less than 1 point in 2020–2024');
+const neoShare = (Number(neo.value) / Number(u5.value)) * 100;
+assertClaim(neoShare > 55 && neoShare < 60 && neo.year === U, 'almost three in five deaths before age five come in the first 28 days');
+const mat00 = v('maternalMortality', 2000), mat20 = v('maternalMortality', 2020), mat21 = v('maternalMortality', 2021), mat22 = v('maternalMortality', 2022);
+assertClaim(mat21 > mat20 && mat22 < mat20 && mat.year === 2023 && Number(mat.value) < mat22, 'maternal deaths rose in 2021, then fell in 2022 and 2023');
+assertClaim(hGdp.rank === hGdp.of! - 1 && oop.rank === oop.of! - 1, 'second-lowest spending share, second-highest out-of-pocket share');
+const oopS = s.outOfPocketPct;
+assertClaim(oopS.every(([y, x]) => y === oop.year || x < Number(oop.value)) && oopS[0][0] === 2000, 'out-of-pocket share at its highest since 2000');
+const oop00 = v('outOfPocketPct', 2000);
+assertClaim(Number(nurse.value) < Number(doc.value) && nurse.year === doc.year, 'fewer nurses and midwives than doctors per 1,000 people');
+const doc90 = v('doctorsPer1000', 1990);
+// how many countries have more nurses than doctors (latest year since 2018 with both figures) — our count
+const pairs = (econIndex.economies as any[]).map((e) => {
+  const c = econData(e.iso3).series, nd = Object.fromEntries(c.doctorsPer1000), nn = Object.fromEntries(c.nursesPer1000);
+  const ys = Object.keys(nd).map(Number).filter((y) => y >= 2018 && nn[y] != null);
+  if (!ys.length) return null; const y = Math.max(...ys); return nn[y] > nd[y];
+}).filter((x) => x !== null);
+const nurseMore = pairs.filter(Boolean).length;
+assertClaim(pairs.length === 173 && nurseMore === 161, 'nurses outnumber doctors in 161 of 173 countries with both figures since 2018');
+assertClaim(Number(doc.value) / doc90 > 3.9 && Number(doc.value) / doc90 < 4.1, 'four times as many doctors per person as in 1990');
+assertClaim(v('measlesVaccPct', 1990) === 65 && Number(measles.value) === 96, 'measles vaccination 65% in 1990, 96% now');
+const stunt00 = v('stuntingPct', 2000);
+assertClaim(Number(stunt.value) < stunt00 / 2 + 0.1, 'stunting less than half the 2000 level');
+assertClaim(s.undernourishedPct.every(([y, x]) => y === hunger.year || x > Number(hunger.value)) && s.undernourishedPct[0][0] === 2001, 'undernourishment the lowest since the series began in 2001');
+const tob00 = v('tobaccoPct', 2000);
+assertClaim(tob00 > 57 && Number(tob.value) < 33, 'tobacco use down from over half of adults in 2000 to about a third');
+
+const title = `Bangladesh Health Statistics ${U}: Child Deaths, Vaccines, Costs | AtlasFigures`;
+const description = `In Bangladesh ${u5.text} of every 1,000 children did not live to age five in ${U}, about a fifth of the 1990 rate. Patients paid ${oop.text} of all health spending themselves in ${oop.year}.`;
+
+const cards = [
+  { label: 'Deaths before age 5', value: u5.text, year: U, note: 'per 1,000 live births' },
+  { label: 'Maternal deaths', value: mat.text, year: mat.year!, note: 'per 100,000 live births' },
+  { label: 'Health spending', value: hGdp.text, year: hGdp.year!, note: 'of GDP' },
+  { label: 'Measles vaccination', value: measles.text, year: measles.year!, note: 'children 12–23 months' },
+];
+const factGroups = [
+  { title: 'Survival', facts: [
+    { label: 'Deaths before age 5', value: `${u5.text} per 1,000`, note: `${U}` },
+    { label: 'Newborn deaths (first 28 days)', value: `${neo.text} per 1,000` },
+    { label: 'Maternal deaths', value: `${mat.text} per 100,000`, note: `${mat.year}` },
+  ] },
+  { title: 'Care', facts: [
+    { label: 'Doctors', value: `${doc.text} per 1,000 people`, note: `${doc.year}` },
+    { label: 'Nurses and midwives', value: `${nurse.text} per 1,000 people` },
+    { label: 'Hospital beds', value: `${beds.text} per 1,000 people` },
+  ] },
+  { title: 'Money', facts: [
+    { label: 'Health spending per person', value: hPc.text, note: `${hPc.year}, current US$` },
+    { label: 'Paid out of pocket', value: oop.text, note: 'share of health spending' },
+  ] },
+];
+const highlights = [
+  { label: 'Newborn deaths', value: `${neo.text}/1,000` },
+  { label: 'Doctors', value: `${doc.text}/1,000` },
+  { label: 'Per person', value: hPc.text },
+  { label: 'Out of pocket', value: oop.text },
+];
+
+const rows = meta.tableYears.map((y) => ({ year: y, ...Object.fromEntries(HEALTH_COLS.map((c) => [c.key, valueIn(s[c.wdi], y)])) }));
+assertClaim(meta.tableYears.at(-1) === U, 'table ends at the latest year');
+
+const faq = [
+  { q: 'How many Bangladeshi children die before their fifth birthday?', a: `In ${U}, ${u5.text} children per 1,000 born alive died before turning five and ${infant.text} before their first birthday. In 1990 the under-five figure was ${u5_90.toFixed(1)}.` },
+  { q: 'How many doctors does Bangladesh have per person?', a: `${doc.text} per 1,000 people in ${doc.year}, roughly one for every ${Math.round(1000 / Number(doc.value)).toLocaleString('en-US')} people, with ${nurse.text} nurses and midwives per 1,000.` },
+  { q: 'Is health care free in Bangladesh?', a: `For most spending, no: ${oop.text} of all current health expenditure in ${oop.year} was paid directly by households, a larger share than in any country but one.` },
+  { q: 'What percentage of Bangladeshi adults have diabetes?', a: `${diab.text} of people aged 20 to 79 in ${diab.year}, by the estimate the World Bank publishes from the International Diabetes Federation.` },
+];
+assertClaim(Math.round(1000 / Number(doc.value)) > 1300 && Math.round(1000 / Number(doc.value)) < 1450, 'roughly one doctor per 1,300–1,450 people');
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Bangladesh health ${U}: child deaths, doctors, vaccination and who pays for care`,
+    description, datePublished: iso(meta.published), dateModified: iso(meta.updated),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    about: { '@type': 'Country', name: 'Bangladesh', sameAs: 'https://en.wikipedia.org/wiki/Bangladesh' },
+    citation: [{ '@type': 'CreativeWork', name: 'World Development Indicators', url: WDI_URL, publisher: { '@type': 'Organization', name: 'The World Bank' } }],
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Bangladesh health indicators by year, 1960–${U}`,
+    description: `Yearly World Bank World Development Indicators for Bangladesh, as published: deaths before age five, before age one and in the first 28 days (UN IGME), maternal deaths (UN MMEIG), doctors, nurses and hospital beds, health spending and the share paid out of pocket (WHO), vaccination against measles and DPT (WHO/UNICEF), stunting, undernourishment, diabetes, tuberculosis, malaria, tobacco use and road deaths.`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WDI_URL], temporalCoverage: `1960/${U}`,
+    spatialCoverage: { '@type': 'Place', name: 'Bangladesh' }, dateModified: iso(meta.updated), license: econMeta.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/bangladesh-health.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Bangladesh health"
+  back="/country/bangladesh/"
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Countries', href: '/country/' }, { name: 'Bangladesh', href: '/country/bangladesh/' }, { name: 'Health', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Bangladesh health: child survival, vaccines and who pays the bills</h1>
+        <p class="answer">
+          In Bangladesh <strong>{u5.text} of every 1,000 children</strong> died before their fifth birthday in {U}, about a fifth of the 1990 rate. Care is paid for mostly by patients: <strong>{oop.text}</strong> of health spending came straight from households in {oop.year}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={meta.updated}>{longDate(meta.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Bangladesh health, latest years`} cards={cards} />
+        <KeyFacts variant="mobile" country="Bangladesh" code="bd" year={U} groups={factGroups} highlights={highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>How many children in Bangladesh die before age five?</h2>
+          <p>{u5.text} of every 1,000 born alive in {U}, compared with {u5_90.toFixed(1)} in 1990. The fall was steady for three decades, then almost stopped: the rate dropped by {drop1519.toFixed(1)} points between 2015 and 2019 but by only {drop2024.toFixed(1)} between 2020 and {U}. Bangladesh ranks {ordinal(u5.of! - u5.rank! + 1)} highest of {u5.of} on this measure.</p>
+        </div>
+        <LineChart
+          title={`Deaths before age five in Bangladesh, 1990–${U}`}
+          subtitle="Deaths of children under five per 1,000 live births, UN Inter-agency Group for Child Mortality Estimation."
+          points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+          format="plain"
+          unit="per 1,000 live births"
+          highlight={U}
+          estimateLabel="World Bank data"
+          source={WDI}
+          sourceUrl={WDI_URL}
+          checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How many Bangladeshi babies die in their first month?</h2>
+          <p>{neo.text} per 1,000 born alive died within 28 days in {neo.year}. That is {pct(neoShare)} of all deaths before age five (our calculation), so most child deaths now happen in the first month of life. Deaths of mothers have also fallen: the ratio stood at {mat.text} for each 100,000 births in {mat.year}, where in 2000 it had been {mat00}, although it climbed from {mat20} (2020) to {mat21} (2021) and came back down to {mat22} a year later.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Who pays for health care in Bangladesh?</h2>
+          <p>Mostly the patients. Households paid {oop.text} of all current health spending in {oop.year}, up from {pct(oop00)} in 2000 and the highest share recorded since then; only one country with figures had a higher share. Total spending was {hGdp.text} of GDP, again second lowest of {hGdp.of}, or {hPc.text} per person.</p>
+        </div>
+        <LineChart
+          title={`Share of health spending paid out of pocket in Bangladesh, 2000–${oop.year}`}
+          subtitle="Out-of-pocket payments as a percentage of current health expenditure, WHO Global Health Expenditure Database."
+          points={s.outOfPocketPct.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+          format="percent"
+          highlight={oop.year!}
+          estimateLabel="World Bank data"
+          source={WDI}
+          sourceUrl={WDI_URL}
+          checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How many doctors and nurses does Bangladesh have?</h2>
+          <p>{doc.text} doctors per 1,000 people in {doc.year}, four times the 1990 level, but only {nurse.text} nurses and midwives, so Bangladesh has fewer nurses than doctors. Of the {pairs.length} countries with both figures for a year since 2018, {nurseMore} have more nurses (our count). Hospital beds number {beds.text} per 1,000 people.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Are Bangladeshi children vaccinated and well fed?</h2>
+          <p>Vaccination is close to universal: {measles.text} of children aged 12 to 23 months had the measles vaccine in {measles.year}, against {pct(v('measlesVaccPct', 1990))} in 1990, and {dpt.text} had DPT. Stunting, a sign of long-term undernutrition, affected {stunt.text} of children under five in {stunt.year}, less than half the {pct(stunt00)} of 2000, and undernourishment across the population dropped to {hunger.text} in {hunger.year}; no earlier year since 2001 was as low.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How common are diabetes and smoking in Bangladesh?</h2>
+          <p>{diab.text} of adults aged 20 to 79 had diabetes in {diab.year}. Tobacco use, which counts smokeless tobacco as well as smoking, fell from {pct(tob00)} of adults in 2000 to {tob.text} in {tob.year}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>More about Bangladesh</h2>
+          <ul>
+            <li><a href={path('/country/bangladesh/')}>Bangladesh at a glance: all figures</a></li>
+            <li><a href={path('/country/bangladesh/population/')}>Bangladesh population and life expectancy</a></li>
+            <li><a href={path('/country/bangladesh/economy/')}>Bangladesh economy</a></li>
+            <li><a href={path('/rankings/child-mortality-by-country/')}>Child mortality, every country ranked</a></li>
+            <li><a href={path('/rankings/maternal-mortality-by-country/')}>Maternal mortality by country</a></li>
+          </ul>
+        </nav>
+      </section>
+      <section class="panel" data-panel="data" aria-label="Data">
+        <StatList id="s-health" title="Health figures, latest year" section="health" stats={liveStats(p, 'health')} caption="Bangladesh health figures" />
+        <TopicTable
+          id="data-h"
+          title={`Bangladesh health by year, 1990–${U}`}
+          subtitle="Survival, vaccination and spending side by side; the CSV holds every year and every health series from 1960."
+          cols={HEALTH_COLS}
+          rows={rows}
+          latest={U}
+          source={WDI}
+          sourceUrl={WDI_URL}
+          checkedOn={checkedOn}
+          csv={path('/data/bangladesh-health.csv')}
+          csvName="bangladesh-health.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Health in Bangladesh: quick answers</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.under5Mortality.wdiLastUpdated)}): child, infant and newborn deaths (UN Inter-agency Group for Child Mortality Estimation), maternal deaths (UN Maternal Mortality Estimation Inter-Agency Group), doctors, nurses and hospital beds (WHO), health spending and out-of-pocket share (WHO Global Health Expenditure Database), vaccination (WHO and UNICEF), stunting (UNICEF, WHO, World Bank joint estimates), undernourishment (FAO), diabetes (International Diabetes Federation), tobacco use (WHO). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+            <li>World ranks and the newborn share of deaths before age five are our calculation from the same files.</li>
+          </ul>
+          <p class="note">See our <a href={path('/methodology/')}>methodology</a> for how figures are collected and checked.</p>
+          <p class="note">Published <time datetime={meta.published}>{longDate(meta.published)}</time> · Updated <time datetime={meta.updated}>{longDate(meta.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Bangladesh health', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Bangladesh" code="bd" year={U} groups={factGroups} highlights={highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

@@ -185,6 +185,8 @@ const pages: { path: string; lastmod: string }[] = [
   { path: '/country/uzbekistan/population/', lastmod: '2026-11-25' },
   { path: '/economy/', lastmod: '2026-11-25' },
   { path: '/country/bangladesh/economy/', lastmod: '2026-11-25' },
+  { path: '/country/bangladesh/', lastmod: '2026-11-27' },
+  { path: '/country/bangladesh/health/', lastmod: '2026-11-27' },
   { path: '/country/united-states/economy/', lastmod: '2026-11-25' },
   { path: '/country/india/economy/', lastmod: '2026-11-25' },
   { path: '/country/china/economy/', lastmod: '2026-11-25' },
