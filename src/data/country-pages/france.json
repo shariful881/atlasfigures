@@ -1,0 +1,85 @@
+{
+  "_about": "Editorial data for the France country hub (/country/france/) and its health page, written in task 173. Figures are never stored here: pages take them from src/data/profiles/FRA.json and the generated series.",
+  "slug": "france",
+  "name": "France",
+  "demonym": "French",
+  "capital": "Paris",
+  "iso3": "FRA",
+  "wikipedia": "https://en.wikipedia.org/wiki/France",
+  "checkedFacts": [
+    "driving",
+    "emergency"
+  ],
+  "factChecks": [
+    {
+      "fact": "driving",
+      "value": "Right",
+      "wikidata": "Right",
+      "checkedOn": "2026-11-27",
+      "against": "RAC, Driving on the left or right across the world: France – R",
+      "url": "https://www.rac.co.uk/drive/travel/advice/driving-on-the-left-or-right-across-the-world/",
+      "label": "driving on the right",
+      "sourceName": "RAC"
+    },
+    {
+      "fact": "emergency",
+      "value": "112, or 15 ambulance, 17 police, 18 fire",
+      "wikidata": "15, 17, 18, 112, 114",
+      "checkedOn": "2026-11-27",
+      "against": "GOV.UK, Paris: emergency shelter and other services, emergency numbers: SAMU (medical emergency) 15, fireman 18, police 17, European emergency number 112",
+      "url": "https://www.gov.uk/government/publications/emergency-shelter-and-other-services-in-paris/emergency-shelter-and-other-services-in-paris",
+      "label": "emergency numbers 112, or 15 ambulance, 17 police, 18 fire",
+      "sourceName": "GOV.UK (British Embassy Paris)"
+    }
+  ],
+  "pages": {
+    "hub": {
+      "published": "2026-11-27",
+      "updated": "2026-11-27",
+      "changelog": [
+        {
+          "date": "2026-11-27",
+          "type": "new",
+          "note": "Page published (task 173)."
+        }
+      ],
+      "verification": {
+        "checkedOn": "2026-11-27",
+        "checkedBy": "Claude (task 173)",
+        "what": "Every statistic row (value, year, world rank) on the page, every number in the text, title, description and JSON-LD, and every claim in the story and FAQ (ranks, comparisons, trends, our counts); the build also asserts each claim (assertClaim); driving side and emergency numbers by hand (factChecks)",
+        "against": "Original UN WPP 2024, UN WUP 2025 and World Bank WDI files read by scripts/verify/batch-173.py (independent of the site code); energy rows by check-energy and country facts by check-facts against their original files"
+      }
+    },
+    "health": {
+      "published": "2026-11-27",
+      "updated": "2026-11-27",
+      "tableYears": [
+        1990,
+        1995,
+        2000,
+        2005,
+        2010,
+        2015,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024
+      ],
+      "changelog": [
+        {
+          "date": "2026-11-27",
+          "type": "new",
+          "note": "Page published (task 173)."
+        }
+      ],
+      "verification": {
+        "checkedOn": "2026-11-27",
+        "checkedBy": "Claude (task 173)",
+        "what": "Every figure in the text, cards, Key facts, title, description, JSON-LD, statistic rows and every cell of the yearly table; every claim in the story, chart captions and FAQ (ranks, comparisons, trends, our counts)",
+        "against": "Original World Bank WDI files read by scripts/verify/batch-173.py; check-country-pages compares the table and CSV with the World Bank values"
+      }
+    }
+  }
+}

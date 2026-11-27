@@ -1,0 +1,105 @@
+---
+// Sudan health (task 173). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/sudan.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), infant = st('infant'), mat = st('maternal'), measles = st('measles'), dpt = st('dpt'), mal = st('malaria'), diab = st('diabetes');
+const hPc = st('healthPc'), hGdp = st('healthGdp'), oop = st('oop'), tb = st('tb');
+const U = u5.year!;
+
+const m22 = v('measlesVaccPct', 2022);
+assertClaim(fromBottom(dpt) === 1 && Number(dpt.value) < 40 && fromBottom(measles) === 6 && Number(measles.value) < m22 - 30, 'lowest DPT coverage of any country (under 40%); measles 6th lowest, down 30+ points since 2022');
+const u22 = v('under5Mortality', 2022);
+const uf = s.under5Mortality.filter(([y]) => y >= 2006 && y <= 2022).map((x) => x[1]);
+assertClaim(uf.every((x, i) => i === 0 || x < uf[i - 1]), 'under-five deaths fell every year 2006–2022');
+assertClaim(v('under5Mortality', 2023) > 1.2 * u22 && Number(u5.value) > u22 && fromTop(u5) === 20, 'under-five deaths jumped over 20% in 2023 and remain above 2022; 20th highest');
+assertClaim(fromBottom(hPc) === 2 && Number(hPc.value) < 25 && Number(oop.value) > 55, 'second-lowest health spending per person (under $25); out-of-pocket over 55%');
+const malMax = s.malariaIncidence.reduce((a, b) => (b[1] >= a[1] ? b : a));
+assertClaim(malMax[0] === mal.year && Number(mal.value) > 3 * v('malariaIncidence', 2011), 'malaria at its highest since 2000, over three times the 2011 low');
+assertClaim(fromTop(diab) === 24 && Number(diab.value) > 2 * v('diabetesPct', 2011), 'diabetes 24th, more than double 2011');
+assertClaim(Number(tb.value) < v('tbIncidence', 2000) / 3 && Number(mat.value) < v('maternalMortality', 1990) / 3, 'TB under a third of 2000; maternal under a third of 1990');
+
+const title = `Sudan Health Data ${U}: Vaccination Collapse, Child Deaths, Malaria | AtlasFigures`;
+const description = `Only ${dpt.text} of Sudanese infants got three DPT doses in ${dpt.year}, the lowest coverage of any country, and under-five deaths rose to ${u5.text} per 1,000 births. Health spending: ${hPc.text} a head.`;
+
+const faq = [
+  { q: 'Who pays for Sudanese health care?', a: `Households, to a large degree: they met ${oop.text} of costs directly in ${oop.year}. All health outlays together were ${hGdp.text} of GDP.` },
+  { q: 'How common is diabetes in Sudanese adults?', a: `Quite common: the International Diabetes Federation estimates that ${diab.text} of Sudanese adults had it in ${diab.year}, 24th of ${diab.of}, more than twice the 2011 share.` },
+  { q: 'How dangerous is childbirth in Sudan?', a: `UN MMEIG reckons ${mat.text} women die for every 100,000 babies born (${mat.year}); in 1990 the ratio was ${v('maternalMortality', 1990)}.` },
+  { q: 'Is TB declining in Sudan?', a: `Year after year. WHO's incidence estimate dropped from ${v('tbIncidence', 2000)} per 100,000 Sudanese in 2000 to ${tb.text} by ${tb.year}.` },
+];
+const headline = `Sudan health ${U}: collapsing vaccination, rising child deaths, malaria and minimal spending`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Sudan's health: vaccination at a record low, child deaths rising again"
+  headline={headline}
+  tableTitle={`Sudan's health numbers, 1990 onwards to ${U}`}
+  tableSubtitle="Twelve selected years show here; the downloadable CSV covers every Sudanese year."
+  faq={faq}
+  faqTitle="Sudan health: four more questions"
+  related={[
+    { href: '/country/sudan/', label: 'Sudan in figures' },
+    { href: '/country/sudan/population/', label: 'Sudan population and births' },
+    { href: '/country/egypt/health/', label: 'Egypt health' },
+    { href: '/country/ethiopia/health/', label: 'Ethiopia health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality: country ranking' },
+  ]}
+>
+  <Fragment slot="answer"><strong>{dpt.text} of Sudanese infants</strong> received all three DPT doses in {dpt.year}, the lowest share recorded for any country, and measles coverage fell to {measles.text}. Deaths before age five rose to <strong>{u5.text} per 1,000 births</strong> in {U}, above the {u22} of 2022.</Fragment>
+  <div class="story-block prose">
+    <h2>How many Sudanese children are vaccinated?</h2>
+    <p>Far fewer than a few years ago. WHO/UNICEF estimates put three-dose DPT coverage at {dpt.text} in {dpt.year}, last of {dpt.of} countries, against {v('dptVaccPct', 2022)}% in 2022; first-dose measles coverage dropped from {m22}% to {measles.text}.</p>
+  </div>
+  <LineChart
+    title={`DPT vaccination of Sudanese infants, 1990–${dpt.year}`}
+    subtitle="Percent of Sudanese children in their second year who completed three DPT shots (WHO/UNICEF)."
+    points={s.dptVaccPct.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={dpt.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Are child deaths rising in Sudan?</h2>
+    <p>They rose in 2023. UN IGME's under-five estimate declined each year from 2006 to {u22} per 1,000 in 2022, then leapt to {v('under5Mortality', 2023)}; the {U} estimate of {u5.text} ranks twentieth highest. Infant deaths stand at {infant.text}.</p>
+  </div>
+  <LineChart
+    title={`Sudanese under-five deaths, 1990–${U}`}
+    subtitle="Chance of a Sudanese newborn not reaching five, per 1,000; UN IGME modelled estimates."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 live births"
+    highlight={2023}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is malaria increasing in Sudan?</h2>
+    <p>Yes. At {mal.text} per thousand residents exposed in {mal.year}, WHO's figure is the worst in its 2000–{mal.year} run and more than triple the {v('malariaIncidence', 2011)} of 2011.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>What does Sudan spend per person on health?</h2>
+    <p>{hPc.text} a head in {hPc.year}, almost the least of any country, second lowest of {hPc.of}. Sudan's births, deaths and age structure are tracked in <a href={path('/country/sudan/population/')}>our Sudan population figures</a>.</p>
+  </div>
+</HealthTopic>

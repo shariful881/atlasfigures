@@ -94,7 +94,8 @@ def report():
     raise SystemExit(1 if bad else 0)
 
 # number style (data guide)
-usd = lambda v: f"${v/1e12:.2f} trillion" if v >= 1e12 else f"${v/1e9:.1f} billion" if v >= 1e9 else f"${v/1e6:.1f} million" if v >= 1e6 else f"${round(v):,}"
+usd = lambda v: "$-" + usd(-v)[1:] if v < 0 else _usd(v)
+_usd = lambda v: f"${v/1e12:.2f} trillion" if v >= 1e12 else f"${v/1e9:.1f} billion" if v >= 1e9 else f"${v/1e6:.1f} million" if v >= 1e6 else f"${round(v):,}"
 whole = lambda v: f"${round(v):,}"
 p1 = lambda v: f"{v:.1f}%"
 ordn = lambda n: f"{n}{'th' if 10 <= n % 100 <= 20 else {1:'st',2:'nd',3:'rd'}.get(n % 10, 'th')}"

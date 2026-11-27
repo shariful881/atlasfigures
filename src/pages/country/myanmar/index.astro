@@ -1,0 +1,73 @@
+---
+// Myanmar country hub (task 173). Every figure comes from the country profile (src/data/profiles/MMR.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/myanmar.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), net = st('population', 'netMigrants'), migPct = st('population', 'migrantPct'), urban = st('population', 'urban');
+const gdp = st('economy', 'gdp'), growth = st('economy', 'growth'), gdpPc = st('economy', 'gdpPc'), tax = st('economy', 'tax'), manuf = st('economy', 'manufGdp');
+const agriJobs = st('jobs', 'empAgri'), rd = st('education', 'rd'), tariff = st('trade', 'tariff'), armed = st('governance', 'armed'), hydro = st('energy', 'hydroShare');
+const extPct = st('economy', 'extDebtPct'), fossil = st('energy', 'fossilShare');
+assertClaim(Number(fossil.value) > (100 - Number(hydro.value)) / 2, 'fossil fuels supply most of the non-hydro electricity');
+
+assertClaim(Number(growth.value) < 0 && fromBottom(growth) === 8, 'GDP contracted, eighth-weakest growth');
+assertClaim(tax.year === 2019 && fromBottom(tax) === 6 && Number(tax.value) < 7, 'tax revenue under 7% of GDP (2019), sixth lowest');
+assertClaim(fromTop(manuf) === 8 && Number(manuf.value) > 25 && Number(agriJobs.value) > 44, 'manufacturing eighth (over 25% of GDP); over 44% of jobs on farms');
+assertClaim(fromBottom(migPct) === 4 && Number(net.value) < 0, 'fourth-lowest migrant share; net emigration');
+assertClaim(fromBottom(rd) === 3 && fromBottom(tariff) === 10 && fromTop(armed) === 14 && fromBottom(extPct) === 9, 'R&D third lowest, tariffs tenth lowest, armed forces 14th, external debt ratio ninth lowest');
+
+const title = `Myanmar in Figures ${Y}: Shrinking Economy, Factories, Farms, Migration | AtlasFigures`;
+const description = `Output in Myanmar fell ${growth.text.replace('-', '')} during ${growth.year} (only ${fromBottom(growth) - 1} of ${growth.of} economies did worse); factories still account for a quarter of GDP. Population: ${people(Number(pop.value))} (UN, ${Y}).`;
+
+const faq = [
+  { q: 'Does Myanmar invest in research and development?', a: `Barely: ${rd.text}% of GDP went on R&D in ${rd.year} per UNESCO, and only ${fromBottom(rd) - 1} reporting countries put in less.` },
+  { q: 'Are import tariffs low in Myanmar?', a: `Yes. The typical rate charged at the border stood at ${tariff.text} in ${tariff.year}; only nine of ${tariff.of} economies charged less.` },
+  { q: 'How large are Myanmar’s armed forces?', a: `Large: ${armed.text} active personnel in ${armed.year}, according to IISS estimates republished in WDI, which makes it the 14th-biggest military of ${armed.of}.` },
+  { q: 'Is Myanmar’s power mostly hydro?', a: `Close to half of it: dams turned out ${hydro.text} of Myanmar’s electricity in ${hydro.year} (Ember), and fossil plants most of what remained.` },
+];
+const headline = `Myanmar in figures ${Y}: a contracting economy, manufacturing, farm jobs and emigration`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Myanmar in figures: an economy in reverse built on factories and farms"
+  headline={headline}
+  faq={faq}
+  faqTitle="Myanmar: further questions"
+  related={[
+    { href: '/country/myanmar/population/', label: 'Myanmar population: live count' },
+    { href: '/country/myanmar/economy/', label: 'Myanmar economy: GDP and inflation' },
+    { href: '/country/myanmar/health/', label: 'Myanmar health: tobacco, TB, vaccines' },
+    { href: '/country/thailand/', label: 'Thailand in figures' },
+    { href: '/country/india/', label: 'India by the numbers' },
+    { href: '/country/vietnam/', label: 'Vietnam in data' },
+    { href: '/rankings/gdp-per-capita-by-country/', label: 'GDP per person ranked' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Myanmar is projected by the UN to hold <strong>{people(Number(pop.value))}</strong> people in {Y}, under a third ({urban.text}) of them urban. Its economy contracted by <strong>{growth.text.replace('-', '')}</strong> in {growth.year}; GDP is now {gdp.text}, or {gdpPc.text} per head.</Fragment>
+  <div class="story-block prose">
+    <h2>Did Myanmar's economy contract last year?</h2>
+    <p>Yes. Adjusted for inflation, GDP fell {growth.text.replace('-', '')} in {growth.year}; only seven of {growth.of} economies did worse. Annual growth and prices since 1960 appear on <a href={path('/country/myanmar/economy/')}>Myanmar's economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Myanmar an industrial economy?</h2>
+    <p>Partly. Manufacturing generated {manuf.text} of Myanmar's GDP during {manuf.year}, the {ordinal(fromTop(manuf))} heaviest manufacturing weight among {manuf.of} economies, yet {agriJobs.text} of workers still earn a living in agriculture.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much tax does Myanmar's government collect?</h2>
+    <p>Very little. Taxes brought in {tax.text} of GDP in {tax.year}, the final year Myanmar appears in that dataset; just five of {tax.of} countries took a smaller cut.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Do many migrants live in Myanmar?</h2>
+    <p>Hardly any. UN DESA counted foreign-born residents at {migPct.text} of the population in {migPct.year}; three countries had a smaller share. More people leave than arrive, with net migration of {int(Number(net.value))} projected for {Y}; see the <a href={path('/country/myanmar/population/')}>population page</a>.</p>
+  </div>
+</CountryHub>

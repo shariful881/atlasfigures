@@ -1,0 +1,105 @@
+---
+// Uganda health (task 173). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/uganda.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), infant = st('infant'), mat = st('maternal'), mal = st('malaria'), diab = st('diabetes'), tob = st('tobacco'), dpt = st('dpt');
+const doc = st('doctors'), under = st('undernour'), hPc = st('healthPc'), hGdp = st('healthGdp'), oop = st('oop');
+const U = u5.year!;
+
+const malMax = s.malariaIncidence.reduce((a, b) => (b[1] > a[1] ? b : a));
+assertClaim(fromTop(mal) === 14 && malMax[0] === 2001 && Number(mal.value) < 0.55 * malMax[1], 'malaria 14th highest; peak 2001; now under 55% of it');
+assertClaim(fromBottom(diab) === 3 && Number(diab.value) < 2.5, 'diabetes third lowest, under 2.5%');
+assertClaim(Number(oop.value) > 30 && Number(oop.value) < 34, 'out-of-pocket about a third');
+const u90 = v('under5Mortality', 1990), t00 = v('tobaccoPct', 2000);
+assertClaim(Number(u5.value) < u90 / 3.5 && Number(tob.value) < t00 / 3, 'under-five under 1/3.5 of 1990; tobacco under a third of 2000');
+const d90 = v('dptVaccPct', 1990);
+assertClaim(d90 < 50 && Number(dpt.value) > 90 && fromBottom(doc) === 28, 'DPT from under half to over 90%; doctors 28th lowest');
+const undPeak = s.undernourishedPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+assertClaim(undPeak[0] === 2017 && Number(under.value) < undPeak[1] - 15, 'undernourishment peaked in 2017, now down 15+ points');
+
+const title = `Uganda Health Data ${U}: Malaria, Child Survival, Vaccines | AtlasFigures`;
+const description = `Malaria struck ${mal.text} of every 1,000 exposed Ugandans in ${mal.year}, fourteenth-highest incidence, while child mortality before five dropped from ${u90} to ${u5.text} per 1,000 births since 1990; diabetes is rare.`;
+
+const faq = [
+  { q: 'Do many Ugandans have diabetes?', a: `Few do: IDF modelling suggests ${diab.text} of the adult population in ${diab.year}; just two of ${diab.of} countries report less.` },
+  { q: 'How thinly spread are Ugandan doctors?', a: `Very: ${doc.text} per 1,000 residents in ${doc.year}, WHO data show, the 28th-lowest density of ${doc.of}.` },
+  { q: 'How much is Uganda’s health spending?', a: `Roughly ${hPc.text} per inhabitant in ${hPc.year} (${hGdp.text} of GDP), a third of it, ${oop.text}, settled by families at the point of care.` },
+  { q: 'How many Ugandan mothers die giving birth?', a: `The UN MMEIG ratio was ${mat.text} for every 100,000 babies delivered alive in ${mat.year}, against ${v('maternalMortality', 1990)} in 1990.` },
+];
+const headline = `Uganda health ${U}: malaria, falling child deaths, vaccination gains and low diabetes`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Uganda's health: malaria persists as child deaths tumble"
+  headline={headline}
+  tableTitle={`Uganda's health, 1990 to ${U}`}
+  tableSubtitle="The page lists chosen years only; get every Ugandan year from the CSV."
+  faq={faq}
+  faqTitle="Uganda health: what people ask"
+  related={[
+    { href: '/country/uganda/', label: 'Uganda in figures' },
+    { href: '/country/uganda/population/', label: 'Uganda population and births' },
+    { href: '/country/kenya/health/', label: 'Kenya health' },
+    { href: '/country/tanzania/health/', label: 'Tanzania health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'How countries rank on child deaths' },
+  ]}
+>
+  <Fragment slot="answer">Malaria is still endemic in Uganda, with WHO estimating <strong>{mal.text} infections per 1,000 exposed residents</strong> in {mal.year}. Yet the toll of child deaths before five has dropped from {u90} per 1,000 births (1990) to <strong>{u5.text}</strong> ({U}), and diabetes affects only {diab.text} of adults.</Fragment>
+  <div class="story-block prose">
+    <h2>Is malaria still a major threat in Uganda?</h2>
+    <p>Yes, although it has eased. Uganda's {mal.year} incidence of {mal.text} for every thousand exposed residents ranks fourteenth of {mal.of}, yet it is about half the {Math.round(malMax[1])} WHO estimated for {malMax[0]}.</p>
+  </div>
+  <LineChart
+    title={`Malaria incidence in Uganda, 2000–${mal.year}`}
+    subtitle="WHO estimate of yearly malaria infections for each 1,000 Ugandans living where the disease circulates."
+    points={s.malariaIncidence.map(([x, y]) => ({ x, y: Math.round(y) }))}
+    format="plain"
+    unit="per 1,000 at risk"
+    highlight={mal.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How much have child deaths fallen in Uganda?</h2>
+    <p>By more than two thirds since 1990. UN IGME's estimate went from {u90} out of every thousand children to {u5.text} in {U}, and deaths in the first year now stand at {infant.text}. Three-dose DPT coverage climbed from {d90}% in 1990 to {dpt.text}.</p>
+  </div>
+  <LineChart
+    title={`Child mortality in Uganda, 1990–${U}`}
+    subtitle="Ugandan babies who will not see their fifth birthday, per 1,000 live-born (UN IGME)."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 live births"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is hunger falling in Uganda?</h2>
+    <p>Since {undPeak[0]}, yes: FAO's undernourishment estimate peaked at {undPeak[1]}% that year and was {under.text} in {under.year}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Has tobacco use dropped in Uganda?</h2>
+    <p>Sharply. WHO data show {pct(t00)} of Ugandan adults using tobacco in 2000 and {tob.text} in {tob.year}, under a third as many. For births and lifespans, see <a href={path('/country/uganda/population/')}>Uganda's population data</a>.</p>
+  </div>
+</HealthTopic>

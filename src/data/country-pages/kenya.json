@@ -1,0 +1,85 @@
+{
+  "_about": "Editorial data for the Kenya country hub (/country/kenya/) and its health page, written in task 173. Figures are never stored here: pages take them from src/data/profiles/KEN.json and the generated series.",
+  "slug": "kenya",
+  "name": "Kenya",
+  "demonym": "Kenyan",
+  "capital": "Nairobi",
+  "iso3": "KEN",
+  "wikipedia": "https://en.wikipedia.org/wiki/Kenya",
+  "checkedFacts": [
+    "driving",
+    "emergency"
+  ],
+  "factChecks": [
+    {
+      "fact": "driving",
+      "value": "Left",
+      "wikidata": "Left",
+      "checkedOn": "2026-11-27",
+      "against": "RAC, Driving on the left or right across the world: Kenya – L",
+      "url": "https://www.rac.co.uk/drive/travel/advice/driving-on-the-left-or-right-across-the-world/",
+      "label": "driving on the left",
+      "sourceName": "RAC"
+    },
+    {
+      "fact": "emergency",
+      "value": "999",
+      "wikidata": "112, 999",
+      "checkedOn": "2026-11-27",
+      "against": "FCDO Kenya travel advice, Getting help: 999 (ambulance, fire, police)",
+      "url": "https://gov.uk/foreign-travel-advice/kenya/getting-help",
+      "label": "emergency number 999",
+      "sourceName": "UK FCDO travel advice"
+    }
+  ],
+  "pages": {
+    "hub": {
+      "published": "2026-11-27",
+      "updated": "2026-11-27",
+      "changelog": [
+        {
+          "date": "2026-11-27",
+          "type": "new",
+          "note": "Page published (task 173)."
+        }
+      ],
+      "verification": {
+        "checkedOn": "2026-11-27",
+        "checkedBy": "Claude (task 173)",
+        "what": "Every statistic row (value, year, world rank) on the page, every number in the text, title, description and JSON-LD, and every claim in the story and FAQ (ranks, comparisons, trends, our counts); the build also asserts each claim (assertClaim); driving side and emergency numbers by hand (factChecks)",
+        "against": "Original UN WPP 2024, UN WUP 2025 and World Bank WDI files read by scripts/verify/batch-173.py (independent of the site code); energy rows by check-energy and country facts by check-facts against their original files"
+      }
+    },
+    "health": {
+      "published": "2026-11-27",
+      "updated": "2026-11-27",
+      "tableYears": [
+        1990,
+        1995,
+        2000,
+        2005,
+        2010,
+        2015,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024
+      ],
+      "changelog": [
+        {
+          "date": "2026-11-27",
+          "type": "new",
+          "note": "Page published (task 173)."
+        }
+      ],
+      "verification": {
+        "checkedOn": "2026-11-27",
+        "checkedBy": "Claude (task 173)",
+        "what": "Every figure in the text, cards, Key facts, title, description, JSON-LD, statistic rows and every cell of the yearly table; every claim in the story, chart captions and FAQ (ranks, comparisons, trends, our counts)",
+        "against": "Original World Bank WDI files read by scripts/verify/batch-173.py; check-country-pages compares the table and CSV with the World Bank values"
+      }
+    }
+  }
+}

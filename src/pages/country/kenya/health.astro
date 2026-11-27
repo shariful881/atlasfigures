@@ -1,0 +1,105 @@
+---
+// Kenya health (task 173). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/kenya.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), infant = st('infant'), mat = st('maternal'), tb = st('tb'), under = st('undernour'), stunt = st('stunting');
+const diab = st('diabetes'), tob = st('tobacco'), hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop'), mal = st('malaria');
+const U = u5.year!;
+
+const undMin = s.undernourishedPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+assertClaim(undMin[0] === 2013 && fromTop(under) === 8 && Number(under.value) > undMin[1] + 15, 'undernourishment low in 2013, now 15+ points higher, 8th highest');
+const st00 = v('stuntingPct', 2000);
+assertClaim(Number(stunt.value) < st00 / 2, 'stunting more than halved since 2000');
+const tbPeak = s.tbIncidence.reduce((a, b) => (b[1] > a[1] ? b : a));
+assertClaim(tbPeak[0] === 2006 && Number(tb.value) < tbPeak[1] / 3, 'TB peaked in 2006, now under a third of the peak');
+assertClaim(fromBottom(diab) === 7 && Number(tob.value) < v('tobaccoPct', 2000) / 2, 'diabetes 7th lowest; tobacco more than halved');
+const m90 = v('maternalMortality', 1990), u90 = v('under5Mortality', 1990);
+assertClaim(Number(mat.value) < m90 / 3.5 && Number(u5.value) < u90 / 2.5, 'maternal under 1/3.5 and under-five under 1/2.5 of 1990');
+assertClaim(fromTop(mal) === 36, 'malaria 36th');
+assertClaim(Number(oop.value) < v('outOfPocketPct', 2000) / 1.9, 'out-of-pocket share roughly halved since 2000');
+
+const title = `Kenya Health Data ${U}: Hunger, TB, Child Deaths, Diabetes | AtlasFigures`;
+const description = `Undernourishment in Kenya climbed to ${under.text} in ${under.year}, eighth highest worldwide, even as child stunting fell to ${stunt.text} and TB dropped to ${tb.text} per 100,000.`;
+
+const faq = [
+  { q: 'How widespread is diabetes among Kenyans?', a: `Not very. IDF modelling for ${diab.year} gives ${diab.text} of grown-ups, a rate beaten by only six of ${diab.of} countries.` },
+  { q: 'How much do Kenyan households pay for healthcare themselves?', a: `Direct payments made up ${oop.text} of the total in ${oop.year}, about half the ${pct(v('outOfPocketPct', 2000))} recorded in 2000.` },
+  { q: 'What is the malaria rate in Kenya?', a: `WHO puts it at ${mal.text} per thousand Kenyans living in risk areas for ${mal.year}, 36th among the ${mal.of} countries where the disease is endemic.` },
+  { q: 'How much goes on health care in Kenya?', a: `All payers together spent ${hPc.text} per resident in ${hPc.year}, equivalent to ${hGdp.text} of GDP.` },
+];
+const headline = `Kenya health ${U}: rising hunger, falling stunting, tuberculosis and child survival`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Kenya's health: hunger is up, stunting and TB are down"
+  headline={headline}
+  tableTitle={`Kenyan health record by year, 1990–${U}`}
+  tableSubtitle="Selected years only; Kenya's year-by-year figures download as CSV."
+  faq={faq}
+  faqTitle="Kenyan health: brief replies"
+  related={[
+    { href: '/country/kenya/', label: 'Kenya in figures' },
+    { href: '/country/kenya/population/', label: 'Kenya population and births' },
+    { href: '/country/tanzania/health/', label: 'Tanzania health' },
+    { href: '/country/ethiopia/health/', label: 'Ethiopia health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child deaths in every country' },
+  ]}
+>
+  <Fragment slot="answer">FAO estimates that <strong>{under.text} of Kenyans</strong> were undernourished in {under.year}, up from {undMin[1]}% in {undMin[0]}. Yet stunting among young children has more than halved since 2000 to <strong>{stunt.text}</strong>, and tuberculosis has fallen to {tb.text} cases per 100,000.</Fragment>
+  <div class="story-block prose">
+    <h2>Are more Kenyans going hungry?</h2>
+    <p>On FAO's measure, yes. The undernourished share was lowest in {undMin[0]}, at {undMin[1]}%, and had climbed to {under.text} by {under.year}, the eighth-worst rate among {under.of}.</p>
+  </div>
+  <LineChart
+    title={`Kenyans without enough food, 2001–${under.year}`}
+    subtitle="Prevalence of undernourishment in Kenya, percent of the population (FAO three-year averages)."
+    points={s.undernourishedPct.map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={under.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Are fewer Kenyan children stunted?</h2>
+    <p>Far fewer. Joint UNICEF, WHO and World Bank estimates show {stunt.text} of Kenyan under-fives below the healthy height for their age in {stunt.year}, against {st00}% in 2000.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How far has tuberculosis fallen in Kenya?</h2>
+    <p>WHO's incidence series topped out at {int(tbPeak[1])} per 100,000 Kenyans in {tbPeak[0]}; by {tb.year} it had dropped to {tb.text}, below one third of the high.</p>
+  </div>
+  <LineChart
+    title={`Kenyan TB incidence, 2000–${tb.year}`}
+    subtitle="Estimated new tuberculosis cases in Kenya per 100,000 inhabitants (WHO)."
+    points={s.tbIncidence.map(([x, y]) => ({ x, y: Math.round(y) }))}
+    format="plain"
+    unit="per 100,000"
+    highlight={tb.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Are Kenyan mothers and babies safer than in 1990?</h2>
+    <p>Much safer. Pregnancy-related deaths dropped from {m90} for every 100,000 newborns in 1990 to {mat.text} in {mat.year}, child deaths before five from {u90} to {u5.text} per thousand ({U}), and first-year deaths to {infant.text}. Tobacco now reaches {tob.text} of adults, half the 2000 level. Kenyan births and lifespans are charted on <a href={path('/country/kenya/population/')}>our Kenya population page</a>.</p>
+  </div>
+</HealthTopic>

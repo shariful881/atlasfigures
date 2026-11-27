@@ -1,0 +1,106 @@
+---
+// Italy health (task 173). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/italy.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), infant = st('infant'), neo = st('neonatal'), mat = st('maternal'), doc = st('doctors'), nurse = st('nurses');
+const hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop'), measles = st('measles'), tob = st('tobacco');
+const U = u5.year!;
+
+assertClaim(fromBottom(u5) === 14 && fromBottom(neo) === 22 && fromBottom(infant) === 16, 'under-five 14th lowest, newborn 22nd lowest, infant 16th lowest');
+const u5min = s.under5Mortality.reduce((a, b) => (b[1] <= a[1] ? b : a));
+assertClaim(u5min[0] === U && Number(u5.value) < v('under5Mortality', 1990) / 3.5, 'under-five rate at its lowest in the latest year, under 1/3.5 of 1990');
+const m90 = v('measlesVaccPct', 1990);
+assertClaim(m90 < 45 && Number(measles.value) >= 95, 'measles coverage from under 45% (1990) to 95%');
+const peak = s.healthSpendPctGdp.reduce((a, b) => (b[1] > a[1] ? b : a));
+assertClaim(peak[0] === 2020 && Number(hGdp.value) < peak[1] - 1, 'health spending peaked in 2020, now more than a point lower');
+assertClaim(fromTop(doc) === 26 && Number(doc.value) > 4 && Number(nurse.value) / Number(doc.value) < 1.7, 'doctors 26th, over 4 per 1,000; fewer than 1.7 nurses per doctor');
+assertClaim(fromTop(hPc) === 27, 'spending per person 27th');
+assertClaim(Number(oop.value) > 20 && Number(tob.value) < v('tobaccoPct', 2000) - 3, 'out-of-pocket over a fifth; tobacco down 3+ points since 2000');
+const m22 = v('maternalMortality', 2022);
+assertClaim(m22 > Number(mat.value) && Number(mat.value) === Math.min(...s.maternalMortality.map((x) => x[1])), 'maternal ratio spiked in 2022 and is now at its lowest');
+
+const title = `Italy Health Data ${U}: Record-Low Child Deaths, Doctors, Vaccines | AtlasFigures`;
+const description = `Italian deaths before the fifth birthday fell to ${u5.text} per 1,000 births in ${U}, an all-time low. First-dose measles cover rose from ${m90}% (1990) to ${measles.text}; doctors number ${doc.text} per 1,000.`;
+
+const faq = [
+  { q: 'Do Italian patients pay a lot out of pocket?', a: `Over a fifth. Italian families paid ${oop.text} of the nation's ${oop.year} health bill from their own pockets.` },
+  { q: 'What is Italy’s health budget per resident?', a: `About ${hPc.text} a head in ${hPc.year}, 27th of ${hPc.of}, or ${hGdp.text} of GDP.` },
+  { q: 'Is maternal mortality low in Italy?', a: `Very. The ${mat.year} ratio, ${mat.text} per 100,000 live births, ranks as the best in Italy's UN series and follows a reading of ${m22} for 2022.` },
+  { q: 'How has tobacco use changed in Italy?', a: `It edged down from ${pct(v('tobaccoPct', 2000))} of adults in 2000 to ${tob.text} in ${tob.year} (WHO).` },
+];
+const headline = `Italy health ${U}: record child survival, plentiful doctors and a turnaround in vaccination`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Italy's health: record child survival and plenty of doctors"
+  headline={headline}
+  tableTitle={`Italian health record, 1990 through ${U}`}
+  tableSubtitle="A dozen years are shown; the CSV download carries Italy's full annual record."
+  faq={faq}
+  faqTitle="Italy health: concise answers"
+  related={[
+    { href: '/country/italy/', label: 'Italy in figures' },
+    { href: '/country/italy/population/', label: 'Italy population and ageing' },
+    { href: '/country/france/health/', label: 'France health' },
+    { href: '/country/germany/health/', label: 'Germany health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal mortality compared' },
+  ]}
+>
+  <Fragment slot="answer">Italy's under-five mortality reached a new low of <strong>{u5.text} per 1,000</strong> in {U}, fourteenth best worldwide. Physicians number <strong>{doc.text} for every 1,000 residents</strong>, and {measles.text} of toddlers now get a first measles shot.</Fragment>
+  <div class="story-block prose">
+    <h2>How safe is early childhood in Italy?</h2>
+    <p>Very safe. UN IGME's {U} estimate of {u5.text} under-five deaths for each thousand babies is Italy's best yet, down from {v('under5Mortality', 1990)} back in 1990. Infant deaths stand at {infant.text}, {ordinal(fromBottom(infant))} lowest anywhere, and newborn deaths at {neo.text}.</p>
+  </div>
+  <LineChart
+    title={`Italy: child deaths under age five since 1990`}
+    subtitle="Under-five deaths in Italy for each thousand children born alive, UN IGME estimates."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 born alive"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Has measles vaccination in Italy improved?</h2>
+    <p>Dramatically. First-dose coverage was just {m90}% in 1990, {v('measlesVaccPct', 2015)}% in 2015 and {measles.text} by {measles.year}.</p>
+  </div>
+  <LineChart
+    title={`Italian toddlers with a measles jab, 1990–${measles.year}`}
+    subtitle="Percentage of Italy's children receiving measles dose one by their second year; WHO/UNICEF."
+    points={s.measlesVaccPct.map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={measles.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How does Italy's doctor count compare with its nurses?</h2>
+    <p>Close: {doc.text} doctors per thousand people ({doc.year}, {ordinal(fromTop(doc))} worldwide) against {nurse.text} nurses, fewer than two nurses per doctor.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Italy spending more on health?</h2>
+    <p>Less than at the {peak[0]} peak of {pct(peak[1])} of GDP: the share was {hGdp.text} in {hGdp.year}, or {hPc.text} per person. Italian lifespans are followed on the <a href={path('/country/italy/population/')}>population page</a>.</p>
+  </div>
+</HealthTopic>

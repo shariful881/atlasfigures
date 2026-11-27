@@ -1,0 +1,74 @@
+---
+// Kenya country hub (task 173). Every figure comes from the country profile (src/data/profiles/KEN.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/kenya.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), tfr = st('population', 'fertility');
+const acc = st('internet', 'account'), accF = st('internet', 'accountF'), accM = st('internet', 'accountM'), net = st('internet', 'internet');
+const ren = st('energy', 'renShare'), ws = st('energy', 'wsShare'), hydro = st('energy', 'hydroShare');
+const budget = st('economy', 'budget'), ext = st('economy', 'extDebt'), pov = st('economy', 'pov300'), gdp = st('economy', 'gdp'), growth = st('economy', 'growth');
+const remit = st('trade', 'remit'), tariff = st('trade', 'tariff'), lfpF = st('jobs', 'lfpF'), ter = st('education', 'enrTer');
+
+assertClaim(fromTop(acc) === 36 && Number(acc.value) > 90 && Number(net.value) < 36, 'accounts 36th above 90%, internet use under 36%');
+assertClaim(fromTop(ren) === 13 && Number(ren.value) > 90 && fromTop(ws) === 20, 'renewables 13th above 90%, wind and solar 20th');
+assertClaim(fromBottom(budget) === 6 && Number(budget.value) < -9.9, 'sixth-largest budget deficit, about 10% of GDP');
+assertClaim(fromTop(pov) === 12 && Number(pov.value) > 45, 'extreme poverty 12th highest, over 45%');
+assertClaim(fromTop(remit) === 43, 'remittances 43rd');
+assertClaim(fromTop(tariff) === 26 && fromTop(lfpF) === 29 && Number(accM.value) > Number(accF.value), 'tariffs 26th; women participation 29th; men ahead on accounts');
+
+const title = `Kenya in Figures ${Y}: Mobile Money, Green Power, Debt, Poverty | AtlasFigures`;
+const description = `Nine in ten Kenyan adults hold an account, often on a phone, though only ${net.text} use the internet. Renewables give ${ren.text} of the country's electricity; population ${people(Number(pop.value))} (UN, ${Y}).`;
+
+const faq = [
+  { q: 'What is the Kenyan diaspora worth to the economy?', a: `Plenty: money wired home by Kenyans abroad totalled ${remit.text} during ${remit.year}, the 43rd-largest inflow anywhere.` },
+  { q: 'Are import tariffs high in Kenya?', a: `Fairly. Kenya's mean applied rate, ${tariff.text} in ${tariff.year}, sits in the top thirty of ${tariff.of} customs regimes.` },
+  { q: 'How many Kenyan women work or seek work?', a: `About ${lfpF.text} of those aged 15+, per the ILO's ${lfpF.year} estimate, 29th of ${lfpF.of} countries.` },
+  { q: 'How many young Kenyans go on to university?', a: `Relatively few: UNESCO's gross enrolment ratio for colleges and universities was ${ter.text} in ${ter.year}.` },
+];
+const headline = `Kenya in figures ${Y}: accounts on phones, renewable electricity, deficits and poverty`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Kenya in figures: banking by phone and a grid run on renewables"
+  headline={headline}
+  faq={faq}
+  faqTitle="Kenya explained in four questions"
+  related={[
+    { href: '/country/kenya/population/', label: 'Kenya population: live count' },
+    { href: '/country/kenya/economy/', label: 'Kenya economy: GDP and the shilling' },
+    { href: '/country/kenya/health/', label: 'Kenya health: hunger, TB, children' },
+    { href: '/country/tanzania/', label: 'Tanzania in figures' },
+    { href: '/country/uganda/', label: 'Uganda in data' },
+    { href: '/country/ethiopia/', label: 'Ethiopia at a glance' },
+    { href: '/rankings/renewable-electricity-by-country/', label: 'Renewable electricity by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">UN demographers count <strong>{people(Number(pop.value))}</strong> Kenyans for {Y}, half of whom are younger than {age.text}. <strong>{acc.text} of adults</strong> hold money in a bank or on a phone-based wallet, and renewable sources generate {ren.text} of the country's electricity.</Fragment>
+  <div class="story-block prose">
+    <h2>What share of Kenyans can save or pay digitally?</h2>
+    <p>Nine in ten. Global Findex counted {acc.text} of Kenyans aged 15 and over with an account at a financial institution or a mobile-money provider in {acc.year}, {ordinal(fromTop(acc))} of {acc.of} countries, men ({accM.text}) slightly ahead of women ({accF.text}). Internet use is far lower, at {net.text} of the population.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How green is Kenya's power supply?</h2>
+    <p>Very. Clean sources made {ren.text} of Kenyan electricity in {ren.year}, according to Ember, {ordinal(fromTop(ren))} highest share worldwide. Wind and solar alone provided {ws.text} and hydropower {hydro.text}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How big is Kenya's budget deficit?</h2>
+    <p>Large. Kenya's {budget.year} budget showed a gap of {budget.text} of GDP, sixth deepest of {budget.of} countries reporting, and foreign debt stood at {ext.text}. GDP reached {gdp.text} after expanding {growth.text}; the shilling and inflation feature on <a href={path('/country/kenya/economy/')}>our Kenyan economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>What share of Kenyans are extremely poor?</h2>
+    <p>Close to half. In {pov.year}, {pov.text} of Kenyans got by on under $3.00 a day at 2021 prices, a World Bank estimate ranking {ordinal(fromTop(pov))} of {pov.of}. Each woman has {tfr.text} children on average, and our <a href={path('/country/kenya/population/')}>Kenya population figures</a> look further ahead.</p>
+  </div>
+</CountryHub>

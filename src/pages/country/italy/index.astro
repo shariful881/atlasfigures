@@ -1,0 +1,77 @@
+---
+// Italy country hub (task 173). Every figure comes from the country profile (src/data/profiles/ITA.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/italy.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { countryIndex, assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), births = st('population', 'births'), deaths = st('population', 'deaths'), age = st('population', 'medianAge');
+const tfr = st('population', 'fertility'), grow = st('population', 'growth'), life = st('population', 'lifeExp');
+const gdp = st('economy', 'gdp'), growth = st('economy', 'growth'), expense = st('economy', 'expense'), res = st('economy', 'reserves');
+const tour = st('trade', 'tourists'), tourInc = st('trade', 'tourismInc'), arts = st('education', 'articles'), hom = st('governance', 'homicide');
+
+const big = countryIndex.countries.filter((c) => c.population > 50e6).map((c) => ({ iso3: c.iso3, a: Number(stat(profile(c.iso3), 'population', 'medianAge').value) })).sort((a, b) => b.a - a.a);
+assertClaim(big[0].iso3 === 'JPN' && big[1].iso3 === 'ITA', 'second-oldest country of over 50 million, after Japan');
+const e0 = countryIndex.countries.filter((c) => c.population > 50e6).map((c) => ({ iso3: c.iso3, e: Number(stat(profile(c.iso3), 'population', 'lifeExp').value) })).sort((a, b) => b.e - a.e);
+assertClaim(e0[0].iso3 === 'JPN' && e0[1].iso3 === 'KOR' && e0[2].iso3 === 'ITA', 'third-longest life expectancy above 50 million, after Japan and South Korea');
+assertClaim(Number(deaths.value) - Number(births.value) > 3 * Number(st('population', 'netMigrants').value), 'natural decrease more than three times net migration');
+const ratio = Number(deaths.value) / Number(births.value);
+assertClaim(ratio > 1.7 && ratio < 1.8 && Number(grow.value) < 0 && Number(tfr.value) < 1.25, 'deaths about 1.75 times births; shrinking; fertility under 1.25');
+assertClaim(fromTop(gdp) === 9 && fromBottom(growth) === 24 && Number(growth.value) < 1 && fromTop(res) === 10, 'ninth GDP, 24th-weakest growth under 1%, tenth reserves');
+assertClaim(fromTop(tour) === 6 && tour.year === 2020 && fromTop(tourInc) === 7, 'sixth for tourist arrivals and seventh for receipts (2020)');
+assertClaim(fromTop(arts) === 8 && fromBottom(hom) === 15 && fromTop(expense) === 8, 'eighth for scientific articles; 15th-lowest homicide; 8th spending share');
+
+const title = `Italy in Figures ${Y}: Ageing, Shrinking Population, Economy, Tourism | AtlasFigures`;
+const description = `Italy is the second-oldest large country after Japan, with roughly seven deaths for every four births in ${Y}. Its economy, worth ${gdp.text}, ranks ninth; ${people(Number(pop.value))} people (UN).`;
+
+const faq = [
+  { q: 'How many scientific papers do Italian researchers publish?', a: `Plenty: ${arts.text} peer-reviewed papers in ${arts.year}, a tally (NSF data, via WDI) beaten by only ${fromTop(arts) - 1} nations.` },
+  { q: 'Is Italy a safe country by homicide rate?', a: `On that yardstick, very: UNODC recorded ${hom.text} murders for each 100,000 Italians in ${hom.year}, and only ${fromBottom(hom) - 1} countries report fewer.` },
+  { q: 'How big are Italy’s foreign reserves?', a: `Gold included, the central bank held ${res.text} at the close of ${res.year}, number ${fromTop(res)} worldwide.` },
+  { q: 'What share of Italian GDP does the government spend?', a: `Almost half. The Italian state's ${expense.year} outlays were equivalent to ${expense.text} of the economy, eighth-largest ratio among the ${expense.of} governments compared.` },
+];
+const headline = `Italy in figures ${Y}: an ageing and shrinking population, a slow economy and mass tourism`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Italy in figures: an old, shrinking nation that still draws the crowds"
+  headline={headline}
+  faq={faq}
+  faqTitle="Italy, in a few questions"
+  related={[
+    { href: '/country/italy/population/', label: 'Italy population: live count and decline' },
+    { href: '/country/italy/economy/', label: 'Italy economy: GDP and debt' },
+    { href: '/country/italy/health/', label: 'Italy health: infants, doctors, vaccines' },
+    { href: '/country/france/', label: 'France in figures' },
+    { href: '/country/germany/', label: 'Germany by the numbers' },
+    { href: '/country/turkey/', label: 'Turkey at a glance' },
+    { href: '/rankings/gdp-by-country/', label: 'GDP of every country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Italy's {Y} headcount, <strong>{people(Number(pop.value))}</strong> by UN reckoning, is contracting by {grow.text.replace('-', '')} annually. A median age of <strong>{age.text}</strong> is topped, among nations of over fifty million, by Japan's alone. Output totals {gdp.text}, {ordinal(fromTop(gdp))} in the world.</Fragment>
+  <div class="story-block prose">
+    <h2>What is making Italy's population smaller?</h2>
+    <p>A wide excess of deaths that immigration only partly offsets. The UN foresees {int(Number(deaths.value))} Italian deaths in {Y} and just {int(Number(births.value))} births; Italian women have {tfr.text} babies apiece on average. The decline is projected decade by decade in <a href={path('/country/italy/population/')}>our tracker of Italy's population</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Italian life expectancy among the world's highest?</h2>
+    <p>Yes: {life.text} years for a child born in {Y}. Of the world's big nations, those above fifty million people, only Japan and South Korea score higher.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is the Italian economy growing?</h2>
+    <p>Barely. Real GDP inched up {growth.text} in {growth.year}, the {ordinal(fromBottom(growth))} slowest pace of {growth.of} economies, though Italy still produced {gdp.text}, {ordinal(fromTop(gdp))} worldwide. Year-on-year growth, inflation and debt live on <a href={path('/country/italy/economy/')}>our Italian economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How popular is Italy with foreign visitors?</h2>
+    <p>The World Bank's latest count, for {tour.year}, records {people(Number(tour.value))} international arrivals, {ordinal(fromTop(tour))} most worldwide, spending {tourInc.text} ({ordinal(fromTop(tourInc))}).</p>
+  </div>
+</CountryHub>

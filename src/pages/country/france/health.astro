@@ -1,0 +1,104 @@
+---
+// France health (task 173). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/france.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), infant = st('infant'), neo = st('neonatal'), mat = st('maternal'), doc = st('doctors'), nurse = st('nurses'), beds = st('beds');
+const hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop'), tob = st('tobacco'), measles = st('measles');
+const U = u5.year!;
+
+assertClaim(fromTop(hGdp) === 13 && fromTop(hPc) === 19 && fromBottom(oop) === 21, 'health spending 13th share, 19th per person; 21st-lowest out-of-pocket share');
+const peak = s.healthSpendPctGdp.reduce((a, b) => (b[1] > a[1] ? b : a));
+assertClaim(peak[0] === 2021 && Number(hGdp.value) < peak[1] - 0.5, 'health share peaked in 2021 and is now over half a point lower');
+const tob00 = v('tobaccoPct', 2000);
+assertClaim(fromTop(tob) === 18 && tob00 - Number(tob.value) < 1.5, 'tobacco use 18th highest, down less than 1.5 points since 2000');
+const neoMin = s.neonatalMortality.reduce((a, b) => (b[1] < a[1] ? b : a));
+assertClaim(neoMin[0] === 2010 && Number(neo.value) > neoMin[1] + 0.4 && Number(u5.value) > v('under5Mortality', 2010), 'newborn rate lowest in 2010, now higher; under-five above 2010');
+assertClaim(fromTop(nurse) === 26 && Number(nurse.value) / Number(doc.value) > 2.8 && fromTop(beds) === 19, 'nurses 26th, nearly three per doctor, beds 19th');
+const m90 = v('measlesVaccPct', 1990);
+assertClaim(m90 < 75 && Number(measles.value) === 95, 'measles coverage from under 75% in 1990 to 95%');
+
+const title = `France Health Data ${U}: Spending, Smoking, Infant Deaths | AtlasFigures`;
+const description = `France put ${hGdp.text} of its GDP into health care in ${hGdp.year}, yet ${tob.text} of adults in France still use tobacco (barely below the 2000 level) and newborn deaths sit above their 2010 low.`;
+
+const faq = [
+  { q: 'What is French health expenditure per head?', a: `${hPc.text} for every resident in ${hPc.year}, rank ${fromTop(hPc)} of ${hPc.of}, which equals ${hGdp.text} of national output.` },
+  { q: 'What share of French health bills do patients pay directly?', a: `Just ${oop.text} in ${oop.year}; twenty countries, no more, leave less of the cost to patients.` },
+  { q: 'Is smoking still widespread in France?', a: `Yes: about a third of French adults (${tob.text}, ${tob.year}) use tobacco by WHO's reckoning, eighteenth-highest rate of ${tob.of}, versus ${pct(tob00)} in 2000.` },
+  { q: 'How many French women die in pregnancy or childbirth?', a: `Very few: UN agencies put ${mat.year} maternal mortality at ${mat.text} for every 100,000 deliveries, down from ${v('maternalMortality', 1990)} in 1990, by UN inter-agency estimates.` },
+];
+const headline = `France health ${U}: high spending, stubborn smoking and infant survival`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="France's health: a big budget, low patient bills, persistent smoking"
+  headline={headline}
+  tableTitle={`French health indicators by year, 1990–${U}`}
+  tableSubtitle="Twelve chosen years appear here; the CSV holds France's complete record."
+  faq={faq}
+  faqTitle="French health: short replies"
+  related={[
+    { href: '/country/france/', label: 'France in figures' },
+    { href: '/country/france/population/', label: 'France population and life expectancy' },
+    { href: '/country/italy/health/', label: 'Italy health' },
+    { href: '/country/germany/health/', label: 'Germany health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal mortality ranked' },
+  ]}
+>
+  <Fragment slot="answer">Health care takes <strong>{hGdp.text} of French GDP</strong> ({hGdp.year}), a proportion exceeded in only twelve countries, and patients pay only {oop.text} of the bill themselves. Yet <strong>{tob.text} of adults</strong> use tobacco, almost as many as in 2000.</Fragment>
+  <div class="story-block prose">
+    <h2>How much of its economy does France put into health?</h2>
+    <p>More than nearly any other country. French health spending reached a record {pct(peak[1])} of GDP in {peak[0]} and stood at {hGdp.text} in {hGdp.year}; per inhabitant that is {hPc.text}. Households cover {oop.text} directly, one of the smallest shares anywhere.</p>
+  </div>
+  <LineChart
+    title={`What France spends on health, % of output, 2000–${hGdp.year}`}
+    subtitle="French current health expenditure by all payers, divided by GDP; WHO data via the World Bank."
+    points={s.healthSpendPctGdp.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="percent"
+    highlight={hGdp.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Are fewer French adults smoking than in 2000?</h2>
+    <p>Only marginally. The WHO estimate slipped from {pct(tob00)} in 2000 to {tob.text} by {tob.year}, under one and a half points in two decades, leaving France seventeen places from the top.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are French infant deaths still falling?</h2>
+    <p>Not since about 2010. Deaths in the first four weeks reached a low of {neoMin[1]} for every thousand babies in {neoMin[0]} and had risen to {neo.text} by {U}. The first-year rate is {infant.text}, and losses before age five {u5.text}, compared with {v('under5Mortality', 1990)} in 1990.</p>
+  </div>
+  <LineChart
+    title={`Neonatal mortality in France, 1990–${U}`}
+    subtitle="Newborn deaths in France within 28 days of birth, for each thousand born alive; UN IGME series."
+    points={s.neonatalMortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 live births"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is France well staffed with nurses?</h2>
+    <p>Yes. The WHO workforce data show {nurse.text} nursing personnel for each thousand residents in {nurse.year}, 26th in the world and close to three per doctor ({doc.text} per thousand), plus {beds.text} hospital beds per thousand, 19th. First-dose measles cover climbed from {m90}% in 1990 to {measles.text}. French lifespans feature in <a href={path('/country/france/population/')}>our population figures for France</a>.</p>
+  </div>
+</HealthTopic>

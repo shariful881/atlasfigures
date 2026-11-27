@@ -1,0 +1,73 @@
+---
+// Sudan country hub (task 173). Every figure comes from the country profile (src/data/profiles/SDN.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/sudan.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { countryIndex, assertClaim, people } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), grow = st('population', 'growth'), age = st('population', 'medianAge'), tfr = st('population', 'fertility');
+const infl = st('economy', 'inflation'), gniPpp = st('economy', 'gniPpp'), gdp = st('economy', 'gdp'), sav = st('economy', 'savings');
+const out = st('education', 'outSchool'), enr = st('education', 'enrPri'), lfpF = st('jobs', 'lfpF'), water = st('environment', 'water');
+const cereal = st('farming', 'cereal'), hydro = st('energy', 'hydroShare'), elec = st('internet', 'electricity');
+
+const big = countryIndex.countries.filter((c) => c.population > 50e6).map((c) => ({ iso3: c.iso3, g: Number(stat(profile(c.iso3), 'population', 'growth').value) })).sort((a, b) => b.g - a.g);
+assertClaim(big[0].iso3 === 'COD' && big[1].iso3 === 'SDN' && Number(age.value) < 19, 'second-fastest growth above 50 million after DR Congo; median age under 19');
+assertClaim(infl.year === 2022 && fromTop(infl) === 2 && Number(infl.value) > 100, 'inflation above 100% in 2022, second highest');
+assertClaim(fromTop(out) === 4 && Number(out.value) > 3e6 && fromBottom(enr) === 5 && out.year === 2019, 'over 3 million out of school (2019), 4th; primary enrolment 5th lowest');
+assertClaim(fromBottom(lfpF) === 7 && Number(lfpF.value) < 15, "women's participation 7th lowest, under 15%");
+assertClaim(fromTop(water) === 7 && Number(water.value) > 600 && fromBottom(cereal) === 5, 'water withdrawals 7th (over 600%), cereal yields 5th lowest');
+assertClaim(fromBottom(gniPpp) === 9 && fromBottom(sav) === 6 && fromTop(hydro) === 16, 'GNI per person PPP 9th lowest; savings 6th lowest; hydropower 16th');
+
+const title = `Sudan in Figures ${Y}: Fast Growth, Inflation, Schools, Water | AtlasFigures`;
+const description = `Sudan's ${people(Number(pop.value))} people grow ${grow.text} a year (UN, ${Y}), second fastest among nations over 50 million. Its last inflation reading was ${infl.text} (${infl.year}), and ${people(Number(out.value))} children were out of school in ${out.year}.`;
+
+const faq = [
+  { q: 'How much does a typical Sudanese earn?', a: `Adjusted for local prices, national income per resident came to ${gniPpp.text} in ${gniPpp.year}; eight countries sit lower out of ${gniPpp.of}.` },
+  { q: 'Who has electricity in Sudan, and from what?', a: `${elec.text} of Sudanese were connected in ${elec.year}, and the Nile dams supply most of the power: hydro was ${hydro.text} of output in ${hydro.year} on Ember's numbers.` },
+  { q: 'Do Sudanese households save?', a: `Hardly at all: national saving amounted to ${sav.text} of GDP in ${sav.year}, five places off the very bottom of ${sav.of}.` },
+  { q: 'Do Sudanese families still have many children?', a: `Yes: ${tfr.text} per woman over a lifetime, the UN projects for ${Y}.` },
+];
+const headline = `Sudan in figures ${Y}: rapid population growth, inflation, schooling and water stress`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Sudan in figures: a young, fast-growing population under heavy strain"
+  headline={headline}
+  faq={faq}
+  faqTitle="Sudan: further facts"
+  related={[
+    { href: '/country/sudan/population/', label: 'Sudan population: live count and growth' },
+    { href: '/country/sudan/health/', label: 'Sudan health: vaccines, children, spending' },
+    { href: '/country/egypt/', label: 'Egypt in figures' },
+    { href: '/country/ethiopia/', label: 'Ethiopia by the numbers' },
+    { href: '/country/uganda/', label: 'Uganda in data' },
+    { href: '/rankings/inflation-rate-by-country/', label: 'Inflation by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">UN demographers expect <strong>{people(Number(pop.value))}</strong> Sudanese in {Y}, a total climbing <strong>{grow.text} a year</strong> from a median age of {age.text}. The last published inflation rate, for {infl.year}, was {infl.text}; output for {gdp.year} came to {gdp.text}.</Fragment>
+  <div class="story-block prose">
+    <h2>Which large countries grow faster than Sudan?</h2>
+    <p>Just one: among nations above 50 million people only DR Congo outpaces Sudan's projected {grow.text} a year for {Y}, a rate driven by an average of {tfr.text} births per woman. Our <a href={path('/country/sudan/population/')}>Sudan population tracker</a> carries the series to 2100.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>What was Sudan's latest inflation rate?</h2>
+    <p>{infl.text} for {infl.year}, the final year with a published consumer price figure; on that reading only one of {infl.of} countries saw prices climb faster.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many Sudanese children are out of school?</h2>
+    <p>In {out.year}, the last UNESCO count, {people(Number(out.value))} primary-age Sudanese were not in class, the fourth-largest such group worldwide, and gross enrolment at that level was {enr.text}, fifth lowest of {enr.of}. Female labour participation stood at only {lfpF.text} ({lfpF.year}).</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Sudan short of water?</h2>
+    <p>Of water generated within its borders, yes. Sudanese withdrawals reached {water.text} of the country's own renewable freshwater in {water.year}, FAO reports, seventh-highest ratio; anything above 100% means drawing more than internal sources renew. Grain harvests average {cereal.text} kg a hectare, among the five poorest yields of {cereal.of}.</p>
+  </div>
+</CountryHub>

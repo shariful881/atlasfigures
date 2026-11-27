@@ -1,0 +1,75 @@
+---
+// Uganda country hub (task 173). Every figure comes from the country profile (src/data/profiles/UGA.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/uganda.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { countryIndex, assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), births = st('population', 'births'), deaths = st('population', 'deaths'), age = st('population', 'medianAge');
+const grow = st('population', 'growth'), tfr = st('population', 'fertility');
+const pov = st('economy', 'pov300'), gdp = st('economy', 'gdp'), growth = st('economy', 'growth'), gdpPc = st('economy', 'gdpPc');
+const agriJobs = st('jobs', 'empAgri'), indJobs = st('jobs', 'empInd'), lfpF = st('jobs', 'lfpF'), agriLand = st('farming', 'agriLand'), arable = st('farming', 'arable');
+const net = st('internet', 'internet'), cook = st('internet', 'cleanCook'), elec = st('internet', 'electricity'), hydro = st('energy', 'hydroShare'), co2pc = st('environment', 'co2pc');
+
+const big = countryIndex.countries.filter((c) => c.population > 50e6).map((c) => { const q = profile(c.iso3); return { iso3: c.iso3, r: Number(stat(q, 'population', 'births').value) / Number(stat(q, 'population', 'deaths').value), a: Number(stat(q, 'population', 'medianAge').value) }; });
+const byRatio = [...big].sort((a, b) => b.r - a.r), byAge = [...big].sort((a, b) => a.a - b.a);
+assertClaim(byRatio[0].iso3 === 'UGA' && byRatio[0].r > 7 && byAge[0].iso3 === 'COD' && byAge[1].iso3 === 'UGA', 'most births per death of any country over 50 million (over 7); second youngest after DR Congo');
+assertClaim(fromTop(pov) === 9 && Number(pov.value) > 50, 'extreme poverty ninth highest, over half');
+assertClaim(fromTop(agriJobs) === 9 && fromBottom(indJobs) === 8 && fromTop(lfpF) === 9 && fromTop(agriLand) === 7 && fromTop(arable) === 11, 'farm jobs 9th, industry jobs 8th lowest, women working 9th, farmland 7th, arable 11th');
+assertClaim(fromBottom(net) === 3 && Number(net.value) < 10 && fromBottom(cook) === 5 && fromBottom(co2pc) === 9, 'internet use 3rd lowest under 10%, clean cooking 5th lowest, CO2 per person 9th lowest');
+assertClaim(fromTop(hydro) === 12 && Number(hydro.value) > 80 && fromTop(growth) === 28, 'hydropower 12th above 80%; growth 28th');
+
+const title = `Uganda in Figures ${Y}: Births, Farming, Poverty, Internet | AtlasFigures`;
+const description = `Uganda registers seven births per death, a ratio unmatched by any other country its size or bigger. Two in three workers farm, and just ${net.text} of Ugandans go online; population ${people(Number(pop.value))} (UN, ${Y}).`;
+
+const faq = [
+  { q: 'Is Uganda’s economy expanding quickly?', a: `Yes: after inflation it grew ${growth.text} in ${growth.year}, 28th-best of ${growth.of}, to ${gdp.text}, though that is only ${gdpPc.text} a head.` },
+  { q: 'Does Uganda run on hydropower?', a: `Largely. Turbines on its rivers produced ${hydro.text} of the national supply in ${hydro.year}, by Ember's tally, yet only ${elec.text} of the population is connected.` },
+  { q: 'How much CO2 does each Ugandan emit?', a: `Very little: the Global Carbon Project estimates ${co2pc.text} t per resident for ${co2pc.year}, with eight countries emitting less per head.` },
+  { q: 'How much of Uganda can be ploughed?', a: `A lot: FAO classes ${arable.text} of Uganda's area as arable (${arable.year}), more than in all but ten countries.` },
+];
+const headline = `Uganda in figures ${Y}: a baby boom, farm jobs, extreme poverty and limited internet access`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Uganda in figures: seven births per death and a country of farmers"
+  headline={headline}
+  faq={faq}
+  faqTitle="Uganda, quickly"
+  related={[
+    { href: '/country/uganda/population/', label: 'Uganda population: live count and growth' },
+    { href: '/country/uganda/economy/', label: 'Uganda economy: GDP and the shilling' },
+    { href: '/country/uganda/health/', label: 'Uganda health: malaria, children, diabetes' },
+    { href: '/country/kenya/', label: 'Kenya in figures' },
+    { href: '/country/tanzania/', label: 'Tanzania by the numbers' },
+    { href: '/country/dr-congo/', label: 'DR Congo in data' },
+    { href: '/rankings/employment-in-agriculture-by-country/', label: 'Farm employment by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Uganda's headcount, <strong>{people(Number(pop.value))}</strong> for {Y} per the UN, swells by {grow.text} a year; the median citizen is just {age.text}. <strong>{agriJobs.text} of workers</strong> are employed in agriculture, and {pov.text} of Ugandans live on less than $3.00 a day.</Fragment>
+  <div class="story-block prose">
+    <h2>Why does Uganda have so many births per death?</h2>
+    <p>A very young population and high fertility ({tfr.text} children per woman) combine: UN projections show {people(Number(births.value))} Ugandan babies arriving in {Y} against {int(Number(deaths.value))} deaths, a seven-to-one ratio no other nation of comparable size matches. The <a href={path('/country/uganda/population/')}>Uganda population tracker</a> runs the projection forward.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Do most Ugandans work in farming?</h2>
+    <p>Yes. ILO estimates give agriculture {agriJobs.text} of all employment in {agriJobs.year}, ninth-biggest share, against just {indJobs.text} for industry. Crops and pasture occupy {agriLand.text} of the land, seventh most, and {lfpF.text} of Ugandan women participate in the job market.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is extreme poverty widespread in Uganda?</h2>
+    <p>It touches more than half the population: {pov.text} fell below the $3.00-a-day threshold in {pov.year}, and just eight of {pov.of} countries surveyed fared worse. Further economic series sit on <a href={path('/country/uganda/economy/')}>Uganda's economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Do Ugandans have internet and electricity?</h2>
+    <p>Mostly not yet. Internet use reached a mere {net.text} of the population in {net.year}, ITU says, with just two of {net.of} countries lower; {elec.text} have power at home and a mere {cook.text} cook on clean fuels.</p>
+  </div>
+</CountryHub>
