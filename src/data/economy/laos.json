@@ -1,0 +1,47 @@
+{
+  "slug": "laos",
+  "name": "Laos",
+  "demonym": "Lao",
+  "capital": "Vientiane",
+  "iso3": "LAO",
+  "code": "la",
+  "continent": "Asia",
+  "wikipedia": "https://en.wikipedia.org/wiki/Laos",
+  "published": "2026-11-27",
+  "updated": "2026-11-27",
+  "tableYears": [
+    1984,
+    1985,
+    1989,
+    1990,
+    1999,
+    2000,
+    2010,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "verification": {
+    "checkedOn": "2026-11-27",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/econ-batch19.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; then the rendered text was read by hand",
+    "what": "Every figure in the direct answer, indicator cards, Key facts, story, table, CSV, FAQ, title, description and JSON-LD, and the claim behind each sentence (records, 'since' years, rank positions, start years of each series, and the export, forest, under-five mortality, agricultural employment and literacy figures quoted from other World Bank series)",
+    "against": "World Bank WDI bulk files and country metadata (update 11 November 2026, CC BY 4.0)",
+    "result": "All 2,704 automated comparisons across the five pages matched; before publishing, unverifiable phrases ('some of the biggest swings anywhere', 'more than almost anywhere in Europe') and 'why' questions the data cannot answer were removed, and a causal sentence about Irish exporters without a source was dropped"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-27",
+      "type": "published",
+      "note": "First version: World Bank WDI figures (update of 11 November 2026)."
+    }
+  ]
+}
