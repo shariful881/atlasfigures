@@ -1,0 +1,103 @@
+---
+// Ukraine health (task 174). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/ukraine.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), dpt = st('dpt'), measles = st('measles'), under = st('undernour'), tob = st('tobacco'), tb = st('tb');
+const beds = st('beds'), hGdp = st('healthGdp'), oop = st('oop'), mat = st('maternal');
+const U = u5.year!;
+
+const dLow = s.dptVaccPct.reduce((a, b) => (b[1] < a[1] ? b : a)), mLow = s.measlesVaccPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+assertClaim(dLow[0] === 2016 && mLow[0] === 2016 && Number(dpt.value) > 4 * dLow[1] && Number(measles.value) > 2 * mLow[1], 'DPT and measles lowest in 2016; DPT now over four times, measles over twice that');
+const un = s.undernourishedPct.filter(([y]) => y >= 2016).map((x) => x[1]);
+assertClaim(un.every((x, i) => i === 0 || x > un[i - 1]) && Number(under.value) === Math.max(...s.undernourishedPct.map((x) => x[1])) && Number(under.value) > 2.5 * v('undernourishedPct', 2019), 'undernourishment up every year since 2016, at its highest, over 2.5 times 2019');
+const t00 = v('tobaccoPct', 2000);
+assertClaim(Number(tob.value) < 0.6 * t00, 'tobacco use down over 40% since 2000');
+const tbPeak = s.tbIncidence.reduce((a, b) => (b[1] > a[1] ? b : a)), tbLow = s.tbIncidence.reduce((a, b) => (b[1] < a[1] ? b : a));
+assertClaim(tbPeak[0] === 2003 && tbLow[0] === 2020 && Number(tb.value) > tbLow[1] && Number(tb.value) < tbPeak[1] / 2, 'TB peak 2003, low 2020, now above the low and under half the peak');
+const m20 = v('maternalMortality', 2020), m21 = v('maternalMortality', 2021);
+assertClaim(fromTop(beds) === 15 && hGdp.year === 2021 && m21 > 1.4 * m20 && Number(mat.value) < m20, 'beds 15th; health spending data end 2021; maternal ratio jumped in 2021, now below 2020');
+
+const title = `Ukraine Health Data ${U}: Vaccination Recovery, Hunger, TB, Smoking | AtlasFigures`;
+const description = `Ukraine's DPT coverage climbed back from ${dLow[1]}% (${dLow[0]}) to ${dpt.text} in ${dpt.year}. FAO's undernourishment rate has risen annually since 2016 to ${under.text}; ${tob.text} use tobacco.`;
+
+const faq = [
+  { q: 'Does Ukraine have many hospital beds?', a: `Plenty by international standards: ${beds.text} per thousand residents in ${beds.year}, fourteen countries having more.` },
+  { q: 'What is the latest health spending figure for Ukraine?', a: `For ${hGdp.year}, WHO reports health spending equal to ${hGdp.text} of GDP, of which ${oop.text} came directly from households.` },
+  { q: 'Did Ukraine\'s maternal mortality jump in 2021?', a: `Yes, from ${m20} to ${m21} on MMEIG's model (deaths per 100,000 live births); by ${mat.year} it was back to ${mat.text}.` },
+  { q: 'What is child mortality in Ukraine?', a: `UN IGME's ${U} under-five rate for Ukraine is ${u5.text} per thousand.` },
+];
+const headline = `Ukraine health ${U}: child vaccination back up, undernourishment climbing, tobacco and TB lower`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Ukraine's health: vaccines rebound while hunger rises"
+  headline={headline}
+  tableTitle={`Ukraine health figures, 1990–${U}`}
+  tableSubtitle="Representative years; Ukraine's annual series is in the downloadable file."
+  faq={faq}
+  faqTitle="Ukrainian health, short answers"
+  related={[
+    { href: '/country/ukraine/', label: 'Ukraine in figures' },
+    { href: '/country/ukraine/population/', label: 'Ukraine population and births' },
+    { href: '/country/russia/health/', label: 'Russia health' },
+    { href: '/country/turkey/health/', label: 'Turkey health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality by country' },
+  ]}
+>
+  <Fragment slot="answer">Three-dose DPT coverage in Ukraine reached <strong>{dpt.text}</strong> in {dpt.year}, up from {dLow[1]}% in {dLow[0]}. FAO's undernourishment estimate has climbed to <strong>{under.text}</strong>, the highest in its series, while tobacco use fell to {tob.text}.</Fragment>
+  <div class="story-block prose">
+    <h2>How did child vaccination recover in Ukraine?</h2>
+    <p>From a deep trough. WHO and UNICEF estimate DPT coverage at {dLow[1]}% and measles at {mLow[1]}% in {dLow[0]}; by {dpt.year} the figures were {dpt.text} and {measles.text}.</p>
+  </div>
+  <LineChart
+    title={`Ukraine's DPT3 vaccination rate since 1992`}
+    subtitle="Diphtheria, tetanus and pertussis coverage in Ukraine, percent of one-year-olds (WHO/UNICEF)."
+    points={s.dptVaccPct.map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={dpt.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is undernourishment rising in Ukraine?</h2>
+    <p>Yes, without a break since 2016 in FAO's three-year averages: {pct(v('undernourishedPct', 2019))} in 2019 and {under.text} in {under.year}.</p>
+  </div>
+  <LineChart
+    title={`Undernourished Ukrainians, 2001–${under.year}`}
+    subtitle="Share of Ukrainians without enough food energy, FAO; readings below 2.5% are published as 2.5%."
+    points={s.undernourishedPct.map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={under.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Do fewer Ukrainians smoke than in 2000?</h2>
+    <p>Many fewer. WHO's estimate fell from {pct(t00)} in 2000 to {tob.text} by {tob.year}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Ukraine's TB rate lower than in the 2000s?</h2>
+    <p>Much lower. WHO's estimate topped {tbPeak[1]} per 100k in {tbPeak[0]}, dipped to {tbLow[1]} in {tbLow[0]} and was {tb.text} in {tb.year}. The UN's population projections for Ukraine are on <a href={path('/country/ukraine/population/')}>its live page</a>.</p>
+  </div>
+</HealthTopic>

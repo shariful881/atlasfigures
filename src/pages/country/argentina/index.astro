@@ -1,0 +1,74 @@
+---
+// Argentina country hub (task 174). Every figure comes from the country profile (src/data/profiles/ARG.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/argentina.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { countryIndex, assertClaim, people } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), urban = st('population', 'urban'), tfr = st('population', 'fertility');
+const infl = st('economy', 'inflation'), growth = st('economy', 'growth'), gdp = st('economy', 'gdp'), gini = st('economy', 'gini');
+const ext = st('economy', 'extDebt'), impPct = st('trade', 'importsPct');
+const land = st('facts', 'landArea'), arablePc = st('farming', 'arablePc');
+const ter = st('education', 'enrTer'), doc = st('health', 'doctors'), cook = st('internet', 'cleanCook');
+
+const big = countryIndex.countries.filter((c) => c.population > 30e6).map((c) => ({ iso3: c.iso3, u: (() => { try { return Number(stat(profile(c.iso3), 'population', 'urban').value); } catch { return 0; } })() })).sort((a, b) => b.u - a.u);
+assertClaim(big[0].iso3 === 'ARG' && Number(urban.value) > 90, 'most urban country above 30 million, over 90%');
+assertClaim(fromTop(infl) === 1 && infl.year === 2024 && Number(infl.value) > 200 && Number(growth.value) > 4, 'highest inflation (2024), over 200%; growth above 4%');
+assertClaim(fromTop(land) === 8 && fromTop(arablePc) === 3 && Number(arablePc.value) > 1, 'eighth-largest land area; third for arable land per person, over a hectare');
+assertClaim(fromTop(ext) === 8 && fromBottom(impPct) === 7, 'external debt eighth; imports seventh-lowest share of GDP');
+assertClaim(fromTop(ter) === 9 && fromTop(doc) === 9 && Number(cook.value) === 100 && fromTop(gini) === 18, 'tertiary ninth, doctors ninth, clean cooking 100%, Gini 18th');
+
+const title = `Argentina in Figures ${Y}: Inflation, Cities, Farmland, Foreign Debt | AtlasFigures`;
+const description = `Prices in Argentina rose ${infl.text} during ${infl.year}, more than anywhere else. Some ${urban.text} of Argentines are urban, yet each has ${arablePc.text} hectares of arable land to their name.`;
+
+const faq = [
+  { q: 'How many Argentines go to university?', a: `Enrolment in tertiary education equalled ${ter.text} of the relevant age group in ${ter.year} (a gross ratio that counts older students too), ${ordinal(fromTop(ter))} highest of ${ter.of}.` },
+  { q: 'Does Argentina have many doctors?', a: `Yes: ${doc.text} physicians per 1,000 people in ${doc.year}, ${ordinal(fromTop(doc))} among ${doc.of} countries in WHO's data.` },
+  { q: 'Do Argentine homes cook with clean fuels?', a: `All of them, on WHO's ${cook.year} estimate of ${cook.text}.` },
+  { q: 'Is income inequality high in Argentina?', a: `Moderately: a Gini coefficient of ${gini.text} from the ${gini.year} survey, ${ordinal(fromTop(gini))} on a list of ${gini.of}.` },
+];
+const headline = `Argentina in figures ${Y}: record inflation, the most urban large country and vast farmland`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Argentina in figures: runaway prices, packed cities, open plains"
+  headline={headline}
+  faq={faq}
+  faqTitle="Argentina, four things more"
+  related={[
+    { href: '/country/argentina/population/', label: 'Argentina population: live count' },
+    { href: '/country/argentina/economy/', label: 'Argentina economy: GDP and the peso' },
+    { href: '/country/argentina/health/', label: 'Argentina health: TB, vaccines, doctors' },
+    { href: '/country/brazil/', label: 'Brazil in figures' },
+    { href: '/country/colombia/', label: 'Colombia data hub' },
+    { href: '/country/mexico/', label: 'Mexico at a glance' },
+    { href: '/rankings/inflation-rate-by-country/', label: 'Inflation rate by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Argentina's {Y} headcount is <strong>{people(Number(pop.value))}</strong>, and the country counts an extraordinary <strong>{urban.text}</strong> of its people as urban. Its {infl.year} inflation rate, {infl.text}, topped every other country reporting.</Fragment>
+  <div class="story-block prose">
+    <h2>Did Argentina have the world's highest inflation?</h2>
+    <p>Yes, in {infl.year}: prices jumped {infl.text}, first among {infl.of} reporting economies. The following year real output expanded {growth.text}, to {gdp.text}; <a href={path('/country/argentina/economy/')}>our Argentine economy page</a> charts both.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Argentina the most urbanised large country?</h2>
+    <p>It is: {urban.text} of residents live in places Argentina defines as urban, a share no country above 30 million matches. Fertility has dropped to {tfr.text}; <a href={path('/country/argentina/population/')}>Argentina's population tracker</a> runs the live count.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much farmland does Argentina have per person?</h2>
+    <p>About {arablePc.text} hectares of arable land per resident in {arablePc.year}, {ordinal(fromTop(arablePc))} most of {arablePc.of}. The national territory covers {land.text} km², {ordinal(fromTop(land))} largest.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How large is Argentina's external debt?</h2>
+    <p>{ext.text} at the {ext.year} count, making Argentina the {ordinal(fromTop(ext))} biggest debtor of {ext.of} that file statistics with the World Bank. It buys relatively little from abroad: imports were {impPct.text} of GDP, {ordinal(fromBottom(impPct))} lowest.</p>
+  </div>
+</CountryHub>

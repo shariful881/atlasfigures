@@ -1,0 +1,76 @@
+---
+// Canada country hub (task 174). Every figure comes from the country profile (src/data/profiles/CAN.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/canada.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { countryIndex, assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), net = st('population', 'netMigrants'), mig = st('population', 'migrantStock'), dens = st('population', 'density');
+const births = st('population', 'births'), deaths = st('population', 'deaths'), tfr = st('population', 'fertility');
+const land = st('facts', 'landArea'), forestA = st('environment', 'forestArea'), arablePc = st('farming', 'arablePc');
+const gen = st('energy', 'gen'), hydro = st('energy', 'hydroShare'), co2 = st('environment', 'co2'), co2pc = st('environment', 'co2pc');
+const gdp = st('economy', 'gdp'), growth = st('economy', 'growth'), fdi = st('economy', 'fdi');
+const nurse = st('health', 'nurses'), hPc = st('health', 'healthPc'), arts = st('education', 'articles'), tour = st('trade', 'tourists');
+
+const big = countryIndex.countries.filter((c) => c.population > 30e6).map((c) => { const q = profile(c.iso3); return { iso3: c.iso3, m: Number(stat(q, 'population', 'netMigrants').value) / c.population }; }).sort((a, b) => b.m - a.m);
+const natural = Number(births.value) - Number(deaths.value);
+assertClaim(big[0].iso3 === 'CAN' && natural > 0 && Number(net.value) > 9 * natural && fromTop(mig) === 7, 'highest net migration rate above 30 million; net migration over nine times natural increase; migrant stock seventh');
+assertClaim(fromTop(land) === 4 && fromTop(forestA) === 3 && fromBottom(dens) === 11 && fromTop(arablePc) === 4, 'land fourth, forest third, density 11th lowest, arable per person fourth');
+assertClaim(fromTop(gen) === 7 && Number(hydro.value) > 50 && fromTop(co2) === 11 && fromTop(co2pc) === 16, 'generation seventh; hydro over half; CO2 11th, per person 16th');
+assertClaim(fromTop(gdp) === 10 && fromTop(fdi) === 8, 'GDP tenth; FDI eighth');
+assertClaim(fromTop(nurse) === 18 && fromTop(hPc) === 15 && fromTop(arts) === 10 && fromTop(tour) === 9 && tour.year === 2019, 'nurses 18th; health spending per person 15th; articles tenth; tourists ninth (2019)');
+
+const title = `Canada in Figures ${Y}: Immigration, Land, Forests, Energy, Economy | AtlasFigures`;
+const description = `Canada gains ${int(Number(net.value))} net migrants in ${Y}, the highest rate of any country of 30 million or more. Its ${land.text} km² include the world's third-largest forest area.`;
+
+const faq = [
+  { q: 'Does Canada have a lot of nurses?', a: `WHO's ${nurse.year} figure is ${nurse.text} nurses for every thousand Canadians, ${ordinal(fromTop(nurse))} of ${nurse.of}.` },
+  { q: 'What is Canadian health spending per head?', a: `WHO's health accounts give ${hPc.text} for ${hPc.year}, the ${ordinal(fromTop(hPc))} largest sum among ${hPc.of}.` },
+  { q: 'Is Canada a big producer of scientific research?', a: `It ranks ${ordinal(fromTop(arts))} for output, with ${int(Number(arts.value))} peer-reviewed articles counted in ${arts.year}.` },
+  { q: 'Is Canada a popular tourist destination?', a: `Very: visitors from abroad numbered ${people(Number(tour.value))} in ${tour.year}, its latest pre-pandemic year on record, ${ordinal(fromTop(tour))} worldwide.` },
+];
+const headline = `Canada in figures ${Y}: growth through migration, vast land and forest, hydro-heavy power`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Canada in figures: newcomers drive growth across a forested giant"
+  headline={headline}
+  faq={faq}
+  faqTitle="Canadian questions, short replies"
+  related={[
+    { href: '/country/canada/population/', label: 'Canada population: live count' },
+    { href: '/country/canada/economy/', label: 'Canada economy: GDP and prices' },
+    { href: '/country/canada/health/', label: 'Canada health: smoking, spending, nurses' },
+    { href: '/country/united-states/', label: 'United States in figures' },
+    { href: '/country/mexico/', label: 'Mexico data hub' },
+    { href: '/country/united-kingdom/', label: 'United Kingdom at a glance' },
+    { href: '/rankings/forest-area-by-country/', label: 'Forest area by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">The UN's {Y} projection for Canada is <strong>{people(Number(pop.value))}</strong>, with newcomers providing almost all the gain: a migration surplus of <strong>{int(Number(net.value))}</strong>, next to only {int(natural)} more births than deaths. The country stretches over {land.text} km².</Fragment>
+  <div class="story-block prose">
+    <h2>How much does immigration add to Canada's population?</h2>
+    <p>Most of the increase. Measured against its size, Canada's {Y} migration surplus is unmatched by any other nation above 30 million; meanwhile births ({int(Number(births.value))}) barely exceed deaths ({int(Number(deaths.value))}), with fertility at {tfr.text}. Foreign-born residents totalled {people(Number(mig.value))} in {mig.year}, {ordinal(fromTop(mig))} most; <a href={path('/country/canada/population/')}>Canada's population counter</a> tracks it live.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much land and forest does Canada have?</h2>
+    <p>Only three countries have more land, and only two more forest: {forestA.text} km² of woodland in {forestA.year}. Average density is {dens.text} residents per square kilometre, and each Canadian has {arablePc.text} hectares of cropland, {ordinal(fromTop(arablePc))} most.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How is Canada's electricity generated?</h2>
+    <p>Hydropower supplied {hydro.text} of the {gen.text} TWh generated in {gen.year}, Ember reports, {ordinal(fromTop(gen))} largest output. Fossil-fuel CO₂ from Canada totalled {co2.text} million tonnes, {ordinal(fromTop(co2))} most; per Canadian that is {co2pc.text} tonnes.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Canada a top-ten economy?</h2>
+    <p>Yes, {ordinal(fromTop(gdp))}, at {gdp.text} for {gdp.year}, following real expansion of {growth.text}. Foreign direct investment inflows of {fdi.text} ranked {ordinal(fromTop(fdi))}. <a href={path('/country/canada/economy/')}>Our Canadian economy page</a> covers jobs and inflation.</p>
+  </div>
+</CountryHub>

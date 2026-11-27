@@ -1,0 +1,77 @@
+---
+// Yemen country hub (task 174). Every figure comes from the country profile (src/data/profiles/YEM.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/yemen.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { countryIndex, assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), grow = st('population', 'growth'), age = st('population', 'medianAge'), tfr = st('population', 'fertility'), urban = st('population', 'urban');
+const births = st('population', 'births'), deaths = st('population', 'deaths');
+const lfpF = st('jobs', 'lfpF'), parl = st('governance', 'womenParl'), accF = st('internet', 'accountF'), unemp = st('jobs', 'unemp');
+const measles = st('health', 'measles'), stunt = st('health', 'stunting');
+const gdp = st('economy', 'gdp'), gdpPc = st('economy', 'gdpPc'), hh = st('economy', 'hhCons');
+const water = st('environment', 'water'), pm = st('environment', 'pm25'), net = st('internet', 'internet');
+
+const all = countryIndex.countries.map((c) => profile(c.iso3));
+const big = countryIndex.countries.filter((c) => c.population > 30e6).map((c) => { const q = profile(c.iso3); return { iso3: c.iso3, r: Number(stat(q, 'population', 'births').value) / Number(stat(q, 'population', 'deaths').value) }; }).sort((a, b) => b.r - a.r);
+assertClaim(big[0].iso3 === 'UGA' && big[1].iso3 === 'YEM' && Number(births.value) > 7 * Number(deaths.value) && Number(births.value) < 7.5 * Number(deaths.value), 'second-most births per death above 30 million, after Uganda; over seven');
+const noWomen = all.filter((q) => { try { return Number(stat(q, 'governance', 'womenParl').value) === 0; } catch { return false; } }).length;
+assertClaim(fromBottom(lfpF) === 1 && Number(parl.value) === 0 && noWomen === 3 && fromBottom(accF) === 1, "lowest women's participation; one of three parliaments without women; fewest women with accounts");
+assertClaim(fromBottom(measles) === 2 && fromTop(stunt) === 2 && Number(stunt.value) > 45, 'measles coverage second lowest; stunting second highest, over 45%');
+assertClaim(gdp.year === 2018 && fromBottom(gdpPc) === 6 && fromTop(hh) === 3 && Number(hh.value) > 100 && fromTop(unemp) === 12, 'GDP data end 2018; per person sixth lowest; consumption over 100%, third; unemployment 12th');
+assertClaim(fromTop(water) === 14 && fromTop(pm) === 15, 'water withdrawals 14th; PM2.5 15th');
+
+assertClaim(Number(urban.value) > 34 && Number(urban.value) < 40, 'a little more than a third urban');
+const title = `Yemen in Figures ${Y}: Birth Rate, Women Excluded From Work, Child Health | AtlasFigures`;
+const description = `For every Yemeni death there are seven births, and the female participation rate (${lfpF.text}) is the lowest on earth. First measles shots reached just ${measles.text} of infants in ${measles.year}.`;
+
+const faq = [
+  { q: 'Is Yemen running short of freshwater?', a: `Its withdrawals in ${water.year} came to ${water.text} of the freshwater its own territory replenishes, ${ordinal(fromTop(water))} on the list of ${water.of}.` },
+  { q: 'How polluted is the air in Yemen?', a: `Yemenis breathed an annual average of ${pm.text} micrograms of PM2.5 per cubic metre in ${pm.year}, ${ordinal(fromTop(pm))} worst exposure.` },
+  { q: 'How many Yemenis go online?', a: `ITU's newest estimate for the country, from ${net.year}, is ${net.text}.` },
+  { q: 'What proportion of Yemenis live in cities and towns?', a: `Little more than a third, ${urban.text} in ${Y}.` },
+];
+const headline = `Yemen in figures ${Y}: rapid population growth, women outside paid work, children at risk`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Yemen in figures: a baby boom and almost no women in paid work"
+  headline={headline}
+  faq={faq}
+  faqTitle="Yemen: other questions answered"
+  related={[
+    { href: '/country/yemen/population/', label: 'Yemen population: live count' },
+    { href: '/country/yemen/health/', label: 'Yemen health: vaccines, stunting, malaria' },
+    { href: '/country/iraq/', label: 'Iraq in figures' },
+    { href: '/country/sudan/', label: 'Sudan data hub' },
+    { href: '/country/egypt/', label: 'Egypt at a glance' },
+    { href: '/rankings/female-labor-force-participation-by-country/', label: "Women's labour force participation" },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">On UN projections Yemen will have <strong>{people(Number(pop.value))}</strong> inhabitants in {Y}, growing {grow.text} per year. Only <strong>{lfpF.text}</strong> of its women take paid work or look for it, the lowest share anywhere, and its latest GDP figure dates from {gdp.year}.</Fragment>
+  <div class="story-block prose">
+    <h2>Does Yemen have one of the highest birth-to-death ratios?</h2>
+    <p>The second highest among big countries. Projected for {Y}: {int(Number(births.value))} newborns versus {int(Number(deaths.value))} deaths, a ratio only Uganda beats among states of 30 million-plus. Fertility stands at {tfr.text}; the median Yemeni is {age.text}. The live estimate is on <a href={path('/country/yemen/population/')}>our Yemen population page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Do Yemeni women hold jobs or seats in parliament?</h2>
+    <p>Rarely. ILO modelling for {lfpF.year} puts {lfpF.text} of women in work or seeking it, last of {lfpF.of}. In {parl.year} Yemen was one of {noWomen} countries with no women in the lower house of parliament, and only {accF.text} of Yemeni women owned a financial account at the {accF.year} Findex survey, the smallest share measured.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How are Yemen's children doing?</h2>
+    <p>Badly on two counts. First-dose measles coverage was {measles.text} in {measles.year}, second lowest of {measles.of}, and stunting, chronic undernutrition shown by low height, affected {stunt.text} of small children ({stunt.year}), exceeded in one country only. <a href={path('/country/yemen/health/')}>Yemen's health page</a> has the full series.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>What do the most recent economic figures show for Yemen?</h2>
+    <p>The World Bank's GDP series stops in {gdp.year}, when output was {gdp.text} and GDP per resident {gdpPc.text}, {ordinal(fromBottom(gdpPc))} lowest of {gdpPc.of}. Household consumption that year exceeded output, at {hh.text} of GDP. The ILO estimates unemployment at {unemp.text} for {unemp.year}, {ordinal(fromTop(unemp))} highest.</p>
+  </div>
+</CountryHub>

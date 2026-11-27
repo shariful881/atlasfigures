@@ -16,6 +16,8 @@
    "demonym": "Afghan",
    "pages": [
     "economy",
+    "health",
+    "hub",
     "population"
    ]
   },
@@ -49,6 +51,8 @@
    "demonym": "Algerian",
    "pages": [
     "economy",
+    "health",
+    "hub",
     "population"
    ]
   },
@@ -94,6 +98,8 @@
    "demonym": "Angolan",
    "pages": [
     "economy",
+    "health",
+    "hub",
     "population"
    ]
   },
@@ -139,6 +145,8 @@
    "demonym": "Argentine",
    "pages": [
     "economy",
+    "health",
+    "hub",
     "population"
    ]
   },
@@ -599,6 +607,8 @@
    "demonym": "Canadian",
    "pages": [
     "economy",
+    "health",
+    "hub",
     "population"
    ]
   },
@@ -1558,6 +1568,8 @@
    "demonym": "Iraqi",
    "pages": [
     "economy",
+    "health",
+    "hub",
     "population"
    ]
   },
@@ -2236,6 +2248,8 @@
    "demonym": "Moroccan",
    "pages": [
     "economy",
+    "health",
+    "hub",
     "population"
    ]
   },
@@ -3165,6 +3179,8 @@
    "demonym": "Spanish",
    "pages": [
     "economy",
+    "health",
+    "hub",
     "population"
    ]
   },
@@ -3542,6 +3558,8 @@
    "demonym": "Ukrainian",
    "pages": [
     "economy",
+    "health",
+    "hub",
     "population"
    ]
   },
@@ -3752,6 +3770,8 @@
    "capital": "Sanaa",
    "demonym": "Yemeni",
    "pages": [
+    "health",
+    "hub",
     "population"
    ]
   },

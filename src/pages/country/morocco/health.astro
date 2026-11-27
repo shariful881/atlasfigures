@@ -1,0 +1,101 @@
+---
+// Morocco health (task 174). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/morocco.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), mat = st('maternal'), oop = st('oop'), hGdp = st('healthGdp'), hPc = st('healthPc'), measles = st('measles'), dpt = st('dpt');
+const doc = st('doctors'), nurse = st('nurses'), beds = st('beds'), diab = st('diabetes'), tb = st('tb'), tob = st('tobacco'), under = st('undernour');
+const U = u5.year!;
+
+const m90 = v('maternalMortality', 1990), u90 = v('under5Mortality', 1990);
+assertClaim(Number(mat.value) < m90 / 7 && Number(u5.value) < u90 / 5, 'maternal under 1/7 and under-five under 1/5 of 1990');
+const oops = s.outOfPocketPct.filter(([y]) => y >= 2010).map((x) => x[1]);
+assertClaim(s.outOfPocketPct.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === 2005 && oops.every((x, i) => i === 0 || x < oops[i - 1]) && Number(hGdp.value) === Math.max(...s.healthSpendPctGdp.map((x) => x[1])), 'out-of-pocket share fell every year since 2010; health share at its highest');
+assertClaim(s.measlesVaccPct.filter(([y]) => y >= 2009).every(([, x]) => x >= 98) && fromTop(measles) === 26, 'measles at least 98% every year since 2009; 26th');
+assertClaim(fromBottom(nurse) === 25 && fromBottom(beds) === 17 && Number(nurse.value) < 1 && Number(doc.value) < 1 && Number(tb.value) > 95 && Number(tb.value) < 100, 'nurses 25th lowest, under one per 1,000; beds 17th lowest');
+assertClaim(Number(diab.value) > 1.7 * v('diabetesPct', 2011) && Number(tob.value) < 0.65 * v('tobaccoPct', 2000), 'diabetes over 1.7 times 2011; tobacco down by more than a third since 2000');
+
+const title = `Morocco Health Statistics ${U}: Safer Childbirth, Patient Costs, Vaccines | AtlasFigures`;
+const description = `The maternal ratio in Morocco dropped from ${m90} (1990) to ${mat.text}. Since 2010 the out-of-pocket share of health spending has shrunk annually, to ${oop.text}.`;
+
+const faq = [
+  { q: 'Is diabetes spreading in Morocco?', a: `The IDF's estimate rose from ${v('diabetesPct', 2011)}% of adults in 2011 to ${diab.text} by ${diab.year}.` },
+  { q: 'What is the tuberculosis rate in Morocco?', a: `Close to a hundred per 100k: ${tb.text} in ${tb.year}, per WHO.` },
+  { q: 'How many Moroccans use tobacco?', a: `${tob.text} of adults in ${tob.year}, down from ${pct(v('tobaccoPct', 2000))} in 2000.` },
+  { q: 'Does hunger affect many Moroccans?', a: `A modest minority, ${under.text} in FAO's ${under.year} estimate.` },
+];
+const headline = `Morocco health ${U}: far fewer maternal and child deaths, falling out-of-pocket costs, near-universal measles shots`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Morocco's health: safer births and smaller bills for patients"
+  headline={headline}
+  tableTitle={`Moroccan health milestones, 1990–${U}`}
+  tableSubtitle="Selected years; the CSV has Morocco's whole annual run."
+  faq={faq}
+  faqTitle="Moroccan health, four more facts"
+  related={[
+    { href: '/country/morocco/', label: 'Morocco in figures' },
+    { href: '/country/morocco/population/', label: 'Morocco population and births' },
+    { href: '/country/algeria/health/', label: 'Algeria health' },
+    { href: '/country/egypt/health/', label: 'Egypt health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal mortality comparison' },
+  ]}
+>
+  <Fragment slot="answer">Pregnancy now kills <strong>{mat.text}</strong> Moroccan women per 100k births ({mat.year}), against {m90} in 1990. Patients' direct share of {oop.year} health spending fell to <strong>{oop.text}</strong>, a record low, and first measles shots reached {measles.text} of infants.</Fragment>
+  <div class="story-block prose">
+    <h2>How much safer is childbirth in Morocco than in 1990?</h2>
+    <p>Far safer. The maternal figure has fallen by more than six sevenths, and young children's survival has improved too: deaths under five went from {u90} to {u5.text} per mille by {U}.</p>
+  </div>
+  <LineChart
+    title={`Morocco's maternal ratio since 1990`}
+    subtitle="Moroccan mothers dying in pregnancy or soon after, for each 100k births; MMEIG model."
+    points={s.maternalMortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    unit="per 100,000 births"
+    highlight={mat.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Are Moroccan households paying less for healthcare?</h2>
+    <p>As a share of the total, yes. The out-of-pocket portion, {pct(v('outOfPocketPct', 2005))} at its 2005 peak, has declined annually from 2010 onward, to {oop.text}. Meanwhile overall health outlays climbed to {hGdp.text} of GDP, a record, worth {hPc.text} a head.</p>
+  </div>
+  <LineChart
+    title={`Moroccan patients' direct share of health costs, 2000 to ${oop.year}`}
+    subtitle="Moroccan households' own spending on treatment and medicines, percent of total health expenditure; WHO."
+    points={s.outOfPocketPct.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="percent"
+    highlight={oop.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How well are Moroccan children vaccinated?</h2>
+    <p>Very well. First-dose measles coverage has not dipped below 98% since 2009 and was {measles.text} in {measles.year} ({ordinal(fromTop(measles))} highest); DPT coverage was {dpt.text}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Morocco short of health workers?</h2>
+    <p>Compared with most countries, yes: under one physician per thousand residents ({doc.text}, {doc.year}), {nurse.text} nurses ({ordinal(fromBottom(nurse))} lowest) and {beds.text} hospital beds. Births and deaths are counted live on <a href={path('/country/morocco/population/')}>Morocco's population page</a>.</p>
+  </div>
+</HealthTopic>

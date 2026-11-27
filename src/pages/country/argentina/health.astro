@@ -1,0 +1,103 @@
+---
+// Argentina health (task 174). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/argentina.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), tb = st('tb'), dpt = st('dpt'), measles = st('measles'), mat = st('maternal'), doc = st('doctors');
+const hGdp = st('healthGdp'), diab = st('diabetes'), road = st('road'), oop = st('oop');
+const U = u5.year!;
+
+const tbLow = s.tbIncidence.reduce((a, b) => (b[1] < a[1] ? b : a));
+const tb20 = s.tbIncidence.filter(([y]) => y >= 2020).map((x) => x[1]);
+assertClaim(tbLow[0] === 2010 && tb20.every((x, i) => i === 0 || x > tb20[i - 1]) && Number(tb.value) > 1.8 * tbLow[1], 'TB lowest in 2010, up every year since 2020, now over 1.8 times the low');
+const dPeak = s.dptVaccPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+assertClaim(dPeak[0] === 2004 && v('dptVaccPct', 2023) < 70 && fromBottom(dpt) === 37 && Number(measles.value) < 85, 'DPT peak 2004, under 70% in 2023, 37th lowest; measles under 85%');
+const m20 = v('maternalMortality', 2020), m21 = v('maternalMortality', 2021);
+assertClaim(m21 > 1.8 * m20 && Number(mat.value) === Math.min(...s.maternalMortality.map((x) => x[1])), 'maternal ratio nearly doubled in 2021, now at its lowest');
+assertClaim(fromTop(doc) === 9 && fromTop(hGdp) === 26 && fromTop(diab) === 37 && Number(diab.value) > 2.5 * v('diabetesPct', 2011), 'doctors ninth; health share 26th; diabetes 37th, over 2.5 times 2011');
+
+assertClaim(Number(oop.value) > 23 && Number(oop.value) < 27, 'out-of-pocket about a quarter');
+const title = `Argentina Health Data ${U}: TB Rising, Vaccination Gaps, Mothers, Doctors | AtlasFigures`;
+const description = `Argentina's TB incidence has climbed each year since 2020, reaching ${tb.text} per 100k. Infant DPT3 coverage was ${dpt.text} in ${dpt.year}, though doctors are plentiful at ${doc.text} per thousand.`;
+
+const faq = [
+  { q: 'Is diabetes on the rise in Argentina?', a: `Sharply: IDF's estimate went from ${v('diabetesPct', 2011)}% of adults in 2011 to ${diab.text} in ${diab.year}, ${ordinal(fromTop(diab))} of ${diab.of}.` },
+  { q: 'What is Argentina\'s under-five mortality rate?', a: `${u5.text} for each thousand babies born in ${U}, by UN IGME's reckoning.` },
+  { q: 'How many people die on Argentina\'s roads?', a: `${road.text} per 100,000 residents in ${road.year}, WHO estimates.` },
+  { q: 'Do Argentine patients pay much out of pocket?', a: `About a quarter of the total, ${oop.text} in ${oop.year}.` },
+];
+const headline = `Argentina health ${U}: tuberculosis climbing again, lower child vaccination, many doctors`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Argentina's health: TB returns as vaccine cover slips"
+  headline={headline}
+  tableTitle={`Argentine health data, 1990–${U}`}
+  tableSubtitle="A dozen reference years; Argentina's yearly series is in the CSV download."
+  faq={faq}
+  faqTitle="Health in Argentina, four extras"
+  related={[
+    { href: '/country/argentina/', label: 'Argentina in figures' },
+    { href: '/country/argentina/population/', label: 'Argentina population and births' },
+    { href: '/country/brazil/health/', label: 'Brazil health' },
+    { href: '/country/colombia/health/', label: 'Colombia health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality rankings' },
+  ]}
+>
+  <Fragment slot="answer">Argentina's tuberculosis rate reached <strong>{tb.text} per 100k</strong> in {tb.year}, from a low of {tbLow[1]} in {tbLow[0]}. Just <strong>{dpt.text}</strong> of babies finished the DPT course in {dpt.year}, despite a dense medical workforce.</Fragment>
+  <div class="story-block prose">
+    <h2>Is Argentina's TB rate climbing again?</h2>
+    <p>After bottoming out at {tbLow[1]} in {tbLow[0]}, WHO's Argentine incidence estimate has gone up year after year since 2020, to {tb.text} in {tb.year}.</p>
+  </div>
+  <LineChart
+    title={`Argentina's TB incidence, 2000 to ${tb.year}`}
+    subtitle="Yearly tuberculosis incidence per 100k Argentines, modelled by WHO."
+    points={s.tbIncidence.map(([x, y]) => ({ x, y: Math.round(y) }))}
+    format="plain"
+    unit="per 100,000"
+    highlight={tb.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Are Argentine children fully vaccinated?</h2>
+    <p>Fewer than before. Three-dose DPT coverage peaked at {dPeak[1]}% in {dPeak[0]}, dropped to {v('dptVaccPct', 2023)}% in 2023 and was {dpt.text} in {dpt.year}, {ordinal(fromBottom(dpt))} lowest of {dpt.of}. First-dose measles cover stood at {measles.text}.</p>
+  </div>
+  <LineChart
+    title={`DPT3 coverage among Argentine babies since 1990`}
+    subtitle="Argentine babies who received the full three-shot diphtheria, tetanus and whooping-cough course, percent; WHO/UNICEF."
+    points={s.dptVaccPct.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={dpt.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Did maternal mortality in Argentina spike in 2021?</h2>
+    <p>Yes: MMEIG's Argentine estimate went from {m20} in 2020 to {m21} a year later, close to double, then dropped to {mat.text} by {mat.year}, a record low.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Argentina well supplied with doctors?</h2>
+    <p>Very well: {doc.text} per 1,000 inhabitants in {doc.year}, a density bettered by eight countries in WHO's records. Total health outlays were {hGdp.text} of GDP ({ordinal(fromTop(hGdp))}). The live headcount is on <a href={path('/country/argentina/population/')}>Argentina's population tracker</a>.</p>
+  </div>
+</HealthTopic>

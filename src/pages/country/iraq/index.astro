@@ -1,0 +1,77 @@
+---
+// Iraq country hub (task 174). Every figure comes from the country profile (src/data/profiles/IRQ.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/iraq.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), grow = st('population', 'growth'), age = st('population', 'medianAge');
+const births = st('population', 'births'), deaths = st('population', 'deaths');
+const dz = profile('DZA'), dzPop = stat(dz, 'population', 'population'), dzGrow = stat(dz, 'population', 'growth');
+const growth = st('economy', 'growth'), indGdp = st('economy', 'indGdp'), gdp = st('economy', 'gdp');
+const tax = st('economy', 'tax'), rev = st('economy', 'revenue');
+const unemp = st('jobs', 'unemp'), youth = st('jobs', 'youthUnemp'), lfpF = st('jobs', 'lfpF');
+const fossil = st('energy', 'fossilShare'), pm = st('environment', 'pm25'), fdi = st('economy', 'fdi'), water = st('environment', 'water');
+
+const gap = Number(dzPop.value) - Number(pop.value);
+assertClaim(gap > 0 && gap < 25000 && Number(grow.value) > Number(dzGrow.value), 'Algeria ahead of Iraq by under 25,000 people; Iraq grows faster');
+assertClaim(Number(growth.value) < 0 && fromBottom(growth) === 6 && fromTop(indGdp) === 9, 'GDP fell, sixth-weakest growth; industry share of GDP ninth');
+assertClaim(tax.year === 2019 && fromBottom(tax) === 2 && Number(tax.value) < 1.5 && fromTop(rev) === 19, 'tax revenue under 1.5% of GDP (2019), second lowest; total revenue 19th');
+assertClaim(fromTop(unemp) === 15 && fromBottom(lfpF) === 3 && Number(lfpF.value) < 11, 'unemployment 15th; women participation third lowest, under 11%');
+assertClaim(fromTop(fossil) === 7 && fromTop(pm) === 13 && Number(fdi.value) < 0 && fromBottom(fdi) === 5 && fromTop(water) === 17 && Number(water.value) > 100, 'fossil 7th, PM2.5 13th, net FDI negative 5th lowest, withdrawals 17th over 100%');
+assertClaim(Number(births.value) > 5.5 * Number(deaths.value), 'births over 5.5 times deaths');
+
+const title = `Iraq in Figures ${Y}: Headcount, Shrinking GDP, Jobs, Air Quality | AtlasFigures`;
+const description = `With ${people(Number(pop.value))} inhabitants in ${Y}, Iraq is level with Algeria on UN figures. GDP fell ${growth.text.replace('-', '')} in ${growth.year}; unemployment stood at ${unemp.text} and women's participation at ${lfpF.text}.`;
+
+const faq = [
+  { q: 'How dependent is Iraqi power on fossil fuels?', a: `Heavily. Ember counts ${fossil.text} of ${fossil.year} generation from fossil fuels, the ${ordinal(fromTop(fossil))} highest share on record that year.` },
+  { q: 'Is the air in Iraq polluted?', a: `Heavily. Mean fine-particle exposure reached ${pm.text} µg per m³ in ${pm.year}; just twelve of ${pm.of} countries breathe dirtier air on this measure.` },
+  { q: 'Is foreign money leaving Iraq?', a: `Net direct investment was negative in ${fdi.year}, ${fdi.text}, which only four economies undercut.` },
+  { q: 'Does Iraq draw more water than its own rivers and rain renew?', a: `Yes: freshwater taken in ${water.year} equalled ${water.text} of internally renewable resources, ${ordinal(fromTop(water))} on that list.` },
+];
+const headline = `Iraq in figures ${Y}: a population level with Algeria's, a shrinking GDP and few women in work`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Iraq in figures: young, fast-growing and almost tied with Algeria"
+  headline={headline}
+  faq={faq}
+  faqTitle="Iraq: what else people ask"
+  related={[
+    { href: '/country/iraq/population/', label: 'Iraq population: live count' },
+    { href: '/country/iraq/economy/', label: 'Iraq economy: GDP, dinar, prices' },
+    { href: '/country/iraq/health/', label: 'Iraq health: children, mothers, spending' },
+    { href: '/country/iran/', label: 'Iran in figures' },
+    { href: '/country/turkey/', label: 'Turkey data hub' },
+    { href: '/country/yemen/', label: 'Yemen at a glance' },
+    { href: '/rankings/unemployment-rate-by-country/', label: 'Unemployment by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">According to the UN's {Y} projection, Iraq's population is <strong>{people(Number(pop.value))}</strong> and its median age {age.text}. Output contracted <strong>{growth.text.replace('-', '')}</strong> in {growth.year}, while {unemp.text} of the workforce lacked a job.</Fragment>
+  <div class="story-block prose">
+    <h2>Does Iraq have more people than Algeria?</h2>
+    <p>Not quite, though the two are neck and neck. The UN's {Y} projections give Algeria {int(Number(dzPop.value))} people and Iraq {int(Number(pop.value))}, a difference of just {int(gap)}. Iraq is adding people faster, {grow.text} a year against {dzGrow.text}, with {int(Number(births.value))} babies due against {int(Number(deaths.value))} deaths.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Iraq's GDP falling?</h2>
+    <p>It fell in {growth.year}, by {growth.text.replace('-', '')}; only five economies of {growth.of} did worse. Output stood at {gdp.text}. Industry accounts for {indGdp.text} of value added, {ordinal(fromTop(indGdp))} highest share; <a href={path('/country/iraq/economy/')}>our Iraqi economy page</a> follows the dinar and prices.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Does Iraq's government rely on taxes?</h2>
+    <p>Barely. In {tax.year}, Iraq's newest year of fiscal data, tax revenue amounted to {tax.text} of GDP, second smallest of {tax.of}; yet total public revenue came to {rev.text}, {ordinal(fromTop(rev))} highest, so most income came from non-tax sources.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>What share of Iraq's labour force is out of work?</h2>
+    <p>The ILO's {unemp.year} estimate is {unemp.text}, {ordinal(fromTop(unemp))} of {unemp.of}; for young Iraqis it is {youth.text}. Female participation is very low at {lfpF.text}, with only two countries lower. <a href={path('/country/iraq/population/')}>Iraq's live population counter</a> shows the growth day by day.</p>
+  </div>
+</CountryHub>
