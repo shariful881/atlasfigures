@@ -28,6 +28,7 @@ export const UI_SELECTORS = [
   '.live', '.dates', '.segments', '.facts', '.facts-m', '.sheet',
   '.sources-details', '.vchip', '.legend', '.readout', '.chart-foot',
   '.tcard-foot', '.table-scroll', '.btn-ghost', '.visually-hidden', '.rank-tools', '.rank-empty', '.map-zoom', '.map-legend', '.map-tip', '.clock', '.tfacts', '.pfacts', '.pair-clocks', '.conv',
+  '.stat-list', '.topic-chips', '.data-head', '.data-note', // country hub/topic UI (task 160)
 ];
 
 export const STOP = new Set(`a an the and or but of in on at to for from by with as is are was were be been being it its this that these those than then there their they them he she his her we our you your i not no so if into about over under up down out more most less least very also just only per each every all any some such which who whom whose what when where why how will would can could may might should shall do does did has have had one two`.split(' '));
@@ -35,7 +36,7 @@ export const STOP = new Set(`a an the and or but of in on at to for from by with
 // country data keyed by slug
 // Sections whose pages are written per country (each has its own editorial JSON folder).
 // Pages are compared across ALL sections: an economy page may not reuse a population page's wording either.
-export const SECTIONS = [['population', 'src/data/countries'], ['economy', 'src/data/economy'], ['rankings', 'src/data/rankings'], ['time', 'src/data/cities']];
+export const SECTIONS = [['population', 'src/data/countries'], ['economy', 'src/data/economy'], ['rankings', 'src/data/rankings'], ['time', 'src/data/cities'], ['country', 'src/data/country-pages']];
 const EXTRA = { population: ['src/data/pages'], time: ['src/data/pairs'] }; // non-country pages in the same section (the World page)
 export const countries = {}; // section → slug → country
 for (const [sec, dir] of SECTIONS) {
@@ -98,6 +99,21 @@ export function grams(blocks, c) {
 export function loadPages(DIST = 'dist') {
   const pages = [];
   for (const [sec] of SECTIONS) {
+    if (sec === 'country') {
+      // hubs (/country/<slug>/) and topic pages (/country/<slug>/<topic>/) written from task 160 on
+      for (const [slug, c] of Object.entries(countries.country)) {
+        for (const topic of Object.keys(c.pages ?? {})) {
+          const file = topic === 'hub' ? join(DIST, 'country', slug, 'index.html') : join(DIST, 'country', slug, topic, 'index.html');
+          if (!existsSync(file)) continue;
+          const p = extract(file, topic === 'hub' ? `country/${slug}` : `${topic}/${slug}`);
+          if (!p) continue;
+          p.grams = grams(p.blocks, c);
+          p.heads = new Map(p.headings.map((h) => [normalize(h, c).join(' '), h]));
+          pages.push(p);
+        }
+      }
+      continue;
+    }
     for (const slug of Object.keys(countries[sec])) {
       // country pages live at /country/<slug>/<section>/ (task 148); the rest at /<section>/<slug>/
       const file = [join(DIST, 'country', slug, sec, 'index.html'), join(DIST, sec, slug, 'index.html')].find((f) => existsSync(f));

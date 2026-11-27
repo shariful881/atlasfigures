@@ -39,7 +39,7 @@ const nAll = clist.length;
 const nWithPage = clist.filter((c) => (c.pages ?? []).length > 0).length;
 const azLetters = [...new Set(clist.map((c) => c.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').charAt(0).toUpperCase()))].sort();
 const quick = byPopulation().slice(0, 12).map((e) => clist.find((c) => c.iso3 === e.iso3)).filter(Boolean)
-  .map((c: any) => ({ name: c.name, code: c.iso2.toLowerCase(), href: (c.pages ?? []).length ? `/country/${c.slug}/${(c.pages.includes('population') ? 'population' : c.pages[0])}/` : `/country/#l-${c.name.charAt(0).toUpperCase()}` }));
+  .map((c: any) => ({ name: c.name, code: c.iso2.toLowerCase(), href: (c.pages ?? []).includes('hub') ? `/country/${c.slug}/` : (c.pages ?? []).length ? `/country/${c.slug}/${(c.pages.includes('population') ? 'population' : c.pages[0])}/` : `/country/#l-${c.name.charAt(0).toUpperCase()}` }));
 
 // Country pages by continent (UN regions)
 const continents = ['Asia', 'Africa', 'Europe', 'Americas', 'Oceania'].map((c) => ({

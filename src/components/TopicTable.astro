@@ -1,0 +1,48 @@
+---
+// Yearly table for a country topic page (task 160): same card as DataTable/EconTable — title, CSV button,
+// highlighted latest year, verified source + licence footer. Columns are given by the page; each cell is the
+// source value rounded the way the column says. Empty = "–".
+import SourceBadge from './SourceBadge.astro';
+interface Col { key: string; label: string; unit?: string; digits: number }
+interface Props {
+  id: string; title: string; subtitle: string; cols: Col[]; rows: ({ year: number } & Record<string, number | null>)[]; latest: number;
+  source: string; sourceUrl?: string; checkedOn?: string; csv: string; csvName: string; licence: { name: string; url: string };
+}
+const { id, title, subtitle, cols, rows, latest, source, sourceUrl, checkedOn, csv, csvName, licence } = Astro.props;
+const cell = (v: number | null | undefined, d: number) => (v == null ? '–' : v.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }));
+---
+<section class="tcard" aria-labelledby={id}>
+  <header class="tcard-head">
+    <div>
+      <h2 id={id}>{title}</h2>
+      <p class="tcard-sub">{subtitle}</p>
+    </div>
+    <a class="btn-ghost" href={csv} download={csvName}>
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m0 0-3.5-3.5M10 12l3.5-3.5M4 15.5h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      CSV
+    </a>
+  </header>
+  <div class="table-scroll">
+    <table class="data topic">
+      <caption class="visually-hidden">{title}. {subtitle}</caption>
+      <thead><tr><th scope="col">Year</th>{cols.map((c) => <th scope="col">{c.label}{c.unit && <span class="u">{c.unit}</span>}</th>)}</tr></thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr class={r.year === latest ? 'is-current' : ''} data-year={r.year}>
+            <th scope="row">{r.year}{r.year === latest && <span class="now-tag">Latest</span>}</th>
+            {cols.map((c) => <td data-col={c.key}>{cell(r[c.key], c.digits)}</td>)}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <footer class="tcard-foot">
+    <SourceBadge source={source} url={sourceUrl} checkedOn={checkedOn} variant="footer" />
+    <span class="lic">Licence: <a href={licence.url}>{licence.name}</a></span>
+  </footer>
+</section>
+<style>
+  table.topic th .u { display: block; font-weight: 400; font-size: .75em; color: var(--muted, #5b6b7b); text-transform: none; letter-spacing: 0; }
+  table.topic td { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  table.topic thead th:not(:first-child) { text-align: right; }
+</style>

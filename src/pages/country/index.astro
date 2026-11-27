@@ -16,8 +16,8 @@ const letterOf = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').charA
 const all = (list.countries as any[]).map((c) => {
   const now = byYear(countryData(c.iso3).years)[CURRENT_YEAR];
   const pages: string[] = c.pages ?? [];
-  const main = pages.includes('population') ? 'population' : pages[0];
-  return { ...c, cont: CONT[c.unRegion], pop: now.population, rank: now.worldRank, pages, href: main ? `/country/${c.slug}/${main}/` : null, letter: letterOf(c.name) };
+  const main = pages.includes('population') ? 'population' : pages.filter((x) => x !== 'hub')[0];
+  return { ...c, cont: CONT[c.unRegion], pop: now.population, rank: now.worldRank, pages, href: pages.includes('hub') ? `/country/${c.slug}/` : main ? `/country/${c.slug}/${main}/` : null, letter: letterOf(c.name) };
 }).sort((a, b) => a.name.localeCompare(b.name, 'en'));
 
 assertClaim(all.length === list.count, 'country list count matches its entries');

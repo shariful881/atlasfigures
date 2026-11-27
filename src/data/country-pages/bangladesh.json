@@ -1,0 +1,78 @@
+{
+  "_about": "Editorial data for the Bangladesh country hub (/country/bangladesh/) and its topic pages written in task 160. Figures are never stored here: pages take them from src/data/profiles/BGD.json and the generated series.",
+  "slug": "bangladesh",
+  "name": "Bangladesh",
+  "demonym": "Bangladeshi",
+  "capital": "Dhaka",
+  "iso3": "BGD",
+  "checkedFacts": [
+    "driving",
+    "emergency"
+  ],
+  "factChecks": [
+    {
+      "fact": "emergency",
+      "value": "999",
+      "checkedOn": "2026-11-27",
+      "against": "Dhaka Tribune (police headquarters figures): National Emergency Service 999, launched 12 December 2017, for police, fire service and ambulance across the country",
+      "url": "https://www.dhakatribune.com/bangladesh/412748/national-emergency-service-999-receives-over-72.36"
+    },
+    {
+      "fact": "driving",
+      "value": "Left",
+      "checkedOn": "2026-11-27",
+      "against": "CIA World Factbook, Bangladesh travel facts: road driving side left",
+      "url": "https://www.cia.gov/the-world-factbook/about/archives/2021/static/9831dc17e72f3a7c441d10b95dc27d03/BG-travel-facts.pdf"
+    }
+  ],
+  "pages": {
+    "hub": {
+      "published": "2026-11-27",
+      "updated": "2026-11-27",
+      "changelog": [
+        {
+          "date": "2026-11-27",
+          "type": "new",
+          "note": "Page published (task 160)."
+        }
+      ],
+      "verification": {
+        "checkedOn": "2026-11-27",
+        "checkedBy": "Claude (task 160)",
+        "what": "Every figure, year and world rank in the text, title, description, JSON-LD and the 146 table rows; every claim (most crowded country of over 10 million, Taiwan next; highest arable share; 7th remittances; 12th manufacturing; second-lowest health spending; second-highest out-of-pocket; third-worst PM2.5; 8th population and labour force; 9th mobile subscriptions); driving side and emergency number by hand (factChecks)",
+        "against": "Original UN WPP 2024 and World Bank WDI files read by scripts/verify/bangladesh-160.py (independent of the site code); check-country-pages compares page rows and CSV with the profile"
+      }
+    },
+    "health": {
+      "published": "2026-11-27",
+      "updated": "2026-11-27",
+      "tableYears": [
+        1990,
+        1995,
+        2000,
+        2005,
+        2010,
+        2015,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024
+      ],
+      "changelog": [
+        {
+          "date": "2026-11-27",
+          "type": "new",
+          "note": "Page published (task 160)."
+        }
+      ],
+      "verification": {
+        "checkedOn": "2026-11-27",
+        "checkedBy": "Claude (task 160)",
+        "what": "Every figure in the text, cards, Key facts, title, description, JSON-LD, statistic rows, yearly table and CSV; claims (about a fifth of the 1990 rate; slowdown after 2020; newborn share 58.7%; maternal rise in 2021; highest out-of-pocket share since 2000; fewer nurses than doctors, 161 of 173 countries the other way; doctors four times 1990; stunting under half of 2000; lowest undernourishment since 2001)",
+        "against": "Original World Bank WDI files read by scripts/verify/bangladesh-160.py; check-country-pages compares table cells and CSV with the World Bank values"
+      }
+    }
+  }
+}

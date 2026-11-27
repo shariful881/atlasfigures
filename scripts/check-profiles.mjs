@@ -22,8 +22,8 @@ ok(list.length === wppIdx.countries.length, 'country-list', `${list.length} entr
 ok(new Set(list.map((c) => c.slug)).size === list.length, 'country-list', 'duplicate slugs');
 for (const c of list) {
   ok(/^[a-z0-9]+(-[a-z0-9]+)*$/.test(c.slug), c.iso3, `bad slug "${c.slug}"`);
-  for (const t of c.pages) ok(existsSync(`src/pages/country/${c.slug}/${t}.astro`), c.iso3, `list says a ${t} page exists at /country/${c.slug}/${t}/ but there is none`);
-  for (const t of ['population', 'economy']) if (existsSync(`src/pages/country/${c.slug}/${t}.astro`)) ok(c.pages.includes(t), c.iso3, `${t} page exists but is not in the list`);
+  for (const t of c.pages) ok(existsSync(`src/pages/country/${c.slug}/${t === 'hub' ? 'index' : t}.astro`), c.iso3, `list says a ${t} page exists at /country/${c.slug}/${t}/ but there is none`);
+  for (const t of ['population', 'economy', 'health', 'education', 'internet', 'hub']) if (existsSync(`src/pages/country/${c.slug}/${t === 'hub' ? 'index' : t}.astro`)) ok(c.pages.includes(t), c.iso3, `${t} page exists but is not in the list`);
 }
 for (const d of existsSync('src/pages/country') ? readdirSync('src/pages/country').filter((d) => d !== 'index.astro') : []) ok(list.some((c) => c.slug === d), `src/pages/country/${d}`, 'folder has no country in country-list.json');
 

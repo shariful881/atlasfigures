@@ -1,0 +1,246 @@
+---
+// Bangladesh country hub (task 160): every statistic AtlasFigures holds for Bangladesh, by topic, with links to
+// the topic pages and rankings. All figures come from the country profile (src/data/profiles/BGD.json), which
+// build-profiles makes from the generated data and check-profiles compares with it; nothing is typed by hand.
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import StatList from '../../../components/StatList.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import pg from '../../../data/country-pages/bangladesh.json';
+import { profile, stat, liveStats, ordinal, TOPICS } from '../../../lib/profile';
+import { countryIndex, assertClaim } from '../../../lib/figures';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../../site';
+
+const PAGE = '/country/bangladesh/';
+const meta = pg.pages.hub;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+const checkedOn = (meta as any).verification?.checkedOn;
+
+// figures used in the text
+const pop = st('population', 'population'), dens = st('population', 'density'), life = st('population', 'lifeExp');
+const gdp = st('economy', 'gdp'), gdpPc = st('economy', 'gdpPc'), manuf = st('economy', 'manufGdp');
+const remit = st('trade', 'remit'), arable = st('farming', 'arable'), pm = st('environment', 'pm25');
+const healthGdp = st('health', 'healthGdp'), oop = st('health', 'oop'), u5 = st('health', 'u5');
+const net = st('internet', 'internet'), subs = st('internet', 'mobileSubs'), elec = st('internet', 'electricity');
+const lit = st('education', 'literacy'), co2pc = st('environment', 'co2pc'), labour = st('jobs', 'labourForce');
+
+// claims behind the sentences — the build fails if the data stop saying so
+const big = countryIndex.countries.filter((c) => c.population > 10e6).sort((a, b) => b.densityPerKm2 - a.densityPerKm2);
+assertClaim(big[0].iso3 === 'BGD' && big[0].densityPerKm2 > 2 * big[1].densityPerKm2, 'Bangladesh is more than twice as dense as any other country of over 10 million people');
+const second = big[1];
+assertClaim(arable.rank === 1, 'highest share of arable land in the world');
+assertClaim(remit.rank === 7 && manuf.rank === 12, 'seventh-largest remittances, twelfth-highest manufacturing share');
+assertClaim(healthGdp.rank === healthGdp.of! - 1 && healthGdp.rankBy === 'high', 'second-lowest health spending share of GDP');
+assertClaim(oop.rank === oop.of! - 1 && oop.rankBy === 'low', 'second-highest out-of-pocket share');
+assertClaim(pm.rank === pm.of! - 2 && pm.rankBy === 'low', 'third-worst PM2.5 exposure');
+assertClaim(pop.rank === 8 && countryIndex.countries.filter((c) => c.population > Number(pop.value)).length === 7 && subs.rank === 9 && labour.rank === 8, 'eighth by population and labour force, ninth by mobile subscriptions');
+assertClaim(Number(net.value) > 50 && Number(elec.value) > 99, 'more than half online, nearly everyone with electricity');
+const secondName = 'Taiwan';
+const denser = countryIndex.countries.filter((c) => c.densityPerKm2 > Number(dens.value));
+assertClaim(denser.length === dens.rank! - 1 && denser.every((c) => c.population / c.densityPerKm2 < 1200) && ['SGP', 'HKG', 'MLT'].every((x) => denser.some((c) => c.iso3 === x)), 'every denser place covers less than 1,200 km², among them Singapore, Hong Kong and Malta');
+assertClaim(second.iso3 === 'TWN', 'the next-densest of the large countries is Taiwan');
+
+const title = `Bangladesh Facts and Figures ${Y}: People, Economy, Health | AtlasFigures`;
+const description = `Bangladesh in ${Y}: ${pop.text} people (UN projection), ${dens.text} per km², GDP of ${gdp.text} (${gdp.year}) and the world's highest share of farmland under crops. ${p.sections.flatMap((s) => s.stats).filter((s) => s.status === 'live').length} figures, each with its source.`;
+const totalLive = p.sections.flatMap((s) => s.stats).filter((s) => s.status === 'live').length;
+
+// Key facts: same labels on every country page
+const facts = (sec: string, id: string) => st(sec, id).text;
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: pop.text, note: `${Y}, UN projection` },
+    { label: 'Population density', value: `${dens.text} per km²` },
+    { label: 'Life expectancy', value: `${life.text} years` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Capital', value: facts('facts', 'capital') },
+    { label: 'Land area', value: `${facts('facts', 'landArea')} km²` },
+    { label: 'Land neighbours', value: facts('facts', 'neighbours') },
+    { label: 'Time zone', value: facts('facts', 'tz') },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Official language', value: facts('facts', 'languages') },
+    { label: 'Currency', value: facts('facts', 'currency') },
+    { label: 'Calling code', value: facts('facts', 'calling') },
+    { label: 'GDP per person', value: gdpPc.text, note: `${gdpPc.year}` },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: pop.text },
+  { label: 'Capital', value: facts('facts', 'capital') },
+  { label: 'Currency', value: 'Taka (BDT)' },
+  { label: 'GDP per person', value: gdpPc.text },
+];
+assertClaim(facts('facts', 'currency').startsWith('Bangladeshi Taka (BDT'), 'currency is the taka');
+
+// Data panel: every profile section with live figures (single-source facts only after a hand check)
+const SECTIONS = p.sections.map((s) => ({ ...s, rows: liveStats(p, s.id, pg.checkedFacts) })).filter((s) => s.rows.length);
+const topicPage = (section: string) => {
+  const t = TOPICS.find((x) => x.section === section);
+  return t && ['population', 'economy', ...Object.keys(pg.pages)].includes(t.topic) ? { href: `/country/bangladesh/${t.topic}/`, label: `${t.name} page` } : undefined;
+};
+
+const faq = [
+  { q: 'Is Bangladesh among the ten most populous countries?', a: `Yes. With ${pop.text} people in ${Y} (UN projection), it is eighth: only seven countries or areas hold more.` },
+  { q: 'How many people live on each square kilometre of Bangladesh?', a: `${dens.text} in ${Y}. Bangladesh fits ${pop.text} people into ${facts('facts', 'landArea')} km² of land. Of all other nations whose population tops ten million, none comes near; ${secondName}, next in line, has fewer than half that density. At the same time ${arable.text} of that land is arable, the highest share in the world.` },
+  { q: 'What currency does Bangladesh use?', a: `The Bangladeshi taka (code BDT, sign ৳). In ${st('economy', 'fx').year} one US dollar bought ${st('economy', 'fx').text} taka on average, by the official rate the World Bank reports.` },
+  { q: 'How much does Bangladesh spend on health care?', a: `${healthGdp.text} of GDP in ${healthGdp.year}, about ${st('health', 'healthPc').text} per person. Only one country with figures spent a smaller share, and ${oop.text} of all health spending came straight from patients' pockets.` },
+  { q: 'What is the emergency number in Bangladesh?', a: `999. One call reaches the police, the fire service and ambulances through the National Emergency Service.` },
+];
+assertClaim(st('facts', 'emergency').text === '999', 'emergency number 999');
+
+const citation = [
+  { '@type': 'CreativeWork', name: 'World Population Prospects 2024', url: 'https://population.un.org/wpp/', publisher: { '@type': 'Organization', name: 'United Nations, Department of Economic and Social Affairs, Population Division' } },
+  { '@type': 'CreativeWork', name: 'World Development Indicators', url: 'https://datacatalog.worldbank.org/search/dataset/0037712', publisher: { '@type': 'Organization', name: 'The World Bank' } },
+  { '@type': 'CreativeWork', name: 'Global Carbon Budget, fossil CO2 emissions dataset', url: 'https://globalcarbonbudget.org/' },
+  { '@type': 'CreativeWork', name: 'Ember, Yearly Electricity Data', url: 'https://ember-energy.org/data/yearly-electricity-data/' },
+  { '@type': 'CreativeWork', name: 'Unicode CLDR', url: 'https://cldr.unicode.org/' },
+  { '@type': 'CreativeWork', name: 'GeoNames', url: 'https://www.geonames.org/' },
+  { '@type': 'CreativeWork', name: 'Wikidata', url: 'https://www.wikidata.org/' },
+];
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Bangladesh facts and figures ${Y}: people, economy, health, land and more`,
+    description, datePublished: iso(meta.published), dateModified: iso(meta.updated),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    about: { '@type': 'Country', name: 'Bangladesh', sameAs: 'https://en.wikipedia.org/wiki/Bangladesh' }, citation,
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Bangladesh: ${totalLive} statistics with year, world rank and source`,
+    description: `Every figure on this page, one row per statistic: population and its make-up (UN World Population Prospects 2024, ${Y} values are UN projections), economy, trade, jobs, health, education, internet, environment and farming (World Bank World Development Indicators), CO2 and electricity (Global Carbon Project, Ember) and fixed country facts.`,
+    url: abs(PAGE), creator: { '@id': ORG_ID },
+    isBasedOn: ['https://population.un.org/wpp/', 'https://datacatalog.worldbank.org/search/dataset/0037712'],
+    spatialCoverage: { '@type': 'Place', name: 'Bangladesh' }, dateModified: iso(meta.updated),
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/bangladesh-profile.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Bangladesh"
+  back="/country/"
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Countries', href: '/country/' }, { name: 'Bangladesh', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country hub">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Bangladesh at a glance: people, money, health and land</h1>
+        <p class="answer">
+          Bangladesh has <strong>{pop.text} people</strong> in {Y} (UN projection) on {facts('facts', 'landArea')} km² of land, the most crowded large country on Earth. Output reached <strong>{gdp.text}</strong> in {gdp.year}, and Bangladeshis working abroad sent back {remit.text}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={meta.updated}>{longDate(meta.updated)}</time></span><SourceBadge source="UN, World Bank and other sources listed below" checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Bangladesh" code="bd" year={Y} groups={factGroups} highlights={highlights} source="UN WPP 2024, World Bank, Unicode CLDR, GeoNames" checkedOn={checkedOn} />
+        <nav class="topic-chips" aria-label="Bangladesh topics">
+          {['population', 'economy', ...Object.keys(pg.pages).filter((k) => k !== 'hub')].map((t) => {
+            const tt = TOPICS.find((x) => x.topic === t)!;
+            return <a class="chip" href={path(`/country/bangladesh/${t}/`)}>{tt.name}</a>;
+          })}
+          <a class="chip" href="#data" data-tab="data">All {totalLive} figures</a>
+        </nav>
+      </header>
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Is Bangladesh the most crowded large country?</h2>
+          <p>Yes, by a wide margin. At {dens.text} people for every km² in {Y}, it sits {ordinal(dens.rank!)} on Earth, and every place above it covers less than 1,200 km², among them Singapore, Hong Kong and Malta. Of the nations above ten million inhabitants, {secondName} comes next, at fewer than half the density.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>What does Bangladesh's land feed?</h2>
+          <p>Nearly all of it is worked. Arable land, the ground under temporary crops, covers {arable.text} of Bangladesh, the largest share of any country, and farms of all kinds take up {st('farming', 'agriLand').text}. Yet with so many people that comes to only {st('farming', 'arablePc').text} hectares of cropland per person. Cereal yields of {st('farming', 'cereal').text} kg per hectare in {st('farming', 'cereal').year} put it {ordinal(st('farming', 'cereal').rank!)} of {st('farming', 'cereal').of}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How does Bangladesh earn its living?</h2>
+          <p>Factories and workers abroad. Manufacturing made up {manuf.text} of GDP in {manuf.year}, the {ordinal(manuf.rank!)} highest share in the world, and Bangladeshis working in other countries sent home {remit.text}, the {ordinal(remit.rank!)} largest inflow of remittances anywhere. GDP per person was {gdpPc.text}, and {st('jobs', 'empAgri').text} of workers still had jobs in agriculture. The <a href={path('/country/bangladesh/economy/')}>economy page</a> follows the growth year by year.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Where does Bangladesh fall behind?</h2>
+          <p>In health spending and clean air. Public and private spending on health came to {healthGdp.text} of GDP in {healthGdp.year}, lower than in every country but one, and {oop.text} of it was paid by patients themselves. The air is among the dirtiest measured: fine particles (PM2.5) averaged {pm.text} micrograms per cubic metre in {pm.year}, third worst of {pm.of}. Child deaths have still fallen to {u5.text} per 1,000 births; the <a href={path('/country/bangladesh/health/')}>health page</a> shows how.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How connected are Bangladeshis?</h2>
+          <p>Mobile phones reach further than the internet. There were {subs.text} mobile subscriptions in {subs.year}, the {ordinal(subs.rank!)} most in the world, while internet users passed half the population, at {net.text}. Electricity now reaches {elec.text} of people, but only {st('internet', 'cleanCook').text} cook with clean fuels and technology, such as gas or electric stoves.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>More about Bangladesh</h2>
+          <ul>
+            <li><a href={path('/country/bangladesh/population/')}>Bangladesh population: live count, births and migration</a></li>
+            <li><a href={path('/country/bangladesh/economy/')}>Bangladesh economy: GDP, inflation and remittances</a></li>
+            <li><a href={path('/country/bangladesh/health/')}>Bangladesh health: child deaths, vaccines and spending</a></li>
+            <li><a href={path('/country/india/population/')}>India's population</a></li>
+            <li><a href={path('/country/myanmar/population/')}>Myanmar's population</a></li>
+            <li><a href={path('/rankings/population-density-by-country/')}>Population density, every country ranked</a></li>
+            <li><a href={path('/rankings/remittances-by-country/')}>Remittances received, country by country</a></li>
+            <li><a href={path('/country/')}>All countries and areas</a></li>
+          </ul>
+        </nav>
+      </section>
+      <section class="panel" data-panel="data" id="data" aria-labelledby="data-h">
+        <div class="data-head">
+          <h2 id="data-h">All {totalLive} figures for Bangladesh</h2>
+          <a class="btn-ghost" href={path('/data/bangladesh-profile.csv')} download="bangladesh-profile.csv">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m0 0-3.5-3.5M10 12l3.5-3.5M4 15.5h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            CSV
+          </a>
+        </div>
+        <p class="data-note">Latest year for each figure; the world rank counts every country or area with a value in the five years before it. Rows link to the world ranking where one exists. {Y} population figures are UN projections.</p>
+        {SECTIONS.map((s) => (
+          <StatList id={`s-${s.id}`} title={s.label} section={s.id} stats={s.rows} more={topicPage(s.id)} caption={`Bangladesh: ${s.label.toLowerCase()}`} />
+        ))}
+      </section>
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Questions people ask about Bangladesh</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href="https://population.un.org/wpp/">UN DESA Population Division, World Population Prospects 2024</a>: population, density, age, births, deaths, migration and life expectancy ({Y} values are UN projections); urban share from <a href="https://population.un.org/wup/">World Urbanization Prospects 2025</a>.</li>
+            <li><a href="https://datacatalog.worldbank.org/search/dataset/0037712">World Bank, World Development Indicators</a> (original bulk files): economy, trade, jobs, health, education, internet, environment, farming and governance indicators, each with its code in the CSV. Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+            <li><a href="https://globalcarbonbudget.org/">Global Carbon Project</a> (fossil CO2, CC BY 4.0) and <a href="https://ember-energy.org/data/yearly-electricity-data/">Ember</a> (electricity, CC BY 4.0).</li>
+            <li>Country facts: currency and official language from <a href="https://cldr.unicode.org/">Unicode CLDR</a>, checked against GeoNames and Wikidata; calling code, internet domain and land neighbours from <a href="https://www.geonames.org/">GeoNames</a> (CC BY 4.0), checked against Wikidata; time zone from the IANA time zone database. Driving side and emergency number from <a href="https://www.wikidata.org/">Wikidata</a>, checked by hand against {pg.factChecks.map((f, i) => (<>{i > 0 && ' and '}<a href={f.url}>{f.fact === 'driving' ? 'the CIA World Factbook' : 'Dhaka Tribune'}</a></>))}.</li>
+            <li>World ranks are our calculation: every country or area with a value in the five years before the figure's year, each at its latest year.</li>
+          </ul>
+          <p class="note">See our <a href={path('/methodology/')}>methodology</a> for how figures are collected and checked.</p>
+          <p class="note">Published <time datetime={meta.published}>{longDate(meta.published)}</time> · Updated <time datetime={meta.updated}>{longDate(meta.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Bangladesh at a glance', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Bangladesh" code="bd" year={Y} groups={factGroups} highlights={highlights} source="UN WPP 2024, World Bank, Unicode CLDR, GeoNames" checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+  <script is:inline>
+    document.querySelectorAll('a[data-tab]').forEach(function (a) { a.addEventListener('click', function () { var t = document.querySelector('.segments [data-panel="' + a.dataset.tab + '"]'); if (t && window.matchMedia('(max-width: 767px)').matches) t.click(); }); });
+  </script>
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+  .topic-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
+  .topic-chips .chip { padding: 6px 12px; border-radius: 99px; border: 1px solid var(--line, #dfe5ea); text-decoration: none; font-size: .9rem; }
+  .data-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .data-note { color: var(--muted, #5b6b7b); font-size: .9rem; margin: 4px 0 8px; }
+  @media (max-width: 767px) { .topic-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; } .topic-chips .chip { white-space: nowrap; } }
+</style>
