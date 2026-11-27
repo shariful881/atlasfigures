@@ -1,0 +1,72 @@
+---
+// South Africa country hub (task 173). Every figure comes from the country profile (src/data/profiles/ZAF.json),
+// built from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/south-africa.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), life = st('population', 'lifeExp'), age = st('population', 'medianAge');
+const unemp = st('jobs', 'unemp'), youth = st('jobs', 'youthUnemp'), gini = st('economy', 'gini'), gdp = st('economy', 'gdp'), tax = st('economy', 'tax'), fdi = st('economy', 'fdi');
+const hom = st('governance', 'homicide'), parl = st('governance', 'womenParl'), fossil = st('energy', 'fossilShare'), co2 = st('environment', 'co2');
+const mobile = st('internet', 'mobile'), agri = st('farming', 'agriLand');
+
+assertClaim(fromTop(unemp) === 2 && fromTop(youth) === 2 && Number(unemp.value) > 30 && Number(youth.value) > 55, 'second-highest unemployment (over 30%) and youth unemployment (over 55%)');
+assertClaim(fromTop(gini) === 2 && Number(gini.value) > 54, 'second-highest Gini index, above 54');
+assertClaim(fromTop(hom) === 6 && Number(hom.value) > 40, 'sixth-highest homicide rate, over 40 per 100,000');
+assertClaim(Number(fossil.value) > 80 && fromTop(co2) === 15, 'fossil fuels over 80% of power; 15th-largest CO2 emitter');
+assertClaim(fromTop(parl) === 16 && fromTop(tax) === 10 && fromTop(mobile) === 11 && Number(fdi.value) < 0 && fromBottom(fdi) === 7 && fromTop(agri) === 8, 'women MPs 16th; tax 10th; mobile 11th; net FDI outflow, 7th lowest; farmland 8th');
+
+const title = `South Africa in Figures ${Y}: Jobs, Inequality, Crime, Coal Power | AtlasFigures`;
+const description = `Nearly a third of South Africa's workforce is jobless (${unemp.text}, second highest anywhere) and only one country records a higher Gini index. Population ${people(Number(pop.value))} (UN, ${Y}).`;
+
+const faq = [
+  { q: 'Are many South African legislators women?', a: `Yes: women filled ${parl.text} of National Assembly seats in ${parl.year}, putting South Africa ${ordinal(fromTop(parl))} in the Inter-Parliamentary Union's table of ${parl.of}.` },
+  { q: 'Do South Africans own more than one mobile line?', a: `On average, yes. ITU counted ${mobile.text} active mobile lines for each 100 South Africans in ${mobile.year}, a density only ${fromTop(mobile) - 1} countries exceed.` },
+  { q: 'How much tax does the South African state collect?', a: `A comparatively large share. Revenue from taxes equalled ${tax.text} of output during ${tax.year}, the tenth-heaviest burden on the World Bank's list.` },
+  { q: 'Did foreign investment flow into South Africa last year?', a: `No. Net foreign direct investment was ${fdi.text} in ${fdi.year}, meaning more was withdrawn than invested, ${ordinal(fromBottom(fdi))} lowest of ${fdi.of}.` },
+];
+const headline = `South Africa in figures ${Y}: unemployment, inequality, violent crime and fossil power`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="South Africa in figures: mass unemployment in a deeply unequal economy"
+  headline={headline}
+  faq={faq}
+  faqTitle="South Africa: more to know"
+  related={[
+    { href: '/country/south-africa/population/', label: 'South Africa population: live count' },
+    { href: '/country/south-africa/economy/', label: 'South Africa economy: GDP and the rand' },
+    { href: '/country/south-africa/health/', label: 'South Africa health: TB, vaccines, hunger' },
+    { href: '/country/tanzania/', label: 'Tanzania by the numbers' },
+    { href: '/country/kenya/', label: 'Kenya in data' },
+    { href: '/country/nigeria/', label: 'Nigeria at a glance' },
+    { href: '/rankings/co2-emissions-by-country/', label: 'CO2 emissions by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">For {Y} UN projections give South Africa <strong>{people(Number(pop.value))}</strong> inhabitants, half aged under {age.text}. A jobless rate of <strong>{unemp.text}</strong> trails just one other country's, and income in the {gdp.text} economy is split more unevenly than almost anywhere.</Fragment>
+  <div class="story-block prose">
+    <h2>What share of South Africa's workforce is jobless?</h2>
+    <p>About one worker in three. ILO modelled estimates put unemployment at {unemp.text} in {unemp.year} and joblessness among 15 to 24-year-olds at {youth.text}; South Africa ranks {ordinal(fromTop(unemp))} of {unemp.of} on both measures. Output figures sit on <a href={path('/country/south-africa/economy/')}>South Africa's economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How unequal are incomes in South Africa?</h2>
+    <p>Extremely. The World Bank's Gini index for {gini.year} is {gini.text}, exceeded by a single country among the {gini.of} it compares; a reading of 0 means perfect equality and 100 means one person takes everything.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How high is the murder rate in South Africa?</h2>
+    <p>Among the world's highest: {hom.text} intentional homicides per 100,000 inhabitants in {hom.year} (UNODC), {ordinal(fromTop(hom))} of {hom.of} countries.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Does South Africa still rely on fossil-fuel power?</h2>
+    <p>Overwhelmingly: Ember attributes {fossil.text} of {fossil.year} generation to coal, gas and oil plants combined. The country emitted {co2.text} million tonnes of fossil CO₂, {ordinal(fromTop(co2))} biggest total, and agricultural land spans {agri.text} of its territory, placing it {ordinal(fromTop(agri))} on that measure.</p>
+  </div>
+</CountryHub>

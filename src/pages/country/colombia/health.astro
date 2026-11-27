@@ -1,0 +1,105 @@
+---
+// Colombia health (task 173). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/colombia.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), neo = st('neonatal'), mat = st('maternal'), tb = st('tb'), mal = st('malaria'), doc = st('doctors'), nurse = st('nurses');
+const tob = st('tobacco'), measles = st('measles'), hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop');
+const U = u5.year!;
+
+const mPeak = s.maternalMortality.reduce((a, b) => (b[1] > a[1] ? b : a));
+const mMin = Math.min(...s.maternalMortality.map((x) => x[1]));
+assertClaim(mPeak[0] === 2021 && Number(mat.value) === mMin && mPeak[1] > 2 * Number(mat.value), 'maternal ratio peaked in 2021 at over twice today’s level, now at its lowest');
+const tbs = s.tbIncidence.filter(([y]) => y >= 2018).map((x) => x[1]);
+assertClaim(tbs.every((x, i) => i === 0 || x > tbs[i - 1]) && Number(tb.value) > 1.4 * v('tbIncidence', 2015), 'TB up every year since 2018, over 1.4 times 2015');
+const malMin = s.malariaIncidence.reduce((a, b) => (b[1] < a[1] ? b : a));
+assertClaim(malMin[0] === 2014 && Number(mal.value) > 2.5 * malMin[1], 'malaria more than 2.5 times the 2014 low');
+const d90 = v('doctorsPer1000', 1990);
+assertClaim(Number(doc.value) > 3 * d90 && Number(nurse.value) < Number(doc.value), 'doctors more than tripled since 1990; fewer nurses than doctors');
+assertClaim(Number(u5.value) < v('under5Mortality', 1990) / 3 && Number(tob.value) < 0.6 * v('tobaccoPct', 2000) && fromBottom(tob) === 19, 'under-five under a third of 1990; tobacco down >40%, 19th lowest');
+
+const title = `Colombia Health Data ${U}: Maternal Deaths, TB, Doctors, Smoking | AtlasFigures`;
+const description = `Colombian maternal deaths spiked at ${mPeak[1]} per 100,000 births in 2021 and then dropped to an all-time low of ${mat.text}. Tuberculosis has climbed each year from 2018, reaching ${tb.text} per 100,000.`;
+
+const faq = [
+  { q: 'Are there more Colombian doctors or nurses?', a: `Doctors. Colombia had ${doc.text} of them per 1,000 people in ${doc.year} but ${nurse.text} nursing staff, by WHO's tally.` },
+  { q: 'What is Colombia’s health budget?', a: `Colombia's ${hGdp.year} health bill equalled ${hGdp.text} of GDP, roughly ${hPc.text} per person, with ${oop.text} paid directly by families.` },
+  { q: 'Is malaria rising in Colombia?', a: `Yes. WHO's incidence estimate bottomed at ${malMin[1]} in ${malMin[0]} and was ${mal.text} by ${mal.year}, both per 1,000 residents at risk.` },
+  { q: 'What share of Colombian toddlers get the measles jab?', a: `${measles.text} received a first dose in ${measles.year} (WHO/UNICEF), up from ${v('measlesVaccPct', 2021)}% in 2021.` },
+];
+const headline = `Colombia health ${U}: the maternal mortality spike, rising TB and malaria, more doctors and less smoking`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Colombia's health: a maternal death spike reversed, TB on the rise"
+  headline={headline}
+  tableTitle={`Colombian health measures, 1990–${U}`}
+  tableSubtitle="Selected Colombian years appear on the page; the CSV lists them all."
+  faq={faq}
+  faqTitle="Colombia health: extra answers"
+  related={[
+    { href: '/country/colombia/', label: 'Colombia in figures' },
+    { href: '/country/colombia/population/', label: 'Colombia population and lifespans' },
+    { href: '/country/brazil/health/', label: 'Brazil health' },
+    { href: '/country/mexico/health/', label: 'Mexico health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal mortality in every country' },
+  ]}
+>
+  <Fragment slot="answer">During 2021 Colombia's maternal ratio shot up to <strong>{mPeak[1]} for each 100,000 births</strong>; by {mat.year} it was {mat.text}, better than ever before. Tuberculosis has moved the other way, increasing every year from 2018 to <strong>{tb.text} per 100,000</strong> in {tb.year}.</Fragment>
+  <div class="story-block prose">
+    <h2>Did maternal mortality rise in Colombia during 2021?</h2>
+    <p>Sharply. In the UN MMEIG series the ratio moves from {v('maternalMortality', 2019)} (2019) to {v('maternalMortality', 2020)} (2020) and {mPeak[1]} (2021), then back down to {v('maternalMortality', 2022)} (2022) and {mat.text} ({mat.year}).</p>
+  </div>
+  <LineChart
+    title={`Colombian maternal mortality ratio, 1990–${mat.year}`}
+    subtitle="Women in Colombia dying of maternal causes, rate per 100,000 live births, MMEIG model."
+    points={s.maternalMortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    unit="per 100,000 live births"
+    highlight={2021}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is tuberculosis increasing in Colombia?</h2>
+    <p>Yes. After bottoming at {v('tbIncidence', 2015)} per 100,000 in 2015, WHO's estimate edged up and then rose annually from 2018, to {tb.text} in {tb.year}.</p>
+  </div>
+  <LineChart
+    title={`Tuberculosis in Colombia, 2000–${tb.year}`}
+    subtitle="New TB cases each year for every 100,000 Colombians, as estimated by WHO."
+    points={s.tbIncidence.map(([x, y]) => ({ x, y: Math.round(y) }))}
+    format="plain"
+    unit="per 100,000"
+    highlight={tb.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Has Colombia trained more doctors?</h2>
+    <p>Many more: the physician ratio of {doc.text} per thousand residents ({doc.year}) is over three times the {d90} of 1990 and exceeds the {nurse.text} nursing staff.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are Colombian children healthier than in 1990?</h2>
+    <p>Much healthier. The under-five death rate was {v('under5Mortality', 1990)} per 1,000 in 1990 and is {u5.text} today ({U}), and neonatal deaths to {neo.text}. Tobacco use, at {tob.text} of adults, is down from {pct(v('tobaccoPct', 2000))} in 2000 and nineteenth-lowest of any country. Life expectancy is covered by <a href={path('/country/colombia/population/')}>our Colombia population figures</a>.</p>
+  </div>
+</HealthTopic>

@@ -1,0 +1,104 @@
+---
+// Myanmar health (task 173). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/myanmar.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), infant = st('infant'), mat = st('maternal'), tb = st('tb'), measles = st('measles'), dpt = st('dpt'), mal = st('malaria');
+const tob = st('tobacco'), oop = st('oop'), hPc = st('healthPc'), hGdp = st('healthGdp');
+const U = u5.year!;
+
+const t00 = v('tobaccoPct', 2000);
+assertClaim(fromTop(tob) === 3 && Number(tob.value) > 40 && Number(tob.value) < t00 - 20, 'tobacco third highest above 40%, down more than 20 points since 2000');
+const m20 = v('measlesVaccPct', 2020), m21 = v('measlesVaccPct', 2021), d21 = v('dptVaccPct', 2021);
+assertClaim(m20 > 90 && m21 < 45 && d21 < 40 && Number(measles.value) < m20 - 15, 'measles above 90% in 2020, under 45% in 2021, DPT under 40%; still 15+ points below 2020');
+const tbMin = s.tbIncidence.reduce((a, b) => (b[1] < a[1] ? b : a));
+assertClaim(tbMin[0] === 2020 && Number(tb.value) > 1.5 * tbMin[1] && fromTop(tb) === 7, 'TB lowest in 2020, now over 1.5 times that, 7th highest');
+const malMin = s.malariaIncidence.reduce((a, b) => (b[1] < a[1] ? b : a));
+assertClaim(malMin[0] === 2019 && Number(mal.value) > 8 * malMin[1], 'malaria more than eight times the 2019 low');
+assertClaim(fromTop(oop) === 7 && Number(oop.value) > 70, 'out-of-pocket share 7th highest, over 70%');
+assertClaim(Number(u5.value) < v('under5Mortality', 1990) / 3 && Number(mat.value) < v('maternalMortality', 1990) / 3, 'under-five and maternal rates under a third of 1990');
+
+const title = `Myanmar Health Data ${U}: Tobacco, Vaccination, TB, Malaria | AtlasFigures`;
+const description = `${tob.text} of adults in Myanmar use tobacco, third most worldwide. Measles vaccination crashed from ${m20}% in 2020 to ${m21}% in 2021 while TB has climbed to ${tb.text} per 100,000.`;
+
+const faq = [
+  { q: 'Who pays for healthcare in Myanmar?', a: `Mostly patients themselves. Out-of-pocket payments formed ${oop.text} of the total in ${oop.year}; six countries rely on them more.` },
+  { q: 'How big is Myanmar’s health budget?', a: `Small: WHO accounts show ${hPc.text} per resident for ${hPc.year}, or ${hGdp.text} of GDP.` },
+  { q: 'What is the infant death rate in Myanmar?', a: `About ${infant.text} in every thousand born in ${U}, UN IGME estimates, compared with ${v('infantMortality', 1990)} in 1990.` },
+  { q: 'Has malaria returned in Myanmar?', a: `Yes. WHO's incidence estimate went from ${malMin[1]} per thousand exposed in ${malMin[0]} to ${mal.text} in ${mal.year}.` },
+];
+const headline = `Myanmar health ${U}: heavy tobacco use, a vaccination collapse and rising TB and malaria`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Myanmar's health: tobacco, a vaccine collapse and returning disease"
+  headline={headline}
+  tableTitle={`Myanmar: health measures since 1990, to ${U}`}
+  tableSubtitle="Only a dozen years show on screen; the CSV keeps every year for Myanmar."
+  faq={faq}
+  faqTitle="Myanmar health: other questions"
+  related={[
+    { href: '/country/myanmar/', label: 'Myanmar in figures' },
+    { href: '/country/myanmar/population/', label: 'Myanmar population and births' },
+    { href: '/country/thailand/health/', label: 'Thailand health' },
+    { href: '/country/india/health/', label: 'India health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Under-five mortality worldwide' },
+  ]}
+>
+  <Fragment slot="answer"><strong>{tob.text} of adults in Myanmar</strong> use tobacco ({tob.year}), the third highest rate in the world. Measles vaccination fell from {m20}% in 2020 to <strong>{m21}% in 2021</strong> and has only partly recovered, while tuberculosis and malaria cases have risen again.</Fragment>
+  <div class="story-block prose">
+    <h2>How common is tobacco use in Myanmar?</h2>
+    <p>Very common, though less than it was. Two in five adults still use it: WHO's {tob.year} figure is {tob.text}, against {pct(t00)} in 2000, and only two countries record more.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>What happened to child vaccination in Myanmar in 2021?</h2>
+    <p>It collapsed. WHO/UNICEF estimates show first-dose measles coverage falling from {m20}% in 2020 to {m21}% in 2021 and three-dose DPT to {d21}%. Recovery has been partial: {measles.text} for measles and {dpt.text} for DPT in {measles.year}.</p>
+  </div>
+  <LineChart
+    title={`Measles vaccination in Myanmar, 1990–${measles.year}`}
+    subtitle="First-dose measles coverage among Myanmar infants in their second year of life, percent (WHO/UNICEF)."
+    points={s.measlesVaccPct.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={2021}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is tuberculosis rising in Myanmar?</h2>
+    <p>Yes, after years of decline. WHO's series sank to {tbMin[1]} per 100,000 people in {tbMin[0]} before rebounding to {tb.text} in {tb.year}, leaving Myanmar seventh in the world for TB incidence.</p>
+  </div>
+  <LineChart
+    title={`New TB cases in Myanmar, 2000–${tb.year}`}
+    subtitle="WHO-modelled new TB infections a year, per 100,000 residents of Myanmar."
+    points={s.tbIncidence.map(([x, y]) => ({ x, y: Math.round(y) }))}
+    format="plain"
+    unit="per 100,000"
+    highlight={tb.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Have child and maternal deaths fallen in Myanmar?</h2>
+    <p>Over the long run, yes. Out of every thousand births, {v('under5Mortality', 1990)} ended in a death before age five in 1990 against {u5.text} in {U}; mothers' deaths went from {v('maternalMortality', 1990)} to {mat.text} for each 100,000 births ({mat.year}). Population trends are set out in <a href={path('/country/myanmar/population/')}>our Myanmar population figures</a>.</p>
+  </div>
+</HealthTopic>

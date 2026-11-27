@@ -1,0 +1,77 @@
+---
+// South Korea country hub (task 173). Every figure comes from the country profile (src/data/profiles/KOR.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/south-korea.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { countryIndex, assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), births = st('population', 'births'), deaths = st('population', 'deaths'), tfr = st('population', 'fertility');
+const life = st('population', 'lifeExp'), age = st('population', 'medianAge');
+const rd = st('education', 'rd'), pat = st('education', 'patRes'), ter = st('education', 'enrTer'), manuf = st('economy', 'manufGdp'), gdp = st('economy', 'gdp');
+const ports = st('internet', 'ports'), co2 = st('environment', 'co2'), hom = st('governance', 'homicide'), bb = st('internet', 'broadband'), res = st('economy', 'reserves'), hitech = st('trade', 'hitech');
+
+const all = countryIndex.countries.map((c) => ({ iso3: c.iso3, pop: c.population, f: Number(stat(profile(c.iso3), 'population', 'fertility').value) }));
+const lower = all.filter((c) => c.f < Number(tfr.value)).map((c) => c.iso3).sort();
+assertClaim(lower.join(',') === 'HKG,MAC', 'only Hong Kong and Macao have lower fertility');
+const big = all.filter((c) => c.pop > 50e6).sort((a, b) => a.f - b.f);
+assertClaim(big[0].iso3 === 'KOR' && Number(deaths.value) > 1.5 * Number(births.value), 'lowest fertility of any country over 50 million; deaths over 1.5 times births');
+const e0 = countryIndex.countries.filter((c) => c.population > 50e6).map((c) => ({ iso3: c.iso3, e: Number(stat(profile(c.iso3), 'population', 'lifeExp').value) })).sort((a, b) => b.e - a.e);
+assertClaim(e0[0].iso3 === 'JPN' && e0[1].iso3 === 'KOR', 'second-longest life expectancy above 50 million, after Japan');
+assertClaim(fromTop(rd) === 3 && fromTop(pat) === 4 && fromTop(ter) === 5 && Number(ter.value) > 100, 'R&D 3rd, resident patents 4th, tertiary enrolment 5th above 100%');
+assertClaim(fromTop(manuf) === 7 && fromTop(ports) === 4 && fromTop(co2) === 9, 'manufacturing share 7th, container ports 4th, CO2 9th');
+assertClaim(fromBottom(hom) === 10 && fromTop(bb) === 8 && fromTop(res) === 9 && fromTop(hitech) === 13, 'homicide 10th lowest, broadband 8th, reserves 9th, high-tech exports 13th');
+
+const title = `South Korea in Figures ${Y}: Lowest Fertility, Research, Factories | AtlasFigures`;
+const description = `South Korean women average ${tfr.text} children, a rate beaten for lowness only by Hong Kong and Macao, and deaths outnumber births. Korea spends ${rd.text}% of GDP on research, third most worldwide.`;
+
+const faq = [
+  { q: 'Is South Korea a safe country?', a: `Judged by killings, strikingly so: UNODC's ${hom.year} rate of ${hom.text} homicides per 100,000 Koreans is beaten for lowness by nine countries only.` },
+  { q: 'How common is home broadband in South Korea?', a: `Nearly universal for households: ITU logged ${bb.text} wired connections per 100 Koreans in ${bb.year}, rank ${fromTop(bb)} of ${bb.of}.` },
+  { q: 'What share of Korean exports are high-tech?', a: `Over a third: high-technology goods were ${hitech.text} of Korean manufactured sales abroad in ${hitech.year}, the ${ordinal(fromTop(hitech))} biggest proportion recorded.` },
+  { q: 'How large are South Korea’s foreign reserves?', a: `Huge: ${res.text} including gold at the end of ${res.year}, ninth-biggest stockpile among central banks.` },
+];
+const headline = `South Korea in figures ${Y}: record-low fertility, research spending, factories and ports`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="South Korea in figures: barely any babies and a flood of patents"
+  headline={headline}
+  faq={faq}
+  faqTitle="South Korea: odds and ends"
+  related={[
+    { href: '/country/south-korea/population/', label: 'South Korea population: live count and decline' },
+    { href: '/country/south-korea/economy/', label: 'South Korea economy: GDP and exports' },
+    { href: '/country/south-korea/health/', label: 'South Korea health: beds, newborns, smoking' },
+    { href: '/country/japan/', label: 'Japan in figures' },
+    { href: '/country/china/', label: 'China by the numbers' },
+    { href: '/country/vietnam/', label: 'Vietnam in data' },
+    { href: '/rankings/exports-by-country/', label: 'Exports of every country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Among countries above 50 million inhabitants, South Korea records the lowest fertility, <strong>{tfr.text}</strong> children per woman, while the UN reckons it holds <strong>{people(Number(pop.value))}</strong> in {Y}. Research and development absorbs {rd.text}% of GDP, a share topped by just two countries.</Fragment>
+  <div class="story-block prose">
+    <h2>Where does South Korea rank for fertility?</h2>
+    <p>Third from the bottom of all countries and areas, ahead only of Hong Kong and Macao, two special administrative regions of China; the {Y} projection is {tfr.text}. Deaths ({int(Number(deaths.value))}) will exceed births ({int(Number(births.value))}) this year, and the median Korean is now {age.text}. Long-range projections are on the <a href={path('/country/south-korea/population/')}>South Korean population page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How research-intensive is South Korea?</h2>
+    <p>More than nearly anyone. UNESCO puts gross R&amp;D spending at {rd.text}% of output for {rd.year}, and Korean residents lodged {pat.text} patent filings during {pat.year}, fourth-largest number anywhere. The gross tertiary enrolment ratio is {ter.text}, rank {fromTop(ter)} globally.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How big is manufacturing in South Korea?</h2>
+    <p>Industry is central: factories generated {manuf.text} of {manuf.year} GDP, with only six economies more factory-heavy, and Korean terminals moved {people(Number(ports.value))} twenty-foot container units, fourth busiest traffic of any country. Korea's {gdp.text} GDP and its growth record are on <a href={path('/country/south-korea/economy/')}>our South Korean economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>What is South Korean life expectancy?</h2>
+    <p>The {Y} cohort of Korean newborns is projected to reach {life.text} years on average, a figure no large country other than Japan can beat. On the environmental side, burning fossil fuels released {co2.text} million tonnes of CO₂, ninth most worldwide.</p>
+  </div>
+</CountryHub>

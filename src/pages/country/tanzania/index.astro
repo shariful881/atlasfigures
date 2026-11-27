@@ -1,0 +1,75 @@
+---
+// Tanzania country hub (task 173). Every figure comes from the country profile (src/data/profiles/TZA.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/tanzania.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { countryIndex, assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), births = st('population', 'births'), deaths = st('population', 'deaths'), age = st('population', 'medianAge');
+const tfr = st('population', 'fertility'), grow = st('population', 'growth');
+const lfpF = st('jobs', 'lfpF'), agriJobs = st('jobs', 'empAgri'), unemp = st('jobs', 'unemp');
+const sec = st('education', 'enrSec'), ter = st('education', 'enrTer'), ptr = st('education', 'ptr'), out = st('education', 'outSchool');
+const protLand = st('environment', 'protLand'), forestA = st('environment', 'forestArea'), forest = st('environment', 'forestPct'), elec = st('internet', 'electricity');
+const srv = st('economy', 'srvGdp'), sav = st('economy', 'savings'), growth = st('economy', 'growth'), parl = st('governance', 'womenParl'), gdp = st('economy', 'gdp');
+
+const rank = countryIndex.countries.find((c) => c.iso3 === pg.iso3)!.worldRank;
+assertClaim(rank === 20 && Number(births.value) > 6 * Number(deaths.value) && Number(age.value) < 18, '20th population; births over six times deaths; median age under 18');
+assertClaim(fromTop(lfpF) === 4 && Number(lfpF.value) > 80 && fromTop(agriJobs) === 10 && fromBottom(unemp) === 12, "women's participation 4th (over 80%), farm jobs 10th, unemployment 12th lowest");
+assertClaim(fromBottom(sec) === 6 && fromBottom(ter) === 3 && fromTop(ptr) === 6 && fromTop(out) === 6 && Number(out.value) > 2e6, 'secondary 6th lowest, tertiary 3rd lowest, pupils per teacher 6th, 2 million+ out of school (6th)');
+assertClaim(fromTop(protLand) === 15 && fromTop(forestA) === 19 && Number(forest.value) > 49 && fromBottom(elec) === 17, 'protected land 15th, forest area 19th, electricity access 17th lowest');
+assertClaim(fromBottom(srv) === 3 && fromTop(sav) === 18 && fromTop(parl) === 32, 'services share 3rd lowest, savings 18th, women MPs 32nd');
+
+const title = `Tanzania in Figures ${Y}: Young Population, Farm Work, Schools, Parks | AtlasFigures`;
+const description = `Tanzania logs roughly six births per death, while the middle Tanzanian is just ${age.text}. Four in five women are economically active, yet the secondary-school enrolment ratio is only ${sec.text}.`;
+
+const faq = [
+  { q: 'How big is the service sector in Tanzania?', a: `Small. Trade, transport, finance and other services produced ${srv.text} of GDP in ${srv.year}; only two of ${srv.of} economies lean on them less.` },
+  { q: 'Do Tanzanians save a large share of their income?', a: `Yes. National saving was worth ${sav.text} of output in ${sav.year}, placing Tanzania ${ordinal(fromTop(sav))} of ${sav.of}.` },
+  { q: 'How quickly is the Tanzanian economy growing?', a: `Briskly: inflation-adjusted output gained ${growth.text} during ${growth.year}, the ${ordinal(fromTop(growth))} quickest pace recorded, lifting GDP to ${gdp.text}.` },
+  { q: 'How many women sit in the Tanzanian parliament?', a: `They hold ${parl.text} of seats in the National Assembly (${parl.year}), ${ordinal(fromTop(parl))} of ${parl.of} on Inter-Parliamentary Union figures.` },
+];
+const headline = `Tanzania in figures ${Y}: a young and fast-growing population, farm work, schooling and protected land`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Tanzania in figures: six births per death and a nation at work on the land"
+  headline={headline}
+  faq={faq}
+  faqTitle="Tanzania: what else to know"
+  related={[
+    { href: '/country/tanzania/population/', label: 'Tanzania population: live count and growth' },
+    { href: '/country/tanzania/economy/', label: 'Tanzania economy: GDP and the shilling' },
+    { href: '/country/tanzania/health/', label: 'Tanzania health: children, malaria, smoking' },
+    { href: '/country/kenya/', label: 'Kenya in figures' },
+    { href: '/country/uganda/', label: 'Uganda by the numbers' },
+    { href: '/country/dr-congo/', label: 'DR Congo in data' },
+    { href: '/rankings/female-labor-force-participation-by-country/', label: "Women's labour force participation" },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Ranked {ordinal(rank)} on earth by headcount, Tanzania counts <strong>{people(Number(pop.value))}</strong> residents for {Y} on UN figures, rising {grow.text} annually. Most adults work, <strong>{lfpF.text} of women</strong> among them, and {agriJobs.text} of all jobs are in farming.</Fragment>
+  <div class="story-block prose">
+    <h2>Are there more births than deaths in Tanzania?</h2>
+    <p>Over six times as many. This year's UN projection sets {people(Number(births.value))} newborns and {int(Number(deaths.value))} deaths; a woman bears {tfr.text} children over her life, and half the country is under {age.text}. Follow the numbers to 2100 on <a href={path('/country/tanzania/population/')}>our Tanzania population tracker</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are most Tanzanian women in paid or farm work?</h2>
+    <p>Yes. ILO models show {lfpF.text} of women aged 15 or older working or seeking work during {lfpF.year}, the {ordinal(fromTop(lfpF))} highest rate on earth. Agriculture employs {agriJobs.text} of workers, {ordinal(fromTop(agriJobs))} highest share, and measured unemployment is just {unemp.text}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many Tanzanian children go to secondary school?</h2>
+    <p>Relatively few. UNESCO's gross secondary ratio was {sec.text} in {sec.year}, sixth lowest of {sec.of}, and higher education enrols {ter.text}. {people(Number(out.value))} youngsters who should have been in primary school were not ({out.year}), while every primary teacher faced {ptr.text} pupils ({ptr.year}).</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much Tanzanian land is set aside for nature?</h2>
+    <p>About two fifths: parks and reserves cover {protLand.text} of the land area ({protLand.year}, UNEP-WCMC), a share surpassed in fourteen countries. Forest covers {forest.text} of the country, a total of {forestA.text} km² that ranks {ordinal(fromTop(forestA))}, while only {elec.text} of Tanzanians had electricity in {elec.year}.</p>
+  </div>
+</CountryHub>

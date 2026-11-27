@@ -1,0 +1,75 @@
+---
+// France country hub (task 173). Every figure comes from the country profile (src/data/profiles/FRA.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/france.json';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), births = st('population', 'births'), deaths = st('population', 'deaths'), net = st('population', 'netMigrants');
+const life = st('population', 'lifeExp'), mig = st('population', 'migrantStock');
+const gdp = st('economy', 'gdp'), expense = st('economy', 'expense'), exp = st('trade', 'exports'), imp = st('trade', 'imports');
+const remit = st('trade', 'remit'), tour = st('trade', 'tourists'), tourInc = st('trade', 'tourismInc');
+const bb = st('internet', 'broadband'), acc = st('internet', 'account'), accF = st('internet', 'accountF'), sea = st('environment', 'protSea');
+
+const gap = Number(births.value) - Number(deaths.value);
+assertClaim(gap > 0 && gap < 5000, 'births exceed deaths by fewer than 5,000');
+assertClaim(Number(net.value) > 20 * gap, 'net migration more than twenty times the natural increase');
+assertClaim(fromTop(tour) === 1 && tour.year === 2020 && fromTop(tourInc) === 3, 'most tourist arrivals (2020), third for tourism receipts');
+assertClaim(fromTop(gdp) === 7 && fromTop(exp) === 5 && fromTop(imp) === 5, 'seventh GDP, fifth exporter and importer');
+assertClaim(fromTop(mig) === 5 && fromTop(remit) === 3, 'fifth-largest migrant population, third-largest remittance receiver');
+assertClaim(fromTop(expense) === 9 && fromTop(bb) === 7 && fromTop(accF) === 1 && fromTop(sea) === 7, 'ninth spending share, seventh broadband, first for women with accounts, seventh marine protection');
+
+const title = `France in Figures ${Y}: Tourism, Trade, Migration, Births | AtlasFigures`;
+const description = `France counts barely ${int(gap)} more births than deaths in ${Y}, so newcomers drive its growth. The World Bank's latest count puts it top for tourist arrivals; GDP ${gdp.text}.`;
+
+const faq = [
+  { q: 'How common is fixed broadband in France?', a: `Very: ITU counted ${bb.text} fixed lines per 100 inhabitants in ${bb.year}, placing France ${ordinal(fromTop(bb))} out of ${bb.of}.` },
+  { q: 'Do nearly all French adults have a bank account?', a: `Yes: ${acc.text} held one in ${acc.year} (Global Findex), and the rate among French women, ${accF.text}, is the highest recorded anywhere.` },
+  { q: 'How much of French sea territory is protected?', a: `Nearly half: ${sea.text} of French territorial waters were protected areas in ${sea.year}, a share bettered by only ${fromTop(sea) - 1} coastal states.` },
+  { q: 'How large is the French state relative to GDP?', a: `Large. Government outlays came to ${expense.text} of national output in ${expense.year}; just ${fromTop(expense) - 1} of the ${expense.of} governments in the World Bank comparison spend more.` },
+];
+const headline = `France in figures ${Y}: tourism, trade, migration and a near standstill in natural growth`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="France in figures: the visitors' favourite where births barely outnumber deaths"
+  headline={headline}
+  faq={faq}
+  faqTitle="More about France"
+  related={[
+    { href: '/country/france/population/', label: 'France population: live count and projections' },
+    { href: '/country/france/economy/', label: 'France economy: GDP and growth' },
+    { href: '/country/france/health/', label: 'France health: spending, smoking, nurses' },
+    { href: '/country/italy/', label: 'Italy at a glance' },
+    { href: '/country/germany/', label: 'Germany in numbers' },
+    { href: '/country/united-kingdom/', label: 'The United Kingdom in data' },
+    { href: '/rankings/exports-by-country/', label: 'Exports by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">France will count <strong>{people(Number(pop.value))}</strong> residents in {Y}, the UN projects. Newborns outnumber the dead by only a few thousand, so arrivals from abroad supply most of its growth. With output of <strong>{gdp.text}</strong> France ranks {ordinal(fromTop(gdp))} among economies, and a French newborn has {life.text} years ahead on average.</Fragment>
+  <div class="story-block prose">
+    <h2>Are there more births or deaths in France?</h2>
+    <p>Births, but only just. The UN projects {int(Number(births.value))} French births and {int(Number(deaths.value))} deaths for {Y}, a natural surplus of {int(gap)}. Net migration of {int(Number(net.value))} people is more than twenty times that. Where that leads by 2100 is charted in <a href={path('/country/france/population/')}>France's live population tracker</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is France the most visited country in the world?</h2>
+    <p>On the World Bank's most recent figure, yes: {people(Number(tour.value))} international arrivals in {tour.year}, the top total of all {tour.of} countries listed. Those visitors spent {tourInc.text}, {ordinal(fromTop(tourInc))} biggest tourism income.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How big are French exports and imports?</h2>
+    <p>Each passed a trillion dollars: goods and services sold abroad reached {exp.text} in {exp.year} and purchases {imp.text}, {ordinal(fromTop(exp))} on both lists. Total output was {gdp.text}, {ordinal(fromTop(gdp))} worldwide; growth and prices are on <a href={path('/country/france/economy/')}>France's economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How large is France's foreign-born population?</h2>
+    <p>About {people(Number(mig.value))} in {mig.year} (UN DESA), the {ordinal(fromTop(mig))} largest foreign-born population anywhere. Money also flows in the other direction: France received {remit.text} in personal remittances, {ordinal(fromTop(remit))} most of {remit.of} on World Bank figures.</p>
+  </div>
+</CountryHub>

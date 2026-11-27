@@ -1,0 +1,73 @@
+---
+// Colombia country hub (task 173). Every figure comes from the country profile (src/data/profiles/COL.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/colombia.json';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), births = st('population', 'births'), deaths = st('population', 'deaths'), net = st('population', 'netMigrants');
+const tfr = st('population', 'fertility'), mig = st('population', 'migrantStock'), life = st('population', 'lifeExp');
+const gini = st('economy', 'gini'), gdp = st('economy', 'gdp'), ext = st('economy', 'extDebt'), remit = st('trade', 'remit');
+const forest = st('environment', 'forestPct'), forestA = st('environment', 'forestArea'), sea = st('environment', 'protSea');
+const hydro = st('energy', 'hydroShare'), ren = st('energy', 'renShare'), hom = st('governance', 'homicide'), mobile = st('internet', 'mobile'), fert = st('farming', 'fert');
+
+assertClaim(fromTop(gini) === 1 && Number(gini.value) > 54, 'highest Gini index of countries with a recent survey');
+assertClaim(Number(births.value) > 2 * Number(deaths.value) && Number(net.value) > 100000 && Number(tfr.value) < 2.1 && fromTop(mig) === 22, 'births over twice deaths, net migration over 100,000, fertility below replacement, migrants 22nd');
+assertClaim(Number(forest.value) > 50 && fromTop(forestA) === 13 && fromTop(sea) === 12, 'forest over half the land, 13th by area; marine protection 12th');
+assertClaim(fromTop(hydro) === 11 && Number(hydro.value) > 65 && fromTop(ren) === 21, 'hydropower 11th share over 65%, renewables 21st');
+assertClaim(fromTop(ext) === 9 && fromTop(hom) === 15 && fromTop(mobile) === 15 && fromTop(fert) === 12 && fromTop(remit) === 17, 'external debt 9th, homicide 15th, mobile 15th, fertiliser 12th, remittances 17th');
+
+const title = `Colombia in Figures ${Y}: Inequality, Forests, Hydropower, Migration | AtlasFigures`;
+const description = `Colombia has the highest Gini index among ${gini.of} countries with recent surveys (${gini.text}). Forest covers ${forest.text} of the land and dams supply ${hydro.text} of its power; ${people(Number(pop.value))} people (UN, ${Y}).`;
+
+const faq = [
+  { q: 'How much does Colombia owe abroad?', a: `Its foreign debts totalled ${ext.text} at the end of ${ext.year}; only ${fromTop(ext) - 1} borrowers listed in International Debt Statistics owe more.` },
+  { q: 'What is the homicide rate in Colombia?', a: `UNODC logged ${hom.text} killings for every 100,000 Colombians during ${hom.year}, ${ordinal(fromTop(hom))} on a list of ${hom.of}.` },
+  { q: 'What do Colombians overseas send back?', a: `Personal transfers into Colombia hit ${remit.text} in ${remit.year}; sixteen recipient countries got more.` },
+  { q: 'Do Colombian farmers use a lot of fertiliser?', a: `Fertiliser use averaged ${fert.text} kg on each hectare of cropland in ${fert.year}, FAO says, which puts Colombia ${ordinal(fromTop(fert))} among ${fert.of}.` },
+];
+const headline = `Colombia in figures ${Y}: income inequality, forests, hydropower and newcomers`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Colombia in figures: the widest income gap and a country run on water"
+  headline={headline}
+  faq={faq}
+  faqTitle="Colombia: short questions, short answers"
+  related={[
+    { href: '/country/colombia/population/', label: 'Colombia population: live count' },
+    { href: '/country/colombia/economy/', label: 'Colombia economy: GDP and the peso' },
+    { href: '/country/colombia/health/', label: 'Colombia health: mothers, TB, doctors' },
+    { href: '/country/brazil/', label: 'Brazil in figures' },
+    { href: '/country/mexico/', label: 'Mexico by the numbers' },
+    { href: '/country/peru/population/', label: "Peru's population" },
+    { href: '/rankings/renewable-electricity-by-country/', label: 'Renewable power by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Some <strong>{people(Number(pop.value))}</strong> Colombians are expected in {Y} by the UN, and their country has the <strong>largest income gap</strong> recorded by recent household surveys (Gini {gini.text}). More than half the land is forest, and hydropower generates {hydro.text} of electricity.</Fragment>
+  <div class="story-block prose">
+    <h2>Does any country have a wider income gap than Colombia?</h2>
+    <p>None among the {gini.of} with a recent World Bank survey: Colombia's Gini reading of {gini.text} ({gini.year}) is the top score, where zero would mean identical incomes. For GDP ({gdp.text}), the peso and prices, turn to <a href={path('/country/colombia/economy/')}>our Colombian economy data</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much of Colombia is covered by forest?</h2>
+    <p>{forest.text} of the land in {forest.year}, or {forestA.text} km², the {ordinal(fromTop(forestA))} largest forest area anywhere (FAO). At sea, {sea.text} of territorial waters are protected, {ordinal(fromTop(sea))} highest share.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How does Colombia generate its electricity?</h2>
+    <p>Mainly from rivers. Dams delivered {hydro.text} of all power produced during {hydro.year} by Ember's count, the {ordinal(fromTop(hydro))} biggest hydro share on earth, and renewables together {ren.text}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Colombia's headcount still climbing?</h2>
+    <p>Yes, thanks to newborns and newcomers alike. For {Y} the UN pencils in {int(Number(births.value))} babies against {int(Number(deaths.value))} funerals, with {int(Number(net.value))} more people arriving than leaving, though a woman now averages only {tfr.text} children. The foreign-born numbered {people(Number(mig.value))} in {mig.year}, {ordinal(fromTop(mig))} largest such community. Longevity for a Colombian newborn: {life.text} years; details on the <a href={path('/country/colombia/population/')}>population page</a>.</p>
+  </div>
+</CountryHub>

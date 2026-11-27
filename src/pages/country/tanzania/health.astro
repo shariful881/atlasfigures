@@ -1,0 +1,104 @@
+---
+// Tanzania health (task 173). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/tanzania.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), infant = st('infant'), neo = st('neonatal'), doc = st('doctors'), hPc = st('healthPc'), hGdp = st('healthGdp');
+const tob = st('tobacco'), mal = st('malaria'), under = st('undernour'), stunt = st('stunting'), road = st('road'), oop = st('oop');
+const U = u5.year!;
+
+const u90 = v('under5Mortality', 1990);
+assertClaim(Number(u5.value) < u90 / 4.5, 'under-five deaths less than a fifth... (under 1/4.5 of 1990)');
+const t00 = v('tobaccoPct', 2000);
+assertClaim(Number(tob.value) < t00 / 3.5 && fromBottom(tob) === 17, 'tobacco less than 1/3.5 of 2000; 17th lowest');
+assertClaim(fromBottom(doc) === 14 && fromBottom(hPc) === 15 && Number(hPc.value) < 40, 'doctors 14th lowest, spending per person 15th lowest, under $40');
+const malMax = s.malariaIncidence[0];
+assertClaim(malMax[0] === 2000 && Number(mal.value) < malMax[1] / 2 && fromTop(mal) === 30, 'malaria less than half of 2000, 30th');
+const und02 = v('undernourishedPct', 2002), st91 = v('stuntingPct', 1991);
+assertClaim(fromTop(under) === 27 && Number(under.value) < und02 - 14 && Number(stunt.value) < st91 - 19, 'undernourishment 27th, down over 14 points since 2002; stunting down 19+ since 1991');
+assertClaim(fromTop(road) === 20 && Number(road.value) > 30, 'road deaths 20th, over 30 per 100,000');
+
+const title = `Tanzania Health Data ${U}: Under-Five Deaths, Malaria, Tobacco | AtlasFigures`;
+const description = `Tanzania's under-five mortality went from ${u90} per 1,000 births (1990) to ${u5.text} (${U}), and adult tobacco use dropped to ${tob.text} from ${pct(t00)}. Health outlays: ${hPc.text} a head.`;
+
+const faq = [
+  { q: 'How many doctors work in Tanzania?', a: `Very few. The ${doc.year} figure is ${doc.text} per thousand inhabitants (WHO), and only thirteen of ${doc.of} countries report a thinner medical workforce.` },
+  { q: 'Does Tanzania still have a malaria problem?', a: `Yes. WHO modelling shows ${mal.text} infections a year per thousand residents exposed (${mal.year}), thirtieth of ${mal.of}, though that is down from ${Math.round(malMax[1])} in 2000.` },
+  { q: 'Are road crashes a big killer in Tanzania?', a: `They are: WHO estimated ${road.text} traffic fatalities for each 100,000 Tanzanians in ${road.year}, twentieth-worst of ${road.of}.` },
+  { q: 'What share of Tanzanian health costs falls on households?', a: `Households covered ${oop.text} of spending themselves in ${oop.year}, compared with ${pct(v('outOfPocketPct', 2000))} in 2000.` },
+];
+const headline = `Tanzania health ${U}: child survival, malaria, nutrition and the fall in tobacco use`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Tanzania's health: far fewer child deaths, far less smoking"
+  headline={headline}
+  tableTitle={`Tanzania's health measures, 1990–${U}`}
+  tableSubtitle="Selected years on screen, while the CSV holds every Tanzanian year on record."
+  faq={faq}
+  faqTitle="Health in Tanzania: short answers"
+  related={[
+    { href: '/country/tanzania/', label: 'Tanzania in figures' },
+    { href: '/country/tanzania/population/', label: 'Tanzania population and births' },
+    { href: '/country/kenya/health/', label: 'Kenya health' },
+    { href: '/country/uganda/health/', label: 'Uganda health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality across the world' },
+  ]}
+>
+  <Fragment slot="answer">Of every 1,000 Tanzanian children born in 1990, {u90} died before turning five; by {U} the toll was <strong>{u5.text}</strong>. Tobacco users shrank from {pct(t00)} of adults (2000) to <strong>{tob.text}</strong>. Doctors remain scarce at {doc.text} per 1,000 inhabitants.</Fragment>
+  <div class="story-block prose">
+    <h2>Are fewer Tanzanian children dying before five?</h2>
+    <p>More than three quarters fewer than in 1990. The UN IGME series runs from {u90} per thousand that year to {v('under5Mortality', 2010)} in 2010 and {u5.text} in {U}. Babies who die before their first birthday now number {infant.text} per thousand, those lost in the first month {neo.text}.</p>
+  </div>
+  <LineChart
+    title={`Tanzanian under-five mortality, 1990–${U}`}
+    subtitle="Likelihood that a Tanzanian newborn dies before turning five, per thousand (UN IGME estimates)."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 live births"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How many Tanzanians smoke or chew tobacco?</h2>
+    <p>Far fewer than before. WHO's figure for {tob.year} is {tob.text} of people aged 15 or more, about a quarter of the {pct(t00)} seen in 2000; just sixteen countries report less.</p>
+  </div>
+  <LineChart
+    title={`Tanzanians using tobacco, 2000–${tob.year}`}
+    subtitle="Share of Tanzanians aged 15 and over who use any tobacco product, WHO estimates."
+    points={s.tobaccoPct.map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={tob.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is malaria still widespread in Tanzania?</h2>
+    <p>Yes, though it has eased since 2000, when incidence stood at {Math.round(malMax[1])} per thousand exposed; the {mal.year} figure, {mal.text}, is less than half of that.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are Tanzanian children better fed than before?</h2>
+    <p>Better, not yet well. Stunting affected {stunt.text} of young Tanzanian children in {stunt.year}, against {st91}% in 1991, and undernourishment covers {under.text} of the population ({under.year}), against {und02}% in 2002. Health absorbs {hGdp.text} of national output, roughly {hPc.text} per inhabitant. Fertility and lifespans appear in <a href={path('/country/tanzania/population/')}>Tanzania's population data</a>.</p>
+  </div>
+</HealthTopic>

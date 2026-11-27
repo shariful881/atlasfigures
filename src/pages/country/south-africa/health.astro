@@ -1,0 +1,106 @@
+---
+// South Africa health (task 173). Figures from the World Bank WDI files (src/data/wdi/, checked against the original
+// zips by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/south-africa.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), infant = st('infant'), neo = st('neonatal'), mat = st('maternal'), tb = st('tb'), measles = st('measles'), dpt = st('dpt');
+const hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop'), under = st('undernour'), tob = st('tobacco'), doc = st('doctors');
+const U = u5.year!;
+
+const tbPeak = s.tbIncidence.reduce((a, b) => (b[1] > a[1] ? b : a));
+assertClaim(tbPeak[0] === 2007 && Number(tb.value) < tbPeak[1] / 3 && fromTop(tb) === 12, 'TB peaked in 2007, now less than a third of that, 12th highest');
+const mPeak = s.measlesVaccPct.reduce((a, b) => (b[1] >= a[1] ? b : a));
+assertClaim(mPeak[0] === 2021 && Number(measles.value) <= mPeak[1] - 10 && Number(dpt.value) < 75, 'measles coverage 2021 peak, now at least 10 points lower; DPT under 75%');
+const und04 = v('undernourishedPct', 2004);
+assertClaim(Number(under.value) > 3 * und04 && s.undernourishedPct.slice(-1)[0][1] === Math.max(...s.undernourishedPct.map((x) => x[1])), 'undernourishment more than tripled since 2004 and is at its highest');
+const neoMin = s.neonatalMortality.reduce((a, b) => (b[1] < a[1] ? b : a));
+assertClaim(neoMin[0] === 2018 && Number(neo.value) > neoMin[1] && Number(u5.value) > v('under5Mortality', 2020), 'newborn and under-five rates above recent lows (2018, 2020)');
+assertClaim(v('under5Mortality', 2000) > v('under5Mortality', 1990), 'under-five deaths higher in 2000 than 1990');
+assertClaim(fromBottom(oop) === 11 && Number(oop.value) < v('outOfPocketPct', 2000) / 2, 'out-of-pocket 11th lowest, less than half of 2000');
+const m21 = v('maternalMortality', 2021);
+assertClaim(m21 > 1.5 * Number(mat.value) && Number(mat.value) <= v('maternalMortality', 2020), 'maternal ratio in 2021 over 1.5x today, now back to 2020 level');
+
+const title = `South Africa Health Data ${U}: TB, Vaccination, Hunger, Infants | AtlasFigures`;
+const description = `South African TB incidence has sunk to ${tb.text} per 100,000 (${tb.year}), below one third of its ${tbPeak[0]} level, yet measles vaccination slipped to ${measles.text} and undernourishment hit ${under.text}.`;
+
+const faq = [
+  { q: 'How common is tuberculosis in South Africa?', a: `${tb.text} new cases for every 100,000 people in ${tb.year} (WHO), ${ordinal(fromTop(tb))} highest of ${tb.of} countries, down from ${int(tbPeak[1])} in ${tbPeak[0]}.` },
+  { q: 'Is South African health care paid for at the point of use?', a: `Seldom. Patients' own payments covered ${oop.text} of the total in ${oop.year}, one of the eleven smallest shares of ${oop.of}, down from ${pct(v('outOfPocketPct', 2000))} in 2000.` },
+  { q: 'Is there a shortage of doctors in South Africa?', a: `The ratio is modest: WHO workforce statistics give ${doc.text} doctors per 1,000 South Africans for ${doc.year}, rank ${fromTop(doc)} of ${doc.of}.` },
+  { q: 'What share of South African adults use tobacco?', a: `${tob.text} in ${tob.year}, a little above the ${pct(v('tobaccoPct', 2000))} recorded in 2000 (WHO).` },
+];
+const headline = `South Africa health ${U}: tuberculosis, falling vaccination, hunger and infant survival`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="South Africa's health: TB in retreat, vaccines and nutrition slipping"
+  headline={headline}
+  tableTitle={`South African health over time, 1990–${U}`}
+  tableSubtitle="A selection of years is shown; South Africa's full run downloads as CSV."
+  faq={faq}
+  faqTitle="South African health: other points"
+  related={[
+    { href: '/country/south-africa/', label: 'South Africa in figures' },
+    { href: '/country/south-africa/population/', label: 'South Africa population and lifespans' },
+    { href: '/country/kenya/health/', label: 'Kenya health' },
+    { href: '/country/nigeria/health/', label: 'Nigeria health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Under-five mortality by country' },
+  ]}
+>
+  <Fragment slot="answer">South Africa's tuberculosis rate is down to <strong>{tb.text} per 100,000</strong> ({tb.year}), a fraction of its {tbPeak[0]} level. Meanwhile first-dose measles cover slid to <strong>{measles.text}</strong> in {measles.year}, and undernourishment rose to {under.text}, a new high.</Fragment>
+  <div class="story-block prose">
+    <h2>Is tuberculosis falling in South Africa?</h2>
+    <p>Steeply. Incidence peaked at {int(tbPeak[1])} per 100,000 in {tbPeak[0]}, by WHO's reckoning, and had come down to {tb.text} by {tb.year}, still the twelfth-highest rate anywhere.</p>
+  </div>
+  <LineChart
+    title={`South African tuberculosis incidence, 2000–${tb.year}`}
+    subtitle="WHO's count of new plus relapsed tuberculosis cases, per 100,000 South Africans."
+    points={s.tbIncidence.map(([x, y]) => ({ x, y: Math.round(y) }))}
+    format="plain"
+    unit="per 100,000"
+    highlight={tb.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Are fewer South African children being vaccinated?</h2>
+    <p>Yes, since {mPeak[0]}. First-dose measles coverage reached {mPeak[1]}% that year and dropped to {measles.text} in {measles.year}; three-dose DPT coverage is {dpt.text}.</p>
+  </div>
+  <LineChart
+    title={`Measles jabs for South African toddlers, 1990–${measles.year}`}
+    subtitle="South African one-year-olds who have had a first measles injection, percent; WHO/UNICEF national estimates."
+    points={s.measlesVaccPct.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={measles.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is hunger rising in South Africa?</h2>
+    <p>On FAO estimates it is. Undernourishment affected {under.text} of the population in {under.year}, over triple the {und04}% recorded in 2004, and the highest reading yet.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How have South African child deaths changed since 1990?</h2>
+    <p>They rose before they fell. UN IGME's under-five rate went up from {v('under5Mortality', 1990)} (1990) to {v('under5Mortality', 2000)} (2000) per 1,000 births, then declined; the {U} value, {u5.text}, is slightly above 2020's, and neonatal deaths are {neo.text}. Maternal deaths per 100,000 births leapt to {m21} in 2021 and eased back to {mat.text} in {mat.year}. Total health spending reached {hGdp.text} of GDP in {hGdp.year}, or {hPc.text} a head; South African lifespans appear in <a href={path('/country/south-africa/population/')}>the country's population data</a>.</p>
+  </div>
+</HealthTopic>

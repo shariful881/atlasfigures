@@ -1,0 +1,103 @@
+---
+// South Korea health (task 173). Figures from the World Bank WDI files (src/data/wdi/, checked against the original
+// zips by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/south-korea.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), neo = st('neonatal'), mat = st('maternal'), beds = st('beds'), doc = st('doctors'), nurse = st('nurses'), stunt = st('stunting');
+const hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop'), tob = st('tobacco'), tb = st('tb');
+const U = u5.year!;
+
+assertClaim(fromTop(beds) === 1 && Number(beds.value) > 12, 'most hospital beds per person of any country, over 12');
+assertClaim(fromBottom(neo) === 9 && fromBottom(stunt) === 2 && Number(stunt.value) < 1, 'newborn rate 9th lowest; stunting second lowest, under 1%');
+const t00 = v('tobaccoPct', 2000);
+assertClaim(Number(tob.value) < 0.55 * t00 && Number(tob.value) > 0.5 * t00, 'tobacco use nearly halved since 2000');
+const h00 = v('healthSpendPctGdp', 2000), n00 = v('nursesPer1000', 2000), d90 = v('doctorsPer1000', 1990);
+assertClaim(Number(hGdp.value) > 2.3 * h00 && Number(nurse.value) > 3 * n00 && Number(doc.value) > 3 * d90, 'health share more than doubled since 2000; nurses tripled since 2000; doctors tripled since 1990');
+const tbPeak = s.tbIncidence.reduce((a, b) => (b[1] > a[1] ? b : a));
+assertClaim(tbPeak[0] === 2011 && Number(tb.value) < tbPeak[1] / 2.5, 'TB peaked in 2011, now under 40% of the peak');
+assertClaim(fromBottom(mat) === 18, 'maternal ratio 18th lowest');
+assertClaim(Number(oop.value) > 30 && Number(oop.value) < v('outOfPocketPct', 2000) - 9, 'out-of-pocket above 30% but 9+ points below 2000');
+
+const title = `South Korea Health Data ${U}: Hospital Beds, Newborns, Smoking | AtlasFigures`;
+const description = `With ${beds.text} hospital beds per 1,000 residents, South Korea leads the world. Neonatal mortality is down to ${neo.text} per 1,000 births and tobacco use is almost half its 2000 level.`;
+
+const faq = [
+  { q: 'Which country has the most hospital beds per person?', a: `South Korea. Its ${beds.year} ratio of ${beds.text} beds to every 1,000 inhabitants tops all ${beds.of} countries in WHO's comparison.` },
+  { q: 'How much do Koreans pay out of pocket for care?', a: `A third of the bill: ${oop.text} in ${oop.year}, against ${pct(v('outOfPocketPct', 2000))} in 2000.` },
+  { q: 'Is tuberculosis still a problem in South Korea?', a: `A shrinking one. WHO's estimate fell from ${tbPeak[1]} infections for each 100,000 Koreans in ${tbPeak[0]} to ${tb.text} in ${tb.year}.` },
+  { q: 'Is childbirth safe for mothers in South Korea?', a: `Very: UN MMEIG estimates ${mat.text} maternal deaths per 100,000 newborns for ${mat.year}, eighteenth-lowest ratio of ${mat.of}.` },
+];
+const headline = `South Korea health ${U}: world-leading bed numbers, newborn survival, smoking and spending`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="South Korea's health: the most hospital beds, ever fewer smokers"
+  headline={headline}
+  tableTitle={`South Korea health table, 1990 to ${U}`}
+  tableSubtitle="Twelve years on screen; the CSV file holds Korea's full annual run."
+  faq={faq}
+  faqTitle="Health in South Korea: in brief"
+  related={[
+    { href: '/country/south-korea/', label: 'South Korea in figures' },
+    { href: '/country/south-korea/population/', label: 'South Korea population and ageing' },
+    { href: '/country/japan/health/', label: 'Japan health' },
+    { href: '/country/china/health/', label: 'China health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality, all countries' },
+  ]}
+>
+  <Fragment slot="answer">No country has as many hospital beds for its size as South Korea: <strong>{beds.text} per 1,000</strong> ({beds.year}). First-month deaths are down to {neo.text} per 1,000 babies, and tobacco users have shrunk from {pct(t00)} of adults in 2000 to <strong>{tob.text}</strong>.</Fragment>
+  <div class="story-block prose">
+    <h2>Does South Korea have the most hospital beds in the world?</h2>
+    <p>Per person, yes. Korean hospitals provided {beds.text} beds per thousand population in {beds.year}, the highest density of the {beds.of} countries with data. The workforce has grown too, to {doc.text} doctors per thousand (from {d90} in 1990) and {nurse.text} nursing staff (from {n00} in 2000).</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How has smoking changed in South Korea?</h2>
+    <p>It has nearly halved. WHO estimates that {pct(t00)} of Korean adults used tobacco in 2000 and {tob.text} in {tob.year}.</p>
+  </div>
+  <LineChart
+    title={`Tobacco use by Korean adults, 2000–${tob.year}`}
+    subtitle="South Koreans aged 15 and older using any tobacco product, percent (WHO estimates)."
+    points={s.tobaccoPct.map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={tob.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How rare are newborn deaths in South Korea?</h2>
+    <p>Rarer than in all but eight countries. Of every thousand Korean babies born alive in {U}, {neo.text} died within four weeks, from {v('neonatalMortality', 1990)} in 1990. Under-five deaths are {u5.text}, and stunting affects just {stunt.text} of young children ({stunt.year}), {ordinal(fromBottom(stunt))} lowest.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How fast has Korean health spending grown?</h2>
+    <p>It more than doubled as a share of GDP, from {pct(h00)} in 2000 to {hGdp.text} in {hGdp.year}, or {hPc.text} per person. Ageing and lifespans get their own treatment in <a href={path('/country/south-korea/population/')}>our South Korea population data</a>.</p>
+  </div>
+  <LineChart
+    title={`South Korea's health spending, 2000–${hGdp.year}`}
+    subtitle="Current health expenditure in South Korea, percent of GDP (WHO Global Health Expenditure Database)."
+    points={s.healthSpendPctGdp.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="percent"
+    highlight={hGdp.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+</HealthTopic>
