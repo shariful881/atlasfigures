@@ -1,4 +1,5 @@
-# ISO3 code, item and value of P78 (tld) — truthy statements (best rank) only.
-SELECT ?iso3 ?item ?value WHERE {
+# Internet country-code top-level domain (P78), with the domain's English label (e.g. ".bd") — truthy statements only.
+SELECT ?iso3 ?item ?value ?valueLabel WHERE {
   ?item wdt:P298 ?iso3 ; wdt:P78 ?value .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }

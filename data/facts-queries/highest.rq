@@ -1,6 +1,6 @@
-# Highest point (P610) with its English label and elevation above sea level (P2044, normalised to metres).
+# Highest point (P610) with its English label and its best-rank elevation above sea level (P2044, normalised to metres).
 SELECT ?iso3 ?item ?value ?valueLabel ?metres WHERE {
   ?item wdt:P298 ?iso3 ; wdt:P610 ?value .
-  OPTIONAL { ?value p:P2044/psn:P2044/wikibase:quantityAmount ?metres . }
+  OPTIONAL { ?value p:P2044 ?st . ?st a wikibase:BestRank ; psn:P2044/wikibase:quantityAmount ?metres . }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }

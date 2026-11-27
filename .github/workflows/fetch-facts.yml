@@ -1,9 +1,9 @@
 # Downloads the original files behind the country facts in the profiles (task 156):
 #  - Unicode CLDR (currencies, currency names/symbols, official languages, language names) — Unicode License v3
 #  - IANA time zone database (zone1970.tab, iso3166.tab) — public domain
-#  - GeoNames (countryInfo.txt: calling code, internet domain, neighbours; cities15000.zip: largest cities) — CC BY 4.0
+#  - GeoNames (countryInfo.txt: calling code, internet domain, land neighbours) — CC BY 4.0
 #  - Wikidata query results (data/facts-queries/*.rq: government, driving side, plugs, emergency numbers, highest
-#    point, landlocked, and cross-checks for calling code, domain, languages and borders) — CC0
+#    point, landlocked, and second-source checks for calling code, domain, languages and borders) — CC0
 # Each licence is checked in the downloaded files themselves; the run fails if a licence text is not what we expect.
 # Writes data/raw/facts/ with SOURCE.md (URLs, download time, bytes, SHA-256, licence).
 name: Fetch country facts (dev-data)
@@ -68,8 +68,7 @@ jobs:
           get geonames-readme.txt "$G/readme.txt"
           grep -q 'Creative Commons Attribution 4.0' "$DIR/geonames-readme.txt" || { echo '::error::GeoNames licence text changed'; exit 1; }
           get geonames-countryInfo.txt "$G/countryInfo.txt"
-          get geonames-cities15000.zip "$G/cities15000.zip"; unzip -tq "$DIR/geonames-cities15000.zip"
-          for F in readme.txt countryInfo.txt cities15000.zip; do row "GeoNames" "geonames-$F" "CC BY 4.0" "$G/$F"; done
+          for F in readme.txt countryInfo.txt; do row "GeoNames" "geonames-$F" "CC BY 4.0" "$G/$F"; done
 
           # Wikidata Query Service (results sorted so an unchanged answer gives an unchanged file)
           W=https://query.wikidata.org/sparql
