@@ -1,0 +1,239 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import cnj from '../../../data/countries/china.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, people, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: a giant past its peak.
+const PAGE = '/country/china/population/';
+const un = countryData(cnj.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (cnj.verification as any).checkedOn as string | undefined;
+const FAMINE_URL = 'https://pmc.ncbi.nlm.nih.gov/articles/PMC1127087/';
+
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+assertClaim(peak.year === 2021, 'peak in 2021');
+assertClaim(un.years.filter((r) => r.year > peak.year).every((r, i, a) => r.population < (i ? a[i - 1].population : peak.population)), 'lower every year after the peak');
+const lostSincePeak = peak.population - c.population;
+const deathsOverBirths = c.deaths - c.births;
+assertClaim(c.births < y[2016].births / 2, 'births less than half of 2016');
+const lowTfr = un.years.filter((r) => !r.projection).reduce((a, b) => (b.fertility < a.fertility ? b : a));
+const fallsTo2020 = un.years.filter((r) => r.year <= 2020 && r.change < 0).map((r) => r.year);
+assertClaim(JSON.stringify(fallsTo2020) === '[1960]', '1960 was the only year of decline from 1950 to 2020');
+const boom = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(boom.year === 1963, 'highest fertility on record in 1963, just after the famine');
+const over50 = un.years.find((r) => r.medianAge > 50)!.year;
+const urbanMajority = un.years.find((r) => (r.urbanPct ?? 0) > 50)!.year;
+const urbanPeople = (c.population * c.urbanPct!) / 100;
+const under1bn = un.years.find((r) => r.year > peak.year && r.population < 1e9)!.year;
+assertClaim(y[2100].population < y[1960].population, 'by 2100 fewer people than in 1960');
+const perDay = c.change / 365;
+const big50 = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>)
+  .map((m) => m.default ?? m)
+  .map((d: any) => d.years.find((r: any) => r.year === CURRENT_YEAR))
+  .filter((r: any) => r.population > 50e6)
+  .sort((a: any, b: any) => a.fertility - b.fertility);
+assertClaim(big50.findIndex((r: any) => r.population === c.population) < 5, 'among the five lowest fertility rates of countries over 50 million');
+assertClaim(c.medianAge - y[2000].medianAge > 10 && y[2050].medianAge - c.medianAge > 10, 'median age up by more than ten years per 25-year span');
+
+const title = `China's Shrinking Population: ${(c.population / 1e9).toFixed(2)} Billion in ${CURRENT_YEAR} and Falling | AtlasFigures`;
+const description = `China's population stands at about ${people(c.population)} in ${CURRENT_YEAR}, down from its ${peak.year} peak. Deaths now outnumber births by ${millions(deathsOverBirths)} a year, and the UN projects ${millions(y[2100].population)} by 2100.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: pct(c.growthRatePct), note: `${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: cnj.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Births this year', value: int(c.births) },
+    { label: 'Deaths this year', value: int(c.deaths) },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: `${(c.population / 1e9).toFixed(2)}B` },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+];
+
+const rows = displayRows(un.years, cnj.tableYears);
+
+const faq = [
+  { q: "Is China's population declining?", a: `Yes. It peaked at ${people(peak.population)} in ${peak.year} and has fallen every year since. In ${CURRENT_YEAR} it shrinks by about ${millions(Math.abs(c.change))}, or ${pct(Math.abs(c.growthRatePct))}.` },
+  { q: 'How many births did China have this year?', a: `The UN puts them at about ${millions(c.births)} in ${CURRENT_YEAR}, against ${millions(c.deaths)} deaths. In 2016 China still recorded ${millions(y[2016].births)} births.` },
+  { q: "What is China's fertility rate?", a: `Just ${dec(c.fertility, 2)} per woman this year (${CURRENT_YEAR}), after a low of ${dec(lowTfr.fertility, 2)} in ${lowTfr.year}. That is roughly half the 2.1 needed for each generation to replace the one before.` },
+  { q: 'How old is the average person in China?', a: `China's median age, ${dec(c.medianAge, 1)} in ${CURRENT_YEAR}, is set to pass 50 in ${over50} on the UN projection and to reach ${dec(y[2100].medianAge, 1)} by the end of the century.` },
+  { q: "Will China's population fall below 1 billion?", a: `On the UN's medium projection, yes, in ${under1bn}. By 2100 China would have about ${millions(y[2100].population)} people, fewer than in 1960.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: cnj.slug, name: cnj.name, wikipedia: cnj.wikipedia,
+  headline: `China's population in ${CURRENT_YEAR}: ${people(c.population)}, past its peak and getting older`,
+  description,
+  datasetName: 'China population, density, fertility, median age and urban share, 1950–2100',
+  datasetDescription: `Mid-year population of China for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: cnj.published, updated: cnj.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  extraCitations: [{ name: "China's great famine: 40 years later (BMJ, 1999)", url: FAMINE_URL, publisher: 'BMJ' }],
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="China"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'China', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>China's population, past its peak</h1>
+        <LiveCounter
+          label="China's population, estimated now"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: 1 July ${CURRENT_YEAR} figure, falling by about ${int(Math.abs(perDay))} people a day`}
+        />
+        <p class="answer">
+          China counts roughly <strong>{people(c.population)}</strong> inhabitants in {CURRENT_YEAR}, second only to India. It is also <strong>shrinking</strong>: the total peaked in {peak.year} and is now about {millions(lostSincePeak)} lower, because each year brings far more deaths than births.
+        </p>
+        <div class="dates"><span>Updated <time datetime={cnj.updated}>{longDate(cnj.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="China" code="cn" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>When did China's population start to shrink?</h2>
+          <p>After {peak.year}, when it reached {people(peak.population)}. Every year since has been lower than the one before, and in {CURRENT_YEAR} the country loses about {millions(Math.abs(c.change))} people, a fall of {pct(Math.abs(c.growthRatePct))}. India moved ahead as the most populous country in 2022, while China was already in decline.</p>
+        </div>
+        <LineChart
+          title="China's population, 1950 to 2100: rise, peak and long decline"
+          subtitle="Mid-year totals from the UN. The dashed line shows the medium projection."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Why are there more deaths than births in China?</h2>
+          <p>Because births have collapsed while a large older generation ages. The UN estimates {millions(c.births)} babies in {CURRENT_YEAR}, less than half the {millions(y[2016].births)} of 2016, against {millions(c.deaths)} deaths: a gap of {millions(deathsOverBirths)} in a single year. Women now have {dec(c.fertility, 2)} children on average, after a record low of {dec(lowTfr.fertility, 2)} in {lowTfr.year} — one of the lowest of any nation of over 50 million people. A small amount of net emigration adds to the loss.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>What happened to China's population in 1960?</h2>
+          <p>It fell, the only year between 1950 and 2020 when it did. That was the worst year of the famine of 1959–1961, which followed the Great Leap Forward. In the UN's reconstruction, life expectancy at birth dropped from {dec(y[1958].lifeExpectancy, 1)} years in 1958 to {dec(y[1960].lifeExpectancy, 1)} in 1960. Births then surged: by {boom.year} fertility reached {dec(boom.fertility, 2)}, a level China never saw again.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How fast is China ageing?</h2>
+          <p>By more than ten years in each quarter-century since 2000. The median Chinese person is {dec(c.medianAge, 1)} in {CURRENT_YEAR}, up from {dec(y[2000].medianAge, 1)} in 2000 and {dec(y[1980].medianAge, 1)} in 1980. On the UN projection the median passes 50 in {over50}, reaches {dec(y[2050].medianAge, 1)} in 2050 and hits {dec(y[2100].medianAge, 1)} by 2100.</p>
+        </div>
+        <LineChart
+          title="Median age in China, 1950–2100"
+          subtitle="Half the population is older than this age. Where the line turns dashed it follows the UN projection."
+          points={rows.map((r) => ({ x: r.year, y: r.medianAge, projection: r.projection }))}
+          unit="years"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>What share of China's people live in cities?</h2>
+          <p>About two in three. On China's national definition, {pct(c.urbanPct!)} of the population is urban in {CURRENT_YEAR}, around {millions(urbanPeople)} people, against {pct(y[1950].urbanPct!)} in 1950. Urban residents became the majority in {urbanMajority}, and by 2050 the UN expects {pct(y[2050].urbanPct!)}.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How small could China's population be by 2100?</h2>
+          <p>About {millions(y[2100].population)}, if the UN's medium projection holds: fewer people than lived in China in 1960. The total would drop below one billion in {under1bn}. A forecast this long depends heavily on how many children future generations choose to have, so treat the exact figure with care; the direction is far less uncertain, because today's small cohorts of children will become tomorrow's small cohorts of parents.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="China's population in three years">
+          <div><span class="y">Peak, {peak.year}</span><div class="v">{(peak.population / 1e9).toFixed(2)}B</div><span class="d">Highest ever</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{(c.population / 1e9).toFixed(2)}B</div><span class="d">Already falling</span></div>
+          <div><span class="y">2100, UN projection</span><div class="v">{Math.round(y[2100].population / 1e6)}M</div><span class="d">Below the 1960 level</span></div>
+        </div>
+        <RelatedPages iso3={cnj.iso3} name={cnj.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="China's population year by year, 1950–2100"
+          subtitle="Headcount at mid-year, then density, fertility rate, median age, the urban percentage on China's own definition (to 2050) and position among all countries. Rows from 2030 are UN projections."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${cnj.slug}-population.csv`)}
+          csvName={`${cnj.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Questions people ask about China's population</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files): population, births, deaths, growth, density, fertility, median age, life expectancy, world rank and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+            <li><a href={FAMINE_URL}>Smil V., "China's great famine: 40 years later", BMJ (1999), via PubMed Central</a>: dating of the famine (spring 1959 to the end of 1961) and its origin in the Great Leap Forward.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and subtracts the UN's projected decline for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={cnj.published}>{longDate(cnj.published)}</time> · Updated <time datetime={cnj.updated}>{longDate(cnj.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('China population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="China" code="cn" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

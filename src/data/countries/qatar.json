@@ -1,0 +1,64 @@
+{
+  "slug": "qatar",
+  "name": "Qatar",
+  "demonym": "Qatari",
+  "capital": "Doha",
+  "iso3": "QAT",
+  "code": "qa",
+  "continent": "Asia",
+  "wikipedia": "https://en.wikipedia.org/wiki/Qatar",
+  "unName": "Qatar",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    2000,
+    2004,
+    2005,
+    2006,
+    2007,
+    2008,
+    2010,
+    2019,
+    2020,
+    2021,
+    2022,
+    2026,
+    2030,
+    2040,
+    2050,
+    2060,
+    2070,
+    2080,
+    2090,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/qatar.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; about 131 times 1950, second after the UAE (1 million+)",
+      "243.7 men per 100 women, highest of any country or area (UAE second); male and female totals",
+      "Largest net inflow 2007; more than doubled 2004–2010; 2020 the only year of net departures, total still up",
+      "No year of decline and births above deaths every year 1950–2100; fertility under 2.1 from 2011; 99.4% urban; 2100 about 2.3 times today",
+      "title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) — 73 of 73 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Counts only; no causes given."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}

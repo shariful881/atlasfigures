@@ -1,0 +1,227 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import cm from '../../../data/countries/cameroon.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: growth above 2.4% in every year since 1983;
+// an urban majority from 2008 that then barely grows; life expectancy roughly doubled since 1950; overtaking Ghana in
+// 2049 and fertility reaching 2.1 only in 2100.
+const PAGE = '/country/cameroon/population/';
+const un = countryData(cm.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (cm.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const maf = wpp.filter((d: any) => d.subregion === 'Middle Africa');
+const mafPop = [...maf].sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(mafPop.slice(0, 3).join() === 'COD,AGO,CMR', 'third in Middle Africa after DR Congo and Angola');
+const lastSlow = un.years.filter((r) => r.year <= CURRENT_YEAR && r.growthRatePct < 2.4).map((r) => r.year).pop()!;
+assertClaim(lastSlow === 1982, 'growth at or above 2.4% every year since 1983');
+const times = c.population / y[1950].population;
+assertClaim(times > 7 && times < 7.2, 'about seven times 1950');
+const millionBirths = un.years.find((r) => r.births > 1e6)!.year;
+assertClaim(millionBirths === 2027, 'births pass one million in 2027');
+const urbanHalf = un.years.find((r) => r.urbanPct != null && r.urbanPct > 50)!.year;
+assertClaim(urbanHalf === 2008 && y[2050].urbanPct! - c.urbanPct! < 4, 'urban majority from 2008; little further rise to 2050');
+const mafUrb = maf.filter((d: any) => at(d).urbanPct != null).sort((a: any, b: any) => at(b).urbanPct - at(a).urbanPct).map((d: any) => d.iso3);
+assertClaim(mafUrb.indexOf('CMR') === 5 && mafUrb.length === 9, 'sixth of nine Middle African countries by urban share');
+assertClaim(c.lifeExpectancy / y[1950].lifeExpectancy > 1.9 && c.lifeExpectancy / y[1950].lifeExpectancy < 2, 'life expectancy almost doubled since 1950');
+const overGhana = un.years.find((r) => r.year > CURRENT_YEAR && r.population > at(wpp.find((d: any) => d.iso3 === 'GHA'), r.year).population)!.year;
+assertClaim(overGhana === 2049, 'passes Ghana in 2049');
+const under = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(under === 2100, 'fertility under 2.1 only in 2100');
+const tfrTop = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(tfrTop.year === 1980, 'fertility high in 1980');
+assertClaim(c.worldRank === 51 && y[2100].worldRank === 28 && y[1950].worldRank === 72, 'rank 72 in 1950, 51 now, 28 in 2100');
+
+const title = `Cameroon Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)}M, Four Decades of Fast Growth | AtlasFigures`;
+const description = `${millions(c.population)} Cameroonians (UN, ${CURRENT_YEAR}). Annual growth has topped 2.4% since 1983, towns have held the majority since ${urbanHalf}, and the 2100 projection reaches ${millions(y[2100].population)}.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: cm.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Growth', value: `+${pct(c.growthRatePct)}` },
+  { label: 'Urban', value: pct(c.urbanPct!) },
+  { label: 'In 2100', value: millionsShort(y[2100].population) },
+];
+
+const rows = displayRows(un.years, cm.tableYears);
+
+const faq = [
+  { q: 'How big is Cameroon by population?', a: `${millions(c.population)}, the UN says for mid-${CURRENT_YEAR}. Only DR Congo and Angola are bigger in Middle Africa, and worldwide Cameroon is ${ord(c.worldRank!)}.` },
+  { q: 'What is Cameroon\'s population growth rate?', a: `${pct(c.growthRatePct)} for ${CURRENT_YEAR}, roughly ${int(Math.round(c.change / 1000))} thousand more people. The rate has not dipped under 2.4% since 1983.` },
+  { q: 'Is Cameroon now mainly urban?', a: `Yes, since ${urbanHalf}. The urban share under the national definition is ${pct(c.urbanPct!)}, and the UN's 2050 figure, ${pct(y[2050].urbanPct!)}, is only a little higher.` },
+  { q: 'Will Cameroon become bigger than Ghana?', a: `On the UN medium variant, yes, in ${overGhana}. Cameroon then keeps growing to ${millions(y[2100].population)} by 2100, ranking ${ord(y[2100].worldRank!)} worldwide.` },
+  { q: 'Which city is Cameroon\'s seat of government?', a: 'Yaoundé, the capital, in the south-central part of the country.' },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: cm.slug, name: cm.name, wikipedia: cm.wikipedia,
+  headline: `Cameroon's ${millions(c.population)}: four decades of fast growth and an urban majority since ${urbanHalf}`,
+  description,
+  datasetName: 'Cameroon population, growth, urban share and life expectancy, 1950–2100',
+  datasetDescription: `Mid-year population of Cameroon for selected years from 1950 to ${CURRENT_YEAR} (2008 included), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: cm.published, updated: cm.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Cameroon"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Cameroon', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Cameroon: four decades of fast, steady growth</h1>
+        <LiveCounter
+          label="Cameroon: running estimate of residents"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} level with about ${int(c.change / 365)} added each day`}
+        />
+        <p class="answer">
+          Cameroon's mid-{CURRENT_YEAR} population, on UN estimates, is <strong>{millions(c.population)}</strong>: {ord(c.worldRank!)} globally, third within Middle Africa. Annual growth of <strong>{pct(c.growthRatePct)}</strong> continues a run above 2.4% that began in 1983, and since {urbanHalf} the majority has lived in urban areas.
+        </p>
+        <div class="dates"><span>Updated <time datetime={cm.updated}>{longDate(cm.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Cameroon" code="cm" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Has Cameroon's growth stayed high for decades?</h2>
+          <p>Remarkably so. Since 1983 the annual rate has never fallen below 2.4%, and in {CURRENT_YEAR} it is {pct(c.growthRatePct)}, about {int(Math.round(c.change / 1000))} thousand extra people. Today's total is roughly {dec(times, 1)} times 1950's {millions(y[1950].population)}, and in {millionBirths} yearly births are projected to pass one million for the first time.</p>
+        </div>
+        <LineChart
+          title="Cameroon's population from 1950 with the projection to 2100"
+          subtitle="UN totals for 1 July of each year shown; the medium-variant years are drawn dashed."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>When did Cameroon's towns overtake the countryside?</h2>
+          <p>In {urbanHalf}, measuring urban areas as Cameroon itself defines them (World Urbanization Prospects). The urban share climbed from {pct(y[1950].urbanPct!)} in 1950 to {pct(c.urbanPct!)} now, but the projection flattens out: only {pct(y[2050].urbanPct!)} by 2050. Within Middle Africa, five countries have a larger urban share and three a smaller one.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Urban share in Cameroon, national definition">
+          <div><span class="y">1950</span><div class="v">{pct(y[1950].urbanPct!)}</div><span class="d">Urban</span></div>
+          <div><span class="y">{urbanHalf}</span><div class="v">{pct(y[urbanHalf].urbanPct!)}</div><span class="d">First majority</span></div>
+          <div><span class="y">2050</span><div class="v">{pct(y[2050].urbanPct!)}</div><span class="d">Projected</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How much longer do Cameroonians live than in 1950?</h2>
+          <p>Nearly twice as long: the UN's estimate of lifespan at birth is {dec(y[1950].lifeExpectancy, 1)} years for 1950 and {dec(c.lifeExpectancy, 1)} for {CURRENT_YEAR}. Infant deaths per 1,000 live births fell from {dec(y[1950].infantMortalityPer1000!, 1)} to {dec(c.infantMortalityPer1000!, 1)} over the same period. Fertility, {dec(c.fertility, 2)} today, peaked at {dec(tfrTop.fertility, 2)} in {tfrTop.year}.</p>
+        </div>
+        <LineChart
+          title="Cameroonian fertility: UN estimates and the path to 2050"
+          subtitle="Births per woman, solid for estimates and dashed for the projection; reference line at 2.1."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'replacement mark' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Will Cameroon overtake Ghana?</h2>
+          <p>In {overGhana}, on the medium projection. Cameroon reaches {millions(y[2050].population)} at mid-century and {millions(y[2100].population)} in the final projected year, climbing from {ord(c.worldRank!)} to {ord(y[2100].worldRank!)} worldwide; in 1950 it ranked {ord(y[1950].worldRank!)}. Fertility touches the 2.1 mark only in {under}.</p>
+        </div>
+        <RelatedPages iso3={cm.iso3} name={cm.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Cameroon population data by year"
+          subtitle="The urban column passes 50% in the 2008 row; the lower section holds UN projections."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${cm.slug}-population.csv`)}
+          csvName={`${cm.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Cameroon: population questions</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{cm.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, infant mortality, world rank, regional grouping, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={cm.published}>{longDate(cm.published)}</time> · Updated <time datetime={cm.updated}>{longDate(cm.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Cameroon population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Cameroon" code="cm" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

@@ -1,0 +1,150 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/czechia.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/czechia/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const i22since = Math.max(...s.inflationPct.filter(([y, x]) => y < 2022 && x >= i(2022)).map(([y]) => y));
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const uList = rankBy('unemploymentPct', L); const uLow = uList.length - uList.findIndex((r) => r.iso3 === c.iso3);
+const uMin = s.unemploymentPct.reduce((a, b) => (b[1] < a[1] ? b : a)); const uMax = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const hiSince = Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < L && x >= growth).map(([y]) => y));
+const u5 = valueIn(s.under5Mortality, 2024)!; const u5List = rankBy('under5Mortality', 2024); const u5Low = u5List.length - u5List.findIndex((r) => r.iso3 === c.iso3);
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const x2000 = (gdp / v('gdp', 2000)!).toFixed(1);
+
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita) && isMax(s.gdpPerCapitaPpp!) && x2000 === '6.3', 'records; 6.3x 2000');
+assertClaim(i22since === 1993 && iMax[0] === 1993 && s.inflationPct[0][0] === 1992 && i(2023) > 10.6 && infl.value < 2.6, '15.1% in 2022, highest since 1993 (series from 1992); 10.7% in 2023; 2.5% now');
+assertClaim(uLow === 34 && uMin[0] === 2019 && uMax[0] === 2000, 'unemployment 34th lowest; low 2019, peak 2000');
+assertClaim(hiSince === 2022 && Math.abs(g(2023)) < 0.05 && worst[0] === 1991 && s.gdp[0][0] === 1990, '2.6% best since 2022; flat 2023; worst 1991; GDP from 1990');
+assertClaim(u5Low === 13, 'under-five mortality 13th lowest');
+
+const title = `Czechia Economy ${L}: Price Rises Fade to ${pct(infl.value)}, Output at a Peak | AtlasFigures`;
+const description = `Growing ${pct(growth)} in real terms, Czech output rose to ${usd(gdp)} for ${L}, beyond any earlier year. Inflation, ${pct(i(2022))} in 2022, is down to ${pct(infl.value)}, and unemployment (${pct(unemp!)}) is among the world's lowest.`;
+
+const faq = [
+  { q: 'How high was Czech inflation in 2022?', a: `${pct(i(2022))}, topped only by 1993 (${pct(iMax[1])}) in a series that opens in 1992. It was ${pct(i(2023))} in 2023 and has since dropped to ${pct(infl.value)}.` },
+  { q: 'Do many Czechs struggle to find work?', a: `Few do. The ILO-modelled rate was ${pct(unemp!)} for ${L}, ${ord(uLow)} lowest of ${uList.length}, with a minimum of ${pct(uMin[1])} in 2019 and a high of ${pct(uMax[1])} in 2000.` },
+  { q: 'Did the Czech economy grow in 2023?', a: `Barely: real GDP was flat (${pct(g(2023))}), then ${pct(g(2024))} in 2024 and ${pct(growth)} in ${L}, its strongest showing since 2022.` },
+  { q: 'How much has Czech GDP grown since 2000?', a: `In current dollars it is ${x2000} times larger: ${usd(v('gdp', 2000)!)} then, ${usd(gdp)} in ${L}. Per person, ${usdWhole(perHead)} (${intDollars(ppp!)} at PPP).` },
+  { q: 'When did the Czech economy shrink most?', a: `In 1991: ${pct(worst[1])}. Dollar GDP figures begin a year earlier, in 1990.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Czechia's economy in ${L}: record output and very low unemployment as inflation fades`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Czech economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Czechia', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Czechia's economy: records in output, inflation tamed</h1>
+        <p class="answer">
+          Czech GDP climbed to an unprecedented <strong>{usd(gdp)}</strong> in {L}, up <strong>{pct(growth)}</strong> in real terms, with inflation down to {pct(infl.value)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Czechia economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Czechia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Price rises that peaked above 15% in 2022 have faded, and joblessness remains among the lowest anywhere.</p>
+
+        <div class="story-block prose">
+          <h2>Has Czech inflation come back down?</h2>
+          <p>Almost all the way. The 2022 jump of {pct(i(2022))} was Czechia's worst since 1993, and 2023 brought {pct(i(2023))}; by 2024 the rate was {pct(i(2024))} and in {L} {pct(infl.value)}.</p>
+        </div>
+        <LineChart
+          title={`Czech inflation rate, ${s.inflationPct[0][0]}–${L}`}
+          subtitle="Annual rise in consumer prices, %."
+          points={s.inflationPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How large has the Czech economy become?</h2>
+          <p>At {usd(gdp)} in {L} it has never been larger — {x2000} times its dollar size in 2000 — equal to {usdWhole(perHead)} per resident ({intDollars(ppp!)} at PPP). Real growth recovered to {pct(growth)}, the fastest since 2022, after a flat 2023.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Where does Czechia stand on jobs and health?</h2>
+          <p>Near the top of world tables. Joblessness (ILO model) stands at {pct(unemp!)}, {ord(uLow)} from the bottom of {uList.length}; it bottomed at {pct(uMin[1])} in 2019. Under-five mortality, at {u5.toFixed(1)} per 1,000 births in 2024 (UN IGME), ranks {ord(u5Low)} lowest.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Czechia and Central Europe: related pages</h2>
+          <ul>
+            <li><a href={path('/country/czechia/population/')}>Czechia's population</a></li>
+            <li><a href={path('/country/slovakia/economy/')}>Slovakia's economy</a></li>
+            <li><a href={path('/country/poland/economy/')}>Poland's economy</a></li>
+            <li><a href={path('/country/germany/economy/')}>Germany's economy</a></li>
+            <li><a href={path('/rankings/unemployment-rate-by-country/')}>Unemployment rate rankings</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Czech statistics, 1990–2025`}
+          subtitle="1990–91, 1993, 2000, 2003, 2006, 2009–10, then 2015–2025 in sequence; the CSV is complete."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/czechia-economy.csv')} csvName="czechia-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Czechia's economy in brief: FAQ</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Under-five mortality: SH.DYN.MORT (UN IGME), via the World Bank. Czech GDP data start in 1990 and inflation in 1992. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Czech economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Czechia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

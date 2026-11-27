@@ -1,0 +1,207 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import lbn from '../../../data/countries/lebanon.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story, counts only (no causes given): net arrivals
+// of 733,500 in 2013 (largest) within 2012–2014, then net departures every year 2015–2019; totals 2011, 2015, 2020;
+// life-expectancy troughs in 1976 and 1982; third-densest in Western Asia; 91% urban; 2080 peak.
+const PAGE = '/country/lebanon/population/';
+const un = countryData(lbn.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (lbn.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const inTop = un.years.reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+assertClaim(inTop.year === 2013 && inTop.netMigrants > 7e5, 'largest inflow 2013, above 700,000');
+assertClaim([2012, 2013, 2014].every((n) => y[n].netMigrants > 1e5), 'large net arrivals 2012–2014');
+assertClaim([2015, 2016, 2017, 2018, 2019].every((n) => y[n].netMigrants < -2e5), 'net departures above 200,000 each year 2015–2019');
+const outTop = un.years.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+assertClaim(outTop.year === 2019, 'largest outflow 2019');
+const falls = un.years.filter((r) => r.year <= CURRENT_YEAR && y[r.year - 1] && r.population < y[r.year - 1].population).map((r) => r.year);
+assertClaim(falls.join() === '2016,2017,2018,2019,2020', 'falls 2016–2020');
+assertClaim(y[1976].lifeExpectancy < 40 && y[1977].lifeExpectancy > 55 && y[1982].lifeExpectancy < y[1981].lifeExpectancy - 10, 'troughs 1976 and 1982');
+const wa1 = wpp.filter((d: any) => d.subregion === 'Western Asia' && at(d).population >= 1e6);
+assertClaim([...wa1].sort((a: any, b: any) => at(b).densityPerKm2 - at(a).densityPerKm2).slice(0, 3).map((d: any) => d.iso3).join() === 'BHR,PSE,LBN', 'third-densest in Western Asia');
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+assertClaim(peak.year === 2080, 'peak 2080');
+const repl = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(repl === 2032, 'under 2.1 in 2032');
+assertClaim(c.urbanPct! > 90, 'over 90% urban');
+
+const title = `Lebanon Population ${CURRENT_YEAR} (${(c.population / 1e6).toFixed(1)}M): Inflow in 2013, Five Years of Outflow From 2015 | AtlasFigures`;
+const description = `UN estimates for ${CURRENT_YEAR} put Lebanon's head count at ${millions(c.population)}. The series shows a 2013 surplus of ${int(inTop.netMigrants)} arrivals over departures, then net departures above 200,000 in every year from 2015 to 2019; the files give counts, not causes.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: lbn.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'People per km²', value: int(c.densityPerKm2) },
+  { label: 'Urban', value: pct(c.urbanPct!) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+];
+
+const rows = displayRows(un.years, lbn.tableYears);
+
+const faq = [
+  { q: 'What was the net inflow to Lebanon in 2013?', a: `${int(inTop.netMigrants)} by the UN's estimate, its series high; 2012 and 2014 each added more than 100,000 as well. The files state no reasons.` },
+  { q: 'Did Lebanon lose population after 2015?', a: `Yes. Net departures exceeded 200,000 in each year from 2015 to 2019, and the total fell every year from 2016 to 2020.` },
+  { q: "What makes 1976 stand out in Lebanon's data?", a: `A life expectancy of only ${dec(y[1976].lifeExpectancy, 1)} years, down from ${dec(y[1974].lifeExpectancy, 1)} two years earlier. No cause is stated.` },
+  { q: 'Is Lebanon one of the most crowded places in the Middle East?', a: `Yes: ${int(c.densityPerKm2)} per km². In Western Asia, counting places with a million-plus people, only Bahrain and the State of Palestine are denser.` },
+  { q: "Is Lebanon's population still on the rise?", a: `Slowly; the medium variant peaks in ${peak.year} with ${millions(peak.population)}.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: lbn.slug, name: lbn.name, wikipedia: lbn.wikipedia,
+  headline: `Lebanon's ${millions(c.population)}: ${int(inTop.netMigrants)} more arrivals than departures in 2013; outflow through 2015–2019; dense and over 90% urban`,
+  description,
+  datasetName: 'Lebanon population, net migration and life expectancy, 1950–2100',
+  datasetDescription: `Mid-year population of Lebanon for selected years from 1950 to ${CURRENT_YEAR} (every year 2010–2015 included, with 1975–1977, 1982, 2019 and 2020), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: lbn.published, updated: lbn.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Lebanon"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Lebanon", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Lebanon: swings of arrival and departure in a crowded country</h1>
+        <LiveCounter
+          label="Lebanon: estimated population at this second"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`Based on UN World Population Prospects 2024 for mid-${CURRENT_YEAR}; about ${int(c.change / 365)} more per day`}
+        />
+        <p class="answer">
+          Lebanon's {CURRENT_YEAR} UN count stands near <strong>{millions(c.population)}</strong>. The past fifteen years swing wildly: <strong>{int(inTop.netMigrants)}</strong> net newcomers in 2013, then five years of net departures from 2015.
+        </p>
+        <div class="dates"><span>Updated <time datetime={lbn.updated}>{longDate(lbn.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Lebanon" code="lb" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>How big was Lebanon's 2013 influx?</h2>
+          <p>{int(inTop.netMigrants)} more than left, the largest yearly surplus anywhere in the UN series for Lebanon, flanked by {int(y[2012].netMigrants)} (2012) and {int(y[2014].netMigrants)} (2014). In 2011 the count stood at {millions(y[2011].population)}; four years on it was {millions(y[2015].population)}. Who the newcomers were, and why they came, goes unrecorded in the UN files.</p>
+        </div>
+        <LineChart
+          title="Lebanese head count, 1950–2100, with 2010–2015 yearly"
+          subtitle="Totals at 1 July; dashing marks the UN projection."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>When did the flow out of Lebanon begin?</h2>
+          <p>In 2015, when net departures reached {int(-y[2015].netMigrants)}; every year to 2019 lost more than 200,000, most of all {outTop.year} ({int(-outTop.netMigrants)}). Each year's count from 2016 through 2020 came in below the one before, ending at {millions(y[2020].population)}. For {CURRENT_YEAR} the balance is {int(-c.netMigrants)} out.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Did Lebanese lifespans collapse in 1976 and 1982?</h2>
+          <p>They did, twice, the UN estimates show, without naming causes: to {dec(y[1976].lifeExpectancy, 1)} years in 1976 (from {dec(y[1974].lifeExpectancy, 1)} two years before) and to {dec(y[1982].lifeExpectancy, 1)} in 1982. The figure is {dec(c.lifeExpectancy, 1)} today.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How crowded and urban is Lebanon?</h2>
+          <p>{int(c.densityPerKm2)} people share each km², a density exceeded in Western Asia only by Bahrain and the State of Palestine (counting places above one million), and {pct(c.urbanPct!)} live in urban areas. Fertility, {dec(c.fertility, 2)}, drops under 2.1 in {repl}; growth carries on until {peak.year}, reaching {millions(peak.population)}.</p>
+        </div>
+        <RelatedPages iso3={lbn.iso3} name={lbn.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Lebanese figures: each year 2010–2015, plus 1976 and 1982"
+          subtitle="Net migration flips from large positive values in 2012–2014 to large negative ones from 2015."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${lbn.slug}-population.csv`)}
+          csvName={`${lbn.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Lebanon: what the numbers say</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{lbn.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={lbn.published}>{longDate(lbn.published)}</time> · Updated <time datetime={lbn.updated}>{longDate(lbn.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Lebanon population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Lebanon" code="lb" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

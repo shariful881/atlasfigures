@@ -15,7 +15,7 @@ def rank(y):
     pops=sorted(((float(v[y]['TPopulation1July']),k) for k,v in raw.items() if k!='World' and y in v and v[y]['LocTypeName']=='Country/Area' and v[y]['TPopulation1July']),reverse=True)
     return [k for _,k in pops].index('Bangladesh')+1
 c=lambda n:f"{round(n):,}"
-page=open('dist/population/bangladesh/index.html').read()
+page=open('dist/country/bangladesh/population/index.html').read()
 text=html.unescape(re.sub(r'\s+',' ',re.sub(r'<[^>]+>',' ',re.sub(r'<script.*?</script>|<style.*?</style>','',page,flags=re.S))))
 ld=json.dumps(json.loads(re.findall(r'<script type="application/ld\+json">(.*?)</script>',page,re.S)[0]))
 y=2026

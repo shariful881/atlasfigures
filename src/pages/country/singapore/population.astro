@@ -1,0 +1,235 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import sg from '../../../data/countries/singapore.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: extreme density, fertility under one child, the fastest ageing ahead, a 2040 peak.
+const PAGE = '/country/singapore/population/';
+const un = countryData(sg.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (sg.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const dense = wpp.filter((d: any) => at(d).population > 1e6).sort((a: any, b: any) => at(b).densityPerKm2 - at(a).densityPerKm2).map((d: any) => d.iso3);
+assertClaim(dense[0] === 'SGP', 'densest country or area with over 1 million people');
+assertClaim(un.years.filter((r) => r.urbanPct != null).every((r) => r.urbanPct === 100), 'urban share 100% in every year');
+const lowF = wpp.filter((d: any) => at(d).population > 1e6).sort((a: any, b: any) => at(a).fertility - at(b).fertility).map((d: any) => d.iso3);
+assertClaim(c.fertility < 1 && lowF.indexOf('SGP') === 4, 'fertility under 1, fifth-lowest among places over 1 million');
+const tfrLow = un.years.filter((r) => !r.projection).reduce((a, b) => (b.fertility < a.fertility ? b : a));
+assertClaim(tfrLow.year === 2010, 'lowest fertility in 2010');
+assertClaim(un.years.every((r) => r.year < 1975 || r.fertility < 2.1), 'under 2.1 every year since 1975');
+const ageRise = c.medianAge !== undefined ? y[2050].medianAge - c.medianAge : 0;
+const fastest = wpp.filter((d: any) => at(d).population > 5e6).sort((a: any, b: any) => (at(b, 2050).medianAge - at(b).medianAge) - (at(a, 2050).medianAge - at(a).medianAge)).map((d: any) => d.iso3);
+assertClaim(fastest[0] === 'SGP' && ageRise > 14, 'largest projected rise in median age to 2050 among countries over 5 million, over 14 years');
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+const natLoss = un.years.find((r) => r.naturalChange < 0)!.year;
+assertClaim(peak.year === 2040 && natLoss === 2038, 'deaths above births from 2038, peak 2040');
+const backTo = un.years.find((r) => r.population >= y[2100].population)!.year;
+assertClaim(backTo === 2004, '2100 total back to 2004 level');
+const est = un.years.filter((r) => !r.projection);
+const falls = est.filter((r) => r.change < 0).map((r) => r.year);
+assertClaim(falls.join(',') === '2002,2003,2020,2021' && falls.every((yr) => y[yr].netMigrants < 0), 'declines 2002–2003 and 2020–2021, each with net outflow');
+assertClaim(falls.every((yr) => y[yr].change >= y[2020].change), '2020 the sharpest fall');
+assertClaim(ageRise < 15 && y[2100].medianAge > 55 && y[2100].medianAge < 57, 'about 14 years older by 2050; mid-fifties by 2100');
+assertClaim(un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a)).year === 1956, 'fertility highest in 1956');
+const birthTop = est.reduce((a, b) => (b.births > a.births ? b : a));
+assertClaim(birthTop.year === 1958, 'births peaked in 1958');
+const le = wpp.filter((d: any) => d.subregion === 'South-Eastern Asia').sort((a: any, b: any) => at(b).lifeExpectancy - at(a).lifeExpectancy).map((d: any) => d.iso3);
+assertClaim(le[0] === 'SGP', 'longest life expectancy in South-Eastern Asia');
+
+const title = `Singapore Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)} Million at ${int(c.densityPerKm2)} per km² | AtlasFigures`;
+const description = `Singapore fits ${millions(c.population)} people (mid-${CURRENT_YEAR}) onto ${int(un.landAreaKm2)} km². Its fertility is under one child per woman, and the UN projects a ${peak.year} peak followed by rapid ageing.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: sg.capital, note: 'city-state' },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'People per km²', value: int(c.densityPerKm2) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+];
+
+const rows = displayRows(un.years, sg.tableYears);
+
+const faq = [
+  { q: "What is Singapore's population count for " + CURRENT_YEAR + '?', a: `${millions(c.population)} at mid-year, the UN reports, placing the city-state ${ord(c.worldRank!)} in the world by population.` },
+  { q: 'How crowded is Singapore?', a: `${int(c.densityPerKm2)} residents for each km², more than any other country or area with a population above 1 million.` },
+  { q: 'Is Singapore\'s fertility rate below 1?', a: `Yes: ${dec(c.fertility, 2)} births per woman in ${CURRENT_YEAR}; the lowest reading, ${dec(tfrLow.fertility, 2)}, came in ${tfrLow.year}. It has been under 2.1 every year since 1975.` },
+  { q: 'Can Singapore keep its population from falling?', a: `Not on the UN's medium assumptions. Deaths overtake births in ${natLoss}, the total tops out in ${peak.year} at ${millions(peak.population)}, and by 2100 it is back to ${millions(y[2100].population)}, its size in ${backTo}.` },
+  { q: 'Is Singapore getting older faster than other countries?', a: `Its median age, ${dec(c.medianAge, 1)} now, is projected to rise by about ${int(Math.round(ageRise))} years to ${dec(y[2050].medianAge, 1)} by 2050, the steepest climb among nations above 5 million.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: sg.slug, name: sg.name, wikipedia: sg.wikipedia,
+  headline: `Singapore: ${millions(c.population)} people at ${int(c.densityPerKm2)} per km² in ${CURRENT_YEAR}`,
+  description,
+  datasetName: 'Singapore population, density, fertility, ageing and migration, 1950–2100',
+  datasetDescription: `Mid-year population of Singapore for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: sg.published, updated: sg.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Singapore"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Singapore', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Singapore: a crowded city-state with very few births</h1>
+        <LiveCounter
+          label="Singapore: current population estimate"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} level, adding around ${int(c.change / 365)} residents per day`}
+        />
+        <p class="answer">
+          Singapore's <strong>{millions(c.population)}</strong> residents (mid-{CURRENT_YEAR}) share {int(un.landAreaKm2)} km² of land, a density of <strong>{int(c.densityPerKm2)} per km²</strong>. Women have <strong>fewer than one child</strong> on average, and UN projections show the total topping out in {peak.year}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={sg.updated}>{longDate(sg.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Singapore" code="sg" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Does any sizeable country pack people more tightly than Singapore?</h2>
+          <p>No country or area above 1 million people does: Singapore has {int(c.densityPerKm2)} residents per km² in {CURRENT_YEAR}, up from {int(y[1950].densityPerKm2)} in 1950. The whole population counts as urban under the national definition, {pct(c.urbanPct!)} throughout the UN's records.</p>
+        </div>
+        <LineChart
+          title="Singapore's population, 1950–2100: up to a 2040 crest"
+          subtitle="UN values at mid-year; after 2026 the dashed line peaks near 6.2 million and then falls."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Has Singapore's fertility fallen below one child per woman?</h2>
+          <p>Yes: {dec(c.fertility, 2)} in {CURRENT_YEAR}, having bottomed at {dec(tfrLow.fertility, 2)} in {tfrLow.year}. Just four places above the 1 million mark rank lower. Fertility was {dec(y[1956].fertility, 2)} in 1956 and has stayed under 2.1 since 1975. Annual births, about {int(Math.round(c.births / 1000))} thousand now, peaked in {birthTop.year} at {int(Math.round(birthTop.births / 1000))} thousand.</p>
+        </div>
+        <LineChart
+          title="Fertility in the city-state since 1950, projected to 2050"
+          subtitle="Singaporean fertility per woman: estimates, then the projection (dashed); 2.1 marked."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: '2.1 line' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How quickly is Singapore getting older?</h2>
+          <p>Faster than any country above 5 million people. The median resident is {dec(c.medianAge, 1)} today; projections put it at {dec(y[2050].medianAge, 1)} in 2050, a jump of about {int(Math.round(ageRise))} years, and {dec(y[2100].medianAge, 1)} by 2100. Singaporeans also live the longest in South-Eastern Asia, {dec(c.lifeExpectancy, 1)} years at birth.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Median age in Singapore">
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{dec(c.medianAge, 1)}</div><span class="d">Median age</span></div>
+          <div><span class="y">2050, UN projection</span><div class="v">{dec(y[2050].medianAge, 1)}</div><span class="d">Up 14 years</span></div>
+          <div><span class="y">2100, UN projection</span><div class="v">{dec(y[2100].medianAge, 1)}</div><span class="d">Mid-fifties</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Has Singapore's population ever fallen?</h2>
+          <p>Four times since 1950, in pairs: 2002–2003 and 2020–2021. In each of those years more people left than arrived; the sharpest drop was in 2020, about {int(Math.round(Math.abs(y[2020].change) / 1000))} thousand. Migration matters because natural increase is small, {int(Math.round(c.naturalChange / 1000))} thousand this year.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>In which year is Singapore's population expected to top out?</h2>
+          <p>In {peak.year}, under the UN medium variant, at about {millions(peak.population)}. Births drop below deaths two years earlier, in {natLoss}. By 2100 the population would be {millions(y[2100].population)}, roughly where it stood in {backTo}.</p>
+        </div>
+        <RelatedPages iso3={sg.iso3} name={sg.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Singapore through the decades, 1950–2100"
+          subtitle="The city-state's totals and rates, with 2030 onwards projected by the UN."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${sg.slug}-population.csv`)}
+          csvName={`${sg.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Singapore's population: quick questions</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{sg.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={sg.published}>{longDate(sg.published)}</time> · Updated <time datetime={sg.updated}>{longDate(sg.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Singapore population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Singapore" code="sg" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

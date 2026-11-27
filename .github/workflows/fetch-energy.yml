@@ -13,18 +13,25 @@ on:
       - .github/workflows/fetch-energy.yml
 permissions:
   contents: write
+  pull-requests: write
+  actions: write
+  issues: write
 env:
   GCB_RECORD: '23667912'        # Zenodo record of "The Global Carbon Project's fossil CO2 emissions dataset", version 2026v11
   GCB_VERSION: 'GCB2026v11'
   EMBER_URL: 'https://files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv'
+concurrency:
+  group: data-fetch-${{ github.ref }}   # one fetch at a time per branch
+  cancel-in-progress: false
 jobs:
   fetch:
-    if: github.ref == 'refs/heads/dev-data'
+    # dev-data, or a data-update-YYYYMMDD branch made by watch-sources.yml (task 149)
+    if: github.ref == 'refs/heads/dev-data' || startsWith(github.ref, 'refs/heads/data-update-')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: dev-data
+          ref: ${{ github.ref_name }}
       - name: Download Ember and Global Carbon Project files
         run: |
           set -euo pipefail
@@ -70,6 +77,20 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add data/raw/energy
-          git diff --cached --quiet && { echo 'No change'; exit 0; }
+          # only the download time / record copy changed → nothing new, no commit (task 149)
+          git diff --cached --quiet -- . ':(exclude)*/SOURCE.md' ':(exclude)*.metadata.json' ':(exclude)*zenodo-record.json' && { echo 'No new data'; git reset -q; exit 0; }
           git commit -m 'Data: Ember and Global Carbon Project files (energy and CO2)'
-          git push origin HEAD:dev-data
+          git pull --rebase origin ${{ github.ref_name }}   # another fetch may have pushed meanwhile (never a force push)
+          git push origin HEAD:${{ github.ref_name }}
+      - name: Open a pull request into main (data-update branches only)
+        if: startsWith(github.ref, 'refs/heads/data-update-')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git fetch origin main
+          if git diff --quiet origin/main HEAD; then echo 'No change against main'; exit 0; fi
+          gh pr list --head "${{ github.ref_name }}" --base main --json number --jq '.[0].number // empty' | grep -q . && exit 0
+          gh workflow run check.yml --ref "${{ github.ref_name }}"   # pushes made with the workflow token do not start Check by themselves
+          MSG="Fetched by ${{ github.workflow }} after the weekly source check (watch-sources.yml) into branch ${{ github.ref_name }}. The Check run on that branch shows which page sentences no longer hold. Fix the pages, re-verify the figures, set Updated/changelog for real changes, then merge into main (owner's rule of 27 Nov 2026: data updates go live after the checks)."
+          gh pr create --base main --head "${{ github.ref_name }}" --title "Data update: new source version (${{ github.ref_name }})" --body "$MSG" \
+            || gh issue create --title "Data update ready: ${{ github.ref_name }}" --body "$MSG (A pull request could not be opened automatically — allow GitHub Actions to create pull requests in the repository settings, or open it by hand.)"

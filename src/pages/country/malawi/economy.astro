@@ -1,0 +1,152 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/malawi.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/malawi/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const iRank = rankBy('inflationPct', L).find((r) => r.iso3 === c.iso3)!.rank;
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const pcList = rankBy('gdpPerCapita', L); const pcLow = pcList.length - pcList.findIndex((r) => r.iso3 === c.iso3);
+const pcPeak = s.gdpPerCapita.reduce((a, b) => (b[1] > a[1] ? b : a));
+const drop = (1 - v('gdp', 2024)! / v('gdp', 2023)!) * 100;
+const lastFall = Math.max(...s.gdpGrowthPct.filter(([, x]) => x < 0).map(([y]) => y));
+const avg = s.gdpGrowthPct.filter(([y]) => y >= 2000).reduce((a, [, x], _, arr) => a + x / arr.length, 0);
+const slowRun = [2022, 2023, 2024, L].every((y) => g(y) < 2);
+const netN = rankBy('internetPct', net!.year).length; const netLow = netN - rankBy('internetPct', net!.year).findIndex((r) => r.iso3 === c.iso3);
+
+assertClaim(iRank === 5 && [2022, 2023, 2024, L].every((y) => i(y) > 20) && i(2021) < 10 && iMax[0] === 1995 && iMax[1] > 83, 'inflation 5th highest, above 20% 2022-25; peak 1995');
+assertClaim(pcLow === 6 && pcPeak[0] === 2011 && perHead < pcPeak[1], 'GDP per head 6th lowest, below 2011 peak');
+assertClaim(isMax(s.gdp) && Math.round(drop) === 15 && gdp > v('gdp', 2023)!, 'dollar GDP fell 15% in 2024, record in 2025');
+assertClaim(slowRun && lastFall === 2001 && Math.round(avg * 10) === 38, 'below 2% each year 2022-25; last fall 2001; avg 3.8');
+assertClaim(netLow === 10 && s.gdp[0][0] === 1980 && s.gdpGrowthPct[0][0] === 1961, 'internet 10th lowest; GDP from 1980');
+
+const title = `Malawi Economy ${L}: Inflation ${pct(infl.value)} and Growth Under 2% | AtlasFigures`;
+const description = `Malawi's ${L} inflation of ${pct(infl.value)} was the world's fifth-highest, and growth only ${pct(growth)}; at ${usdWhole(perHead)} a head, income is among the six lowest anywhere.`;
+
+const faq = [
+  { q: 'Do Malawians have one of the lowest incomes?', a: `Yes. Malawi\'s ${L} GDP per head, ${usdWhole(perHead)}, ranks sixth from the bottom of the economies listed and remains below 2011\'s ${usdWhole(pcPeak[1])}.` },
+  { q: 'Is Malawi\'s inflation among the world\'s highest?', a: `Yes — ${pct(infl.value)} in ${L}, ranked ${ord(iRank)} worldwide, and a fourth straight year over 20%. The series peak, ${pct(iMax[1])}, came in 1995.` },
+  { q: 'Why did Malawi\'s GDP drop in 2024?', a: `Only in dollars — about ${Math.round(drop)}%, from ${usd(v('gdp', 2023)!)} to ${usd(v('gdp', 2024)!)}. Production itself still rose ${pct(g(2024))}; in ${L} dollar GDP overtook its previous peak, at ${usd(gdp)}.` },
+  { q: 'How fast is Malawi\'s economy expanding?', a: `Barely: ${pct(growth)} in ${L}, under 2% every year from 2022 on. The last outright fall was in 2001.` },
+  { q: 'Do many Malawians use the internet?', a: `No — ${pct(net!.value)} of people in ${net!.year}; only nine of ${netN} places in ITU's figures had a smaller share.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Malawi's economy in ${L}: high inflation, slow growth and one of the lowest incomes`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Malawian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Malawi', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Malawi's economy: an inflation squeeze on a low income</h1>
+        <p class="answer">
+          Malawian inflation hit <strong>{pct(infl.value)}</strong> in {L}, against real growth of only <strong>{pct(growth)}</strong>; GDP: {usd(gdp)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Malawi economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Malawi" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Each year since 2022 Malawian prices have climbed over 20% — in one of the world's lowest-income economies.</p>
+
+        <div class="story-block prose">
+          <h2>How severe is Malawi's inflation?</h2>
+          <p>Among the worst in the world. The price level climbed {pct(infl.value)} over {L} — {ord(iRank)}-highest of {rankBy('inflationPct', L).length} economies — after {pct(i(2024))} in 2024 and {pct(i(2023))} in 2023. The rate has been above 20% for four years running; in 2021 it was {pct(i(2021))}. Malawi's all-time high, {pct(iMax[1])}, was in 1995.</p>
+        </div>
+        <LineChart
+          title={`Price rises in Malawi, ${s.inflationPct[0][0]}–${L}`}
+          subtitle="Consumer price inflation, % per year."
+          points={s.inflationPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How low are Malawian incomes?</h2>
+          <p>Among the lowest on Earth: {usdWhole(perHead)} of output per Malawian in {L}, sixth-smallest on the World Bank list and short of 2011's {usdWhole(pcPeak[1])}. With price differences removed: {intDollars(ppp!)}. Internet use reached only {pct(net!.value)} of the population in {net!.year}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Why did Malawian GDP shrink in dollars in 2024?</h2>
+          <p>Measured in dollars it slid roughly {Math.round(drop)}% in 2024, to {usd(v('gdp', 2024)!)}, although the volume of output still rose {pct(g(2024))}: a currency-and-price effect, not a production slump. A year later the dollar figure bounced to an unprecedented {usd(gdp)}. Volume growth, by contrast, has been stuck below 2% annually from 2022 ({pct(growth)} for {L}), against a {pct(avg)} average since 2000; output last shrank in 2001.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Malawi and southern Africa: related pages</h2>
+          <ul>
+            <li><a href={path('/country/malawi/population/')}>Malawi's population</a></li>
+            <li><a href={path('/country/zambia/economy/')}>Zambia's economy</a></li>
+            <li><a href={path('/country/mozambique/economy/')}>Mozambique's economy</a></li>
+            <li><a href={path('/country/tanzania/economy/')}>Tanzania's economy</a></li>
+            <li><a href={path('/rankings/inflation-rate-by-country/')}>Inflation rates compared</a></li>
+            <li><a href={path('/rankings/gdp-per-capita-by-country/')}>GDP per capita by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Malawi's yearly data`}
+          subtitle="Growth runs from 1961 and dollar GDP from 1980; 1994–95, 2001 and 2011 are picked out, then 2015 to 2025. More years in the CSV."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/malawi-economy.csv')} csvName="malawi-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Malawi's economy: the key questions</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">GDP figures for Malawi begin in 1980. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Malawian economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Malawi" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

@@ -1,0 +1,158 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/russia.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/russia/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const uMax = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const over2t = s.gdp.filter(([, x]) => x >= 2e12).map(([y]) => y);
+
+assertClaim(B.gdpRank === 8 && s.gdp.every(([y, x]) => y === L || x < gdp), 'eighth, record dollar GDP');
+assertClaim(over2t.join() === '2011,2012,2013,2014,2022,2023,2024,2025', 'above $2 trillion in 2011-14 and since 2022');
+assertClaim(s.unemploymentPct[0][0] === 1991 && s.unemploymentPct.every(([y, x]) => y === L || x > unemp!) && uMax[0] === 1998, 'unemployment lowest since 1991, high in 1998');
+assertClaim([2021, 2022, 2023, 2024].every((y) => u(y) > u(y + 1)), 'unemployment down five years running');
+assertClaim(infl.year === L && infl.value > i(2024) && i(2024) > i(2023) && i(2022) > infl.value, 'inflation up two years running, below 2022');
+assertClaim(growth < 1.5 && growth > 0 && g(2023) > 0 && g(2024) > 4.5 && g(2022) < 0, 'growth slowed sharply; 2022 decline');
+assertClaim(worst[0] === 1992 && s.gdpGrowthPct[0][0] === 1990, '1992 the worst year since 1990');
+assertClaim(net!.value > 94, 'internet use above 94%');
+
+const title = `Russian Economy ${L}: Growth Slows, Joblessness at a Low | AtlasFigures`;
+const description = `Eighth-largest worldwide, the Russian economy produced ${usd(gdp)} in ${L}. Growth slowed to ${pct(growth)} from ${pct(g(2024))}, inflation rose to ${pct(infl.value)} and unemployment fell to a record low of ${pct(unemp!)}.`;
+
+const faq = [
+  { q: 'How large is the Russian economy?', a: `${usd(gdp)} (current US dollars) for ${L}: ${ord(B.gdpRank!)} place, with ${pct(share)} of world output.` },
+  { q: 'Did Russia\'s economy slow down in ' + L + '?', a: `Yes. Real growth was ${pct(growth)}, down from ${pct(g(2024))} in 2024 and ${pct(g(2023))} in 2023.` },
+  { q: 'Why is unemployment in Russia so low?', a: `The data record how low it is without giving causes: ${pct(unemp!)} in ${L} on the ILO's modelled estimate, the lowest since the series starts in 1991.` },
+  { q: 'Is inflation rising in Russia?', a: `It went up for a second year: ${pct(i(2023))} in 2023, ${pct(i(2024))} in 2024 and ${pct(infl.value)} in ${L}. In 2022 it reached ${pct(i(2022))}.` },
+  { q: 'How much output is there per Russian?', a: `${usdWhole(perHead)} in ${L}, ${ord(B.pcRank!)} worldwide. Russia's PPP-based figure is much higher: ${intDollars(ppp!)}.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Russia's economy ${L}: eighth-largest, slower growth and record-low unemployment`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Russian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Russia', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Russia's economy: slower growth, record-low unemployment</h1>
+        <p class="answer">
+          Russia ranked eighth in the world in {L}, with GDP of <strong>{usd(gdp)}</strong>. Real growth slowed to <strong>{pct(growth)}</strong>, consumer prices rose {pct(infl.value)}, and unemployment fell to {pct(unemp!)}, the lowest since 1991.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Russia economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Russia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Russia's latest figures pull in different directions: a record low jobless rate, rising inflation, and growth that slowed sharply from 2024.</p>
+
+        <div class="story-block prose">
+          <h2>What is Russia's GDP?</h2>
+          <p>{usd(gdp)} in {L}. That makes Russia the eighth-largest economy on Earth, and it is the country's highest dollar total so far. The economy was above two trillion dollars in 2011–2014, dropped below it, and has been above it again every year since 2022.</p>
+        </div>
+        <LineChart
+          title={`GDP of Russia, 1988–${L}`}
+          subtitle="Current US dollars; World Bank figures for Russia start in 1988."
+          points={s.gdp.map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Is the Russian economy still growing?</h2>
+          <p>Yes, but more slowly. Output gained {pct(growth)} in real terms in {L}, after {pct(g(2023))} in 2023 and {pct(g(2024))} in 2024. It last shrank in 2022 ({signedPct(g(2022))}). Its worst year since 1990 was 1992, at {signedPct(worst[1])}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How low is unemployment in Russia?</h2>
+          <p>The lowest on record: {pct(unemp!)} of Russia's workforce in {L}, down in each of the last five years and far below the {pct(uMax[1])} of 1998. The rate is the ILO's modelled estimate.</p>
+        </div>
+        <LineChart
+          title={`Jobless rate in Russia, 1991–${L}`}
+          subtitle="Russia's unemployment rate (ILO model), per cent; the 1998 peak and the latest low stand out."
+          points={s.unemploymentPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Is inflation in Russia going up?</h2>
+          <p>Yes, for a second year. Russian consumer prices increased {pct(infl.value)} in {L}, versus {pct(i(2024))} in 2024 and {pct(i(2023))} in 2023, though that is still below 2022's {pct(i(2022))}. On a different measure, internet use stood at {pct(net!.value)} of Russians in {net!.year}, according to ITU figures.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Russia and Europe: related pages</h2>
+          <ul>
+            <li><a href={path('/country/russia/population/')}>Russia's population</a></li>
+            <li><a href={path('/country/germany/economy/')}>Germany's economy</a></li>
+            <li><a href={path('/country/china/economy/')}>China's economy</a></li>
+            <li><a href={path('/country/turkey/population/')}>Turkey's population</a></li>
+            <li><a href={path('/rankings/gdp-by-country/')}>World GDP ranking</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Russia's economy year by year since 1990`}
+          subtitle="Including the 1990s, 2009, 2013 and each year since 2020; the CSV covers every year."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/russia-economy.csv')} csvName="russia-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Questions about Russia's economy</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">The World Bank lists the country as "Russian Federation"; we use its common English name. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Russian economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Russia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

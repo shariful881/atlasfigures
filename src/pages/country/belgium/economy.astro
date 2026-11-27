@@ -1,0 +1,161 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/belgium.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/belgium/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const loGrowSince = Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < L && x < growth).map(([y]) => y));
+const lowInflSince = Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y));
+const hi22Since = Math.max(...s.inflationPct.filter(([y, x]) => y < 2022 && x > i(2022)).map(([y]) => y));
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const uMax = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const negYears = s.gdpGrowthPct.filter(([, x]) => x < 0).map(([y]) => y);
+const remRank = rankBy('remittances', L).find((r) => r.iso3 === c.iso3)!.rank;
+const nld = valueIn(econData('NLD').series.gdp, L)!;
+
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita) && B.gdpRank === 22 && B.pcRank === 15 && gdp < nld && gdp > nld / 2, 'record GDP and per head; 22nd and 15th; smaller than Netherlands');
+assertClaim(loGrowSince === 2020 && [2022, 2023, 2024, L].every((y) => g(y) < g(y - 1)), 'growth slowest since 2020, slowing each year since 2021');
+assertClaim(lowInflSince === 2021 && hi22Since === 1975 && iMax[0] === 1975 && i(2022) > 9.5, 'inflation lowest since 2021; 2022 highest since 1975 peak');
+assertClaim(negYears.join() === '1975,1981,1993,2009,2020', 'five contractions since 1961');
+assertClaim(uMax[0] === 1994 && uMax[1] > 9.6 && remRank === 14, 'unemployment peak 1994; remittances 14th');
+
+const title = `Belgium Economy ${L}: High Income, Growth Down to ${pct(growth)} | AtlasFigures`;
+const description = `With ${usdWhole(perHead)} of GDP per head, ${ord(B.pcRank!)} worldwide, Belgium is rich, but its ${L} growth of ${pct(growth)} was the weakest since 2020. Total output: ${usd(gdp)}.`;
+
+const faq = [
+  { q: 'Where does Belgium rank on GDP per person?', a: `${ord(B.pcRank!)} in the world, with ${usdWhole(perHead)} per resident in ${L} — ${intDollars(ppp!)} in PPP dollars.` },
+  { q: 'Is Belgium\'s economy slowing down?', a: `Steadily: ${pct(g(2021))} in 2021, then ${pct(g(2022))}, ${pct(g(2023))}, ${pct(g(2024))} and finally ${pct(growth)}, the slowest rate since 2020.` },
+  { q: 'How bad was Belgium\'s 2022 inflation?', a: `It reached ${pct(i(2022))}; only 1975, with ${pct(iMax[1])}, was higher; by ${L} it had dropped to ${pct(infl.value)}.` },
+  { q: 'When has Belgium been in recession?', a: `Real GDP fell in five years of the record: 1975, 1981, 1993, 2009 and 2020, the deepest being 2020 (${signedPct(g(2020))}).` },
+  { q: 'What counts as remittances in Belgium\'s figures?', a: `The World Bank measure adds compensation of employees (earnings of cross-border, seasonal and short-term workers employed outside their home economy) to personal transfers between households. Counted that way, ${L} inflows were ${usd(rem!.value)}, ${ord(remRank)} worldwide.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Belgium's economy in ${L}: high income, slow growth`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Belgian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Belgium', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Belgium's economy: rich, but in low gear</h1>
+        <p class="answer">
+          In {L} Belgium generated <strong>{usd(gdp)}</strong> of GDP — <strong>{usdWhole(perHead)}</strong> a person — but growth after inflation dipped to {pct(growth)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Belgium economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Belgium" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">One of the world's highest incomes per person, and growth that has eased for four straight years.</p>
+
+        <div class="story-block prose">
+          <h2>How large is Belgian GDP?</h2>
+          <p>Belgium's {L} GDP, {usd(gdp)}, was higher than ever and {ord(B.gdpRank!)} globally — a little over half what the neighbouring Netherlands produces. Per person, Belgians produced {usdWhole(perHead)}, which ranks {ord(B.pcRank!)}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Why is Belgian growth so slow?</h2>
+          <p>The figures show a slowdown without explaining it. Following 2021's {pct(g(2021))}, each year has been softer than the last, down to {pct(growth)} in {L} — Belgium's weakest since 2020.</p>
+        </div>
+        <LineChart
+          title={`Belgium: real GDP, % change, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="Real GDP, % above or below the previous year."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Has Belgian inflation cooled since 2022?</h2>
+          <p>Yes. After the 2022 jump to {pct(i(2022))} — Belgium's worst since 1975 — inflation retreated to {pct(i(2023))} in 2023, {pct(i(L - 1))} in {L - 1} and {pct(infl.value)} in {L}, its mildest since 2021.</p>
+        </div>
+        <LineChart
+          title={`Belgian inflation, ${s.inflationPct[0][0]}–${L}`}
+          subtitle="Annual % increase in consumer prices."
+          points={s.inflationPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>What about jobs and cross-border income?</h2>
+          <p>Modelled ILO unemployment stood at {pct(unemp!)} in {L}; the 1994 figure, {pct(uMax[1])}, is the series high. Remittance inflows — a World Bank measure that also counts pay of border and short-term workers — came to {usd(rem!.value)}, putting Belgium {ord(remRank)}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Belgium and Western Europe: related pages</h2>
+          <ul>
+            <li><a href={path('/country/belgium/population/')}>Belgium's population</a></li>
+            <li><a href={path('/country/netherlands/economy/')}>Netherlands' economy</a></li>
+            <li><a href={path('/country/france/economy/')}>France's economy</a></li>
+            <li><a href={path('/country/germany/economy/')}>Germany's economy</a></li>
+            <li><a href={path('/rankings/gdp-per-capita-by-country/')}>GDP per person league table</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Belgium's economy at selected dates`}
+          subtitle="Decades from 1960, the recession years 1975, 1981, 1993 and 2009, 1994, then 2015–2025; full detail in the CSV."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/belgium-economy.csv')} csvName="belgium-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Belgium's economy in brief: Q&A</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Remittances follow the World Bank definition: personal transfers plus compensation of employees. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Belgian economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Belgium" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

@@ -5,14 +5,9 @@
 //   3. the UN WPP name as published
 // Disputed areas keep neutral wording ("country or area"); see the data guide.
 import wpp from '../data/wpp/index.json';
+import commonNames from '../data/common-names.json';
 
-const NAMES: Record<string, string> = {
-  BOL: 'Bolivia', BRN: 'Brunei', COD: 'DR Congo', COG: 'Republic of the Congo', FSM: 'Micronesia',
-  HKG: 'Hong Kong SAR (China)', MAC: 'Macao SAR (China)', IRN: 'Iran', KOR: 'South Korea', PRK: 'North Korea',
-  LAO: 'Laos', MAF: 'Saint Martin (French part)', MDA: 'Moldova', RUS: 'Russia', SXM: 'Sint Maarten (Dutch part)',
-  SYR: 'Syria', TUR: 'Turkey', TZA: 'Tanzania', USA: 'United States', VEN: 'Venezuela', VNM: 'Vietnam',
-  XKX: 'Kosovo', CHI: 'Channel Islands', GBR: 'United Kingdom', CIV: "Côte d'Ivoire", CPV: 'Cabo Verde',
-};
+const NAMES: Record<string, string> = commonNames.names;
 
 const editorial = Object.values({
   ...import.meta.glob('../data/countries/*.json', { eager: true, import: 'default' }),
@@ -35,6 +30,6 @@ const econPages = new Set((Object.values(import.meta.glob('../data/economy/*.jso
 const slugOf = (set: Set<string>, iso3: string) => [...set].find((x) => x.startsWith(`${iso3}|`))?.split('|')[1] ?? null;
 /** Site paths of the country's own pages, if they exist. */
 export const pagesOf = (iso3: string) => ({
-  population: slugOf(popPages, iso3) ? `/population/${slugOf(popPages, iso3)}/` : null,
-  economy: slugOf(econPages, iso3) ? `/economy/${slugOf(econPages, iso3)}/` : null,
+  population: slugOf(popPages, iso3) ? `/country/${slugOf(popPages, iso3)}/population/` : null,
+  economy: slugOf(econPages, iso3) ? `/country/${slugOf(econPages, iso3)}/economy/` : null,
 });

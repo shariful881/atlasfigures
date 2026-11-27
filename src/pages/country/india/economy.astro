@@ -1,0 +1,169 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/india.json';
+import { econData, econMeta, aggregate, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/india/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const uk = econData('GBR').series.gdp;
+const bd = econData('BGD').series.gdpPerCapita;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const top10 = rankBy('gdp', L).slice(0, 10);
+const aheadOfUk = s.gdp.filter(([y, x]) => x > (valueIn(uk, y) ?? Infinity)).map(([y]) => y);
+const net2015 = v('internetPct', 2015)!;
+
+assertClaim(B.gdpRank === 6 && top10.every((r) => r.iso3 === c.iso3 || valueIn(econData(r.iso3).series.gdpGrowthPct, L)! < growth), 'sixth largest and fastest-growing of the ten largest');
+assertClaim(aheadOfUk.join() === '2022,2023,2024' && valueIn(uk, L)! > gdp, 'ahead of the UK in 2022–2024 only, behind again in the latest year');
+assertClaim(s.gdpGrowthPct.filter(([y, x]) => y > 1979 && x < 0).map(([y]) => y).join() === '2020', 'only contraction since 1979 was 2020');
+assertClaim(rankBy('remittances', L)[0].iso3 === c.iso3, 'largest remittance receiver');
+assertClaim(infl.year === L && s.inflationPct.filter(([y]) => y > 1976 && y < L).every(([, x]) => x > infl.value) && v('inflationPct', 1976)! < infl.value, 'inflation lowest since 1976');
+assertClaim(perHead > valueIn(bd, L)!, 'GDP per person above Bangladesh in the latest year');
+assertClaim(top10.every((r) => r.iso3 === c.iso3 || valueIn(econData(r.iso3).series.gdpPerCapita, L)! > perHead), 'lowest GDP per person in the top ten');
+assertClaim(perHead < 0.5 * valueIn(aggregate('WLD').series.gdpPerCapita, L)!, 'far below the world average');
+assertClaim(unemp! - Math.min(...s.unemploymentPct.map(([, x]) => x)) < 0.1, 'unemployment near the series low');
+assertClaim(net!.year === L && net!.value / net2015 > 4, 'internet use more than four times its 2015 level');
+
+const title = `Economy of India ${L}: GDP, Growth and Income | AtlasFigures`;
+const description = `Sixth in the world: India's ${L} GDP of ${usd(gdp)} grew ${pct(growth)}, faster than any other top-10 economy. Income per person, prices, jobs and record remittances, from World Bank data.`;
+
+const faq = [
+  { q: `Is India the 5th largest economy in ${L}?`, a: `No, sixth. In current dollars India's GDP of ${usd(gdp)} was just below the United Kingdom's ${usd(valueIn(uk, L)!)}, although India had been ahead of Britain from 2022 to 2024.` },
+  { q: 'How fast did India\'s economy grow last year?', a: `Real GDP expanded ${pct(growth)} in ${L}, the quickest pace among the world's ten biggest economies.` },
+  { q: 'What is India\'s per capita income?', a: `Output per head reached ${usdWhole(perHead)} in ${L}; adjusted for local prices (PPP) it is ${intDollars(ppp!)}.` },
+  { q: 'Does India get more remittances than any other country?', a: `Yes: ${usd(rem!.value)} in ${L}, equal to ${pct(remPct!.value)} of its GDP.` },
+  { q: 'Is Indian inflation at a record low?', a: `Close to it: the ${L} price rise of ${pct(infl.value)} was the smallest since 1976, when prices fell.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Economy of India ${L}: GDP of ${usd(gdp)}, growth, prices and remittances`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="India's economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'India', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Economy of India</h1>
+        <p class="answer">
+          With output of <strong>{usd(gdp)}</strong> in {L}, India placed {ord(B.gdpRank!)} among the world's economies and grew <strong>{pct(growth)}</strong>, faster than any of the other nine biggest economies. Income per person, at {usdWhole(perHead)}, is still far below the world average.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`India economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="India" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">India combines the fastest growth among the giants with the lowest income per head in the top ten, and it draws in more money from its workers abroad than any other country.</p>
+
+        <div class="story-block prose">
+          <h2>Has India overtaken the UK economy?</h2>
+          <p>It did, then slipped back. Measured in current US dollars, India's GDP was larger than Britain's in 2022, 2023 and 2024, but in {L} the United Kingdom edged ahead again with {usd(valueIn(uk, L)!)} against India's {usd(gdp)}. Places that close can swap with exchange-rate moves alone; see the full <a href={path('/rankings/gdp-by-country/')}>GDP ranking</a>.</p>
+        </div>
+        <LineChart
+          title={`India's GDP, 1960–${L}`}
+          subtitle="Size of the economy in current US dollars, by year."
+          points={s.gdp.filter(([y]) => y % 5 === 0 || y >= 2019).map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How fast is the Indian economy growing?</h2>
+          <p>By {pct(growth)} in {L} after inflation, following {pct(g(L - 1))} in {L - 1}. Output has shrunk in just one year since 1979: 2020, down {pct(Math.abs(g(2020)))}; it recovered with {pct(g(2021))} growth in 2021.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>What is the average income in India?</h2>
+          <p>Measured as GDP per person, {usdWhole(perHead)} in {L}, which puts India in the World Bank's {B.e.incomeGroup!.toLowerCase()} group and {ord(B.pcRank!)} in our <a href={path('/rankings/gdp-per-capita-by-country/')}>per capita ranking</a>. Prices are much lower than in rich countries, so at purchasing power parity the figure is {intDollars(ppp!)}. Neighbouring <a href={path('/country/bangladesh/economy/')}>Bangladesh</a> stood just behind, at {usdWhole(valueIn(bd, L)!)}.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How much do Indian workers overseas send back?</h2>
+          <p>{usd(rem!.value)} in {L}, the largest inflow of personal remittances anywhere, though it is only {pct(remPct!.value)} of India's GDP. Four years earlier, in 2021, the total was {usd(v('remittances', 2021)!)}. Compare countries on our <a href={path('/rankings/remittances-by-country/')}>remittances ranking</a>.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Is inflation in India falling?</h2>
+          <p>Yes: inflation dropped to {pct(infl.value)} in {L} from {pct(v('inflationPct', L - 1)!)} a year earlier, the smallest increase since 1976. Joblessness (ILO modelled) stood at {pct(unemp!)}, near the lowest in the series, and {pct(net!.value)} of Indians were online in {L}, against {pct(net2015)} a decade earlier.</p>
+        </div>
+        <LineChart
+          title={`How fast Indian prices rose, 1990–${L}`}
+          subtitle="Yearly rise in consumer prices."
+          points={s.inflationPct.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+
+        <nav class="related" aria-label="Related pages">
+          <h2>More about India and the region</h2>
+          <ul>
+            <li><a href={path('/country/india/population/')}>India's population</a></li>
+            <li><a href={path('/country/bangladesh/economy/')}>Bangladesh's economy</a></li>
+            <li><a href={path('/country/china/economy/')}>China's economy</a></li>
+            <li><a href={path('/country/pakistan/population/')}>Pakistan's population</a></li>
+            <li><a href={path('/economy/')}>All country economies</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`India's economy, year by year, 1960–${L}`}
+          subtitle="From the 1991 reforms to the pandemic year and the recovery; the CSV covers every year."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/india-economy.csv')} csvName="india-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Quick answers on India's economy</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), remittances, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">India's national accounts follow an April–March fiscal year (World Bank country notes), so GDP figures cover fiscal years. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Economy of India', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="India" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

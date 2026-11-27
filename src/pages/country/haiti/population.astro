@@ -1,0 +1,232 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import hti from '../../../data/countries/haiti.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: the 2010 mortality spike in the UN series
+// (life expectancy, deaths), with the earthquake's date and magnitude cited from Britannica; the densest country in
+// Latin America and the Caribbean (1 million+) with its highest fertility and infant mortality; net departures in every
+// year 1950–2100; the Caribbean's largest population, briefly behind the Dominican Republic (1977–2012).
+const PAGE = '/country/haiti/population/';
+const un = countryData(hti.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (hti.verification as any).checkedOn as string | undefined;
+const BRIT_URL = 'https://www.britannica.com/event/2010-Haiti-earthquake';
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const lac1 = wpp.filter((d: any) => d.region === 'Latin America and the Caribbean' && at(d).population >= 1e6);
+const top = (f: (d: any) => number) => [...lac1].sort((a: any, b: any) => f(b) - f(a))[0].iso3;
+assertClaim(top((d) => at(d).densityPerKm2) === 'HTI', 'densest in LAC, 1M+');
+assertClaim(top((d) => at(d).fertility) === 'HTI' && top((d) => at(d).infantMortalityPer1000) === 'HTI' && top((d) => -at(d).lifeExpectancy) === 'HTI', 'highest fertility and infant mortality, lowest life expectancy in LAC');
+assertClaim(y[2010].lifeExpectancy < 46 && y[2009].lifeExpectancy > 61 && y[2011].lifeExpectancy > 61, '2010 life-expectancy drop and recovery');
+const leDrop = (d: any) => at(d, 2010).lifeExpectancy - at(d, 2009).lifeExpectancy;
+assertClaim([...wpp].sort((a: any, b: any) => leDrop(a) - leDrop(b))[0].iso3 === 'HTI', 'largest life-expectancy drop of 2010 anywhere');
+assertClaim(y[2010].deaths > 2 * y[2009].deaths, '2010 deaths more than twice 2009');
+assertClaim(y[2010].population > y[2009].population, 'population still grew in 2010');
+assertClaim(un.years.every((r) => r.netMigrants < 0), 'net departures every year 1950–2100');
+const left = -un.years.filter((r) => r.year <= CURRENT_YEAR).reduce((s, r) => s + r.netMigrants, 0);
+assertClaim(left > 1.8e6 && left < 1.9e6, 'about 1.9 million net departures 1950–now');
+const dom = wpp.find((d: any) => d.iso3 === 'DOM');
+const behind = un.years.filter((r) => r.population < at(dom, r.year).population).map((r) => r.year);
+assertClaim(behind[0] === 1977 && behind[behind.length - 1] === 2012 && behind.length === 36, 'behind the Dominican Republic 1977–2012');
+const car = wpp.filter((d: any) => d.subregion === 'Caribbean').sort((a: any, b: any) => at(b).population - at(a).population);
+assertClaim(car[0].iso3 === 'HTI', 'largest population in the Caribbean');
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+assertClaim(peak.year === 2076, 'peak 2076');
+const repl = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(repl === 2047, 'below 2.1 in 2047');
+const urbanHalf = un.years.find((r) => r.urbanPct != null && r.urbanPct > 50)!.year;
+assertClaim(urbanHalf === 2016, 'urban majority 2016');
+
+const title = `Haiti Population ${CURRENT_YEAR} (${(c.population / 1e6).toFixed(1)}M): Deaths Spiked in 2010; the Caribbean's Biggest Count | AtlasFigures`;
+const description = `Haiti, ${CURRENT_YEAR}: ${millions(c.population)} people on UN estimates, the largest population in the Caribbean. Life expectancy in the series drops to ${dec(y[2010].lifeExpectancy, 1)} in 2010, the year of the earthquake, and departures exceed arrivals every year.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: hti.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'People per km²', value: int(c.densityPerKm2) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'Urban', value: pct(c.urbanPct!) },
+];
+
+const rows = displayRows(un.years, hti.tableYears);
+
+const faq = [
+  { q: 'How did the 2010 earthquake show up in Haiti\'s population data?', a: `The UN estimates life expectancy at ${dec(y[2010].lifeExpectancy, 1)} for 2010, against ${dec(y[2009].lifeExpectancy, 1)} the year before, and ${int(y[2010].deaths)} deaths, over twice the 2009 figure. Britannica dates the magnitude 7.0 earthquake to 12 January 2010 and notes that death-toll estimates differ widely.` },
+  { q: 'Which country in the Americas packs in the most people per km²?', a: `Haiti, at ${int(c.densityPerKm2)}, counting Latin American and Caribbean states above one million inhabitants.` },
+  { q: 'Does Haiti have more people than the Dominican Republic?', a: `Yes: ${millions(c.population)} versus ${millions(at(dom).population)} in ${CURRENT_YEAR}. Between 1977 and 2012 the Dominican Republic held the lead.` },
+  { q: 'How many people have left Haiti?', a: `Roughly ${dec(left / 1e6, 1)} million on a net basis between 1950 and ${CURRENT_YEAR}; the projections keep emigration ahead of immigration every year until 2100.` },
+  { q: "What is Haiti's projected peak?", a: `About ${millions(peak.population)} at the ${peak.year} high point of the medium variant. Fertility, ${dec(c.fertility, 2)} today, should slip under 2.1 around ${repl}.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: hti.slug, name: hti.name, wikipedia: hti.wikipedia,
+  headline: `Haiti's ${millions(c.population)}: a 2010 mortality spike, the densest population in Latin America and the Caribbean, and departures every year`,
+  description,
+  datasetName: 'Haiti population, life expectancy and deaths, 1950–2100',
+  datasetDescription: `Mid-year population of Haiti for selected years from 1950 to ${CURRENT_YEAR} (every year 2008–2013 included), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: hti.published, updated: hti.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  extraCitations: [{ name: 'Haiti earthquake of 2010', url: BRIT_URL, publisher: 'Encyclopaedia Britannica' }],
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Haiti"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Haiti", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Haiti: the 2010 spike in deaths and a crowded, mobile population</h1>
+        <LiveCounter
+          label="Haiti: estimated population as of now"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`Based on UN World Population Prospects 2024 for mid-${CURRENT_YEAR}, an increase of about ${int(c.change / 365)} a day`}
+        />
+        <p class="answer">
+          Haiti's {CURRENT_YEAR} population, by UN estimate, is <strong>{millions(c.population)}</strong>, the largest of any Caribbean country. No Latin American or Caribbean country above one million people is denser: <strong>{int(c.densityPerKm2)}</strong> per km².
+        </p>
+        <div class="dates"><span>Updated <time datetime={hti.updated}>{longDate(hti.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Haiti" code="ht" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>How did 2010 change Haiti's death and life-expectancy figures?</h2>
+          <p>Deaths more than doubled. The UN puts them at {int(y[2010].deaths)} for 2010, against {int(y[2009].deaths)} in 2009, and its life-expectancy estimate drops from {dec(y[2009].lifeExpectancy, 1)} to {dec(y[2010].lifeExpectancy, 1)} years, the steepest one-year fall recorded anywhere that year, and recovers to {dec(y[2011].lifeExpectancy, 1)} in 2011. The total kept rising even so. Britannica records a magnitude 7.0 earthquake on 12 January 2010 and notes that published estimates of the death toll differ widely; the page uses only the UN counts.</p>
+        </div>
+        <LineChart
+          title="Haiti's life expectancy at birth, 1950–2050"
+          subtitle="Every year 2008–2013 is included so the 2010 low stands out; dashed after 2023."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: Math.round(y[r.year].lifeExpectancy * 10) / 10, projection: r.projection }))}
+          unit="years"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How crowded is Haiti compared with its region?</h2>
+          <p>The most crowded in its region: {int(c.densityPerKm2)} residents per km², a density no other Latin American or Caribbean state above one million people reaches. The same comparison puts Haiti last on life expectancy ({dec(c.lifeExpectancy, 1)} years) and first on both fertility ({dec(c.fertility, 2)} children per woman) and infant deaths ({dec(c.infantMortalityPer1000!, 1)} for each 1,000 born).</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Has emigration from Haiti outpaced arrivals in every year?</h2>
+          <p>Yes, in every year from 1950, and the projections continue the pattern to 2100. The cumulative net loss from 1950 to {CURRENT_YEAR} is close to {dec(left / 1e6, 1)} million people. Natural increase still outweighs it: {int(c.births)} births and {int(c.deaths)} deaths are expected this year, against net departures of {int(-c.netMigrants)}.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Haiti in 1950, 2000 and now, UN mid-year totals">
+          <div><span class="y">1950</span><div class="v">{millionsShort(y[1950].population)}</div><span class="d">Haiti</span></div>
+          <div><span class="y">2000</span><div class="v">{millionsShort(y[2000].population)}</div><span class="d">Haiti</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{millionsShort(c.population)}</div><span class="d">Haiti</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Is Haiti bigger than the Dominican Republic?</h2>
+          <p>Yes again, after a 36-year gap. Haiti had the larger population in 1950 ({millions(y[1950].population)} against {millions(at(dom, 1950).population)}); the Dominican Republic led from 1977 to 2012, and since 2013 Haiti has led again. In the medium variant Haiti tops out in {peak.year} with {millions(peak.population)}. Its urban share passed one half in {urbanHalf} and is {pct(c.urbanPct!)} now.</p>
+        </div>
+        <LineChart
+          title="Population of Haiti, 1950–2100"
+          subtitle="UN mid-year estimates and the medium-variant projection (dashed), which peaks in 2076."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+        <RelatedPages iso3={hti.iso3} name={hti.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Haiti across the years, 2008 to 2013 in full"
+          subtitle="The 2010 row holds the drop in life expectancy; rows from 2024 on are projections."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${hti.slug}-population.csv`)}
+          csvName={`${hti.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">What people ask about Haiti</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{hti.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+            <li><a href={BRIT_URL}>Encyclopaedia Britannica, "Haiti earthquake of 2010"</a>: a magnitude 7.0 earthquake on 12 January 2010; published death-toll estimates differ widely.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={hti.published}>{longDate(hti.published)}</time> · Updated <time datetime={hti.updated}>{longDate(hti.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Haiti population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Haiti" code="ht" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

@@ -1,0 +1,230 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import ec from '../../../data/countries/ecuador.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: the densest country in South America; a 2020 drop
+// in life expectancy second only to Armenia's, recovered by 2023; net arrivals only in 1950–1951, 1983–1984 and 2014–2019
+// (high 2018); fertility below 2.1 since 2019; a peak in 2063; an urban share flat for fifteen years, then rising fast.
+// Counts only; the UN files give no causes.
+const PAGE = '/country/ecuador/population/';
+const un = countryData(ec.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (ec.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const sam = wpp.filter((d: any) => d.subregion === 'South America');
+assertClaim([...sam].sort((a: any, b: any) => at(b).densityPerKm2 - at(a).densityPerKm2).slice(0, 3).map((d: any) => d.iso3).join() === 'ECU,COL,VEN', 'densest in South America, ahead of Colombia and Venezuela');
+const dip = (d: any) => at(d, 2020).lifeExpectancy - at(d, 2019).lifeExpectancy;
+assertClaim([...wpp].sort((a: any, b: any) => dip(a) - dip(b)).slice(0, 2).map((d: any) => d.iso3).join() === 'ARM,ECU', 'second-largest life-expectancy drop 2019–2020, after Armenia');
+const leBack = un.years.find((r) => r.year > 2020 && r.lifeExpectancy > y[2019].lifeExpectancy)!.year;
+assertClaim(leBack === 2023, 'back above 2019 in 2023');
+const posYears = un.years.filter((r) => r.netMigrants > 0).map((r) => r.year);
+assertClaim(posYears.join() === '1950,1951,1983,1984,2014,2015,2016,2017,2018,2019', 'net arrivals only 1950–51, 1983–84, 2014–19');
+const inTop = un.years.reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+const outTop = un.years.filter((r) => !r.projection).reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+assertClaim(inTop.year === 2018 && outTop.year === 1997, 'largest net arrivals 2018; largest net departures 1997');
+const under = un.years.find((r) => r.fertility < 2.1)!.year;
+const tfrTop = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(under === 2019 && tfrTop.year === 1955 && un.years.filter((r) => r.year >= under).every((r) => r.fertility < 2.1), 'fertility high 1955; under 2.1 every year from 2019');
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+assertClaim(peak.year === 2063, 'peak 2063');
+const bTop = un.years.filter((r) => !r.projection).reduce((a, b) => (b.births > a.births ? b : a));
+assertClaim(bTop.year === 2011, 'births peaked 2011');
+assertClaim(y[2025].urbanPct! - y[2010].urbanPct! < 1 && y[2050].urbanPct! - c.urbanPct! > 15, 'urban share flat 2010–2025, then up more than 15 points by 2050');
+assertClaim([...sam].sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3).indexOf('ECU') === 6, 'seventh in South America');
+const times = c.population / y[1950].population;
+assertClaim(times > 5.1 && times < 5.3, 'about five times 1950');
+
+const title = `Ecuador Population ${CURRENT_YEAR} (${(c.population / 1e6).toFixed(1)}M): South America's Most Crowded Country | AtlasFigures`;
+const description = `No South American country is more densely settled than Ecuador, where the UN counts ${millions(c.population)} in ${CURRENT_YEAR}. Its 2020 fall in life expectancy was the second-largest anywhere; numbers peak in 2063.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: ec.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'People per km²', value: int(c.densityPerKm2) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'Peak year', value: String(peak.year) },
+];
+
+const rows = displayRows(un.years, ec.tableYears);
+
+const faq = [
+  { q: 'Where in South America are people packed most tightly?', a: `Ecuador: ${int(c.densityPerKm2)} per km² in the UN's ${CURRENT_YEAR} data, ahead of Colombia and Venezuela.` },
+  { q: 'Was there a fall in Ecuadorian lifespans in 2020?', a: `Yes, from ${dec(y[2019].lifeExpectancy, 1)} years in 2019 to ${dec(y[2020].lifeExpectancy, 1)}, a fall exceeded only in Armenia; it was back above the 2019 level by ${leBack}. The cause is not part of the UN data.` },
+  { q: 'Is Ecuador gaining or losing people through migration?', a: `Losing, in most years: the UN shows net arrivals only in 1950–1951, 1983–1984 and 2014–2019, peaking in ${inTop.year} at about ${int(Math.round(inTop.netMigrants / 1000))} thousand. For ${CURRENT_YEAR}, departures lead by some ${int(Math.round(-c.netMigrants / 1000))} thousand.` },
+  { q: 'What is the highest population Ecuador will reach?', a: `${millions(peak.population)}, reached in ${peak.year} on the medium variant; by 2100 the figure slips to ${millions(y[2100].population)}.` },
+  { q: 'How urban will Ecuador be in 2050?', a: `${pct(y[2050].urbanPct!)} in World Urbanization Prospects, up from ${pct(c.urbanPct!)} now, after fifteen years in which the share barely moved.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: ec.slug, name: ec.name, wikipedia: ec.wikipedia,
+  headline: `Ecuador's ${millions(c.population)}: South America's densest country, a sharp 2020 dip in lifespans and a peak in 2063`,
+  description,
+  datasetName: 'Ecuador population, life expectancy and net migration, 1950–2100',
+  datasetDescription: `Mid-year population of Ecuador for selected years from 1950 to ${CURRENT_YEAR} (2018–2020 and 2023 included), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: ec.published, updated: ec.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Ecuador"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Ecuador", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Ecuador: South America's most densely settled country</h1>
+        <LiveCounter
+          label="Ecuador: current population estimate"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} start, with roughly ${int(c.change / 365)} more people per day`}
+        />
+        <p class="answer">
+          No country in South America packs more people onto its land than Ecuador: <strong>{int(c.densityPerKm2)}</strong> per km². The UN's {CURRENT_YEAR} estimate is <strong>{millions(c.population)}</strong>, still rising toward a projected high in {peak.year}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={ec.updated}>{longDate(ec.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Ecuador" code="ec" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Is Ecuador South America's most crowded country?</h2>
+          <p>Yes. It averages {int(c.densityPerKm2)} people to the km² over {int(un.landAreaKm2)} km², higher than Colombia or Venezuela. By head count Ecuador is seventh on the continent, roughly {dec(times, 1)}-fold its 1950 size.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>What happened to Ecuadorian life expectancy in 2020?</h2>
+          <p>It dropped {dec(y[2019].lifeExpectancy - y[2020].lifeExpectancy, 1)} years, from {dec(y[2019].lifeExpectancy, 1)} to {dec(y[2020].lifeExpectancy, 1)}, the second-sharpest one-year drop of any country or area after Armenia. It reached {dec(y[2021].lifeExpectancy, 1)} in 2021, passed the 2019 mark again in {leBack} and stands at {dec(c.lifeExpectancy, 1)} today. The UN estimates record the fall without its cause.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Life expectancy at birth in Ecuador">
+          <div><span class="y">2019</span><div class="v">{dec(y[2019].lifeExpectancy, 1)}</div><span class="d">Years</span></div>
+          <div><span class="y">2020</span><div class="v">{dec(y[2020].lifeExpectancy, 1)}</div><span class="d">Years</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{dec(c.lifeExpectancy, 1)}</div><span class="d">Years</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Has Ecuador gained or lost people through migration?</h2>
+          <p>Mostly lost. The UN records net arrivals only in 1950–1951, 1983–1984 and 2014–2019, the largest in {inTop.year} at about {int(Math.round(inTop.netMigrants / 1000))} thousand; departures were heaviest in {outTop.year}, near {int(Math.round(-outTop.netMigrants / 1000))} thousand. For {CURRENT_YEAR} departures lead by around {int(Math.round(-c.netMigrants / 1000))} thousand. The figures are balances only.</p>
+        </div>
+        <LineChart
+          title="Ecuador's population since 1950 and the UN view to 2100"
+          subtitle="1 July totals; the high point falls inside the dashed medium variant, in 2063."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How big will Ecuador get before it starts to shrink?</h2>
+          <p>{peak.year} is the projected top, with {millions(peak.population)}; {millions(y[2100].population)} remain at the century's close. Fertility was highest in {tfrTop.year}, at {dec(tfrTop.fertility, 2)}, dropped under 2.1 in {under} and stands at {dec(c.fertility, 2)}; births were most numerous in {bTop.year}. The urban share hardly changed between 2010 and 2025 but is projected to climb from {pct(c.urbanPct!)} to {pct(y[2050].urbanPct!)} by 2050.</p>
+        </div>
+        <LineChart
+          title="Ecuadorian fertility, 1950–2050"
+          subtitle="Ecuador's fertility rate in UN data, dashed where projected, with 2.1 drawn in."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: '2.1 line' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+        <RelatedPages iso3={ec.iso3} name={ec.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Ecuador by year, including 2018, 2019, 2020 and 2023"
+          subtitle="Net migration is positive from 2014 to 2019; life expectancy dips in the 2020 row."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${ec.slug}-population.csv`)}
+          csvName={`${ec.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Ecuador: what readers ask</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{ec.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={ec.published}>{longDate(ec.published)}</time> · Updated <time datetime={ec.updated}>{longDate(ec.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Ecuador population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Ecuador" code="ec" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

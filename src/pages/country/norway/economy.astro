@@ -1,0 +1,162 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/norway.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/norway/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const pcTop = rankBy('gdpPerCapita', L);
+const peak = s.gdp.reduce((a, b) => (b[1] > a[1] ? b : a));
+const pcPeak = s.gdpPerCapita.reduce((a, b) => (b[1] > a[1] ? b : a));
+const negs = s.gdpGrowthPct.filter(([, x]) => x < 0).map(([y]) => y);
+const hiUSince = Math.max(...s.unemploymentPct.filter(([y, x]) => y < L && x > unemp!).map(([y]) => y));
+const lowInflSince = Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y));
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const drop = Math.round((1 - gdp / peak[1]) * 100);
+
+assertClaim(B.pcRank === 6 && pcTop.slice(0, 5).map((r) => r.iso3).join() === 'LUX,IRL,CHE,SGP,ISL', 'sixth per person');
+assertClaim(peak[0] === 2022 && pcPeak[0] === 2022 && drop >= 13 && drop <= 15, 'dollar GDP about 14% below 2022');
+assertClaim(negs.join() === '1988,2009,2020', 'three declines since 1961');
+assertClaim(hiUSince === 2016 && [2022, 2023, 2024, L].every((y, k, a) => k === 0 || u(y) > u(a[k - 1])), 'unemployment up three years, highest since 2016');
+assertClaim(infl.year === L && lowInflSince === 2020 && i(2022) > 5 && iMax[0] === 1981, 'inflation lowest since 2020; peak 1981');
+assertClaim([2023, 2024, L].every((y) => g(y) > 0) && negs.every((y) => g(y) > -2), 'real growth positive since 2023; each decline under 2%');
+assertClaim(net!.value >= 99 && ppp! > 100000, 'nearly everyone online; PPP above 100k');
+
+const title = `Norway Economy ${L}: Sixth-Richest per Person | AtlasFigures`;
+const description = `At ${usdWhole(perHead)} per resident in ${L}, Norway ranks sixth in the world, yet total output, ${usd(gdp)}, is ${drop}% below its 2022 high in dollars. Unemployment rose to ${pct(unemp!)}.`;
+
+const faq = [
+  { q: 'Is Norway one of the richest countries per person?', a: `Yes — ${usdWhole(perHead)} per inhabitant in ${L}, sixth of all economies, behind Luxembourg, Ireland, Switzerland, Singapore and Iceland. At purchasing power parity it tops ${intDollars(ppp!)}.` },
+  { q: 'Why is Norway\'s GDP lower than in 2022?', a: `Measured in dollars, ${L}\'s ${usd(gdp)} trails the 2022 high of ${usd(peak[1])}. Real output kept growing, so the drop comes from prices and the krone-dollar exchange rate rather than lower production.` },
+  { q: 'Are more Norwegians out of work?', a: `Yes: ${pct(u(2022))} in 2022, then ${pct(u(2023))}, ${pct(u(2024))} and ${pct(unemp!)} in ${L} — the highest ILO-modelled rate since 2016.` },
+  { q: 'When has Norwegian output fallen?', a: `In 1988, 2009 and 2020 — each time by less than 2% — and in no other year since 1961.` },
+  { q: 'Has Norwegian inflation cooled?', a: `It has: ${pct(i(2022))} in 2022, ${pct(infl.value)} by ${L} — calmer than any year since 2020.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Norway's economy ${L}: sixth-highest income per person, a smaller dollar total than 2022 and rising unemployment`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Norwegian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Norway', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Norway's economy: rich per person, smaller in dollars</h1>
+        <p class="answer">
+          Output per Norwegian, <strong>{usdWhole(perHead)}</strong> in {L}, is the sixth-highest anywhere. Total output of <strong>{usd(gdp)}</strong> is below its 2022 peak in dollars, and unemployment rose to {pct(unemp!)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Norway economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Norway" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Norway's output per resident is among the highest anywhere, though its dollar totals have slipped since 2022.</p>
+
+        <div class="story-block prose">
+          <h2>Where does Norway rank for income per person?</h2>
+          <p>Sixth. Norway produced {usdWhole(perHead)} for every resident in {L}, behind Luxembourg, Ireland, Switzerland, Singapore and Iceland; measured at purchasing power parity it exceeds {intDollars(ppp!)}.</p>
+        </div>
+        <LineChart
+          title={`Norwegian GDP per head, 1960–${L}`}
+          subtitle="Current US dollars per resident; 2022 is the peak."
+          points={s.gdpPerCapita.map(([x, y]) => ({ x, y }))}
+          format="usd" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Why has Norway's dollar GDP shrunk since 2022?</h2>
+          <p>Output in dollars came to {usd(gdp)} for {L}, about {drop}% under the {usd(peak[1])} of 2022, even though real growth stayed positive ({pct(g(2023))}, {pct(g(2024))} and {pct(growth)}). The dollar figure also reflects prices and the krone's exchange rate.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Is Norwegian unemployment going up?</h2>
+          <p>For three years running. The ILO-modelled rate rose from {pct(u(2022))} in 2022 to {pct(unemp!)} in {L}, topping every year back to 2016.</p>
+        </div>
+        <LineChart
+          title={`Joblessness in Norway, 1991–${L}`}
+          subtitle="ILO-modelled unemployment, % of the labour force."
+          points={s.unemploymentPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How steady has Norway's economy been?</h2>
+          <p>Very. Output declines are rare: 1988, 2009 and 2020 are the only ones since 1961. Inflation of {pct(infl.value)} in {L} was the lowest since 2020; online access is close to universal ({pct(net!.value)}).</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Norway and Northern Europe: related pages</h2>
+          <ul>
+            <li><a href={path('/country/norway/population/')}>Norway's population</a></li>
+            <li><a href={path('/country/sweden/economy/')}>Sweden's economy</a></li>
+            <li><a href={path('/country/germany/economy/')}>Germany's economy</a></li>
+            <li><a href={path('/country/switzerland/economy/')}>Switzerland's economy</a></li>
+            <li><a href={path('/rankings/gdp-per-capita-by-country/')}>GDP per capita league table</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Norway's main indicators in selected years, 1960–${L}`}
+          subtitle="1988, 2009 and 2014 sit above 2019 onward; other years are in the downloadable data."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/norway-economy.csv')} csvName="norway-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Norway's economy: asked and answered</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Norwegian GDP includes oil and gas activity; World Bank figures do not separate mainland output. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Norwegian economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Norway" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

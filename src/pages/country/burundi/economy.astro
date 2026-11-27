@@ -1,0 +1,160 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/burundi.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/burundi/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const pcList = rankBy('gdpPerCapita', L); const pppList = rankBy('gdpPerCapitaPpp', L);
+const lowestPc = pcList.at(-1)!.iso3 === c.iso3, lowestPpp = pppList.at(-1)!.iso3 === c.iso3;
+const iRank = rankBy('inflationPct', L).find((r) => r.iso3 === c.iso3)!.rank;
+const iHiSince = Math.max(...s.inflationPct.filter(([y, x]) => y < L && x >= infl.value).map(([y]) => y));
+const rising = [2022, 2023, 2024].every((y) => i(y) > 18);
+const gdpPeak = s.gdp.reduce((a, b) => (b[1] > a[1] ? b : a));
+const netList = rankBy('internetPct', net!.year);
+const agri = valueIn(s.empAgriPct, L)!; const agriTop = rankBy('empAgriPct', L)[0].iso3 === c.iso3;
+const fW = valueIn(s.lfpFemale, L)!, mW = valueIn(s.lfpMale, L)!;
+const remRank = rankBy('remittancesPctGdp', L).find((r) => r.iso3 === c.iso3)!.rank;
+const remMax = s.remittances.reduce((a, b) => (b[1] > a[1] ? b : a));
+const hiGrow = Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < L && x >= growth).map(([y]) => y));
+
+assertClaim(lowestPc && lowestPpp && perHead < 240, 'lowest GDP per person in the world, also at PPP');
+assertClaim(rankBy('inflationPct', L).slice(0, 2).map((r) => r.iso3).sort().join() === 'IRN,TUR' && iRank === 3 && iHiSince === 1979 && rising, 'inflation 34.1%, 3rd highest, highest since 1979, above 18% 2022-24');
+assertClaim(gdpPeak[0] === 2022 && gdp < gdpPeak[1], 'dollar GDP below 2022 peak');
+assertClaim(netList.at(-1)!.iso3 === c.iso3 && net!.value < 9, 'lowest internet use');
+const womenAhead = rankBy('lfpFemale', L).filter((r) => r.value > (valueIn(econData(r.iso3).series.lfpMale, L) ?? Infinity)).map((r) => r.iso3).sort().join();
+assertClaim(agriTop && agri > 85 && fW > mW && womenAhead === 'BDI,MDA', 'highest farm share; women above men in labour force');
+assertClaim(remMax[0] === L && remRank === 24 && hiGrow === 2019, 'record remittances, 24th by share; growth best since 2019');
+
+const title = `Burundi Economy ${L}: Lowest GDP per Person, Inflation at ${pct(infl.value)} | AtlasFigures`;
+const description = `At ${usdWhole(perHead)} per person in ${L}, Burundi has the lowest GDP per head of any economy in the World Bank data, and prices rose ${pct(infl.value)}, a rate beaten only by Iran and Türkiye.`;
+
+const faq = [
+  { q: 'Is Burundi the poorest country in the world?', a: `On income per head it is last in the World Bank tables — ${usdWhole(perHead)} for ${L}, and ${intDollars(ppp!)} once prices are equalised.` },
+  { q: 'How bad is Burundi\'s inflation?', a: `Severe: ${pct(infl.value)} for ${L}, third worldwide and a Burundian high not seen since 1979. Prices rose more than 18% a year in 2022, 2023 and 2024 too.` },
+  { q: 'Do many Burundians work in farming?', a: `Yes — ${pct(agri)} of workers in ${L} on ILO estimates, the highest share of any country.` },
+  { q: 'Does Burundi have the lowest internet use?', a: `Yes, among ${netList.length} places with ITU figures: ${pct(net!.value)} of people were online in ${net!.year}.` },
+  { q: 'Are remittances growing in Burundi?', a: `Yes — to a record ${usd(rem!.value)} in ${L}, or ${pct(remPct!.value)} of GDP — a share that ranks ${ord(remRank)}.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Burundi's economy in ${L}: the world's lowest income per person and soaring prices`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Burundian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Burundi', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Burundi's economy: the lowest income per person</h1>
+        <p class="answer">
+          At <strong>{usdWhole(perHead)}</strong> a head in {L}, Burundi has the lowest income in the World Bank data, and prices climbed <strong>{pct(infl.value)}</strong>.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Burundi economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Burundi" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Real output is growing, but prices are rising at their fastest pace in more than four decades.</p>
+
+        <div class="story-block prose">
+          <h2>Does Burundi have the lowest income in the world?</h2>
+          <p>Measured per person, yes: {usdWhole(perHead)} for {L} puts Burundi at the bottom of {pcList.length} economies, and last again in PPP terms ({intDollars(ppp!)}). Total GDP, {usd(gdp)}, remains below 2022's {usd(gdpPeak[1])}, although real growth of {pct(growth)} was the strongest in six years.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Is inflation getting worse in Burundi?</h2>
+          <p>Yes: {L}'s {pct(infl.value)} was the third-highest on the planet, behind only Iran and Türkiye, and Burundi's highest since 1979. It has stayed above 18% throughout 2022–{L}.</p>
+        </div>
+        <LineChart
+          title={`Burundian consumer prices, % rise per year, ${s.inflationPct[0][0]}–${L}`}
+          subtitle="Annual % change in consumer prices."
+          points={s.inflationPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>What do Burundi's jobs figures show?</h2>
+          <p>An economy still centred on the land: {pct(agri)} of workers were in agriculture in {L}, the highest share of any country on ILO estimates. Burundi is also one of only two countries where women's labour force participation ({pct(fW)}) exceeds men's ({pct(mW)}).</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Is internet use in Burundi the world's lowest?</h2>
+          <p>Fewer than anywhere else: just {pct(net!.value)} of Burundians were online in {net!.year}, per the ITU. Remittances, by contrast, reached a record {usd(rem!.value)} in {L}, {pct(remPct!.value)} of GDP.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Burundi and East Africa: related pages</h2>
+          <ul>
+            <li><a href={path('/country/burundi/population/')}>Burundi's population</a></li>
+            <li><a href={path('/country/rwanda/economy/')}>Rwanda's economy</a></li>
+            <li><a href={path('/country/tanzania/economy/')}>Tanzania's economy</a></li>
+            <li><a href={path('/country/dr-congo/economy/')}>DR Congo's economy</a></li>
+            <li><a href={path('/rankings/gdp-per-capita-by-country/')}>GDP per capita by country</a></li>
+            <li><a href={path('/rankings/employment-in-agriculture-by-country/')}>Employment in agriculture by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Burundi's yearly economic data`}
+          subtitle="1960, 1970, 1979, 1980, 1990, 1993, 1996 and 2000, then 2010 and 2015 onward; the CSV completes the series."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/burundi-economy.csv')} csvName="burundi-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Burundi's economy: reader FAQ</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Jobs data: SL.AGR.EMPL.ZS, SL.TLF.CACT.FE.ZS and SL.TLF.CACT.MA.ZS (ILO modelled estimates), via the World Bank. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Burundian economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Burundi" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

@@ -36,7 +36,7 @@ const more = [
   <ul class="rp-countries">
     {picks.map((p) => (
       <li>
-        <a href={path(`/population/${p.slug}/`)} data-iso3={p.iso3}>
+        <a href={path(`/country/${p.slug}/population/`)} data-iso3={p.iso3}>
           <Flag code={p.code} class="rp-flag" />
           <span class="rp-name">{p.name}</span>
           <span class="rp-meta">{people(p.un.population)} · {ord(p.un.worldRank)}</span>

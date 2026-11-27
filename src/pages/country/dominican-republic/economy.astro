@@ -1,0 +1,165 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/dominican-republic.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/dominican-republic/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const lac = rankBy('gdp', L).filter((r) => r.region === 'Latin America & Caribbean');
+const lPos = lac.findIndex((r) => r.iso3 === c.iso3);
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const loGrowSince = Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < L && x < growth).map(([y]) => y));
+const avg = s.gdpGrowthPct.filter(([y]) => y >= 2000).reduce((a, [, x], _, arr) => a + x / arr.length, 0);
+const remRank = rankBy('remittances', L).find((r) => r.iso3 === c.iso3)!.rank;
+const remX = (rem!.value / v('remittances', 2015)!).toFixed(1);
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const uLowSince = Math.max(...s.unemploymentPct.filter(([y, x]) => y < L && x < unemp!).map(([y]) => y));
+const lacAvg = rankBy('gdp', L).filter((r) => r.region === 'Latin America & Caribbean').map((r) => { const gs = (econData(r.iso3).series.gdpGrowthPct ?? []).filter(([y]) => y >= 2000 && y <= L); return { iso3: r.iso3, n: gs.length, a: gs.reduce((t, [, x]) => t + x, 0) / gs.length }; }).filter((x) => x.n === L - 1999).sort((a, b) => b.a - a.a);
+const avgPos = lacAvg.findIndex((x) => x.iso3 === c.iso3) + 1;
+const pcX = (perHead / v('gdpPerCapita', 2000)!).toFixed(1);
+
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita) && lPos === 8 && B.gdpRank === 65, 'record GDP; 9th in LAC; 65th');
+assertClaim(loGrowSince === 2020 && avg > 4.6 && avg < 4.7 && g(2021) > 13.9, 'slowest growth since 2020; average 4.6% since 2000; 2021 14.0%');
+assertClaim(isMax(s.remittances) && remRank === 19 && Number(remX) === 2.4 && remPct!.value > 9.7, 'record remittances, 19th, 2.4x 2015');
+assertClaim(iMax[0] === 2004 && iMax[1] > 51 && i(2022) > 8.7, 'inflation peak 2004; 8.8% in 2022');
+assertClaim(uLowSince === 2008 && Number(pcX) === 3.9, 'unemployment lowest since 2008; per head 3.9x 2000');
+assertClaim(avgPos === 3 && lacAvg[0].iso3 === 'GUY' && lacAvg[1].iso3 === 'PAN', 'third-fastest average growth in LAC since 2000, after Guyana and Panama');
+
+const title = `Dominican Republic Economy ${L}: Fast Grower Slows to ${pct(growth)} | AtlasFigures`;
+const description = `Dominican GDP topped ${usd(gdp)} in ${L}, ninth in its region, even as growth cooled to ${pct(growth)}; transfers from abroad climbed to ${usd(rem!.value)}.`;
+
+const faq = [
+  { q: 'Has the Dominican economy grown fast?', a: `Over 2000–${L} the yearly average was close to ${pct(avg)}, bettered in the region only by Guyana and Panama. The ${L} rate, ${pct(growth)}, was the slowest since 2020.` },
+  { q: 'What is the Dominican Republic\'s GDP?', a: `For ${L}, ${usd(gdp)} — never higher — putting it ninth in its region and ${ord(B.gdpRank!)} on the world list, or ${usdWhole(perHead)} a head.` },
+  { q: 'Are remittances important to the Dominican Republic?', a: `Very: ${L} transfers from Dominicans abroad came to ${usd(rem!.value)}, the most yet and ${pct(remPct!.value)} of GDP. That is ${remX}-fold the 2015 level and ${ord(remRank)} worldwide.` },
+  { q: 'When was Dominican inflation at its worst?', a: `2004, at ${pct(iMax[1])}. The recent high was ${pct(i(2022))} in 2022, and ${L} closed at ${pct(infl.value)}.` },
+  { q: 'What did the pandemic year do to Dominican output?', a: `A ${pct(Math.abs(g(2020)))} fall in GDP, followed by ${pct(g(2021))} growth the next year.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `The Dominican Republic's economy in ${L}: record size, slower growth, record remittances`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Dominican economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Dominican Republic', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>The Dominican Republic's economy: two decades of fast growth</h1>
+        <p class="answer">
+          Dominican GDP reached <strong>{usd(gdp)}</strong> for {L}; growth after inflation slipped to <strong>{pct(growth)}</strong>, and money sent by Dominicans abroad climbed to {usd(rem!.value)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Dominican Republic economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Dominican Republic" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Since 2000, only Guyana and Panama have outgrown it on average among the region's economies.</p>
+
+        <div class="story-block prose">
+          <h2>How has the Dominican economy performed since 2000?</h2>
+          <p>Strongly. Yearly real growth has averaged close to {pct(avg)}, and output per Dominican, {usdWhole(perHead)} in {L}, is {pcX} times its 2000 dollar value. At {usd(gdp)}, Dominican GDP is ninth largest in the region.</p>
+        </div>
+        <LineChart
+          title={`Dominican growth year by year, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="Real GDP, % change."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Is Dominican growth slowing?</h2>
+          <p>In {L}, yes: {pct(growth)} after {pct(g(L - 1))} in {L - 1} — the softest showing since 2020. That year output dropped {pct(Math.abs(g(2020)))} before rebounding {pct(g(2021))} in 2021.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>What do Dominicans abroad contribute?</h2>
+          <p>In {L} their transfers peaked at {usd(rem!.value)} — {pct(remPct!.value)} of GDP, {remX}-fold the 2015 total, and {ord(remRank)} worldwide by inflows.</p>
+        </div>
+        <LineChart
+          title={`Transfers into the Dominican Republic, ${s.remittances[0][0]}–${L}`}
+          subtitle="Remittances received, US$ at current prices."
+          points={s.remittances.map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>What about prices and jobs?</h2>
+          <p>Inflation ran at {pct(infl.value)} during {L}, well off 2022's {pct(i(2022))}; 2004 holds the record, {pct(iMax[1])}. Modelled unemployment dipped to {pct(unemp!)}, the least since 2008; PPP output per head was {intDollars(ppp!)}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>The Dominican Republic and the Caribbean: related pages</h2>
+          <ul>
+            <li><a href={path('/country/dominican-republic/population/')}>Dominican Republic's population</a></li>
+            <li><a href={path('/country/mexico/economy/')}>Mexico's economy</a></li>
+            <li><a href={path('/country/guatemala/economy/')}>Guatemala's economy</a></li>
+            <li><a href={path('/country/colombia/economy/')}>Colombia's economy</a></li>
+            <li><a href={path('/rankings/remittances-by-country/')}>Remittances league table</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Dominican Republic: selected years`}
+          subtitle="1960–2010 at ten-year steps plus 2004, then 2015 through 2025; the CSV holds the remaining years."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/dominican-republic-economy.csv')} csvName="dominican-republic-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">The Dominican economy, asked and answered</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">"Latin America and the Caribbean" is the World Bank region. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Dominican economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Dominican Republic" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

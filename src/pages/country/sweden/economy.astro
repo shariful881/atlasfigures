@@ -1,0 +1,158 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/sweden.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/sweden/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const hi23 = Math.max(...s.inflationPct.filter(([y, x]) => y < 2023 && x > i(2023)).map(([y]) => y));
+const loInfl = Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y));
+const uHiSince = Math.max(...s.unemploymentPct.filter(([y, x]) => y < L && x > unemp!).map(([y]) => y));
+const uPeak = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+
+assertClaim(B.gdpRank === 25 && B.pcRank === 13, '25th by GDP, 13th per person');
+assertClaim(hi23 === 1991 && i(2022) > 8 && i(2023) > 8, 'inflation above 8% in 2022 and 2023, 2023 highest since 1991');
+assertClaim(infl.year === L && infl.value < 1 && loInfl === 2020, 'inflation under 1%, lowest since 2020');
+assertClaim(uHiSince === 2021 && u(2023) < u(2024) && u(2024) < unemp! && uPeak[0] === 1997, 'unemployment highest since 2021, rising two years; peak 1997');
+assertClaim(g(2023) < 0 && growth > g(2024) && g(2024) > 0 && worst[0] === 2009, '2023 contraction, growth picking up; 2009 worst');
+assertClaim([1991, 1992, 1993].every((y) => g(y) < 0), 'three-year downturn 1991-93');
+
+const title = `Sweden Economy ${L}: Inflation Down, Unemployment Up | AtlasFigures`;
+const description = `Sweden's ${L} economy, ${usd(gdp)} in all and ${usdWhole(perHead)} per head, saw two opposite trends. Inflation fell to ${pct(infl.value)} from ${pct(i(2023))} in 2023, but unemployment climbed to ${pct(unemp!)}, above every year since 2021.`;
+
+const faq = [
+  { q: 'Is inflation in Sweden over?', a: `On the ${L} figure it has largely subsided: ${pct(infl.value)}, the lowest since 2020, after ${pct(i(2022))} in 2022 and ${pct(i(2023))} in 2023, a rate unseen since 1991.` },
+  { q: 'Why is Swedish unemployment rising?', a: `The World Bank data record the rise but not the reasons: ${pct(u(2023))} in 2023, ${pct(u(2024))} in 2024 and ${pct(unemp!)} in ${L}, on the ILO's model.` },
+  { q: 'Was Sweden in recession in 2023?', a: `Real GDP slipped ${pct(Math.abs(g(2023)))} in 2023, then grew ${pct(g(2024))} in 2024 and ${pct(growth)} in ${L}.` },
+  { q: 'How rich is Sweden?', a: `Very: ${usdWhole(perHead)} of GDP per person in ${L} (${ord(B.pcRank!)}); measured in PPP dollars, ${intDollars(ppp!)}.` },
+  { q: 'When was Sweden\'s worst recession?', a: `On yearly data, 2009, when output fell ${pct(Math.abs(worst[1]))}. The early 1990s brought three shrinking years in a row (1991–1993).` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Sweden's economy ${L}: inflation below 1%, unemployment at its highest since 2021`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Swedish economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Sweden', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Sweden's economy: prices calm, jobs weaker</h1>
+        <p class="answer">
+          Sweden's economy produced <strong>{usd(gdp)}</strong> in {L}. Inflation dropped to <strong>{pct(infl.value)}</strong>, while unemployment climbed to {pct(unemp!)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Sweden economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Sweden" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Sweden's two big recent stories run in opposite directions: inflation has all but disappeared, while unemployment has crept up.</p>
+
+        <div class="story-block prose">
+          <h2>How quickly did Swedish inflation fall?</h2>
+          <p>Sharply. After {pct(i(2022))} in 2022 and {pct(i(2023))} in 2023, the fastest pace since 1991, Sweden's price index rose just {pct(infl.value)} in {L}, the smallest increase since 2020.</p>
+        </div>
+        <LineChart
+          title={`Sweden's inflation rate, 1960–${L}`}
+          subtitle="Change in Swedish consumer prices over each year, per cent."
+          points={s.inflationPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Is unemployment in Sweden going up?</h2>
+          <p>Yes, for two years now. The ILO's model of Swedish joblessness shows a climb from {pct(u(2023))} in 2023 to {pct(u(2024))} in 2024 and {pct(unemp!)} in {L}, a level last exceeded in 2021. The record in the series is {pct(uPeak[1])}, in 1997.</p>
+        </div>
+        <LineChart
+          title={`Swedish jobless rate, 1991–${L}`}
+          subtitle="ILO-modelled Swedish jobless rate in per cent; note the late-1990s peak."
+          points={s.unemploymentPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Has Sweden recovered from its 2023 dip?</h2>
+          <p>Mostly. Real GDP dipped {pct(Math.abs(g(2023)))} in 2023 before growing {pct(g(2024))} in 2024 and {pct(growth)} in {L}. The deepest annual fall on record was in 2009 ({signedPct(worst[1])}).</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How large and how rich is Sweden's economy?</h2>
+          <p>Sweden's economy totalled {usd(gdp)} in {L}, {ord(B.gdpRank!)} on the world list. Each inhabitant's share, {usdWhole(perHead)}, places it {ord(B.pcRank!)}; the PPP equivalent is {intDollars(ppp!)}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Sweden and the Nordic region: more pages</h2>
+          <ul>
+            <li><a href={path('/country/sweden/population/')}>Sweden's population</a></li>
+            <li><a href={path('/country/norway/population/')}>Norway's population</a></li>
+            <li><a href={path('/country/germany/economy/')}>Germany's economy</a></li>
+            <li><a href={path('/country/netherlands/economy/')}>The Dutch economy</a></li>
+            <li><a href={path('/rankings/inflation-rate-by-country/')}>Inflation across the world</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Sweden's economy in selected years since 1960`}
+          subtitle="Covers 1991, 1993, 2009 and each year from 2019; the CSV gives the full run."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/sweden-economy.csv')} csvName="sweden-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Swedish economy: frequently asked</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Per the World Bank's country notes, Sweden's national accounts are reported on a calendar-year basis. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Swedish economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Sweden" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

@@ -1,0 +1,153 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/chad.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+import { rankLatest } from '../../../lib/econ';
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/chad/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const hiSince = Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < L && x >= growth).map(([y]) => y));
+const gMax = s.gdpGrowthPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const falling = rankBy('inflationPct', L).filter((r) => r.value < 0);
+const fPos = rankBy('inflationPct', L).length - rankBy('inflationPct', L).findIndex((r) => r.iso3 === c.iso3);
+const lit = rankLatest('literacyPct', 2015); const litMe = lit.find((r) => r.iso3 === c.iso3)!;
+const netList = rankBy('internetPct', net!.year); const netLow = netList.length - netList.findIndex((r) => r.iso3 === c.iso3);
+const pcPeak = s.gdpPerCapita.reduce((a, b) => (b[1] > a[1] ? b : a));
+const gdpX = Math.round(gdp / v('gdp', 2000)!);
+const contractions = [2016, 2017, 2020].every((y) => g(y) < 0);
+
+assertClaim(isMax(s.gdp) && hiSince === 2018 && gdpX === 15, 'record GDP; fastest since 2018; 15x 2000 in dollars');
+assertClaim(gMax[0] === 2004 && gMax[1] > 33.6 && worst[0] === 1979 && worst[1] < -21, 'record 2004; worst 1979');
+assertClaim(infl.value < -3.8 && fPos === 3 && i(2023) > 10.7, 'prices fell 3.9%, third-steepest; 10.8% in 2023');
+assertClaim(lit.at(-1)!.iso3 === c.iso3 && litMe.year === 2019 && litMe.value < 31, 'lowest literacy in the data (30.6%, 2019)');
+assertClaim(netLow === 3 && pcPeak[0] === 2012 && perHead < pcPeak[1] && contractions, 'internet 3rd lowest; per head below 2012; falls 2016, 2017, 2020');
+assertClaim(rem!.year === 1994, 'remittance series ends 1994');
+
+const title = `Chad Economy ${L}: Fastest Growth Since 2018 | AtlasFigures`;
+const description = `Chadian growth of ${pct(growth)} in ${L} was the strongest since 2018 and pushed dollar GDP up to ${usd(gdp)}, never higher; prices slipped ${pct(Math.abs(infl.value))}, yet income per head lags 2012.`;
+
+const faq = [
+  { q: 'Has Chad\'s growth picked up?', a: `Yes — ${pct(growth)} in ${L}, quicker than any year since 2018. Dollar GDP: ${usd(gdp)}, around ${gdpX} times 2000.` },
+  { q: 'Did Chad have deflation in 2025?', a: `Yes — prices fell ${pct(Math.abs(infl.value))} over ${L}, third only to Sri Lanka and Niger. In 2023 inflation had reached ${pct(i(2023))}.` },
+  { q: 'Is Chad\'s literacy rate the lowest anywhere?', a: `Among countries with data, yes: UNESCO's ${litMe.year} figure is ${pct(litMe.value)} of adults.` },
+  { q: 'Which were Chad\'s best and worst years?', a: `Best: 2004 (${signedPct(gMax[1])}). Worst: 1979 (${signedPct(worst[1])}).` },
+  { q: 'Has Chadian income per head recovered?', a: `Not yet: ${usdWhole(perHead)} in ${L} versus ${usdWhole(pcPeak[1])} in 2012 (PPP: ${intDollars(ppp!)}).` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Chad's economy in ${L}: faster growth, falling prices and the world's lowest literacy`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Chadian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Chad', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Chad's economy: growth returns, living standards lag</h1>
+        <p class="answer">
+          Chad recorded <strong>{pct(growth)}</strong> growth in {L}, a seven-year high, with GDP at <strong>{usd(gdp)}</strong> and the price level down {pct(Math.abs(infl.value))}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Chad economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Chad" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Output is at a record in dollars, but income per person has not regained its 2012 level.</p>
+
+        <div class="story-block prose">
+          <h2>Is Chad's economy picking up speed?</h2>
+          <p>Yes. After contractions in 2016, 2017 and 2020, growth improved to {pct(g(L - 1))} ({L - 1}) and then {pct(growth)} ({L}), Chad's best since 2018. In dollars, Chadian GDP ({usd(gdp)}) is around {gdpX} times its 2000 value. The record annual gain, {pct(gMax[1])}, dates from 2004.</p>
+        </div>
+        <LineChart
+          title={`Chadian output growth by year, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="Yearly % change in output, inflation removed."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How much did Chadian prices fall in {L}?</h2>
+          <p>By {pct(Math.abs(infl.value))} — only Sri Lanka and Niger had bigger declines that year — after inflation of {pct(i(2023))} in 2023 and {pct(i(L - 1))} in {L - 1}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How do Chad's living standards compare?</h2>
+          <p>Poorly on most measures. Output per Chadian ({usdWhole(perHead)}) trails the {usdWhole(pcPeak[1])} of 2012; adult literacy, {pct(litMe.value)} in {litMe.year}, is the lowest in the World Bank data (UNESCO); and internet use reached just {pct(net!.value)} of the population in {net!.year}, {ord(netLow)} from the bottom.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Chad and Central Africa: related pages</h2>
+          <ul>
+            <li><a href={path('/country/chad/population/')}>Chad's population</a></li>
+            <li><a href={path('/country/cameroon/economy/')}>Cameroon's economy</a></li>
+            <li><a href={path('/country/niger/economy/')}>Niger's economy</a></li>
+            <li><a href={path('/country/nigeria/economy/')}>Nigeria's economy</a></li>
+            <li><a href={path('/rankings/literacy-rate-by-country/')}>Literacy rate by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Chad's yearly figures`}
+          subtitle="Decades from 1960 with 1979, 1994, 2004 and 2012, then 2015–2025. Other years: CSV."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/chad-economy.csv')} csvName="chad-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Chad's economy explained briefly</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Literacy: SE.ADT.LITR.ZS (UNESCO), via the World Bank. Chad's remittance series stops in 1994, when inflows were {usd(rem!.value)} ({pct(remPct!.value)} of GDP), and inflation data start in 1984. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Chadian economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Chad" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

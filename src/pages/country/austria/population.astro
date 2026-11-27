@@ -1,0 +1,220 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import aut from '../../../data/countries/austria.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story, counts only: net arrivals every year since 1984,
+// with the largest in 2022 and 2015; a 2023 peak and small falls since; deaths above births in most years since 1975 and
+// every year from 2022; fertility above 2.1 only 1954–1971; births from 135,000 in 1963 to about 74,000.
+const PAGE = '/country/austria/population/';
+const un = countryData(aut.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (aut.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const inTop = un.years.reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+assertClaim(inTop.year === 2022 && y[2015].netMigrants > 1e5, 'largest inflow 2022; over 100,000 in 2015');
+const lastOut = un.years.filter((r) => r.netMigrants < 0).map((r) => r.year).pop()!;
+assertClaim(lastOut === 1983, 'net arrivals every year since 1984');
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+assertClaim(peak.year === 2023 && [2024, 2025, CURRENT_YEAR].every((n) => y[n].population < y[n - 1].population), 'peak 2023, lower since');
+assertClaim(un.years.filter((r) => r.year >= 2022).every((r) => r.naturalChange < 0) && un.years.find((r) => r.naturalChange < 0)!.year === 1975, 'deaths over births from 2022 on; first in 1975');
+const hi = un.years.filter((r) => r.fertility >= 2.1).map((r) => r.year);
+assertClaim(hi[0] === 1954 && hi[hi.length - 1] === 1971 && hi.length === 18, 'above 2.1 only 1954–1971');
+const bTop = un.years.reduce((a, b) => (b.births > a.births ? b : a));
+assertClaim(bTop.year === 1963, 'births peak 1963');
+const weu = wpp.filter((d: any) => d.subregion === 'Western Europe').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(weu.indexOf('AUT') === 4, 'fifth in Western Europe');
+const since = un.years.filter((r) => r.year >= 1984 && r.year <= CURRENT_YEAR);
+assertClaim(since.reduce((s, r) => s + r.netMigrants, 0) > 3 * since.reduce((s, r) => s + r.naturalChange, 0), 'growth since 1984 mainly from arrivals');
+const times = c.population / y[1950].population;
+assertClaim(times > 1.3 && times < 1.33, 'about 31% above 1950');
+assertClaim(c.netMigrants > 0 && c.netMigrants < -c.naturalChange, 'arrivals now smaller than natural decrease');
+
+const title = `Austria Population ${CURRENT_YEAR} (${(c.population / 1e6).toFixed(1)}M): Arrivals Since 1984, a Peak in 2023 | AtlasFigures`;
+const description = `Austria's ${CURRENT_YEAR} population stands at ${millions(c.population)} (UN estimate). Net arrivals every year since 1984, record-high in 2022, carried it to a 2023 peak; with deaths now above births, the total has eased since.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: aut.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Life expectancy', value: dec(c.lifeExpectancy, 1) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+];
+
+const rows = displayRows(un.years, aut.tableYears);
+
+const faq = [
+  { q: 'When did Austria have its most net arrivals?', a: `In 2022, at ${int(inTop.netMigrants)}, followed by ${int(y[2015].netMigrants)} in 2015, by UN estimates. The data give counts, not causes.` },
+  { q: 'Is the Austrian population going down now?', a: `Slightly. Austria peaked in 2023 with ${millions(peak.population)}; the 2024 to ${CURRENT_YEAR} figures each dip a little, as net arrivals (${int(c.netMigrants)} this year) no longer cover the natural decrease.` },
+  { q: 'Do more Austrians die than are born?', a: `Every year since 2022, plus many earlier years back to 1975. The ${CURRENT_YEAR} projection: ${int(c.deaths)} deaths, ${int(c.births)} births.` },
+  { q: 'Was Austrian fertility ever above 2.1?', a: `Only from 1954 to 1971, with 1963 the high point. Today it is ${dec(c.fertility, 2)}.` },
+  { q: 'How many Austrians will there be later this century?', a: `${millions(y[2050].population)} and then ${millions(y[2100].population)}, a gradual decline.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: aut.slug, name: aut.name, wikipedia: aut.wikipedia,
+  headline: `Austria's ${millions(c.population)}: arrivals every year since 1984, a record in 2022, and a peak in 2023`,
+  description,
+  datasetName: 'Austria population, net migration and births, 1950–2100',
+  datasetDescription: `Mid-year population of Austria for selected years from 1950 to ${CURRENT_YEAR}, including 2014–2016 and 2020–2024, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: aut.published, updated: aut.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Austria"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Austria", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Austria: growth from arrivals, now levelling off</h1>
+        <LiveCounter
+          label="Austria: population estimate this second"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`Built on the mid-${CURRENT_YEAR} UN World Population Prospects 2024 number, which slips by about ${int(-c.change / 365)} daily`}
+        />
+        <p class="answer">
+          Austria's {CURRENT_YEAR} population is <strong>{millions(c.population)}</strong> on UN figures, just under its 2023 high. For four decades its growth has come from net arrivals, which the UN records in every year since 1984.
+        </p>
+        <div class="dates"><span>Updated <time datetime={aut.updated}>{longDate(aut.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Austria" code="at" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Why has Austria's population grown since the 1980s?</h2>
+          <p>Mainly through arrivals. Since 1984 the migration balance has stayed positive each year, with the two biggest inflows in 2022 ({int(inTop.netMigrants)}) and 2015 ({int(y[2015].netMigrants)}). The UN figures record the counts, not the reasons. Austria today has about 31% more people than in 1950.</p>
+        </div>
+        <LineChart
+          title="Austria's population since 1950, with the 2023 high"
+          subtitle="Mid-year totals with each year 2020–2024 plotted; values after 2023 are dashed projections."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Is Austria now losing population?</h2>
+          <p>Slightly. The high point, {millions(peak.population)}, falls in 2023, and the 2024, 2025 and {CURRENT_YEAR} figures edge lower: deaths, {int(c.deaths)} this year, now exceed births, {int(c.births)}, and this year's net arrivals of {int(c.netMigrants)} do not make up the difference. The natural balance has been below zero each year from 2022, and first dipped under it in 1975.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>When was Austria's baby boom?</h2>
+          <p>Fertility stood at or above 2.1 only from 1954 to 1971, and the busiest year for births was {bTop.year}, with {int(bTop.births)}. The rate is {dec(c.fertility, 2)} today and the {CURRENT_YEAR} birth projection is {int(c.births)}.</p>
+        </div>
+        <LineChart
+          title="Austrian fertility, 1950–2050, and the 2.1 level"
+          subtitle="UN estimates; above 2.1 only from 1954 to 1971. Projection dashed."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'level 2.1' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>What comes next for Austria's population?</h2>
+          <p>A slow decline: {millions(y[2050].population)} expected by 2050 and {millions(y[2100].population)} by 2100. Fifth in Western Europe by population, Austria combines life expectancy of {dec(c.lifeExpectancy, 1)} with a median resident aged {dec(c.medianAge, 1)}.</p>
+        </div>
+        <RelatedPages iso3={aut.iso3} name={aut.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Austria by year, with 2014–2016 and 2020–2024"
+          subtitle="Look at 2015 and 2022 for the biggest inflows, and 2023 for the peak."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${aut.slug}-population.csv`)}
+          csvName={`${aut.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Austria, explained in short answers</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{aut.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={aut.published}>{longDate(aut.published)}</time> · Updated <time datetime={aut.updated}>{longDate(aut.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Austria population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Austria" code="at" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

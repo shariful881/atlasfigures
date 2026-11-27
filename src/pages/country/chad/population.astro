@@ -1,0 +1,232 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import td from '../../../data/countries/chad.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: the highest fertility of any country or area
+// today (top since 2024), the second-lowest life expectancy, a 2023 surge of net arrivals followed by net departures,
+// and a 27-place climb in the world ranking by 2100. Counts only; the UN files give no causes.
+const PAGE = '/country/chad/population/';
+const un = countryData(td.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (td.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const tfrTopNow = [...wpp].sort((a: any, b: any) => at(b).fertility - at(a).fertility)[0].iso3;
+assertClaim(tfrTopNow === 'TCD', 'highest fertility of any country or area now');
+const firstTop = [2022, 2023, 2024].find((n) => [...wpp].sort((a: any, b: any) => at(b, n).fertility - at(a, n).fertility)[0].iso3 === 'TCD');
+assertClaim(firstTop === 2024, 'top for fertility from 2024');
+const leRank = [...wpp].sort((a: any, b: any) => at(a).lifeExpectancy - at(b).lifeExpectancy).map((d: any) => d.iso3);
+assertClaim(leRank.indexOf('TCD') === 1 && leRank[0] === 'NGA', 'second-lowest life expectancy, after Nigeria');
+const tfrTop = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(tfrTop.year === 1993 && un.years.every((r) => r.fertility > 2.1), 'fertility high 1993; never under 2.1 to 2100');
+const inTop = un.years.filter((r) => !r.projection).reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+assertClaim(inTop.year === 2023 && y[2024].netMigrants > 0 && y[2025].netMigrants < 0 && c.netMigrants < 0, 'largest net arrivals 2023; net departures again from 2025');
+const rise = (d: any) => at(d).worldRank - at(d, 2100).worldRank;
+const maxRise = Math.max(...big.map(rise));
+assertClaim(rise({ years: un.years }) === 27 && maxRise === 27 && rise(wpp.find((d: any) => d.iso3 === 'MLI')) === 27, '27-place climb, shared with Mali as the largest among countries of ten million or more');
+const maf = wpp.filter((d: any) => d.subregion === 'Middle Africa');
+assertClaim([...maf].sort((a: any, b: any) => b.landAreaKm2 - a.landAreaKm2).slice(0, 2).map((d: any) => d.iso3).join() === 'COD,TCD', 'second-largest land area in Middle Africa');
+assertClaim([...maf].sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3).indexOf('TCD') === 3, 'fourth in Middle Africa by population');
+const ageLow = un.years.reduce((a, b) => (b.medianAge < a.medianAge ? b : a));
+assertClaim(ageLow.year === 2002, 'youngest median age in 2002');
+const youngRank = [...big].sort((a: any, b: any) => at(a).medianAge - at(b).medianAge).map((d: any) => d.iso3).indexOf('TCD');
+assertClaim(youngRank === 2, 'third-youngest among countries of ten million or more');
+const urbanHalf = un.years.find((r) => r.urbanPct != null && r.urbanPct > 50)!.year;
+assertClaim(urbanHalf === 2049 && Math.abs(y[2000].urbanPct! - y[2010].urbanPct!) < 0.5, 'urban majority in 2049; urban share flat 2000–2010');
+const times = c.population / y[1950].population;
+assertClaim(times > 8.4 && times < 8.6, 'about eight and a half times 1950');
+assertClaim(c.births / c.deaths > 3.7 && c.births / c.deaths < 4, 'close to four births per death');
+
+const title = `Chad's Population in ${CURRENT_YEAR}: Highest Fertility on Earth (${(c.population / 1e6).toFixed(1)}M) | AtlasFigures`;
+const description = `With ${dec(c.fertility, 2)} births per woman, Chad tops every country and area for fertility; ${millions(c.population)} people live there (UN, ${CURRENT_YEAR}), lifespans are second-shortest, and by 2100 it ranks ${ord(y[2100].worldRank!)}.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: td.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+  { label: 'In 2100', value: millionsShort(y[2100].population) },
+];
+
+const rows = displayRows(un.years, td.tableYears);
+
+const faq = [
+  { q: 'Which country has the most births per woman?', a: `Chad, at ${dec(c.fertility, 2)} in ${CURRENT_YEAR} on UN estimates; it has led every country and area since 2024. The peak was ${dec(tfrTop.fertility, 2)} in ${tfrTop.year}.` },
+  { q: 'What is the average lifespan in Chad?', a: `${dec(c.lifeExpectancy, 1)} years at birth, shorter only in Nigeria; in 1950 it was ${dec(y[1950].lifeExpectancy, 1)}.` },
+  { q: 'How many people moved into Chad in 2023?', a: `Roughly ${int(Math.round(inTop.netMigrants / 1000))} thousand more arrived than left, a record for the UN estimates; ${CURRENT_YEAR} instead shows some ${int(Math.round(-c.netMigrants / 1000))} thousand more leaving than arriving. Reasons are not part of the data.` },
+  { q: 'Where will Chad rank in 2100?', a: `${ord(y[2100].worldRank!)}, up from ${ord(c.worldRank!)}, with ${millions(y[2100].population)} people in the medium variant; Mali makes a climb of the same size.` },
+  { q: 'Is most of Chad urban?', a: `No. ${pct(c.urbanPct!)} of Chadians are classed as urban nationally; World Urbanization Prospects projects a majority only in ${urbanHalf}.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: td.slug, name: td.name, wikipedia: td.wikipedia,
+  headline: `Chad's ${millions(c.population)}: the highest fertility on Earth, short lifespans and a 27-place climb by 2100`,
+  description,
+  datasetName: 'Chad population, fertility and net migration, 1950–2100',
+  datasetDescription: `Mid-year population of Chad for selected years from 1950 to ${CURRENT_YEAR} (2023–2025 included), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: td.published, updated: td.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Chad"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Chad", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Chad: more births per woman than anywhere else</h1>
+        <LiveCounter
+          label="Chad: running population estimate"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} figure, plus roughly ${int(c.change / 365)} a day`}
+        />
+        <p class="answer">
+          No country or area has a higher fertility rate than Chad: <strong>{dec(c.fertility, 2)}</strong> births per woman. The UN counts <strong>{millions(c.population)}</strong> Chadians in mid-{CURRENT_YEAR}, and their expected lifespan of {dec(c.lifeExpectancy, 1)} years is the second-shortest anywhere.
+        </p>
+        <div class="dates"><span>Updated <time datetime={td.updated}>{longDate(td.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Chad" code="td" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Do Chadian women have the most children in the world?</h2>
+          <p>Yes, since 2024 in the UN estimates. Starting at {dec(y[1950].fertility, 2)} in 1950, fertility climbed to a high of {dec(tfrTop.fertility, 2)} in {tfrTop.year} and has eased to {dec(c.fertility, 2)}; even in 2100 the projection, {dec(y[2100].fertility, 2)}, stays above 2.1. For {CURRENT_YEAR} the UN projects about {int(Math.round(c.births / 1000))} thousand births, close to four for every one of the {int(Math.round(c.deaths / 1000))} thousand deaths. The median Chadian is {dec(c.medianAge, 1)}; only two nations of ten million-plus are younger.</p>
+        </div>
+        <LineChart
+          title="Fertility in Chad, 1950–2050, estimated then projected"
+          subtitle="UN estimates peak in the early 1990s; dashes mark the medium variant; 2.1 drawn as a guide."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'level 2.1' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Why is life expectancy in Chad so low?</h2>
+          <p>The UN figures measure it rather than explain it: {dec(c.lifeExpectancy, 1)} years at birth, against {dec(y[1950].lifeExpectancy, 1)} in 1950 and {dec(y[2000].lifeExpectancy, 1)} in 2000. Only Nigeria has a lower figure today. Infant deaths per thousand live births stand at {dec(c.infantMortalityPer1000!, 1)}, against {dec(y[1950].infantMortalityPer1000!, 1)} in 1950.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Life expectancy at birth in Chad">
+          <div><span class="y">1950</span><div class="v">{dec(y[1950].lifeExpectancy, 1)}</div><span class="d">Years</span></div>
+          <div><span class="y">2000</span><div class="v">{dec(y[2000].lifeExpectancy, 1)}</div><span class="d">Years</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{dec(c.lifeExpectancy, 1)}</div><span class="d">Years</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Why did net migration into Chad jump in 2023?</h2>
+          <p>The UN data record the jump but not its cause. In {inTop.year} arrivals exceeded departures by some {int(Math.round(inTop.netMigrants / 1000))} thousand, the biggest surplus in the series, and by {int(Math.round(y[2024].netMigrants / 1000))} thousand in 2024. From 2025 the sign flips: {CURRENT_YEAR} has roughly {int(Math.round(-c.netMigrants / 1000))} thousand more people leaving than coming. These are balances only, with no detail on who is moving.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How big will Chad's population get?</h2>
+          <p>{millions(y[2100].population)} by 2100, passing through {millions(y[2050].population)} in 2050, if the UN's central path holds. Chad would climb from {ord(c.worldRank!)} to {ord(y[2100].worldRank!)} globally, 27 places, a jump only Mali equals among nations above ten million. The current count is {dec(times, 1)} times the 1950 figure, spread across <span data-exact>{int(un.landAreaKm2)}</span> km², the second-largest land area in Middle Africa after DR Congo, at {int(c.densityPerKm2)} people per km². The urban share, {pct(c.urbanPct!)}, barely moved between 2000 and 2010.</p>
+        </div>
+        <LineChart
+          title="Chad's population path, 1950 to 2100"
+          subtitle="Chad at 1 July each year; UN medium variant dashed after the estimates."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+        <RelatedPages iso3={td.iso3} name={td.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Chad by year, with 2023 to 2025 shown separately"
+          subtitle="The net migration column swings from inflow in 2023–2024 to outflow from 2025."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${td.slug}-population.csv`)}
+          csvName={`${td.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Chad: short answers</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{td.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={td.published}>{longDate(td.published)}</time> · Updated <time datetime={td.updated}>{longDate(td.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Chad population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Chad" code="td" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

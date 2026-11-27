@@ -156,7 +156,7 @@ const schema = [
 
       <div class="story-block prose">
         <h2>Which economies rely most on money from abroad?</h2>
-        <p>Measured against the size of the economy, Tajikistan comes first: remittances equalled {pct(byShare[0].value)} of its GDP in {L}. Tonga ({pct(byShare[1].value)}) and <a href={path('/population/nepal/')}>Nepal</a> ({pct(byShare[2].value)}) follow, and {over10.length} economies received more than a tenth of GDP this way. For the biggest receivers in dollars the share is far smaller: {pct(shareOf('IND')!.value)} for India and {pct(shareOf('MEX')!.value)} for Mexico.</p>
+        <p>Measured against the size of the economy, Tajikistan comes first: remittances equalled {pct(byShare[0].value)} of its GDP in {L}. Tonga ({pct(byShare[1].value)}) and <a href={path('/country/nepal/population/')}>Nepal</a> ({pct(byShare[2].value)}) follow, and {over10.length} economies received more than a tenth of GDP this way. For the biggest receivers in dollars the share is far smaller: {pct(shareOf('IND')!.value)} for India and {pct(shareOf('MEX')!.value)} for Mexico.</p>
       </div>
 
       <div class="story-block prose">
@@ -173,7 +173,7 @@ const schema = [
 
       <div class="story-block prose">
         <h2>Where do Pakistan and Bangladesh stand?</h2>
-        <p>Pakistan is {ord(byIso('PAK').rank)} with {usd(byIso('PAK').value)} and <a href={path('/economy/bangladesh/')}>Bangladesh</a> {ord(byIso('BGD').rank)} with {usd(byIso('BGD').value)}, both ahead of China. Relative to their economies the inflows are {pct(shareOf('PAK')!.value)} and {pct(shareOf('BGD')!.value)} of GDP.</p>
+        <p>Pakistan is {ord(byIso('PAK').rank)} with {usd(byIso('PAK').value)} and <a href={path('/country/bangladesh/economy/')}>Bangladesh</a> {ord(byIso('BGD').rank)} with {usd(byIso('BGD').value)}, both ahead of China. Relative to their economies the inflows are {pct(shareOf('PAK')!.value)} and {pct(shareOf('BGD')!.value)} of GDP.</p>
       </div>
     </section>
 

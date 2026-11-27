@@ -157,12 +157,12 @@ const schema = [
 
       <div class="story-block prose">
         <h2>Which countries spend the most and the least?</h2>
-        <p>Kiribati ({p1(top3[0].value)}), Tuvalu ({p1(top3[1].value)}) and Micronesia ({p1(top3[2].value)}) — tiny Pacific economies — lead the ranking; among larger countries, Sweden is {ord(byIso('SWE').rank)} at {p1(byIso('SWE').value)}. At the bottom, Somalia's published figure is effectively zero and <a href={path('/economy/nigeria/')}>Nigeria</a> reports {p1(bottom[1].value)} of GDP. The <a href={path('/economy/united-states/')}>United States</a> spent {p1(byIso('USA').value)} in {byIso('USA').year}, less than the <a href={path('/economy/united-kingdom/')}>United Kingdom</a>'s {p1(byIso('GBR').value)}.</p>
+        <p>Kiribati ({p1(top3[0].value)}), Tuvalu ({p1(top3[1].value)}) and Micronesia ({p1(top3[2].value)}) — tiny Pacific economies — lead the ranking; among larger countries, Sweden is {ord(byIso('SWE').rank)} at {p1(byIso('SWE').value)}. At the bottom, Somalia's published figure is effectively zero and <a href={path('/country/nigeria/economy/')}>Nigeria</a> reports {p1(bottom[1].value)} of GDP. The <a href={path('/country/united-states/economy/')}>United States</a> spent {p1(byIso('USA').value)} in {byIso('USA').year}, less than the <a href={path('/country/united-kingdom/economy/')}>United Kingdom</a>'s {p1(byIso('GBR').value)}.</p>
       </div>
 
       <div class="story-block prose">
         <h2>Where does Bangladesh stand on education spending?</h2>
-        <p>Near the bottom. <a href={path('/economy/bangladesh/')}>Bangladesh</a>'s government spent {p1(bgd.value)} of GDP on education in {bgd.year}, {ord(bgd.rank)} of {N}, and the share has not exceeded 2.7% since 2000. <a href={path('/economy/pakistan/')}>Pakistan</a> ({p1(byIso('PAK').value)}) and <a href={path('/economy/sri-lanka/')}>Sri Lanka</a> ({p1(byIso('LKA').value)}) are similar, while <a href={path('/economy/india/')}>India</a> ({p1(byIso('IND').value)}, {byIso('IND').year}) and Bhutan ({p1(byIso('BTN').value)}) spend more.</p>
+        <p>Near the bottom. <a href={path('/country/bangladesh/economy/')}>Bangladesh</a>'s government spent {p1(bgd.value)} of GDP on education in {bgd.year}, {ord(bgd.rank)} of {N}, and the share has not exceeded 2.7% since 2000. <a href={path('/country/pakistan/economy/')}>Pakistan</a> ({p1(byIso('PAK').value)}) and <a href={path('/country/sri-lanka/economy/')}>Sri Lanka</a> ({p1(byIso('LKA').value)}) are similar, while <a href={path('/country/india/economy/')}>India</a> ({p1(byIso('IND').value)}, {byIso('IND').year}) and Bhutan ({p1(byIso('BTN').value)}) spend more.</p>
       </div>
       <LineChart
         title={`Bangladesh: education spending, ${bgdSeries[0][0]}–${bgd.year}`}

@@ -1,0 +1,163 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/rwanda.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/rwanda/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const gRank = rankBy('gdpGrowthPct', L).find((r) => r.iso3 === c.iso3)!.rank;
+const ssaG = rankBy('gdpGrowthPct', L).filter((r) => r.region === 'Sub-Saharan Africa');
+const avgs = rankBy('gdpGrowthPct', L).map((r) => econData(r.iso3)).map((d) => { const gs = d.series.gdpGrowthPct.filter(([y]) => y >= 2000 && y <= L); return { iso3: d.iso3, n: gs.length, a: gs.reduce((t, [, x]) => t + x, 0) / gs.length }; }).filter((x) => x.n === L - 1999).sort((a, b) => b.a - a.a);
+const avgPos = avgs.findIndex((x) => x.iso3 === c.iso3) + 1;
+const avg = avgs[avgPos - 1].a;
+const pppX = (ppp! / v('gdpPerCapitaPpp', 2000)!).toFixed(1);
+const uRank = rankBy('unemploymentPct', L).find((r) => r.iso3 === c.iso3)!.rank;
+const u5 = (y: number) => valueIn(s.under5Mortality, y)!;
+const f90 = valueIn(s.forestPct, 1990)!, f24 = valueIn(s.forestPct, 2024)!;
+
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita) && B.e.incomeGroup === 'Low income', 'record GDP; low income');
+assertClaim(gRank === 6 && ssaG[0].iso3 === 'ETH' && ssaG[1].iso3 === 'RWA' && growth > 9.3, '6th fastest in world; second in SSA after Ethiopia');
+assertClaim(avgPos === 6 && avg > 7.4 && avg < 7.6 && avgs.slice(0, 5).map((x) => x.iso3).join() === 'GUY,ETH,CHN,TJK,TKM', 'sixth-fastest average since 2000');
+assertClaim([2021, 2022, 2023, 2024, L].every((y) => g(y) > 7) && g(2020) < 0, 'above 7% each year since 2021, fall in 2020');
+assertClaim(g(1994) < -50 && g(1995) > 35 && s.gdpGrowthPct.every(([y, x]) => y === 1994 || x > g(1994)), '1994 largest fall, 1995 rebound');
+assertClaim(Number(pppX) === 6.9, 'PPP per head 6.9x 2000');
+assertClaim(i(2023) > 19.7 && i(2022) > 17.6 && infl.value < 6, 'inflation 17.7/19.8 then under 6%');
+assertClaim(uRank === 29 && unemp! > 11 && u(2021) > 15.7, 'unemployment 29th highest; 15.8% in 2021');
+assertClaim(u5(2000) > 184 && u5(2024) < 38 && f90 < 18 && f24 > 26, 'child mortality 184 -> 38; forest 17.7% -> 26.1%');
+
+const title = `Rwanda Economy ${L}: ${pct(growth)} Growth, Among the World's Fastest | AtlasFigures`;
+const description = `Only five economies outgrew Rwanda in ${L}, when real output climbed ${pct(growth)} to ${usd(gdp)}. Since 2000, five have a faster average too.`;
+
+const faq = [
+  { q: 'Does Rwanda have a fast-growing economy?', a: `Very. Its ${L} expansion of ${pct(growth)} ranked ${ord(gRank)} among all economies and second in sub-Saharan Africa after Ethiopia. Its ${pct(avg)} yearly average since 2000 ranks ${ord(avgPos)} of ${avgs.length}.` },
+  { q: 'Is Rwanda still a low-income country?', a: `It is still classed as low income, with ${usdWhole(perHead)} of GDP for each Rwandan in ${L}. The PPP measure, ${intDollars(ppp!)}, has risen ${pppX}-fold since 2000.` },
+  { q: 'How did 1994 affect the Rwandan economy?', a: `Output fell by ${pct(Math.abs(g(1994)))} in the year of the genocide against the Tutsi, then rebounded ${pct(g(1995))} in 1995.` },
+  { q: 'Has Rwanda brought inflation down?', a: `Yes, from ${pct(i(2022))} in 2022 and ${pct(i(2023))} in 2023 to ${pct(i(L - 1))} in ${L - 1} and ${pct(infl.value)} in ${L}.` },
+  { q: 'Is unemployment high in Rwanda?', a: `The ILO models ${pct(unemp!)} of the labour force as jobless in ${L}, ${ord(uRank)}-highest worldwide, after a peak of ${pct(u(2021))} in 2021.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Rwanda's economy in ${L}: one of the world's fastest growth records`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Rwandan economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Rwanda', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Rwanda's economy: growth among the world's fastest</h1>
+        <p class="answer">
+          Rwanda's real GDP jumped <strong>{pct(growth)}</strong> in {L} — sixth-fastest on the planet — to <strong>{usd(gdp)}</strong>.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Rwanda economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Rwanda" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Twenty-six years of growth averaging {pct(avg)} have not yet lifted Rwanda out of the low-income group.</p>
+
+        <div class="story-block prose">
+          <h2>Where does Rwanda rank for growth?</h2>
+          <p>Near the top. Its {L} rate, {pct(growth)}, was beaten by only five countries, and within sub-Saharan Africa by Ethiopia alone. Each year since 2021 has exceeded 7%, and over 2000–{L} Rwanda averaged {pct(avg)} — {ord(avgPos)} among the {avgs.length} economies with an unbroken record.</p>
+        </div>
+        <LineChart
+          title={`Rwandan GDP growth, 2000–${L}`}
+          subtitle="Annual real growth in %, shown from 2000 so that the 1994–95 swing does not flatten the scale."
+          points={s.gdpGrowthPct.filter(([y]) => y >= 2000).map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>What did 1994 do to Rwanda's economy?</h2>
+          <p>GDP fell by {pct(Math.abs(g(1994)))} in the year of the genocide against the Tutsi, the largest drop in the series, before rising {pct(g(1995))} in 1995. Those two years are in the data table and CSV.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Is Rwanda still poor?</h2>
+          <p>By income it is: Rwanda sits in the World Bank's low-income group, with GDP of {usdWhole(perHead)} per person and {usd(gdp)} in total in {L}. Compared at purchasing-power parity, output per head has multiplied {pppX}-fold since 2000, to {intDollars(ppp!)}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How have living conditions changed in Rwanda?</h2>
+          <p>Two other World Bank series show the change. Deaths before age five fell from {u5(2000).toFixed(1)} per 1,000 births in 2000 to {u5(2024).toFixed(1)} in 2024 (UN IGME), and forest grew from {pct(f90)} of the land in 1990 to {pct(f24)} in 2024 (FAO).</p>
+        </div>
+        <div class="story-block prose">
+          <h2>What are inflation and unemployment like in Rwanda?</h2>
+          <p>Inflation spiked to {pct(i(2022))} in 2022 and {pct(i(2023))} in 2023, then eased to {pct(infl.value)} in {L}. Modelled unemployment is {pct(unemp!)}, {ord(uRank)}-highest worldwide, down from {pct(u(2021))} in 2021.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Rwanda and East Africa: related pages</h2>
+          <ul>
+            <li><a href={path('/country/rwanda/population/')}>Rwanda's population</a></li>
+            <li><a href={path('/country/uganda/economy/')}>Uganda's economy</a></li>
+            <li><a href={path('/country/tanzania/economy/')}>Tanzania's economy</a></li>
+            <li><a href={path('/country/kenya/economy/')}>Kenya's economy</a></li>
+            <li><a href={path('/rankings/child-mortality-by-country/')}>Child mortality by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Rwanda's economic data`}
+          subtitle="Every tenth year to 2010, 1994 and 1995, and the years since 2015; the CSV has all years."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/rwanda-economy.csv')} csvName="rwanda-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Rwanda's economy: the short answers</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Child mortality: under-5 deaths per 1,000 live births (SH.DYN.MORT, UN IGME); forest: % of land area (AG.LND.FRST.ZS, FAO), both via the World Bank. Remittances are published to 2024. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Rwandan economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Rwanda" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

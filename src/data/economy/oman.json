@@ -1,0 +1,48 @@
+{
+  "slug": "oman",
+  "name": "Oman",
+  "demonym": "Omani",
+  "capital": "Muscat",
+  "iso3": "OMN",
+  "code": "om",
+  "continent": "Asia",
+  "wikipedia": "https://en.wikipedia.org/wiki/Oman",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1960,
+    1970,
+    1980,
+    1990,
+    2000,
+    2001,
+    2008,
+    2010,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/econ-batch18.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; then the rendered text was read by hand",
+    "what": "Every figure in the direct answer, indicator cards, Key facts, story, table, CSV, FAQ, title, description and JSON-LD, and the claim behind each sentence (records, 'since' years, rank positions, start and end years of each series, and the forest, labour-force, migrant-share, export and literacy figures quoted from other World Bank series)",
+    "against": "World Bank WDI bulk files and country metadata (update 11 November 2026, CC BY 4.0)",
+    "result": "All 2,669 automated comparisons across the five pages matched; before publishing Cuba was replaced by Kyrgyzstan (Cuba's World Bank series lack inflation, PPP and remittances and its GDP ends in 2020), Slovakia's 'slowest since 2020' was corrected to 'since 2022' (2022 grew 0.5%), as caught by assertClaim, and 'why' questions that the data cannot answer were reworded on the Papua New Guinea, Oman and Kyrgyzstan pages"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: World Bank WDI figures (update of 11 November 2026)."
+    }
+  ]
+}

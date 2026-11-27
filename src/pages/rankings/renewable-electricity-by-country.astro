@@ -151,7 +151,7 @@ const schema = [
     <section class="panel" data-panel="story" aria-label="The story">
       <div class="story-block prose">
         <h2>Which countries get all their electricity from renewables?</h2>
-        <p>Seven did in {L}: Albania, <a href={path('/economy/dr-congo/')}>DR Congo</a>, Iceland, Paraguay, Bhutan, <a href={path('/economy/ethiopia/')}>Ethiopia</a> and <a href={path('/economy/nepal/')}>Nepal</a>. In every one of them hydropower supplies more than half of all electricity; in Iceland, "other renewables", the category that includes geothermal power, supply {pct(v('ISL', 'otherRenShare')!)}.</p>
+        <p>Seven did in {L}: Albania, <a href={path('/country/dr-congo/economy/')}>DR Congo</a>, Iceland, Paraguay, Bhutan, <a href={path('/country/ethiopia/economy/')}>Ethiopia</a> and <a href={path('/country/nepal/economy/')}>Nepal</a>. In every one of them hydropower supplies more than half of all electricity; in Iceland, "other renewables", the category that includes geothermal power, supply {pct(v('ISL', 'otherRenShare')!)}.</p>
       </div>
 
       <div class="story-block prose">
@@ -173,7 +173,7 @@ const schema = [
 
       <div class="story-block prose">
         <h2>Where does Bangladesh stand?</h2>
-        <p><a href={path('/economy/bangladesh/')}>Bangladesh</a> generated {twh(v('BGD', 'gen')!)} of electricity in {L}, of which renewables made up {pct(byIso('BGD').value)} ({ord(byIso('BGD').rank)} of {N}); wind and solar contributed {pct(v('BGD', 'wsShare')!)}.</p>
+        <p><a href={path('/country/bangladesh/economy/')}>Bangladesh</a> generated {twh(v('BGD', 'gen')!)} of electricity in {L}, of which renewables made up {pct(byIso('BGD').value)} ({ord(byIso('BGD').rank)} of {N}); wind and solar contributed {pct(v('BGD', 'wsShare')!)}.</p>
       </div>
     </section>
 

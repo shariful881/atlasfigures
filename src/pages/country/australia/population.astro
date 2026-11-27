@@ -1,0 +1,227 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import au from '../../../data/countries/australia.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: a rich country that keeps growing, on very empty land.
+const PAGE = '/country/australia/population/';
+const un = countryData(au.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (au.verification as any).checkedOn as string | undefined;
+
+assertClaim(un.years.every((r) => r.naturalChange > 0), 'births exceed deaths in every year 1950-2100');
+assertClaim(un.years.every((r, i, a) => !i || r.population > a[i - 1].population), 'grows every year to 2100');
+const others = ['JPN', 'DEU', 'KOR', 'FRA', 'GBR', 'CAN', 'USA'];
+assertClaim(others.every((iso) => countryData(iso).years.some((r) => r.year > CURRENT_YEAR && r.naturalChange < 0)), 'each of these rich countries is projected to have more deaths than births at some point');
+const migShare = (c.netMigrants / c.change) * 100;
+assertClaim(migShare > 50 && migShare < 55, 'just over half of growth from migration');
+assertClaim(y[2020].netMigrants < y[2019].netMigrants / 4 && y[2022].netMigrants > 3 * y[2020].netMigrants, 'migration collapsed in 2020 and recovered');
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any) => d.years.find((r: any) => r.year === CURRENT_YEAR);
+const sparse = wpp.filter((d: any) => at(d).population > 20e6).sort((a: any, b: any) => at(a).densityPerKm2 - at(b).densityPerKm2);
+assertClaim(sparse[0].iso3 === 'AUS', 'least densely populated country of over 20 million');
+const landRank = [...wpp].sort((a: any, b: any) => b.landAreaKm2 - a.landAreaKm2).findIndex((d: any) => d.iso3 === 'AUS') + 1;
+assertClaim(landRank === 6, 'sixth-largest land area');
+const lifeRank = wpp.filter((d: any) => at(d).population > 10e6).sort((a: any, b: any) => at(b).lifeExpectancy - at(a).lifeExpectancy).map((d: any) => d.iso3);
+assertClaim(lifeRank.slice(0, 3).join() === 'JPN,KOR,AUS', 'third-longest life expectancy among countries over 10 million');
+const tfrPeak = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+const sub = un.years.find((r) => r.year > 1961 && r.fertility < 2.1)!.year;
+assertClaim(un.years.filter((r) => r.year >= sub).every((r) => r.fertility < 2.1), 'below 2.1 since');
+const grew = c.population / y[1950].population;
+assertClaim(grew > 3.2 && grew < 3.4 && y[2100].worldRank! < c.worldRank!, 'more than tripled since 1950; climbs in the ranking by 2100');
+
+const title = `Australia's Population Keeps Growing: ${(c.population / 1e6).toFixed(1)} Million in ${CURRENT_YEAR}, Rising to 2100 | AtlasFigures`;
+const description = `With ${millions(c.population)} people in ${CURRENT_YEAR}, Australia, unlike Japan, Germany or South Korea, has more births than deaths in every year the UN projects. Migration, density of ${dec(c.densityPerKm2, 1)} per km² and the outlook for 2100.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: dec(c.densityPerKm2, 1) },
+    { label: 'Capital', value: au.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'People per km²', value: dec(c.densityPerKm2, 1) },
+  { label: 'Growth', value: `+${pct(c.growthRatePct)}` },
+];
+
+const rows = displayRows(un.years, au.tableYears);
+
+const faq = [
+  { q: 'What is the population of Australia right now?', a: `Mid-${CURRENT_YEAR}: ${millions(c.population)} by the UN's estimate, ${ord(c.worldRank!)} among the world's countries. It rises by about ${int(Math.round(c.change / 1000))} thousand people a year.` },
+  { q: "Is Australia's population still growing?", a: `Yes, by ${pct(c.growthRatePct)} in ${CURRENT_YEAR}. The UN's medium projection shows growth in every year to 2100, with births staying above deaths throughout.` },
+  { q: "What share of Australia's growth is due to migration?", a: `Roughly ${pct(migShare)} this year (${CURRENT_YEAR}). Net arrivals of about ${int(Math.round(c.netMigrants / 1000))} thousand outweigh a natural increase of ${int(Math.round(c.naturalChange / 1000))} thousand.` },
+  { q: 'What population does the UN project for Australia in 2100?', a: `About ${millions(y[2100].population)} on the UN projection, after ${millions(y[2050].population)} in 2050. Australia would move up to ${ord(y[2100].worldRank!)} place.` },
+  { q: 'How long can Australians expect to live?', a: `${dec(c.lifeExpectancy, 1)} years from birth in ${CURRENT_YEAR}, the third-highest figure among nations with over 10 million people, after Japan and South Korea.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: au.slug, name: au.name, wikipedia: au.wikipedia,
+  headline: `Australia's population in ${CURRENT_YEAR}: ${millions(c.population)}, growing without a peak in sight`,
+  description,
+  datasetName: 'Australia population, density, fertility, median age and urban share, 1950–2100',
+  datasetDescription: `Mid-year population of Australia for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: au.published, updated: au.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Australia"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Australia', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Australia's growing population</h1>
+        <LiveCounter
+          label="People in Australia now (estimate)"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} level, up by about ${int(c.change / 365)} people a day`}
+        />
+        <p class="answer">
+          Australia's population stands at <strong>{millions(c.population)}</strong> in {CURRENT_YEAR}, up {pct(c.growthRatePct)} on the year. Unlike Japan, Germany or South Korea, it has <strong>more births than deaths in every year</strong> of the UN record and projection, and migration adds slightly more again.
+        </p>
+        <div class="dates"><span>Updated <time datetime={au.updated}>{longDate(au.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Australia" code="au" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Why does Australia keep growing while Japan, Germany and South Korea shrink?</h2>
+          <p>It has two engines rather than one. Births still outnumber deaths, by about {int(Math.round(c.naturalChange / 1000))} thousand in {CURRENT_YEAR}, and the UN projects that surplus to last right through to 2100. In Japan, Germany, South Korea, France, the United Kingdom, Canada and the United States, deaths are projected to overtake births at some point. On top of that, net migration adds about {int(Math.round(c.netMigrants / 1000))} thousand, {pct(migShare)} of this year's growth.</p>
+        </div>
+        <LineChart
+          title="Australia's population, 1950–2100: no peak in sight"
+          subtitle="Mid-year population. The line keeps climbing through the UN medium projection, shown dashed."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>What did the pandemic do to migration to Australia?</h2>
+          <p>It nearly stopped it for a year. UN estimates put net migration at {int(Math.round(y[2019].netMigrants / 1000))} thousand in 2019 and just {int(Math.round(y[2020].netMigrants / 1000))} thousand in 2020, the first year of COVID-19. Growth slowed to {pct(y[2020].growthRatePct)} that year. By 2022 the inflow was back to {int(Math.round(y[2022].netMigrants / 1000))} thousand.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How sparsely populated is Australia?</h2>
+          <p>More than any other country of over 20 million people. Australia has about {dec(c.densityPerKm2, 1)} residents per km² of land, and its territory is the {ord(landRank)}-biggest of any country. Yet {pct(c.urbanPct!)} of Australians live in places classed as urban, so most of the land is very lightly settled.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How many children do Australian families have?</h2>
+          <p>{dec(c.fertility, 2)} per woman in {CURRENT_YEAR}, down from a peak of {dec(tfrPeak.fertility, 2)} in {tfrPeak.year}. The rate has been below 2.1 since {sub}, yet births have stayed ahead of deaths in every year of the UN series.</p>
+        </div>
+        <LineChart
+          title="Children per woman in Australia, 1950–2050"
+          subtitle="UN estimates of the total fertility rate; dashed values are projected. The 1961 peak is followed by a long fall."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="children per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'Replacement: 2.1' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>What is life expectancy like in Australia?</h2>
+          <p>An Australian born today can expect {dec(c.lifeExpectancy, 1)} years of life, third among sizeable nations (over 10 million people), behind only Japan and South Korea. A newborn in 1950 could expect {dec(y[1950].lifeExpectancy, 1)} years. Australians' median age is {dec(c.medianAge, 1)}, against {dec(y[1950].medianAge, 1)} in 1950.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Australia's population over time">
+          <div><span class="y">1950</span><div class="v">{millionsShort(y[1950].population)}</div><span class="d">People, {ord(y[1950].worldRank!)} in the world</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{millionsShort(c.population)}</div><span class="d">More than tripled</span></div>
+          <div><span class="y">2100, UN projection</span><div class="v">{millionsShort(y[2100].population)}</div><span class="d">Up to {ord(y[2100].worldRank!)} place</span></div>
+        </div>
+        <RelatedPages iso3={au.iso3} name={au.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Australia's population, decade by decade"
+          subtitle="UN mid-year figures from 1950 to 2100 with density, fertility, median age, the urban share on Australia's definition (to 2050) and rank. 2030 and beyond are projected."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${au.slug}-population.csv`)}
+          csvName={`${au.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Australia's population: answers in brief</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and adds the UN's projected growth for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={au.published}>{longDate(au.published)}</time> · Updated <time datetime={au.updated}>{longDate(au.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Australia population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Australia" code="au" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

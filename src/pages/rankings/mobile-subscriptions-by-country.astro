@@ -175,7 +175,7 @@ const schema = [
 
       <div class="story-block prose">
         <h2>How connected is Bangladesh by mobile?</h2>
-        <p><a href={path('/economy/bangladesh/')}>Bangladesh</a> counted {mn(subsOf('BGD')!)} mobile subscriptions in {L}, {ord(bySubs.findIndex((r) => r.iso3 === 'BGD') + 1)} in the world by number, just ahead of Pakistan. That is {byIso('BGD').value.toFixed(1)} per 100 people, more than India ({byIso('IND').value.toFixed(1)}) or Pakistan ({byIso('PAK').value.toFixed(1)}); fixed broadband reached {bbOf('BGD')!.toFixed(1)} per 100.</p>
+        <p><a href={path('/country/bangladesh/economy/')}>Bangladesh</a> counted {mn(subsOf('BGD')!)} mobile subscriptions in {L}, {ord(bySubs.findIndex((r) => r.iso3 === 'BGD') + 1)} in the world by number, just ahead of Pakistan. That is {byIso('BGD').value.toFixed(1)} per 100 people, more than India ({byIso('IND').value.toFixed(1)}) or Pakistan ({byIso('PAK').value.toFixed(1)}); fixed broadband reached {bbOf('BGD')!.toFixed(1)} per 100.</p>
       </div>
     </section>
 

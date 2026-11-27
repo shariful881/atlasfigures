@@ -1,0 +1,159 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/turkey.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/turkey/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const pInfl = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const uMax = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const hi22 = Math.max(...s.inflationPct.filter(([y, x]) => y < 2022 && x > i(2022)).map(([y]) => y));
+const lo25 = Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y));
+const uLow = Math.max(...s.unemploymentPct.filter(([y, x]) => y < L && x < unemp!).map(([y]) => y));
+
+assertClaim(B.gdpRank === 16 && s.gdp.every(([y, x]) => y === L || x < gdp) && s.gdpPerCapita.every(([y, x]) => y === L || x < perHead), '16th; record GDP and GDP per person in dollars');
+assertClaim(hi22 === 1998 && pInfl[0] === 1994 && pInfl[1] > 100, '2022 inflation highest since 1998; 1994 the peak above 100%');
+assertClaim(infl.year === L && lo25 === 2021 && infl.value > 30, 'latest inflation lowest since 2021 but above 30%');
+assertClaim(s.gdpGrowthPct.filter(([y]) => y >= 2010).every(([, x]) => x > 0) && g(2009) < 0, 'no decline since 2009');
+assertClaim(g(2021) > 11 && s.gdpGrowthPct.filter(([y]) => y >= 2010 && y !== 2021).every(([, x]) => x < g(2021)), '2021 the strongest year since 2010');
+assertClaim(uLow === 2001 && uMax[0] === 2009 && [2021, 2022, 2023, 2024].every((y) => u(y) > u(y + 1)), 'unemployment lowest since 2001, falling since 2020');
+assertClaim(B.e.incomeGroup === 'Upper middle income', 'World Bank income group');
+
+const title = `Turkey Economy ${L}: Inflation, Growth, Jobs | AtlasFigures`;
+const description = `Turkey's economy, worth ${usd(gdp)} in ${L}, has not shrunk since 2009. Inflation slowed to ${pct(infl.value)} from ${pct(i(2022))} in 2022, and joblessness dropped to ${pct(unemp!)}.`;
+
+const faq = [
+  { q: 'How high is Turkish inflation now?', a: `${pct(infl.value)} for ${L}, the lowest since 2021 but still high. The rate was ${pct(i(2022))} in 2022, ${pct(i(2023))} in 2023 and ${pct(i(2024))} in 2024.` },
+  { q: 'Was Turkish inflation ever higher than in 2022?', a: `Yes. ${pct(i(2022))} in 2022 was the highest since 1998; the series peak is ${pct(pInfl[1])}, in 1994.` },
+  { q: 'Is the Turkish economy in recession?', a: `No. Output rose ${pct(growth)} after inflation in ${L}; the last annual decline was in 2009.` },
+  { q: 'How has unemployment in Turkey changed?', a: `Down every year since 2020, to ${pct(unemp!)} for ${L} on the modelled ILO measure, a level last bettered in 2001. In 2009 joblessness reached ${pct(uMax[1])}.` },
+  { q: 'Why is Turkey still "upper-middle-income"?', a: `The World Bank says that, because of the limits of its Atlas method for countries with persistent high inflation, Türkiye remains in the upper-middle-income group. Its ${L} GDP per head: ${usdWhole(perHead)}.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Turkey's economy ${L}: inflation down to ${pct(infl.value)}, unemployment at its lowest since 2001`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Turkish economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Turkey', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Turkey's economy: inflation off its peak</h1>
+        <p class="answer">
+          Turkish GDP came in at <strong>{usd(gdp)}</strong> for {L}, {ord(B.gdpRank!)} in the world. Inflation eased to <strong>{pct(infl.value)}</strong>, still high but well below 2022, and the unemployment rate slid to {pct(unemp!)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Turkey economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Turkey" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Turkey has avoided a shrinking year since 2009 while living with very high inflation; both trends shape its latest numbers.</p>
+
+        <div class="story-block prose">
+          <h2>Is inflation in Turkey coming down?</h2>
+          <p>Yes, though from a great height. Turkish consumer prices soared {pct(i(2022))} in 2022, faster than at any point since 1998, then {pct(i(2023))} and {pct(i(2024))}. The {L} figure of {pct(infl.value)} is the lowest since 2021. Turkey's all-time high in these data is {pct(pInfl[1])}, from 1994.</p>
+        </div>
+        <LineChart
+          title={`Annual inflation in Turkey, 1960–${L}`}
+          subtitle="Percentage change in consumer prices each year."
+          points={s.inflationPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Has Turkey's economy kept growing?</h2>
+          <p>Every year since 2010. Turkey's real output was up {pct(growth)} in {L}, following {pct(g(2024))} in 2024; the standout year was 2021, at {pct(g(2021))}. The last contraction was in 2009 ({signedPct(g(2009))}).</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How large is Turkey's GDP?</h2>
+          <p>{usd(gdp)} in {L}, its highest ever in dollars, ranking {ord(B.gdpRank!)} globally. GDP per person also reached a new high of {usdWhole(perHead)}; with purchasing-power rates it is {intDollars(ppp!)}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Is unemployment falling in Turkey?</h2>
+          <p>Yes. The jobless rate has declined five years running and stood at {pct(unemp!)} in {L}, according to ILO model estimates, the lowest reading since 2001 and far from the {pct(uMax[1])} peak of 2009.</p>
+        </div>
+        <LineChart
+          title={`Turkish unemployment, 1991–${L}`}
+          subtitle="Jobless rate from the ILO model; 2009 is the high."
+          points={s.unemploymentPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <nav class="related" aria-label="Related pages">
+          <h2>Turkey and its neighbours: related pages</h2>
+          <ul>
+            <li><a href={path('/country/turkey/population/')}>Turkey's population</a></li>
+            <li><a href={path('/country/russia/economy/')}>Russia's economy</a></li>
+            <li><a href={path('/country/germany/economy/')}>Germany's economy</a></li>
+            <li><a href={path('/country/egypt/economy/')}>Egypt's economy</a></li>
+            <li><a href={path('/rankings/inflation-rate-by-country/')}>Inflation, country by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Turkish economy since 1960`}
+          subtitle="Shows 1994, 2001, 2009 and 2019 onward; download the CSV for the rest."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/turkey-economy.csv')} csvName="turkey-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Turkey's economy: Q&amp;A</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">The World Bank lists the country as "Türkiye"; we use its common English name. The income-group note is from the World Bank's country metadata. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Turkish economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Turkey" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

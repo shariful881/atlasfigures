@@ -1,0 +1,222 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import mg from '../../../data/countries/madagascar.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: an island whose growth is almost all births over
+// deaths (net migration never above about 18 thousand a year either way); infant mortality that stalled for most of the
+// 2010s; fertility above 2.1 until 2096; growth to 85 million and a jump up the world ranking by 2100.
+const PAGE = '/country/madagascar/population/';
+const un = countryData(mg.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (mg.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const eaf = wpp.filter((d: any) => d.subregion === 'Eastern Africa').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(eaf.indexOf('MDG') === 5, 'sixth in Eastern Africa by population');
+const migMax = Math.max(...un.years.map((r) => Math.abs(r.netMigrants)));
+assertClaim(migMax > 18000 && migMax < 19000, 'net migration never above about 18 thousand in either direction');
+assertClaim(Math.abs(c.netMigrants) < 5000 && c.naturalChange > 750000, 'migration tiny next to natural increase this year');
+const imrFlat = [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023].map((n) => y[n].infantMortalityPer1000!);
+assertClaim(Math.max(...imrFlat) - Math.min(...imrFlat) < 0.5 && y[2010].infantMortalityPer1000! - y[2015].infantMortalityPer1000! > 2.5, 'infant mortality almost flat 2015–2023 after falling');
+const times = c.population / y[1950].population;
+assertClaim(times > 8.3 && times < 8.7, 'about 8.5 times 1950');
+const tfrTop = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(tfrTop.year === 1953, 'fertility high in 1953');
+const under = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(under === 2096, 'fertility under 2.1 only in 2096');
+assertClaim(un.years.every((r, i, a) => i === 0 || r.population > a[i - 1].population), 'rises every year 1950–2100');
+assertClaim(c.worldRank === 49 && y[2100].worldRank === 29, '49th now, 29th in 2100');
+assertClaim(y[2050].urbanPct! < 50, 'still mostly rural in 2050');
+
+const title = `Madagascar Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)} Million, Growth From Births Alone | AtlasFigures`;
+const description = `Madagascar's UN-estimated ${CURRENT_YEAR} population: ${millions(c.population)}. Migration barely registers, so births drive all the growth; infant mortality stalled in the 2010s, and the UN sees ${millions(y[2100].population)} by 2100.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: mg.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'In 2100', value: millionsShort(y[2100].population) },
+];
+
+const rows = displayRows(un.years, mg.tableYears);
+
+const faq = [
+  { q: 'Where does Madagascar rank in population?', a: `Its UN estimate this year is ${millions(c.population)}, which ranks Madagascar ${ord(c.worldRank!)} on Earth and sixth within Eastern Africa.` },
+  { q: 'Does migration change Madagascar\'s population much?', a: `Hardly at all. In no UN year from 1950 to 2100 does net migration exceed about ${int(Math.round(migMax / 1000))} thousand in either direction; for ${CURRENT_YEAR} it is about ${int(Math.round(-c.netMigrants / 1000))} thousand net departures, against a natural increase near ${int(Math.round(c.naturalChange / 1000))} thousand.` },
+  { q: 'What is the infant mortality rate in Madagascar?', a: `${dec(c.infantMortalityPer1000!, 1)} deaths before age one per 1,000 live births in ${CURRENT_YEAR}. The rate hardly moved between 2015 (${dec(y[2015].infantMortalityPer1000!, 1)}) and 2023 (${dec(y[2023].infantMortalityPer1000!, 1)}).` },
+  { q: 'Is fertility falling in Madagascar?', a: `Gradually. Malagasy fertility is ${dec(c.fertility, 2)} for ${CURRENT_YEAR}, about half the ${tfrTop.year} level of ${dec(tfrTop.fertility, 2)}. Projected rates stay over 2.1 up to ${under}.` },
+  { q: 'Will Madagascar keep growing all century?', a: `Yes. Every projected year is larger than the last; 2100 closes with ${millions(y[2100].population)} and a ${ord(y[2100].worldRank!)}-place world ranking.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: mg.slug, name: mg.name, wikipedia: mg.wikipedia,
+  headline: `Madagascar's ${millions(c.population)}: growth from births alone, stalled infant mortality and ${millions(y[2100].population)} by 2100`,
+  description,
+  datasetName: 'Madagascar population, natural increase, fertility and infant mortality, 1950–2100',
+  datasetDescription: `Mid-year population of Madagascar for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: mg.published, updated: mg.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Madagascar"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Madagascar', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Madagascar: an island that grows from within</h1>
+        <LiveCounter
+          label="Madagascar: population estimate, ticking"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} anchor; net gain near ${int(c.change / 365)} a day`}
+        />
+        <p class="answer">
+          Madagascar has some <strong>{millions(c.population)}</strong> inhabitants in {CURRENT_YEAR} by UN estimate, ranking {ord(c.worldRank!)}. Net migration has never shifted the total by more than about {int(Math.round(migMax / 1000))} thousand in a year, so practically all of the growth, <strong>{pct(c.growthRatePct)}</strong> this year, is births outnumbering deaths.
+        </p>
+        <div class="dates"><span>Updated <time datetime={mg.updated}>{longDate(mg.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Madagascar" code="mg" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Does migration matter for Madagascar's population?</h2>
+          <p>Almost not at all. Across every UN year from 1950 to 2100, the net flow in or out never tops about {int(Math.round(migMax / 1000))} thousand. This year roughly {millions(c.births)} babies are expected and some {int(Math.round(c.deaths / 1000))} thousand deaths, a natural gain near {int(Math.round(c.naturalChange / 1000))} thousand, while net departures come to about {int(Math.round(-c.netMigrants / 1000))} thousand. Today's total is some {dec(times, 1)} times the {millions(y[1950].population)} recorded for 1950.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Components of Madagascar's population change this year, UN estimates">
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">+{(c.births / 1e6).toFixed(2)}M</div><span class="d">Births</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">−{int(Math.round(c.deaths / 1000))}k</div><span class="d">Deaths</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">−{int(Math.round(-c.netMigrants / 1000))}k</div><span class="d">Net migration</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Has infant mortality stopped falling in Madagascar?</h2>
+          <p>For several years it did. The UN estimate fell from {dec(y[2000].infantMortalityPer1000!, 1)} deaths per 1,000 live births in 2000 to {dec(y[2015].infantMortalityPer1000!, 1)} in 2015, then barely changed through 2023, when it was {dec(y[2023].infantMortalityPer1000!, 1)}. It has started to edge down again, to {dec(c.infantMortalityPer1000!, 1)} in {CURRENT_YEAR}, and the projection reaches {dec(y[2030].infantMortalityPer1000!, 1)} by 2030. Life expectancy at birth stands at {dec(c.lifeExpectancy, 1)} years in the {CURRENT_YEAR} estimate.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How quickly is Malagasy fertility coming down?</h2>
+          <p>Slowly. The series high, {dec(tfrTop.fertility, 2)} per woman, belongs to {tfrTop.year}; the current figure is {dec(c.fertility, 2)}. The medium projection keeps fertility above the 2.1 replacement level until {under}, and half of Madagascar's people are under {dec(c.medianAge, 1)}.</p>
+        </div>
+        <LineChart
+          title="Madagascar's fertility rate: 1950 estimates through 2050 projection"
+          subtitle="UN estimates through the recent past, medium projection afterwards in dashes; reference line at 2.1."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: '2.1 replacement' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How big could Madagascar get by 2100?</h2>
+          <p>Close to {millions(y[2100].population)} on the medium variant, with {millions(y[2050].population)} reached by 2050. The total rises in every year of the series, and Madagascar would climb from {ord(c.worldRank!)} place now to {ord(y[2100].worldRank!)}. It stays mostly rural for a long time: {pct(c.urbanPct!)} of residents count as urban today and {pct(y[2050].urbanPct!)} in 2050, on the national definition.</p>
+        </div>
+        <LineChart
+          title="Madagascar's population, 1950 to 2100"
+          subtitle="UN mid-year figures with the medium-variant projection dashed; no year shows a fall."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+        <RelatedPages iso3={mg.iso3} name={mg.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Madagascar year by year: estimates and projections"
+          subtitle="The net migration column stays close to zero in every row, estimated and projected."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${mg.slug}-population.csv`)}
+          csvName={`${mg.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">What readers ask about Madagascar</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{mg.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, infant mortality, world rank, regional grouping, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={mg.published}>{longDate(mg.published)}</time> · Updated <time datetime={mg.updated}>{longDate(mg.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Madagascar population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Madagascar" code="mg" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

@@ -1,0 +1,63 @@
+{
+  "slug": "moldova",
+  "name": "Moldova",
+  "demonym": "Moldovan",
+  "capital": "Chișinău",
+  "iso3": "MDA",
+  "code": "md",
+  "continent": "Europe",
+  "wikipedia": "https://en.wikipedia.org/wiki/Moldova",
+  "unName": "Republic of Moldova",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1979,
+    1980,
+    1990,
+    1991,
+    1992,
+    2000,
+    2010,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2026,
+    2030,
+    2040,
+    2050,
+    2060,
+    2070,
+    2080,
+    2090,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/moldova.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area",
+      "Peak 1991; largest fall from own peak of any 1 million+ country (about two thirds left), then Latvia, Georgia, Bosnia and Herzegovina",
+      "Fastest decline in 2026 (1 million+); net departures every year 1979–2021 (43 years), most 2010; largest inflow 2022; only rises after 1991 in 2022–2023",
+      "85.1 men per 100 women, second-lowest after Hong Kong; urban minority through 2050; deaths above births from 2018; 2100 projection",
+      "title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) — 72 of 72 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Counts only; no causes given."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}

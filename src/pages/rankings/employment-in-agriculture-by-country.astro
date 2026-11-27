@@ -1,0 +1,197 @@
+---
+import Base from '../../layouts/Base.astro';
+import LineChart from '../../components/LineChart.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import WorldMap from '../../components/WorldMap.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import meta from '../../data/rankings/employment-in-agriculture-by-country.json';
+import { econData, econMeta, aggregate, valueIn, rankBy, rankingYear } from '../../lib/econ';
+import { assertClaim, ord } from '../../lib/figures';
+import { commonName, pagesOf } from '../../lib/names';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/); the estimates are the ILO's models.
+const PAGE = '/rankings/employment-in-agriculture-by-country/';
+const PUBLISHED = meta.published, UPDATED = meta.updated;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WDI = 'World Bank, World Development Indicators (ILO modelled estimates)';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = meta.verification?.checkedOn;
+const name = commonName;
+const M = econMeta.indicators.empAgriPct;
+const B0 = 1991;
+
+const L = rankingYear('empAgriPct');
+const ranked = rankBy('empAgriPct', L);
+const N = ranked.length;
+const WS = aggregate('WLD').series;
+const wA = valueIn(WS.empAgriPct, L)!, wA0 = valueIn(WS.empAgriPct, B0)!, wS = valueIn(WS.empSrvPct, L)!, wS0 = valueIn(WS.empSrvPct, B0)!, wI = valueIn(WS.empIndPct, L)!;
+const byIso = (x: string) => ranked.find((r) => r.iso3 === x)!;
+const s = (x: string, k: 'empAgriPct' | 'empIndPct' | 'empSrvPct', y: number) => valueIn(econData(x).series[k], y)!;
+const p1 = (v: number) => `${v.toFixed(1)}%`;
+const over50 = ranked.filter((r) => r.value > 50).length;
+const last = ranked.slice(-3).reverse();
+const lic = valueIn(aggregate('LIC').series.empAgriPct, L)!, hic = valueIn(aggregate('HIC').series.empAgriPct, L)!;
+const ssa = valueIn(aggregate('SSF').series.empAgriPct, L)!;
+const srvCross = Math.max(...WS.empAgriPct.filter(([y, v]) => v >= valueIn(WS.empSrvPct, y)!).map(([y]) => y)) + 1;
+const drops = ranked.map((r) => ({ iso3: r.iso3, d: s(r.iso3, 'empAgriPct', L) - s(r.iso3, 'empAgriPct', B0) })).sort((a, b) => a.d - b.d);
+const bgd = byIso('BGD');
+const wYears = WS.empAgriPct.filter(([y]) => y <= L);
+
+assertClaim(WS.empIndPct.every(([, v]) => v > 20 && v < 25) && ranked[1].value.toFixed(1) === ranked[2].value.toFixed(1), 'industry 20-25% throughout; Mozambique and Niger equal when rounded');
+assertClaim(M.aggregation === 'Weighted average' && L === 2025 && N === 182, 'weighted average; 2025; 182 places');
+assertClaim(['BDI', 'MOZ', 'NER'].every((x, i) => ranked[i].iso3 === x) && ranked[0].value > 85 && over50 === 23, 'Burundi, Mozambique, Niger; 23 above half');
+assertClaim(last.map((r) => r.iso3).join() === 'SGP,HKG,MAC' && last[0].value < 0.2, 'Singapore, Hong Kong, Macao lowest');
+assertClaim(Math.round(wA * 10) === 258 && Math.round(wA0 * 10) === 428 && Math.round(wS * 10) === 506 && Math.round(wS0 * 10) === 354 && srvCross === 2001 && wS > 50, 'world agri 25.8 (42.8 in 1991); services 50.6 (35.4); services ahead of agri every year since 2001');
+assertClaim(Math.round(lic) === 59 && Math.round(hic) === 3 && Math.round(ssa * 10) === 493, 'LIC 59%, HIC 3%, SSA 49.3%');
+assertClaim(drops.slice(0, 3).map((d) => d.iso3).join() === 'VNM,RWA,KHM' && drops[0].d < -48, 'biggest falls Vietnam, Rwanda, Cambodia');
+assertClaim(bgd.rank === 32 && Math.round(bgd.value * 10) === 443 && Math.round(s('BGD', 'empAgriPct', B0) * 10) === 699 && Math.round(s('BGD', 'empSrvPct', L) * 10) === 377, 'Bangladesh 44.3% (32nd), 69.9% in 1991; services 37.7%');
+assertClaim(Math.round(s('CHN', 'empAgriPct', B0) * 10) === 596 && Math.round(byIso('CHN').value * 10) === 217 && byIso('USA').value < 1.6, 'China 59.6 -> 21.7; US 1.5');
+
+const title = `Employment in Agriculture by Country ${L}: Share of Jobs in Farming | AtlasFigures`;
+const description = `Agriculture employed ${p1(wA)} of the world's workers in ${L}, down from ${p1(wA0)} in ${B0}. Covers ${N} countries, Burundi (${p1(ranked[0].value)}) to Singapore, with industry and services shares.`;
+
+const cards = [
+  { label: 'Jobs in agriculture', value: p1(wA), year: L, note: 'world, % of employment' },
+  { label: `In ${B0}`, value: p1(wA0), year: B0, note: 'world' },
+  { label: 'Jobs in services', value: p1(wS), year: L, note: 'world' },
+  { label: 'Low-income countries', value: p1(lic), year: L, note: 'in agriculture' },
+];
+
+const rows = ranked.map((r) => {
+  const pg = pagesOf(r.iso3); const site = pg.economy ?? pg.population;
+  return {
+    rank: r.rank, iso3: r.iso3, name: name(r.iso3), site, href: site ? path(site) : null, region: r.region,
+    bar: r.value / 100, value: p1(r.value),
+    cells: [p1(s(r.iso3, 'empIndPct', L)), p1(s(r.iso3, 'empSrvPct', L))],
+  };
+});
+const mapFmt = (v: number) => `${Math.round(v)}%`;
+const mapRows = ranked.map((r) => ({ iso3: r.iso3, name: name(r.iso3), rank: r.rank, raw: r.value, value: `${p1(r.value)} of jobs` }));
+const regions = [...new Set(ranked.map((r) => r.region))].sort();
+
+const faq = [
+  { q: 'In which country do most people work in farming?', a: `Burundi, where ${p1(ranked[0].value)} of employed people worked in farming, forestry or fishing in ${L}, on ILO estimates. Mozambique and Niger (both ${p1(ranked[1].value)}) come next.` },
+  { q: 'What percentage of the world works in agriculture?', a: `${p1(wA)} of all workers in ${L}, against ${p1(wA0)} in ${B0}. Services now employ ${p1(wS)} and industry ${p1(wI)}.` },
+  { q: 'How many people in Bangladesh work in agriculture?', a: `${p1(bgd.value)} of Bangladeshi workers in ${L}, ${ord(bgd.rank)} of ${N} — down from ${p1(s('BGD', 'empAgriPct', B0))} in ${B0}. Services employ ${p1(s('BGD', 'empSrvPct', L))} and industry ${p1(s('BGD', 'empIndPct', L))}.` },
+  { q: 'Where has farm work declined fastest?', a: `In Vietnam, whose agricultural share fell by ${Math.abs(drops[0].d).toFixed(1)} percentage points between ${B0} and ${L}, followed by Rwanda and Cambodia.` },
+  { q: 'Which countries have almost no farm jobs?', a: `City economies: Singapore (${p1(last[0].value)}), Hong Kong (${p1(last[1].value)}) and Macao (${p1(last[2].value)}). In the United States the share is ${p1(byIso('USA').value)}.` },
+];
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`),
+    headline: `Employment in agriculture by country ${L}: ${N} countries ranked by the share of jobs in farming`, description,
+    datePublished: iso(PUBLISHED), dateModified: iso(UPDATED),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    citation: [{ '@type': 'CreativeWork', name: 'World Development Indicators', url: WDI_URL, publisher: { '@type': 'Organization', name: 'The World Bank' } }],
+  },
+  {
+    '@type': 'ItemList', '@id': abs(`${PAGE}#ranking`), name: `Employment in agriculture by country, ${L}`, itemListOrder: 'https://schema.org/ItemListOrderDescending', numberOfItems: N,
+    itemListElement: rows.map((r) => ({ '@type': 'ListItem', position: r.rank, name: r.name, ...(r.site ? { url: abs(r.site) } : {}) })),
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `Employment by sector (agriculture, industry, services) by country, ${L}`,
+    description: `Shares of total employment in agriculture, industry and services for ${N} countries and areas in ${L}, ranked by agriculture, from the World Development Indicators (update of ${longDate(M.wdiLastUpdated)}). The figures are modelled estimates of the International Labour Organization.`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WDI_URL], temporalCoverage: String(L),
+    spatialCoverage: { '@type': 'Place', name: 'World' }, variableMeasured: ['Employment in agriculture (% of total employment)', 'Employment in industry (% of total employment)', 'Employment in services (% of total employment)'],
+    dateModified: iso(UPDATED), license: econMeta.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs('/data/employment-in-agriculture-by-country.csv') }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+];
+---
+<Base
+  title={title} description={description} section="rankings" appTitle="Farm jobs" back="/rankings/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Rankings', href: '/rankings/' }, { name: 'Employment in agriculture by country', href: PAGE }]}
+  schema={schema}
+>
+  <article class="country-main rank-page">
+    <h1>Employment in agriculture by country, {L}</h1>
+    <p class="answer">About one worker in four on Earth — <strong>{p1(wA)}</strong> — had a job in agriculture in {L}, down from {p1(wA0)} in {B0}. In Burundi, Mozambique and Niger most people still work on the land; in Singapore almost nobody does.</p>
+    <div class="dates"><span>Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+    <IndicatorCards label={`Jobs by sector, ${L}`} cards={cards} />
+
+    <div class="segments" role="tablist" aria-label="Page sections">
+      <button role="tab" aria-selected="true" data-panel="data">Ranking</button>
+      <button role="tab" aria-selected="false" data-panel="map">Map</button>
+      <button role="tab" aria-selected="false" data-panel="story">Story</button>
+      <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+    </div>
+
+    <section class="panel" data-panel="map" aria-label="Map" hidden-mobile>
+      <WorldMap
+        id="map-h" title={`Share of jobs in agriculture, ${L}`}
+        subtitle="ILO modelled estimates of employment in farming, forestry and fishing. A darker colour means farm work matters more; each shade groups about the same number of countries."
+        rows={mapRows} fmt={mapFmt}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+    </section>
+    <section class="panel" data-panel="data" aria-label="Ranking">
+      <RankingTable
+        id="rank-h"
+        title={`Employment in agriculture, % of all jobs, ${L}`}
+        subtitle="Largest farm share first, with the shares of industry and services; the three add up to about 100%."
+        valueLabel="Agriculture"
+        cols={[{ label: 'Industry' }, { label: 'Services', cls: 'c-hide-m' }]}
+        rows={rows}
+        regions={regions}
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        csv={path('/data/employment-in-agriculture-by-country.csv')} csvName="employment-in-agriculture-by-country.csv"
+        licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+      />
+      <p class="note">Bars are drawn on a 0–100 scale; {N} economies, every one with an ILO estimate for {L}.</p>
+    </section>
+
+    <section class="panel" data-panel="story" aria-label="The story">
+      <div class="story-block prose">
+        <h2>How has the world's workforce moved out of farming?</h2>
+        <p>Largely in one direction. In {B0}, {p1(wA0)} of the world's workers were in agriculture; by {L} the share was {p1(wA)}. Services have employed more people than farming in every year since {srvCross}, and by {L} they accounted for more than half of all jobs — {p1(wS)}, up from {p1(wS0)}. Industry's share has stayed between a fifth and a quarter ({p1(wI)} in {L}).</p>
+      </div>
+      <LineChart
+        title={`World employment in agriculture, ${wYears[0][0]}–${L}`}
+        subtitle="Share of all employed people working in agriculture, forestry and fishing; ILO modelled estimate."
+        points={wYears.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+        format="percent" highlight={L} estimateLabel="World Bank data"
+        source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+      />
+
+      <div class="story-block prose">
+        <h2>Where do most people still work in farming?</h2>
+        <p>Mainly in sub-Saharan Africa, where agriculture accounts for {p1(ssa)} of jobs. In {over50} countries it employs more than half of all workers, led by Burundi ({p1(ranked[0].value)}). Across the World Bank's low-income economies the share is {p1(lic)}; in high-income ones it is {p1(hic)}. The fastest shifts since {B0} came in <a href={path('/country/vietnam/economy/')}>Vietnam</a>, <a href={path('/country/rwanda/economy/')}>Rwanda</a> and <a href={path('/country/cambodia/economy/')}>Cambodia</a>, while <a href={path('/country/china/economy/')}>China</a>'s farm share fell from {p1(s('CHN', 'empAgriPct', B0))} to {p1(byIso('CHN').value)}.</p>
+      </div>
+
+      <div class="story-block prose">
+        <h2>How many Bangladeshis work in agriculture?</h2>
+        <p>{p1(bgd.value)} of employed people in {L} — {ord(bgd.rank)} of {N} — compared with {p1(s('BGD', 'empAgriPct', B0))} in {B0}. <a href={path('/country/bangladesh/economy/')}>Bangladesh</a>'s services now employ {p1(s('BGD', 'empSrvPct', L))} of workers and industry {p1(s('BGD', 'empIndPct', L))}. In <a href={path('/country/india/economy/')}>India</a> the farm share is {p1(byIso('IND').value)} and in <a href={path('/country/pakistan/economy/')}>Pakistan</a> {p1(byIso('PAK').value)}.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+      <h2 id="faq-h">Farm jobs: questions answered</h2>
+      <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+    </section>
+
+    <details class="sources-details" id="sources">
+      <summary><h2>Sources and methodology</h2></summary>
+      <div class="sources-block">
+        <ul class="sources">
+          <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(M.wdiLastUpdated)}): employment in agriculture (SL.AGR.EMPL.ZS), industry (SL.IND.EMPL.ZS) and services (SL.SRV.EMPL.ZS), % of total employment, modelled estimates of the International Labour Organization (ILOSTAT). World, regional and income-group figures: World Bank weighted averages. Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          <li>Related pages: <a href={path('/rankings/female-labor-force-participation-by-country/')}>female labour force participation by country</a>, <a href={path('/rankings/forest-area-by-country/')}>forest area by country</a>.</li>
+        </ul>
+        <p class="note">Employment covers people of working age who did any work for pay or profit. Agriculture includes farming, hunting, forestry and fishing. Countries define employment differently — for example in how they count the self-employed, unpaid family workers and the armed forces — and the ILO fills gaps in national data with models, so figures for single countries should be read with care. See our <a href={path('/methodology/')}>methodology</a>.</p>
+        <p class="note">Published <time datetime={PUBLISHED}>{longDate(PUBLISHED)}</time> · Updated <time datetime={UPDATED}>{longDate(UPDATED)}</time> · By {PUBLISHER}</p>
+        <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Employment in agriculture by country', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+      </div>
+    </details>
+  </article>
+  <PageTabs />
+</Base>
+<style>
+  .rank-page { max-width: 980px; }
+  .rank-page .note { margin: 4px 2px 20px; }
+</style>

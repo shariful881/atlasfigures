@@ -1,0 +1,224 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import tz from '../../../data/countries/tanzania.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: projected to more than triple by 2100 and enter the world's top ten, fertility above replacement all century, rapid urban growth.
+const PAGE = '/country/tanzania/population/';
+const un = countryData(tz.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (tz.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const mult = y[2100].population / c.population;
+const mults = wpp.filter((d: any) => at(d).population > 20e6).sort((a: any, b: any) => at(b, 2100).population / at(b).population - at(a, 2100).population / at(a).population).map((d: any) => d.iso3);
+assertClaim(mults.indexOf('TZA') === 2 && mult > 3.5 && mult < 3.7, 'third-largest projected multiplication to 2100 among countries over 20 million, more than three and a half times');
+assertClaim(y[2100].worldRank === 9 && y[2050].worldRank === 15, 'ninth in the world by 2100, fifteenth in 2050');
+const egy = wpp.find((d: any) => d.iso3 === 'EGY');
+const passEgy = un.years.find((r) => r.year > CURRENT_YEAR && r.population > at(egy, r.year).population)!.year;
+assertClaim(passEgy === 2071, 'passes Egypt in 2071');
+const dbl = un.years.find((r) => r.population >= 2 * c.population)!.year;
+assertClaim(dbl === 2056, 'double by 2056');
+const adders = wpp.slice().sort((a: any, b: any) => at(b).change - at(a).change).map((d: any) => d.iso3);
+assertClaim(adders.indexOf('TZA') === 7 && c.change > 2e6, 'eighth-largest yearly addition, over 2 million');
+const tfrMax = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(tfrMax.year === 1974 && un.years.every((r) => r.fertility > 2.1), 'fertility peak 1974; above 2.1 in every year to 2100');
+const east = wpp.filter((d: any) => d.subregion === 'Eastern Africa').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(east[0] === 'ETH' && east[1] === 'TZA', 'second in Eastern Africa after Ethiopia');
+const times = c.population / y[1950].population;
+assertClaim(times > 9.4 && times < 9.6, 'about nine and a half times 1950');
+assertClaim(y[1950].urbanPct! < 4 && y[2050].urbanPct! > 60, 'urban share under 4% in 1950, over 60% by 2050');
+assertClaim(c.births / c.deaths > 6 && c.births / c.deaths < 6.2, 'about six births per death');
+
+assertClaim(mults.slice(0, 2).sort().join(',') === 'AGO,COD' && un.years.every((r) => r.change > 0), 'only Angola and DR Congo grow more in proportion; growth in every year');
+const title = `Tanzania Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)} Million, Heading for the World's Top Ten | AtlasFigures`;
+const description = `Mid-${CURRENT_YEAR} UN data give Tanzania ${millions(c.population)}, rising by roughly ${millions(c.change)} a year; projections reach ${millions(y[2100].population)} by 2100, ninth in the world.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: tz.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'Added this year', value: int(c.change) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+];
+
+const rows = displayRows(un.years, tz.tableYears);
+
+const faq = [
+  { q: 'What size is Tanzania\'s population?', a: `Close to ${millions(c.population)}, by the UN's mid-${CURRENT_YEAR} estimate, making it ${ord(c.worldRank!)} globally and second in Eastern Africa after Ethiopia.` },
+  { q: "Will Tanzania's population triple?", a: `More than that, on the UN's medium path: ${millions(y[2100].population)} by 2100, about ${dec(mult, 1)} times today. Among countries over 20 million, only Angola and DR Congo are set to expand faster in proportion.` },
+  { q: 'Will Tanzania overtake Egypt?', a: `Yes, in ${passEgy} according to the projections. By 2100 Tanzania's world ranking would be ${ord(y[2100].worldRank!)}.` },
+  { q: 'Is Tanzania\'s fertility rate still high?', a: `Fertility stands at ${dec(c.fertility, 2)} this year, down from ${dec(tfrMax.fertility, 2)} in ${tfrMax.year}. The medium variant keeps it above 2.1 in every year to 2100.` },
+  { q: 'Is Tanzania becoming an urban country?', a: `${pct(c.urbanPct!)} under the national definition, against ${pct(y[1950].urbanPct!)} in 1950; the 2050 projection is ${pct(y[2050].urbanPct!)}.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: tz.slug, name: tz.name, wikipedia: tz.wikipedia,
+  headline: `Tanzania's ${millions(c.population)} on course for ${millions(y[2100].population)} by 2100`,
+  description,
+  datasetName: 'Tanzania population, fertility, urban share and long-range projections, 1950–2100',
+  datasetDescription: `Mid-year population of Tanzania (listed by the UN as United Republic of Tanzania) for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: tz.published, updated: tz.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Tanzania"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Tanzania', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Tanzania's population could more than triple this century</h1>
+        <LiveCounter
+          label="Tanzania: population estimate today"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} value, growing about ${int(c.change / 365)} people per day`}
+        />
+        <p class="answer">
+          Some <strong>{millions(c.population)}</strong> Tanzanians were counted at mid-{CURRENT_YEAR} ({ord(c.worldRank!)} globally), and roughly {millions(c.change)} more are added each year. Under the medium projection it reaches <strong>{millions(y[2100].population)} by 2100</strong>, ninth in the world.
+        </p>
+        <div class="dates"><span>Updated <time datetime={tz.updated}>{longDate(tz.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Tanzania" code="tz" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>How big could Tanzania's population get by 2100?</h2>
+          <p>About {millions(y[2100].population)}, roughly {dec(mult, 1)} times today, under the UN medium variant. In the 20-million-plus group, only Angola and DR Congo are projected to expand faster in proportion. Tanzania would climb from {ord(c.worldRank!)} to {ord(y[2050].worldRank!)} in the world by 2050 and {ord(y[2100].worldRank!)} by 2100, passing Egypt in {passEgy}.</p>
+        </div>
+        <LineChart
+          title="Tanzania's population, 1950–2100: steep growth all the way"
+          subtitle="Tanzanian mid-year totals (UN); the projected line ends above 260 million."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How fast is Tanzania growing today?</h2>
+          <p>By {pct(c.growthRatePct)} a year, a gain of some {millions(c.change)} this year and the eighth-largest annual gain of any country. Births, roughly {millions(c.births)}, run at about six for every death. The total has grown about nine and a half times since 1950 ({millions(y[1950].population)}) and doubles again by {dbl}.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Will Tanzania's fertility fall below replacement level?</h2>
+          <p>No, not before 2100 in the UN's central scenario. Fertility peaked at {dec(tfrMax.fertility, 2)} in {tfrMax.year}, stands at {dec(c.fertility, 2)} today and is still {dec(y[2100].fertility, 2)} in 2100, above the 2.1 line in every year. Half of Tanzanians are under {dec(c.medianAge, 1)}.</p>
+        </div>
+        <LineChart
+          title="Tanzanian fertility, 1950 to 2050"
+          subtitle="UN estimates of births per woman, with the projected decade dashed; 2.1 shown."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: '2.1 shown' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How quickly are Tanzania's towns growing?</h2>
+          <p>Fast, in share as well as numbers. Under the national definition {pct(y[1950].urbanPct!)} of Tanzanians were urban in 1950 and {pct(c.urbanPct!)} are now, and World Urbanization Prospects sees the share at {pct(y[2050].urbanPct!)} in 2050.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Urban share in Tanzania">
+          <div><span class="y">1950</span><div class="v">{pct(y[1950].urbanPct!)}</div><span class="d">Urban share</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{pct(c.urbanPct!)}</div><span class="d">Rising</span></div>
+          <div><span class="y">2050, UN projection</span><div class="v">{pct(y[2050].urbanPct!)}</div><span class="d">Majority urban</span></div>
+        </div>
+        <RelatedPages iso3={tz.iso3} name={tz.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Tanzania's population, 1950 and every decade to 2100"
+          subtitle="Each row larger than the last; the UN projection rows start at 2030."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${tz.slug}-population.csv`)}
+          csvName={`${tz.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Tanzania's population, answered</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{tz.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share and its projection to 2050.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={tz.published}>{longDate(tz.published)}</time> · Updated <time datetime={tz.updated}>{longDate(tz.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Tanzania population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Tanzania" code="tz" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

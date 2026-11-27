@@ -28,7 +28,7 @@ const schema = [
       '@type': 'ItemList',
       itemListOrder: 'https://schema.org/ItemListOrderDescending',
       numberOfItems: countries.length,
-      itemListElement: countries.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: `${c.name} population`, url: abs(`/population/${c.slug}/`) })),
+      itemListElement: countries.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: `${c.name} population`, url: abs(`/country/${c.slug}/population/`) })),
     },
   },
 ];
@@ -78,7 +78,7 @@ const schema = [
   <p class="hub-count note" aria-live="polite"><span id="hub-n">{countries.length}</span> countries with their own page</p>
   <div class="list">
     {countries.map((c) => (
-      <a class="row" href={path(`/population/${c.slug}/`)} data-continent={c.cont} data-name={c.name} data-pop={c.now.population} data-growth={c.now.growthRatePct} data-density={c.now.densityPerKm2}>
+      <a class="row" href={path(`/country/${c.slug}/population/`)} data-continent={c.cont} data-name={c.name} data-pop={c.now.population} data-growth={c.now.growthRatePct} data-density={c.now.densityPerKm2}>
         <Flag code={c.code} class="flag" />
         <span><span class="name">{c.name}</span><br /><span class="meta">{c.region}</span></span>
         <span class="rank">#{c.now.worldRank} in the world</span>

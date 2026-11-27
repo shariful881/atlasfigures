@@ -1,0 +1,20 @@
+{
+  "slug": "immigrant-percentage-by-country",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "AtlasFigures Editorial (Claude, for the owner)",
+    "method": "scripts/verify/migration-113.py reads the original World Bank zips (data/raw/wdi/), not the site's generated data; check-wdi.mjs compares all generated WDI values with the original files; then the text was read by hand",
+    "what": "every ranking row (216 countries and areas, order and value), the number-of-migrants and 1990 columns, the CSV, every figure in the text, FAQ, title, description and JSON-LD; claims: Qatar 76.7% and UAE 74.0% (about three in four), Qatar's peak of 86.1% in 2015, Kuwait 7th, 18 places above half and 40 below 1%, world 3.7%, high-income 14.7%, low and middle income 1.4%, South Asia 0.5%, biggest rises since 2000 in Aruba and Malta, Spain 2.1% / 4.9% / 18.5%, Chile and Colombia, lowest China, Madagascar, Myanmar, Philippines and Cuba, Bangladesh 1.7% (159th) more than doubled from 0.8%; definitions and caveats from the indicator notes",
+    "against": "World Bank WDI bulk files and indicator metadata (update 11 November 2026, CC BY 4.0; UN DESA International Migrant Stock)",
+    "result": "Before publishing, an unverifiable 'among larger countries' phrase about Spain was removed and Saint Martin's 0.0% (a doubtful value) is not quoted in the text. All automated comparisons matched"
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "note": "First version: UN DESA International Migrant Stock via World Bank WDI, 2024."
+    }
+  ]
+}

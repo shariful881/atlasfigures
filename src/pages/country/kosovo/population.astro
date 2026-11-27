@@ -1,0 +1,200 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import xkx from '../../../data/countries/kosovo.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/), where this area is listed as "Kosovo (under UNSC
+// res. 1244)". Neutral wording only: "country or area", no status claims, no causes. Story: peak 1997 (2.20 million);
+// 1998 net outflow about 295,000 (13% of 1997) and 1999 about 168,000; falls 1998–2000, rise 2001; life expectancy
+// 58.3 in 1999; urban majority only from 2024; births from a 1988 high to the fewest of the series in 2026.
+const PAGE = '/country/kosovo/population/';
+const un = countryData(xkx.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (xkx.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+assertClaim(peak.year === 1997, 'peak 1997');
+const outTop = un.years.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+assertClaim(outTop.year === 1998 && -outTop.netMigrants / y[1997].population > 0.13 && -outTop.netMigrants / y[1997].population < 0.14, '1998 outflow about 13%');
+assertClaim(y[1999].netMigrants < -1.6e5, '1999 outflow');
+assertClaim([1998, 1999, 2000].every((yr) => y[yr].population < y[yr - 1].population) && y[2001].population > y[2000].population, 'falls 1998–2000');
+assertClaim(y[1999].lifeExpectancy < 59 && y[1998].lifeExpectancy > 68 && y[2000].lifeExpectancy > 71, '1999 lifespan dip');
+const urbanHalf = un.years.find((r) => r.urbanPct != null && r.urbanPct > 50)!.year;
+assertClaim(urbanHalf === 2024, 'urban majority 2024');
+const bTop = un.years.reduce((a, b) => (b.births > a.births ? b : a));
+const bLow = un.years.filter((r) => r.year <= CURRENT_YEAR).reduce((a, b) => (b.births < a.births ? b : a));
+assertClaim(bTop.year === 1988 && bLow.year === CURRENT_YEAR && c.births < bTop.births / 2, 'births 1988 to now, more than halved');
+assertClaim(un.years.filter((r) => r.year >= 2021).every((r) => r.netMigrants < 0) && un.years.filter((r) => r.year >= 2046).every((r) => r.naturalChange < 0) && y[2045].naturalChange >= 0, 'departures from 2021, natural decrease from 2046');
+
+const title = `Kosovo Population ${CURRENT_YEAR} (${(c.population / 1e6).toFixed(1)}M): UN Figures From a 1997 High to Today | AtlasFigures`;
+const description = `The UN (listing: Kosovo under UNSC res. 1244) estimates ${millions(c.population)} for ${CURRENT_YEAR} (down from ${millions(peak.population)} in 1997). In 1998 its tables record ${int(-outTop.netMigrants)} more departures than arrivals; a town-dwelling majority arrived only in 2024.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'UN listing', value: xkx.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'Urban', value: pct(c.urbanPct!) },
+];
+
+const rows = displayRows(un.years, xkx.tableYears);
+
+const faq = [
+  { q: 'How does the UN list Kosovo in its population data?', a: `As "Kosovo (under UNSC res. 1244)", a separate entry in World Population Prospects 2024. This page uses that listing and takes no position on status.` },
+  { q: "What was Kosovo's highest population?", a: `1997's ${millions(peak.population)} is the highest UN value; the current figure is roughly 76% as large.` },
+  { q: 'What happened to Kosovo population figures in 1998 and 1999?', a: `Net migration of minus ${int(-outTop.netMigrants)} (1998) and minus ${int(-y[1999].netMigrants)} (1999) appears in the UN tables, alongside a 1999 life expectancy of ${dec(y[1999].lifeExpectancy, 1)}. Causes are outside the dataset.` },
+  { q: 'Is Kosovo mainly urban or rural?', a: `Barely urban: towns passed half of residents in 2024 (national definition) and hold ${pct(c.urbanPct!)} this year.` },
+  { q: 'Where does the UN projection leave Kosovo in 2100?', a: `Medium-variant result: ${millions(y[2100].population)}. It assumes outward migration annually after 2020 and a natural decline beginning in 2046.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: xkx.slug, name: xkx.name, wikipedia: xkx.wikipedia,
+  headline: `Kosovo (UN listing) at ${millions(c.population)}: a 1997 peak; net outflows recorded in 1998–1999; an urban majority from 2024`,
+  description,
+  datasetName: 'Kosovo (under UNSC res. 1244) population and net migration, 1950–2100',
+  datasetDescription: `Mid-year population of the area the UN lists as Kosovo (under UNSC res. 1244) for selected years from 1950 to ${CURRENT_YEAR}, including 1988, 1995 and 1997–2001, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: xkx.published, updated: xkx.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Kosovo"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Kosovo", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Kosovo: how many residents, 1950 to 2100 (UN series)</h1>
+        <LiveCounter
+          label="Kosovo: running UN-based figure"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`Extrapolated from the UN World Population Prospects 2024 mid-${CURRENT_YEAR} value, roughly ${int(-c.change / 365)} fewer per day`}
+        />
+        <p class="answer">
+          The UN, which lists the area as Kosovo (under UNSC res. 1244), puts this year's residents at <strong>{millions(c.population)}</strong>; the high point of its series was <strong>{millions(peak.population)}</strong>, in 1997.
+        </p>
+        <div class="dates"><span>Updated <time datetime={xkx.updated}>{longDate(xkx.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Kosovo" code="xk" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>What do the UN tables show for Kosovo between 1997 and 2000?</h2>
+          <p>The UN tables show the arithmetic, not the reasons: net migration of minus {int(-outTop.netMigrants)} in 1998, roughly 13% of the 1997 total, followed by {int(-y[1999].netMigrants)} in 1999. Totals declined across 1998, 1999 and 2000, to {millions(y[2000].population)} in 2000, and climbed again from 2001. Recorded life expectancy sank to {dec(y[1999].lifeExpectancy, 1)} in 1999 after {dec(y[1998].lifeExpectancy, 1)} in 1998. This page describes the series only and takes no position on events or status.</p>
+        </div>
+        <LineChart
+          title="Kosovo (UN listing), 1950–2100: peak in 1997"
+          subtitle="Mid-year population; UN projection shown with dashes."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How have births in Kosovo changed?</h2>
+          <p>They have more than halved since 1988's maximum of {int(bTop.births)}; the {CURRENT_YEAR} estimate, {int(c.births)}, is the smallest yet. Average children per woman went from {dec(y[1950].fertility, 2)} (1950) to {dec(c.fertility, 2)}, and half of residents are now older than {dec(c.medianAge, 1)}.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Do most Kosovo residents live in towns?</h2>
+          <p>Since 2024, by a small margin: UN World Urbanization Prospects, using the national definition, gives towns {pct(c.urbanPct!)} of residents. Looking ahead, WPP assumes outward migration every year after 2020 and an excess of deaths from 2046, for {millions(y[2100].population)} by 2100.</p>
+        </div>
+        <RelatedPages iso3={xkx.iso3} name={xkx.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Kosovo (UN listing): 1988, 1995, 1997–2001, 2024"
+          subtitle="Look at the 1998 and 1999 migration cells for the biggest minus figures."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${xkx.slug}-population.csv`)}
+          csvName={`${xkx.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Kosovo: questions answered from UN tables</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{xkx.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={xkx.published}>{longDate(xkx.published)}</time> · Updated <time datetime={xkx.updated}>{longDate(xkx.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Kosovo population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Kosovo" code="xk" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

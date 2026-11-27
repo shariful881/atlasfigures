@@ -1,0 +1,242 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import ch from '../../../data/countries/switzerland.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: crossing 9 million this year, Europe's fastest growth since 1950 among larger countries, carried by migration; Europe's longest lives.
+const PAGE = '/country/switzerland/population/';
+const un = countryData(ch.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (ch.verification as any).checkedOn as string | undefined;
+const EDA_URL = 'https://www.aboutswitzerland.eda.admin.ch/en/political-system';
+
+const pass9 = un.years.find((r) => r.population >= 9e6)!.year;
+const pass8 = un.years.find((r) => r.population >= 8e6)!.year;
+assertClaim(pass9 === CURRENT_YEAR && pass8 === 2013, '9 million this year, 8 million in 2013');
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const grew = wpp.filter((d: any) => d.region === 'Europe' && at(d).population > 5e6).sort((a: any, b: any) => at(b).population / at(b, 1950).population - at(a).population / at(a, 1950).population).map((d: any) => d.iso3);
+assertClaim(grew[0] === 'CHE', 'largest relative growth since 1950 among European countries over 5 million');
+const times = c.population / y[1950].population;
+assertClaim(times > 1.9 && times < 2, 'nearly doubled since 1950');
+assertClaim(c.population < 9.05e6, 'just above 9 million');
+const est = un.years.filter((r) => !r.projection);
+const since2000 = est.filter((r) => r.year >= 2000);
+const migSum = since2000.reduce((a, r) => a + r.netMigrants, 0);
+const natSum = since2000.reduce((a, r) => a + r.naturalChange, 0);
+const migPart = migSum / (migSum + natSum) * 100;
+assertClaim(migPart > 75 && migPart < 85, 'about four-fifths of 2000–2023 growth from net migration');
+const falls = est.filter((r) => r.change < 0).map((r) => r.year);
+assertClaim(falls.join(',') === '1975,1976,1977' && falls.every((yr) => y[yr].netMigrants < 0), 'only declines 1975–1977, each with net emigration');
+const le = wpp.filter((d: any) => d.region === 'Europe' && at(d).population > 5e6).sort((a: any, b: any) => at(b).lifeExpectancy - at(a).lifeExpectancy).map((d: any) => d.iso3);
+assertClaim(le[0] === 'CHE', 'highest life expectancy in Europe among countries over 5 million');
+const leW = wpp.filter((d: any) => at(d).population > 5e6).sort((a: any, b: any) => at(b).lifeExpectancy - at(a).lifeExpectancy).map((d: any) => d.iso3);
+assertClaim(leW.slice(0, 4).join(',') === 'HKG,JPN,KOR,CHE', 'fourth worldwide among countries or areas over 5 million');
+const natLoss = un.years.find((r) => r.naturalChange < 0)!.year;
+assertClaim(natLoss === 2028 && un.years.filter((r) => r.year >= 2028).every((r) => r.naturalChange < 0), 'deaths above births from 2028 onward');
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+assertClaim(un.years.every((r) => r.year < 1971 || r.fertility < 2.1), 'fertility under 2.1 from 1971 on');
+assertClaim(peak.year === 2051 && y[2100].population > c.population, 'peak 2051; 2100 slightly above today');
+
+const title = `Switzerland Population ${CURRENT_YEAR}: Crossing 9 Million, Nearly Double 1950 | AtlasFigures`;
+const description = `In ${CURRENT_YEAR} Switzerland tops 9 million residents, almost twice its 1950 size, mainly through migration. UN data on growth, life expectancy and the ${peak.year} peak.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: ch.capital, note: 'officially the "federal city"' },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Life expectancy', value: dec(c.lifeExpectancy, 1) },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+];
+
+const rows = displayRows(un.years, ch.tableYears);
+
+const faq = [
+  { q: 'Has Switzerland reached 9 million people?', a: `Yes. By mid-${pass9} the UN has the country just above that mark, having passed 8 million in ${pass8}.` },
+  { q: 'What makes Switzerland grow faster than most of Europe?', a: `Migration does most of the work: from 2000 to 2023, net arrivals made up about ${int(Math.round(migPart))}% of the increase, natural growth the rest.` },
+  { q: 'Do the Swiss live longer than other Europeans?', a: `Yes. At ${dec(c.lifeExpectancy, 1)} years, Swiss newborns can expect longer lives than those in any other European country above 5 million people, and only three places of that size anywhere do better.` },
+  { q: 'Has Switzerland ever lost population?', a: `In the UN series, only from 1975 to 1977, when more people left than arrived each year; about ${int(Math.round((y[1974].population - y[1977].population) / 1000))} thousand residents were lost in those three years.` },
+  { q: 'What is the capital of Switzerland?', a: `Switzerland has no official capital. Bern, the seat of government, is called the "federal city" and serves as the capital in practice, according to the Swiss Federal Department of Foreign Affairs.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: ch.slug, name: ch.name, wikipedia: ch.wikipedia,
+  headline: `Switzerland crosses 9 million: ${millions(c.population)} people in ${CURRENT_YEAR}`,
+  description,
+  datasetName: 'Switzerland population, migration, life expectancy, ageing and urban share, 1950–2100',
+  datasetDescription: `Mid-year population of Switzerland for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: ch.published, updated: ch.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  extraCitations: [{ name: 'Political system', url: EDA_URL, publisher: 'Swiss Federal Department of Foreign Affairs' }],
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Switzerland"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Switzerland', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Switzerland passes 9 million people</h1>
+        <LiveCounter
+          label="Switzerland: live population estimate"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} anchor, rising by around ${int(c.change / 365)} residents daily`}
+        />
+        <p class="answer">
+          The Swiss population crosses 9 million this year; at <strong>{millions(c.population)}</strong> by mid-{CURRENT_YEAR} it is <strong>nearly double its 1950 size</strong>. Most of the growth comes from migration, and life expectancy beats every other European country of over 5 million.
+        </p>
+        <div class="dates"><span>Updated <time datetime={ch.updated}>{longDate(ch.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Switzerland" code="ch" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Has Switzerland's population doubled since 1950?</h2>
+          <p>Almost: it is {dec(times, 2)} times its 1950 level of {millions(y[1950].population)}. No other European nation now above 5 million has expanded as much in relative terms. The 8 million mark fell in {pass8}, and the 9 million mark in {pass9}.</p>
+        </div>
+        <LineChart
+          title="Swiss population, 1950–2100: steady growth to a 2051 plateau"
+          subtitle="Mid-year totals. Dashed values are the UN projection, flat at around 9.1 to 9.3 million."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How much of Swiss population growth comes from immigration?</h2>
+          <p>Roughly four-fifths since 2000. Over the 2000–2023 stretch the Swiss gained {millions(migSum)} people through migration and only {int(Math.round(natSum / 1000))} thousand from births outnumbering deaths. In {CURRENT_YEAR} the split is starker: some {int(Math.round(c.netMigrants / 1000))} thousand more people arrive than leave, while the natural increase is just {int(c.naturalChange)}.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>When did Switzerland's population last shrink?</h2>
+          <p>In the mid-1970s. The UN series records falls in 1975, 1976 and 1977, the only declining years since 1950, each with more departures than arrivals; together they cost about {int(Math.round((y[1974].population - y[1977].population) / 1000))} thousand residents. Starting in 2028 the projection has deaths outrunning births every year, leaving migration as the only engine of growth.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How long can a Swiss newborn expect to live?</h2>
+          <p>About {dec(c.lifeExpectancy, 1)} years, longer than anywhere else in Europe among countries above 5 million and fourth worldwide in that size class, after Hong Kong, Japan and South Korea. In 1950 the figure was {dec(y[1950].lifeExpectancy, 1)} years.</p>
+        </div>
+        <LineChart
+          title="Births per Swiss woman, 1950 to 2050"
+          subtitle="UN fertility estimates, then the medium projection in dashes; 2.1 as a guide."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: '2.1 guide' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+        <div class="age-row" role="group" aria-label="Life expectancy in Switzerland">
+          <div><span class="y">1950</span><div class="v">{dec(y[1950].lifeExpectancy, 1)}</div><span class="d">Years</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{dec(c.lifeExpectancy, 1)}</div><span class="d">Top of Europe's larger states</span></div>
+          <div><span class="y">2100, UN projection</span><div class="v">{dec(y[2100].lifeExpectancy, 1)}</div><span class="d">Expected</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Will Switzerland's population keep growing after 2050?</h2>
+          <p>Barely. The medium variant crests at {millions(peak.population)} in {peak.year}, then holds almost flat and finishes the century at {millions(y[2100].population)}. Fertility, {dec(c.fertility, 2)} per woman today, has been under 2.1 since 1971 and stays there in the projection, and the median age of {dec(c.medianAge, 1)} rises to {dec(y[2100].medianAge, 1)}.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Does Switzerland have a capital city?</h2>
+          <p>Not officially. Bern hosts the government and parliament and is called the "federal city", acting as capital in practice, as the <a href={EDA_URL}>Swiss Federal Department of Foreign Affairs</a> explains. Across the country {pct(c.urbanPct!)} of residents live in urban areas by the national definition, up from {pct(y[1950].urbanPct!)} in 1950.</p>
+        </div>
+        <RelatedPages iso3={ch.iso3} name={ch.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Swiss totals over a century and a half"
+          subtitle="Swiss totals and indicators by decade, UN-projected after the current year."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${ch.slug}-population.csv`)}
+          csvName={`${ch.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Switzerland's population at a glance: questions</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{ch.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+            <li><a href={EDA_URL}>Swiss Federal Department of Foreign Affairs, "Political system"</a>: Bern's status as the federal city and de facto capital.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={ch.published}>{longDate(ch.published)}</time> · Updated <time datetime={ch.updated}>{longDate(ch.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Switzerland population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Switzerland" code="ch" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

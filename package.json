@@ -8,9 +8,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "check:unique": "node scripts/check-unique.mjs",
-    "check": "npm run build && node scripts/check-unique.mjs && node scripts/check-site.mjs && node scripts/check-wdi.mjs && node scripts/check-econ-pages.mjs && node scripts/check-pop-rankings.mjs && node scripts/check-energy.mjs",
-    "data": "node scripts/build-data.mjs && node scripts/build-wdi.mjs && node scripts/build-energy.mjs",
-    "prebuild": "node scripts/build-data.mjs && node scripts/build-wdi.mjs && node scripts/build-energy.mjs",
+    "check": "npm run build && node scripts/check-unique.mjs && node scripts/check-site.mjs && node scripts/check-wdi.mjs && node scripts/check-econ-pages.mjs && node scripts/check-pop-rankings.mjs && node scripts/check-energy.mjs && node scripts/check-profiles.mjs",
+    "data": "node scripts/build-data.mjs && node scripts/build-wdi.mjs && node scripts/build-energy.mjs && node scripts/build-profiles.mjs",
+    "prebuild": "node scripts/build-data.mjs && node scripts/build-wdi.mjs && node scripts/build-energy.mjs && node scripts/build-profiles.mjs",
     "check:site": "node scripts/check-site.mjs",
     "check:wdi": "node scripts/check-wdi.mjs"
   },

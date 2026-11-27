@@ -149,7 +149,7 @@ for (const file of pages) {
   if (noindex) ok(!inSitemap, where, 'noindex page is listed in the sitemap');
 
   // Country pages: 2 (figures), 3 (style), 4 (Article/Dataset/FAQ)
-  const c = countries.find((x) => url === `/population/${x.slug}/`);
+  const c = countries.find((x) => url === `/country/${x.slug}/population/`);
   if (!c) continue;
   const d = JSON.parse(readFileSync(`src/data/wpp/countries/${c.iso3}.json`, 'utf8'));
   const y = Object.fromEntries(d.years.map((r) => [r.year, r]));
@@ -242,7 +242,7 @@ for (const file of pages) {
 }
 
 // no orphans: every country page is linked from at least one other country page's related block
-for (const c of countries) ok(inbound.get(c.iso3) > 0 || countries.length < 2, `page /population/${c.slug}/`, 'orphan: no other country page links here in its related block');
+for (const c of countries) ok(inbound.get(c.iso3) > 0 || countries.length < 2, `page /country/${c.slug}/population/`, 'orphan: no other country page links here in its related block');
 
 // sitemap entries must be real pages
 for (const s of sitemapUrls) {

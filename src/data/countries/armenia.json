@@ -1,0 +1,68 @@
+{
+  "slug": "armenia",
+  "name": "Armenia",
+  "demonym": "Armenian",
+  "capital": "Yerevan",
+  "iso3": "ARM",
+  "code": "am",
+  "continent": "Asia",
+  "wikipedia": "https://en.wikipedia.org/wiki/Armenia",
+  "unName": "Armenia",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1987,
+    1988,
+    1989,
+    1990,
+    1991,
+    1992,
+    1993,
+    2000,
+    2010,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026,
+    2030,
+    2040,
+    2050,
+    2060,
+    2070,
+    2080,
+    2090,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/armenia.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area; about twice 1950",
+      "1988 life expectancy and deaths against 1987 and 1989; USGS event usp0003pmm: M 6.8, 7 December 1988 07:41 UTC (date and magnitude only)",
+      "Largest net inflow 1989, peak 1991, largest net outflow 1992, falls 1992–2021, only later rises 2022–2024 with net arrivals 2022–2023",
+      "Urban majority since 1959; fourth-lowest sex ratio (1 million+); fertility under 2.1 from 1994; 2050 and 2100 projections",
+      "title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) — 80 of 80 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file",
+      "U.S. Geological Survey event page and FDSN record usp0003pmm (checked 2026-11-26): M 6.8, 1988-12-07 07:41:24 UTC"
+    ],
+    "result": "All figures match. Counts only; no causes given beyond the cited USGS event."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}

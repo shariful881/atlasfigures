@@ -1,0 +1,64 @@
+{
+  "slug": "bosnia-and-herzegovina",
+  "name": "Bosnia and Herzegovina",
+  "demonym": "Bosnian",
+  "capital": "Sarajevo",
+  "iso3": "BIH",
+  "code": "ba",
+  "continent": "Europe",
+  "wikipedia": "https://en.wikipedia.org/wiki/Bosnia_and_Herzegovina",
+  "unName": "Bosnia and Herzegovina",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "tableYears": [
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    1991,
+    1992,
+    1993,
+    1994,
+    1995,
+    1996,
+    2000,
+    2002,
+    2003,
+    2010,
+    2020,
+    2026,
+    2030,
+    2040,
+    2050,
+    2060,
+    2070,
+    2080,
+    2090,
+    2100
+  ],
+  "verification": {
+    "checkedOn": "2026-11-26",
+    "checkedBy": "Claude (AtlasFigures), for the owner",
+    "method": "scripts/verify/bosnia-and-herzegovina.py reads the original UN files directly (not the site's generated data) and compares them with the built page, JSON-LD and CSV; the build itself fails if any sentence-level claim (assertClaim) stops being true; then a hand read of title, description, headline, FAQ and story text.",
+    "what": [
+      "Population, rank, share, growth, density, land area",
+      "Peak 1991; 1992 net outflow just under 10% of 1991; life expectancy 1991–1993; 1995 total",
+      "Falls 1992–1995, net arrivals 1995–2001 (most 1996), rises 1996–2002, falls every year 2003–2100",
+      "Fourth-largest fall from own peak (1 million+) after Moldova, Latvia, Georgia; ninth-highest median age; fewest births 2026; deaths above births from 2010; 2100 about 44% of today",
+      "title, meta description, headline, FAQ JSON-LD, CSV rows, live counter"
+    ],
+    "against": [
+      "UN WPP 2024 original file WPP2024_Demographic_Indicators_Medium.csv.gz (SHA-256 286ac36b…, downloaded 2026-11-25) — 74 of 74 checks match",
+      "UN WUP 2025 original file WUP2025-F15-National-Definitions_percPop_by_category.xlsx (SHA-256 5fdc43a9…, downloaded 2026-11-25); licence CC BY 3.0 IGO stated in the file"
+    ],
+    "result": "All figures match. Counts only; no causes given."
+  },
+  "changelog": [
+    {
+      "date": "2026-11-26",
+      "type": "published",
+      "change": "Page published."
+    }
+  ]
+}

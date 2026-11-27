@@ -12,7 +12,9 @@ export type IndicatorKey =
   | 'under5Mortality' | 'infantMortality' | 'maternalMortality'
   | 'exports' | 'imports' | 'exportsPctGdp' | 'importsPctGdp'
   | 'landArea' | 'forestPct' | 'forestArea'
-  | 'literacyPct' | 'eduSpendPctGdp';
+  | 'literacyPct' | 'eduSpendPctGdp'
+  | 'lfpFemale' | 'lfpMale' | 'empAgriPct' | 'empIndPct' | 'empSrvPct'
+  | 'migrantStock' | 'migrantPct';
 /** [year, value] pairs, years ascending, only years the World Bank publishes a value for. */
 export type Series = [number, number][];
 export type EconData = {

@@ -1,0 +1,160 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/algeria.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/algeria/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const NORTH_AFRICA = ['DZA', 'EGY', 'LBY', 'MAR', 'TUN'];
+const africa = rankBy('gdp', L).filter((r) => r.region === 'Sub-Saharan Africa' || NORTH_AFRICA.includes(r.iso3));
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const pcPeak = s.gdpPerCapita.reduce((a, b) => (b[1] > a[1] ? b : a));
+const uMax = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const uMin = s.unemploymentPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const lowUSince = Math.max(...s.unemploymentPct.filter(([y, x]) => y < L && x < unemp!).map(([y]) => y));
+const lowInflSince = Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y));
+
+assertClaim(isMax(s.gdp) && africa.slice(0, 4).map((r) => r.iso3).join() === 'ZAF,EGY,NGA,DZA' && B.gdpRank === 50, 'record GDP; fourth in Africa; 50th');
+assertClaim(pcPeak[0] === 2014 && perHead < pcPeak[1] && perHead > 0.99 * pcPeak[1] && v('gdpPerCapita', 2020)! < 0.65 * pcPeak[1], 'per person just below 2014 peak after 2020 low');
+assertClaim(infl.year === L && lowInflSince === 2005 && i(2022) > 9 && i(2023) > 9, 'inflation lowest since 2005 after >9% in 2022-23');
+assertClaim(lowUSince === 2016 && uMax[0] === 1995 && uMin[0] === 2013 && unemp! > 10, 'unemployment lowest since 2016; peak 1995; low 2013');
+assertClaim(g(2020) < 0 && [2021, 2022, 2023, 2024, L].every((y) => g(y) > 3), 'growth above 3% each year since 2021');
+
+const title = `Algeria Economy ${L}: Record GDP, Inflation Cools | AtlasFigures`;
+const description = `Algeria's GDP rose to ${usd(gdp)} in ${L}, fourth in Africa. Prices rose just ${pct(infl.value)}, a 20-year low, and growth stayed above 3% for a fifth year; unemployment was ${pct(unemp!)}.`;
+
+const faq = [
+  { q: 'Is Algeria one of Africa\'s largest economies?', a: `Fourth by ${L} GDP, at ${usd(gdp)}, after South Africa, Egypt and Nigeria. It ranks ${ord(B.gdpRank!)} worldwide.` },
+  { q: 'Why did Algeria\'s inflation drop in ' + L + '?', a: `The figures show how far it fell but not why. Following ${pct(i(2022))} in 2022 and ${pct(i(2023))} in 2023, the ${L} figure of ${pct(infl.value)} was Algeria\'s smallest since 2005.` },
+  { q: 'How many Algerians are looking for work?', a: `About ${pct(unemp!)} in ${L}, by ILO estimates — Algeria\'s best since 2016. It peaked at ${pct(uMax[1])} in 1995; the low point was ${pct(uMin[1])} in 2013.` },
+  { q: 'Is Algerian income per person back to its peak?', a: `Almost. GDP per person reached ${usdWhole(perHead)} in ${L}, just short of the ${usdWhole(pcPeak[1])} of 2014, having fallen to ${usdWhole(v('gdpPerCapita', 2020)!)} in 2020.` },
+  { q: 'How did Algeria do after 2020?', a: `Output fell ${pct(Math.abs(g(2020)))} in 2020, then grew by more than 3% in each year from 2021 to ${L}.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Algeria's economy ${L}: record output, Africa's fourth-largest, with inflation at a 20-year low`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Algerian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Algeria', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Algeria's economy: higher output, calmer prices</h1>
+        <p class="answer">
+          At <strong>{usd(gdp)}</strong>, Algeria's {L} output was its highest yet and fourth in Africa, while inflation eased to <strong>{pct(infl.value)}</strong>, a rate last undercut in 2005.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Algeria economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Algeria" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Five years of growth above 3% have brought Algeria's output to a record, with prices rising more slowly than at any time in two decades.</p>
+
+        <div class="story-block prose">
+          <h2>How much has Algerian inflation fallen?</h2>
+          <p>A long way. Prices went up {pct(infl.value)} in {L}, Algeria's mildest year since 2005, after rises of {pct(i(2022))} in 2022 and {pct(i(2023))} in 2023.</p>
+        </div>
+        <LineChart
+          title={`Algeria's inflation, 1970–${L}`}
+          subtitle="Yearly increase in the consumer price index, %."
+          points={s.inflationPct.filter(([y]) => y >= 1970).map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Where does Algeria rank in Africa?</h2>
+          <p>Fourth. Algeria's {L} GDP, {usd(gdp)}, is its highest on record and is exceeded on the continent only by South Africa, Egypt and Nigeria. Globally it is {ord(B.gdpRank!)}. Growth has exceeded 3% in every year since the 2020 contraction of {pct(Math.abs(g(2020)))}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Has Algeria's income per head recovered?</h2>
+          <p>Nearly. At {usdWhole(perHead)} in {L} it is just below the 2014 high of {usdWhole(pcPeak[1])}, up from {usdWhole(v('gdpPerCapita', 2020)!)} in 2020. Measured with comparable prices, it is {intDollars(ppp!)}.</p>
+        </div>
+        <LineChart
+          title={`GDP per Algerian, 1960–${L}`}
+          subtitle="Dollars per inhabitant; the 2014 value is still the top."
+          points={s.gdpPerCapita.map(([x, y]) => ({ x, y }))}
+          format="usd" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Are fewer Algerians out of work?</h2>
+          <p>Slowly. At {pct(unemp!)} in {L} (ILO model) joblessness has not been this low since 2016. That compares with {pct(uMax[1])} in 1995 and a 2013 low of {pct(uMin[1])}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Algeria and North Africa: more to read</h2>
+          <ul>
+            <li><a href={path('/country/algeria/population/')}>Algeria's population</a></li>
+            <li><a href={path('/country/egypt/economy/')}>Egypt's economy</a></li>
+            <li><a href={path('/country/nigeria/economy/')}>Nigeria's economy</a></li>
+            <li><a href={path('/country/south-africa/economy/')}>South Africa's economy</a></li>
+            <li><a href={path('/rankings/inflation-rate-by-country/')}>Inflation in every country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Algeria's indicators in selected years since 1960`}
+          subtitle="Marks 1995, 2014 and 2015 next to 2019 onward; the CSV has all the rest."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/algeria-economy.csv')} csvName="algeria-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">What people ask about Algeria's economy</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">"Africa" here means the World Bank's Sub-Saharan Africa region plus Algeria, Egypt, Libya, Morocco and Tunisia. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Algerian economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Algeria" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

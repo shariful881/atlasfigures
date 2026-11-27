@@ -22,7 +22,7 @@ const textOf = (el) => el.text.replace(/\s+/g, ' ').trim();
 const nodes = (root) => root.querySelectorAll('script[type="application/ld+json"]').flatMap((s) => { const d = JSON.parse(s.text); return d['@graph'] ?? [d]; });
 
 // Money style, written independently of src/lib/econ.ts
-const usd = (v) => (v >= 1e12 ? `$${(v / 1e12).toFixed(2)} trillion` : v >= 1e9 ? `$${(v / 1e9).toFixed(1)} billion` : `$${(v / 1e6).toFixed(1)} million`);
+const usd = (v) => (v >= 1e12 ? `$${(v / 1e12).toFixed(2)} trillion` : v >= 1e9 ? `$${(v / 1e9).toFixed(1)} billion` : v >= 1e6 ? `$${(v / 1e6).toFixed(1)} million` : `$${Math.round(v).toLocaleString("en-US")}`);
 const whole = (v) => `$${Math.round(v).toLocaleString('en-US')}`;
 const pct = (v) => `${v.toFixed(1)}%`;
 const last = (s) => s.at(-1);
@@ -32,9 +32,9 @@ const lastmod = (u) => (sitemap.match(new RegExp(`<loc>[^<]*${BASE}${u.replace(/
 const econ = existsSync('src/data/economy') ? readdirSync('src/data/economy').filter((f) => f.endsWith('.json')).map((f) => JSON.parse(readFileSync(join('src/data/economy', f), 'utf8'))) : [];
 
 for (const c of econ) {
-  const url = `/economy/${c.slug}/`;
+  const url = `/country/${c.slug}/economy/`;
   const where = `page ${url}`;
-  const file = join(DIST, 'economy', c.slug, 'index.html');
+  const file = join(DIST, 'country', c.slug, 'economy', 'index.html');
   if (!ok(existsSync(file), where, 'page not built')) continue;
   const html = readFileSync(file, 'utf8');
   const root = parse(html);
@@ -125,6 +125,10 @@ const RANKINGS = { 'gdp-by-country': { key: 'gdp', cell: (v) => (v / 1e9).toLoca
   'land-area-by-country': { key: 'landArea', cell: (v) => v.toLocaleString('en-US', { maximumFractionDigits: 1 }), csvCol: 'land_area_sq_km' },
   'forest-area-by-country': { key: 'forestArea', cell: (v) => v.toLocaleString('en-US', { maximumFractionDigits: 1 }), csvCol: 'forest_area_sq_km' },
   // UNESCO education series are reported irregularly: each economy's latest value from `since` on (task 115).
+  'female-labor-force-participation-by-country': { key: 'lfpFemale', cell: (v) => `${v.toFixed(1)}%`, csvCol: 'labour_force_participation_women_pct_15_plus' },
+  'employment-in-agriculture-by-country': { key: 'empAgriPct', cell: (v) => `${v.toFixed(1)}%`, csvCol: 'employment_agriculture_pct' },
+  'immigrant-population-by-country': { key: 'migrantStock', cell: (v) => Math.round(v).toLocaleString('en-US'), csvCol: 'international_migrant_stock' },
+  'immigrant-percentage-by-country': { key: 'migrantPct', cell: (v) => `${v.toFixed(1)}%`, csvCol: 'international_migrant_stock_pct_population' },
   'literacy-rate-by-country': { key: 'literacyPct', cell: (v) => `${v.toFixed(1)}%`, csvCol: 'adult_literacy_pct_ages_15_plus', since: 2015 },
   'education-spending-by-country': { key: 'eduSpendPctGdp', cell: (v) => `${v.toFixed(1)}%`, csvCol: 'government_education_expenditure_pct_gdp', since: 2020 } };
 const wdiAll = readdirSync('src/data/wdi/countries').map((f) => JSON.parse(readFileSync(join('src/data/wdi/countries', f), 'utf8')));
@@ -134,6 +138,7 @@ for (const [slug, R] of Object.entries(RANKINGS)) {
   const file = join(DIST, 'rankings', slug, 'index.html');
   if (!ok(existsSync(file), where, 'page not built')) continue;
   const html = readFileSync(file, 'utf8'); const root = parse(html);
+  ok(!/\bWRITE\b/.test(html), where, 'unwritten scaffold text (WRITE) left on the page');
   const text = textOf(parse(html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, '')));
   const m = JSON.parse(readFileSync(`src/data/rankings/${slug}.json`, 'utf8'));
   // Year: World total's latest year, or for ITU telecom series the newest year with values for >= 80% of reporters.
@@ -212,7 +217,7 @@ for (const [slug, R] of Object.entries(RANKINGS)) {
     const root = parse(readFileSync(file, 'utf8'));
     const links = root.querySelectorAll('#countries a.row').map((a) => a.getAttribute('href'));
     ok(links.length > 0, 'page /economy/', 'no #countries list');
-    for (const c of econ) ok(links.includes(`${BASE}/economy/${c.slug}/`), 'page /economy/', `hub does not list ${c.slug}`);
+    for (const c of econ) ok(links.includes(`${BASE}/country/${c.slug}/economy/`), 'page /economy/', `hub does not list ${c.slug}`);
     const list = nodes(root).find((x) => x['@type'] === 'CollectionPage')?.mainEntity?.itemListElement ?? [];
     ok(JSON.stringify(list.map((i) => i.url.replace(/^https?:\/\/[^/]+/, ''))) === JSON.stringify(links), 'page /economy/', 'ItemList ≠ list shown');
   }

@@ -1,0 +1,49 @@
+# Weekly data-source watch (task 149). Runs scripts/tools/check-sources.mjs against data/sources.json.
+#  - A new version of an autoFetch source → a new branch `data-update-YYYYMMDD` is made from main and that
+#    source's fetch workflow runs on it; the fetch opens a pull request data-update-… → main, and the Check job shows
+#    which page sentences (assertClaim) no longer hold. Pages are fixed and the figures re-verified; then it goes live
+#    (owner's rule, CLAUDE.md, 27 Nov 2026).
+#  - Anything else (new version needing a hand update, unreachable source, error) → one GitHub issue, updated
+#    each week while it lasts.
+name: Watch data sources (weekly)
+on:
+  schedule:
+    - cron: '17 2 * * 1'   # Mondays 02:17 UTC (08:17 Dhaka)
+  workflow_dispatch:
+permissions:
+  contents: write
+  issues: write
+  actions: write
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main          # update branches start from the live site, so the PR holds only the new data
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check every source
+        run: node scripts/tools/check-sources.mjs --report report.md --json result.json
+      - name: Re-fetch new versions into data-update
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          WFS=$(jq -r '.dispatch[]' result.json | sed 's/ .*//')
+          [ -z "$WFS" ] && { echo 'Nothing to fetch'; exit 0; }
+          B="data-update-$(date -u +%Y%m%d)"                     # a fresh branch each time: never a force push
+          git ls-remote --exit-code --heads origin "$B" >/dev/null && { echo "$B already exists"; exit 0; }
+          git push origin "HEAD:refs/heads/$B"
+          for W in $WFS; do gh workflow run "$W" --ref "$B"; done
+      - name: Open or update the data-sources issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          N=$(jq '[.results[] | select(.status != "same" and (.status != "new" or .autoFetch == false))] | length' result.json)
+          OPEN=$(gh issue list --state open --search 'in:title "Data sources need attention"' --json number --jq '.[0].number // empty')
+          if [ "$N" = "0" ]; then echo 'All sources fine'; exit 0; fi
+          if [ -n "$OPEN" ]; then gh issue comment "$OPEN" --body-file report.md; else gh issue create --title 'Data sources need attention' --body-file report.md; fi

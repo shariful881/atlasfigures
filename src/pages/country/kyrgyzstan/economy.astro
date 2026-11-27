@@ -1,0 +1,157 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/kyrgyzstan.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/kyrgyzstan/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const gRank = rankBy('gdpGrowthPct', L).find((r) => r.iso3 === c.iso3)!.rank;
+const hi24 = Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < 2024 && x >= g(2024)).map(([y]) => y));
+const x21 = (gdp / v('gdp', 2021)!).toFixed(1);
+const remPeakShare = s.remittancesPctGdp.reduce((a, b) => (b[1] > a[1] ? b : a));
+const remPeak = s.remittances.reduce((a, b) => (b[1] > a[1] ? b : a));
+const remRank = rankBy('remittancesPctGdp', rem!.year).find((r) => r.iso3 === c.iso3)!.rank;
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+
+assertClaim(g(2022).toFixed(1) === g(2023).toFixed(1) && gRank === 4 && hi24 === 1988 && g(2022) > 8.9 && g(2023) > 8.9 && g(2024) > 11.5, '11.1% 4th; 2024 11.5% fastest since 1988; ~9.0% in 2022 and 2023');
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita) && x21 === '2.4', 'record GDP, 2.4 times 2021');
+assertClaim(rem!.year === 2024 && remRank === 14 && remPeakShare[0] === 2021 && remPeakShare[1] > 32.5 && remPeak[0] === 2022, 'remittances 17.6% (14th), share peak 32.6% in 2021, dollar peak 2022');
+assertClaim(worst[0] === 1994 && s.gdpGrowthPct[0][0] === 1987 && s.gdp[0][0] === 1990 && g(2020) < -7, 'worst 1994; growth from 1987, GDP from 1990; 2020 -7.1%');
+assertClaim(iMax[0] === 1999 && s.inflationPct[0][0] === 1996 && i(2022) > 13.8 && i(2024) < 5.1, 'inflation peak 1999; series from 1996; 13.9% in 2022; 5.0% in 2024');
+
+const title = `Kyrgyzstan Economy ${L}: Fourth-Fastest Growth in the World | AtlasFigures`;
+const description = `The Kyrgyz economy expanded ${pct(growth)} in ${L}, fourth-fastest in the world, after ${pct(g(2024))} in 2024. Dollar GDP reached ${usd(gdp)}, ${x21} times its 2021 size.`;
+
+const faq = [
+  { q: 'Does Kyrgyzstan rank among the top growers?', a: `It does: ${pct(growth)} in ${L} (${ord(gRank)} worldwide), on top of 2024's ${pct(g(2024))}, which beat every year back to 1988, after ${pct(g(2022))} in both 2022 and 2023.` },
+  { q: 'What is Kyrgyzstan\'s GDP now?', a: `${usd(gdp)} in ${L}, against ${usd(v('gdp', 2021)!)} in 2021, and ${usdWhole(perHead)} per person (${intDollars(ppp!)} at PPP) — both records.` },
+  { q: 'Do remittances still matter for Kyrgyzstan?', a: `Yes, though less than before. Kyrgyz migrants sent home ${usd(rem!.value)} during ${rem!.year}; relative to output that is ${pct(remPct!.value)} (${ord(remRank)} worldwide); in 2021 the ratio was ${pct(remPeakShare[1])}.` },
+  { q: 'Is Kyrgyz inflation rising again?', a: `Somewhat: ${pct(infl.value)} for ${L}, after ${pct(i(2024))} in 2024, though below the ${pct(i(2022))} of 2022.` },
+  { q: 'What was Kyrgyzstan\'s worst year?', a: `1994, when real output fell ${pct(Math.abs(worst[1]))}. The most recent contraction was in 2020 (${pct(g(2020))}).` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Kyrgyzstan's economy in ${L}: double-digit growth for a second year`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Kyrgyz economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Kyrgyzstan', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Kyrgyzstan's economy: one of the world's fastest growers</h1>
+        <p class="answer">
+          In {L} the Kyrgyz economy grew <strong>{pct(growth)}</strong> after inflation — fourth among the world's economies, taking dollar output to <strong>{usd(gdp)}</strong>.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Kyrgyzstan economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Kyrgyzstan" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Back-to-back double-digit years have left the economy more than twice its 2021 dollar size.</p>
+
+        <div class="story-block prose">
+          <h2>Where does Kyrgyz growth rank globally?</h2>
+          <p>Near the top. The {L} expansion of {pct(growth)} placed Kyrgyzstan {ord(gRank)} of 186 economies, on the heels of {pct(g(2024))} in 2024 (best since 1988) and {pct(g(2022))} in each of 2022 and 2023. Measured in dollars, output is {usd(gdp)} — {x21} times the 2021 level — and each resident's share, {usdWhole(perHead)}, is a record.</p>
+        </div>
+        <LineChart
+          title={`Kyrgyz economic growth, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="Kyrgyz real GDP, % change on a year earlier."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Are remittances still central to the Kyrgyz economy?</h2>
+          <p>Still large, but a smaller slice. The {rem!.year} total from Kyrgyz workers abroad (latest data) was {usd(rem!.value)}; set against GDP, {pct(remPct!.value)}, the {ord(remRank)}-highest ratio in the world. In 2021 the ratio stood at {pct(remPeakShare[1])}; it has fallen since because output outpaced the inflows, whose dollar peak came in 2022.</p>
+        </div>
+        <LineChart
+          title={`Kyrgyz remittance inflows relative to output, ${s.remittancesPctGdp[0][0]}–${rem!.year}`}
+          subtitle="Personal remittances received, % of GDP."
+          points={s.remittancesPctGdp.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Is inflation a problem for Kyrgyzstan?</h2>
+          <p>It has come and gone. Price growth peaked recently at {pct(i(2022))} (2022), slowed to {pct(i(2024))} by 2024 and returned to {pct(infl.value)} in {L}. The 1996-onward series tops out at {pct(iMax[1])}, recorded in 1999. For output, the deepest slump came in 1994 ({pct(worst[1])}).</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Kyrgyzstan and Central Asia: related pages</h2>
+          <ul>
+            <li><a href={path('/country/kyrgyzstan/population/')}>Kyrgyzstan's population</a></li>
+            <li><a href={path('/country/kazakhstan/economy/')}>Kazakhstan's economy</a></li>
+            <li><a href={path('/country/uzbekistan/economy/')}>Uzbekistan's economy</a></li>
+            <li><a href={path('/country/tajikistan/economy/')}>Tajikistan's economy</a></li>
+            <li><a href={path('/rankings/gdp-by-country/')}>GDP by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Kyrgyz GDP, prices and remittances: the table`}
+          subtitle="1987 (first growth figure), 1990 (first dollar GDP), 1994, 2000 and 2010, then annual from 2015. All years: CSV."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/kyrgyzstan-economy.csv')} csvName="kyrgyzstan-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Kyrgyz economy Q&A</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Remittance data end in 2024; inflation data start in 1996. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Kyrgyz economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Kyrgyzstan" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

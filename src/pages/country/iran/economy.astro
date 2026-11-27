@@ -1,0 +1,156 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/iran.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/iran/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const inflTop = rankBy('inflationPct', L);
+const peak = s.gdp.reduce((a, b) => (b[1] > a[1] ? b : a));
+const pcPeak = s.gdpPerCapita.reduce((a, b) => (b[1] > a[1] ? b : a));
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const uMax = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const lastNeg = Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < L && x < 0).map(([y]) => y));
+const gdpLowSince = Math.max(...s.gdp.filter(([y, x]) => y < L && x < gdp).map(([y]) => y));
+
+assertClaim(inflTop[0].iso3 === c.iso3 && infl.year === L && [2019, 2020, 2021, 2022, 2023, 2024, L].every((y) => i(y) > 30) && iMax[0] === 1995, 'highest inflation in the world; above 30% since 2019; record 1995');
+assertClaim(growth < 0 && lastNeg === 2019 && [2020, 2021, 2022, 2023, 2024].every((y) => g(y) > 0), 'first decline since 2019');
+assertClaim(peak[0] === 2012 && pcPeak[0] === 2012 && gdp < 0.6 * peak[1] && gdpLowSince === 2020 && B.gdpRank === 43, 'dollar GDP far below 2012; lowest since 2020; 43rd');
+assertClaim(uMax[0] === 2010 && unemp! < 9, 'unemployment peak 2010');
+assertClaim(perHead < 0.5 * pcPeak[1] && perHead > 0.45 * pcPeak[1], 'per person roughly halved');
+assertClaim(rem!.year === 2004, 'remittance data end in 2004');
+
+const title = `Iran Economy ${L}: World's Highest Inflation | AtlasFigures`;
+const description = `No economy saw faster price rises in ${L} than Iran, at ${pct(infl.value)}, and real GDP shrank ${pct(Math.abs(growth))}. In dollars the economy, at ${usd(gdp)}, is far smaller than in 2012.`;
+
+const faq = [
+  { q: 'Which country has the worst inflation, and is it Iran?', a: `On ${L} World Bank figures, yes: ${pct(infl.value)}, ahead of Turkey (${pct(inflTop[1].value)}). For seven years in a row, 2019 to ${L}, the Iranian rate has stayed over 30%.` },
+  { q: 'Did Iranian output fall in ' + L + '?', a: `Yes, by ${pct(Math.abs(growth))} in real terms — the first contraction since 2019, after five years of growth.` },
+  { q: 'Why is Iran\'s GDP in dollars lower than in 2012?', a: `The 2012 total was ${usd(peak[1])}; the ${L} one, ${usd(gdp)}. A dollar total moves with the rial\'s conversion rate as much as with production, and these figures cannot tell the two apart.` },
+  { q: 'Is Iranian income per head falling?', a: `In dollars it has roughly halved since 2012: ${usdWhole(pcPeak[1])} then, ${usdWhole(perHead)} in ${L}. Adjusting for local price levels gives ${intDollars(ppp!)}.` },
+  { q: 'How high is Iranian unemployment?', a: `The ILO puts Iranian joblessness at ${pct(unemp!)} for ${L}; in 2010 it had reached ${pct(uMax[1])}.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Iran's economy ${L}: the world's highest inflation and a return to contraction`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Iranian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Iran', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Iran's economy: prices up, output down</h1>
+        <p class="answer">
+          Prices in Iran went up <strong>{pct(infl.value)}</strong> in {L}, the highest inflation of any economy, while real output fell <strong>{pct(Math.abs(growth))}</strong>. GDP was {usd(gdp)} in current dollars.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Iran economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Iran" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Iran has lived with inflation above 30% for seven straight years, and in {L} its output fell, something last seen in 2019.</p>
+
+        <div class="story-block prose">
+          <h2>Is inflation in Iran the highest in the world?</h2>
+          <p>In {L}, yes. Iran's {pct(infl.value)} topped every economy with a World Bank figure, Turkey included. Each year since 2019 has seen a rate over 30%; the record rate of {pct(iMax[1])} came in 1995.</p>
+        </div>
+        <LineChart
+          title={`Iranian inflation since 1960`}
+          subtitle="Annual inflation, consumer price index, %."
+          points={s.inflationPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Is Iran's economy shrinking again?</h2>
+          <p>It contracted {pct(Math.abs(growth))} in {L}, ending five years of growth that followed declines in 2018 and 2019. The ILO-modelled jobless rate stood at {pct(unemp!)}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>What is Iran's GDP worth in dollars now?</h2>
+          <p>The rial economy converted to {usd(gdp)} in {L} — placing it {ord(B.gdpRank!)} worldwide, its lowest dollar figure since 2020. That is little more than half the {usd(peak[1])} of 2012. Per person the figure is {usdWhole(perHead)}, or {intDollars(ppp!)} when prices are compared like for like.</p>
+        </div>
+        <LineChart
+          title={`Iranian GDP, nominal dollars, 1960–${L}`}
+          subtitle="Nominal US$; the line tops out in 2012."
+          points={s.gdp.map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <nav class="related" aria-label="Related pages">
+          <h2>Iran and its neighbours: further pages</h2>
+          <ul>
+            <li><a href={path('/country/iran/population/')}>Iran's population</a></li>
+            <li><a href={path('/country/turkey/economy/')}>Turkey's economy</a></li>
+            <li><a href={path('/country/iraq/economy/')}>Iraq's economy</a></li>
+            <li><a href={path('/country/pakistan/economy/')}>Pakistan's economy</a></li>
+            <li><a href={path('/rankings/inflation-rate-by-country/')}>Inflation by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Iran's GDP and prices across selected years from 1960`}
+          subtitle="Rows for 1978–80, 1995 and 2012 come before 2019 onward; the CSV has every year."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/iran-economy.csv')} csvName="iran-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Iranian economy: reader questions</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">The World Bank notes Iran's national accounts use a fiscal year ending 20 March. Its remittance series for Iran stops in 2004, so the Key facts show that year. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Iranian economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Iran" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

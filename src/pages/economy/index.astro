@@ -40,7 +40,7 @@ const schema = [
       '@type': 'ItemList',
       itemListOrder: 'https://schema.org/ItemListOrderDescending',
       numberOfItems: countries.length,
-      itemListElement: countries.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: `${c.name} economy`, url: abs(`/economy/${c.slug}/`) })),
+      itemListElement: countries.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: `${c.name} economy`, url: abs(`/country/${c.slug}/economy/`) })),
     },
   },
 ];
@@ -60,7 +60,7 @@ const schema = [
   <h2 class="hub-h">Country economies</h2>
   <div class="list" id="countries">
     {countries.map((c) => (
-      <a class="row" href={path(`/economy/${c.slug}/`)}>
+      <a class="row" href={path(`/country/${c.slug}/economy/`)}>
         <Flag code={c.code} class="flag" />
         <span><span class="name">{c.name}</span><br /><span class="meta">{c.region}{c.gdp.year !== L ? ` · ${c.gdp.year} figures` : ''}</span></span>
         <span class="rank">{usdWhole(c.perHead.value)} per person</span>
@@ -101,6 +101,12 @@ const schema = [
   <div class="list rank-links">
     <a class="row" href={path('/rankings/child-mortality-by-country/')}><span><span class="name">Child mortality by country</span><br /><span class="meta">Under-5 and infant deaths per 1,000 births, UN IGME</span></span><span class="chev"><Icon name="chevron" /></span></a>
     <a class="row" href={path('/rankings/maternal-mortality-by-country/')}><span><span class="name">Maternal mortality by country</span><br /><span class="meta">Deaths per 100,000 live births, UN estimates</span></span><span class="chev"><Icon name="chevron" /></span></a>
+  </div>
+
+  <h2 class="hub-h">Jobs and work rankings</h2>
+  <div class="list rank-links">
+    <a class="row" href={path('/rankings/female-labor-force-participation-by-country/')}><span><span class="name">Female labour force participation by country</span><br /><span class="meta">Women and men in the labour force, ILO estimates</span></span><span class="chev"><Icon name="chevron" /></span></a>
+    <a class="row" href={path('/rankings/employment-in-agriculture-by-country/')}><span><span class="name">Employment in agriculture by country</span><br /><span class="meta">Farm, industry and service jobs as shares of employment</span></span><span class="chev"><Icon name="chevron" /></span></a>
   </div>
 
   <h2 class="hub-h">Education rankings</h2>

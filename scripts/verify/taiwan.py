@@ -1,5 +1,5 @@
 # Run after `npm run build`: python3 scripts/verify/taiwan.py
-# Independent check of every figure on /population/taiwan/ against the original UN files (UN listing: China, Taiwan Province of China).
+# Independent check of every figure on /country/taiwan/population/ against the original UN files (UN listing: China, Taiwan Province of China).
 import sys, json; sys.path.insert(0, "scripts/verify")
 from _un import *
 from _un import _rows

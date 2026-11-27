@@ -1,0 +1,160 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/philippines.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/philippines/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const remRank = rankBy('remittances', rem!.year).find((r) => r.iso3 === c.iso3)!.rank;
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const inflLowSince = Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y));
+
+assertClaim(B.gdpRank === 32 && s.gdp.every(([y, x]) => y === L || x < gdp), '32nd, record dollar GDP');
+assertClaim(remRank === 4 && rem!.year === L && s.remittances.every(([y, x]) => y === L || x < rem!.value), 'fourth-largest remittance receiver, a record');
+assertClaim([2022, 2023, 2024, L].every((y) => v('remittances', y)! > v('remittances', y - 1)!), 'remittances up every year since 2021');
+assertClaim(remPct!.value > 8 && remPct!.value < 9, 'remittances about 8.5% of GDP');
+assertClaim(growth < 4.5 && s.gdpGrowthPct.filter(([y]) => y > 2020 && y < L).every(([, x]) => x > growth), 'growth slowest since 2020');
+assertClaim(worst[0] === 2020 && s.gdpGrowthPct[0][0] === 1961 && worst[1] < -9, '2020 the deepest fall since 1961');
+assertClaim(infl.year === L && infl.value < 2 && inflLowSince === 2016, 'inflation lowest since 2016');
+assertClaim(unemp! - Math.min(...s.unemploymentPct.map(([, x]) => x)) < 0.05, 'unemployment level with the series low');
+
+assertClaim(rankBy('remittances', L).slice(0, 3).map((r) => r.iso3).join() === 'IND,MEX,FRA' && s.remittances[0][0] === 1977 && s.unemploymentPct[0][0] === 1991, 'India, Mexico and France ahead; series start years');
+
+const title = `Philippines Economy ${L}: GDP, OFW Remittances, Inflation | AtlasFigures`;
+const description = `Philippine GDP totalled ${usd(gdp)} in ${L}, and remittances set a new high of ${usd(rem!.value)}, ${ord(remRank)} in the world, and inflation dropped to ${pct(infl.value)}.`;
+
+const faq = [
+  { q: 'How much do OFWs send to the Philippines each year?', a: `Personal remittances, which include money from Filipinos working overseas, were ${usd(rem!.value)} in ${L}. That was a new high, the ${ord(remRank)} largest amount worldwide and ${pct(remPct!.value)} of GDP.` },
+  { q: 'What was Philippine GDP growth in ' + L + '?', a: `${pct(growth)} in real terms, down from ${pct(g(2024))} and the lowest since 2020.` },
+  { q: 'Is inflation in the Philippines going down?', a: `Yes. It slowed to ${pct(infl.value)} in ${L} from ${pct(i(2023))} in 2023, the gentlest pace since 2016.` },
+  { q: 'How hard did 2020 hit the Philippine economy?', a: `Real GDP shrank ${pct(Math.abs(worst[1]))}, the biggest drop on World Bank records back to 1961, then grew ${pct(g(2021))} in 2021 and ${pct(g(2022))} in 2022.` },
+  { q: 'What is the GDP per head in the Philippines?', a: `${usdWhole(perHead)} in ${L}, ranking ${ord(B.pcRank!)}; in purchasing-power terms, ${intDollars(ppp!)}.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `The Philippine economy ${L}: record remittances and the lowest inflation since 2016`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Philippine economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Philippines', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>The Philippine economy: remittances at a record</h1>
+        <p class="answer">
+          Philippine output was valued at <strong>{usd(gdp)}</strong> for {L}. Workers abroad and other senders transferred a record <strong>{usd(rem!.value)}</strong> home, and inflation eased to {pct(infl.value)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Philippines economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Philippines" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Remittances keep climbing to new highs, prices have calmed, and growth has cooled slightly from the post-2020 rebound.</p>
+
+        <div class="story-block prose">
+          <h2>Are remittances to the Philippines still rising?</h2>
+          <p>Yes. They have increased each year since 2021 and reached {usd(rem!.value)} in {L}, according to World Bank balance-of-payments figures. Only India, Mexico and France received more. Relative to the economy, that is {pct(remPct!.value)} of GDP.</p>
+        </div>
+        <LineChart
+          title={`Philippine remittance receipts, 1977–${L}`}
+          subtitle="Inflows in current dollars, every fifth year to 2015 and annually afterwards."
+          points={s.remittances.filter(([y]) => y % 5 === 0 || y >= 2019).map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How big is the Philippine economy?</h2>
+          <p>Its {L} GDP of {usd(gdp)} is the largest the country has recorded in dollars and places it {ord(B.gdpRank!)} in the world. Each Filipino's share came to {usdWhole(perHead)}; adjusting for prices raises it to {intDollars(ppp!)}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Is Philippine growth slowing?</h2>
+          <p>A little. Real Philippine GDP was {pct(growth)} higher in {L} than a year earlier, versus {pct(g(2024))} in 2024 and {pct(g(2022))} in 2022, the smallest gain since 2020. That year output contracted {pct(Math.abs(worst[1]))}, the steepest decline in data going back to 1961.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Is inflation low in the Philippines now?</h2>
+          <p>Yes: {pct(infl.value)} in {L}, down from {pct(i(2023))} in 2023 and the slowest rise in prices since 2016. Unemployment, at {pct(unemp!)} on the ILO's model, is level with the lowest readings since 1991.</p>
+        </div>
+        <LineChart
+          title={`Philippine inflation, 1960–${L}`}
+          subtitle="How much Philippine consumer prices rose each year, in per cent."
+          points={s.inflationPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <nav class="related" aria-label="Related pages">
+          <h2>The Philippines and its region: related pages</h2>
+          <ul>
+            <li><a href={path('/country/philippines/population/')}>The Philippines' population</a></li>
+            <li><a href={path('/country/indonesia/economy/')}>Indonesia's economy</a></li>
+            <li><a href={path('/country/vietnam/population/')}>Vietnam's population</a></li>
+            <li><a href={path('/country/china/economy/')}>China's economy</a></li>
+            <li><a href={path('/rankings/remittances-by-country/')}>Who receives the most remittances</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Philippine economy by year, 1960–${L}`}
+          subtitle="Picks out 1984, 2016 and 2020 onward; full annual data in the CSV."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/philippines-economy.csv')} csvName="philippines-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">The Philippine economy: frequently asked</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">"OFW" (overseas Filipino worker) is the common term; the World Bank's personal remittances also include other personal transfers and the pay of short-term workers abroad. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Philippine economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Philippines" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>
