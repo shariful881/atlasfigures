@@ -1,0 +1,4 @@
+# Items that are an instance of "landlocked country" (Q123480).
+SELECT ?iso3 ?item WHERE {
+  ?item wdt:P298 ?iso3 ; wdt:P31 wd:Q123480 .
+}

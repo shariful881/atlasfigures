@@ -1,0 +1,5 @@
+# Countries and areas this item shares a border with (P47), as ISO 3166-1 alpha-3 codes.
+SELECT ?iso3 ?item ?value WHERE {
+  ?item wdt:P298 ?iso3 ; wdt:P47 ?other .
+  ?other wdt:P298 ?value .
+}

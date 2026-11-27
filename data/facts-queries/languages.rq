@@ -1,0 +1,5 @@
+# ISO3 code, item and value of P37 (languages), with the value's English label — truthy statements (best rank) only.
+SELECT ?iso3 ?item ?value ?valueLabel WHERE {
+  ?item wdt:P298 ?iso3 ; wdt:P37 ?value .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+}
