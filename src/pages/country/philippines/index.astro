@@ -1,0 +1,72 @@
+---
+// Philippines country hub (task 171). Every figure comes from the country profile (src/data/profiles/PHL.json),
+// built from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/philippines.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), migPct = st('population', 'migrantPct');
+const remit = st('trade', 'remit'), remitPct = st('trade', 'remitPct'), hitech = st('trade', 'hitech');
+const accF = st('internet', 'accountF'), accM = st('internet', 'accountM'), out = st('education', 'outSchool'), lit = st('education', 'literacy');
+const gdp = st('economy', 'gdp'), gdpPc = st('economy', 'gdpPc'), fx = st('economy', 'fx'), unemp = st('jobs', 'unemp'), growth = st('economy', 'growth');
+
+assertClaim(fromTop(pop) === 14 && fromTop(remit) === 4 && Number(remitPct.value) > 8, '14th by population, fourth for remittances, over 8% of GDP');
+assertClaim(fromTop(hitech) === 4 && Number(hitech.value) > 60, 'high-tech share of manufactured exports above 60%, fourth');
+assertClaim(Number(accF.value) - Number(accM.value) > 14, 'women more than 14 points ahead of men on accounts');
+assertClaim(fromTop(out) === 8 && Number(lit.value) > 98, 'eighth-most children out of school, literacy above 98%');
+assertClaim(fromBottom(migPct) === 3, 'third-lowest immigrant share');
+
+const title = `Philippines Facts ${Y}: Remittances, Electronics Exports, Banking | AtlasFigures`;
+const description = `Home to ${people(Number(pop.value))} (UN, ${Y}), the Philippines is the fourth-largest remittance recipient, ships more high-tech goods as a share of exports than almost anyone, and its women out-bank its men.`;
+
+const faq = [
+  { q: 'How many pesos to one US dollar?', a: `${fx.text} Philippine pesos per dollar, averaged over ${fx.year} at the official rate (World Bank).` },
+  { q: 'What was Philippine GDP in the latest year?', a: `${gdp.text} in ${gdp.year}, expanding ${growth.text} that year; per Filipino, ${gdpPc.text}.` },
+  { q: 'Do many foreigners live in the Philippines?', a: `Very few: people born abroad made up ${migPct.text} of residents in ${migPct.year}, third lowest share among ${migPct.of} countries and areas (UN DESA).` },
+  { q: 'Is unemployment low in the Philippines?', a: `Yes, ${unemp.text} in ${unemp.year} as modelled by the ILO, ${ordinal(fromBottom(unemp))} lowest of ${unemp.of}.` },
+];
+const headline = `Philippines facts ${Y}: remittances, high-tech exports, women's banking and schooling`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="The Philippines in data: remittances, high-tech trade and school"
+  headline={headline}
+  faq={faq}
+  faqTitle="The Philippines, answered quickly"
+  related={[
+    { href: '/country/philippines/population/', label: 'Philippines population: live count and outlook' },
+    { href: '/country/philippines/economy/', label: 'Philippines economy: GDP and remittances' },
+    { href: '/country/philippines/health/', label: 'Philippines health: tuberculosis and vaccines' },
+    { href: '/country/indonesia/', label: 'Indonesia: all figures' },
+    { href: '/country/vietnam/', label: 'Vietnam in figures' },
+    { href: '/country/malaysia/population/', label: "Malaysia's population" },
+    { href: '/rankings/remittances-by-country/', label: 'Remittances received, country by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Projected at <strong>{people(Number(pop.value))}</strong> for {Y}, the Philippine population is young, half of it under {age.text}. Filipinos working overseas remitted <strong>{remit.text}</strong> in {remit.year}, and high-technology products make up {hitech.text} of the country's manufactured exports.</Fragment>
+  <div class="story-block prose">
+    <h2>How much money do overseas Filipino workers send?</h2>
+    <p>{remit.text} reached the Philippines as personal remittances in {remit.year}, the {ordinal(fromTop(remit))} highest inflow of {remit.of} countries and a sum worth {remitPct.text} of GDP. The <a href={path('/country/philippines/economy/')}>Philippine economy page</a> follows it year by year.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>What share of Philippine exports is high-tech?</h2>
+    <p>{hitech.text} of manufactured exports in {hitech.year} were high-technology goods, the {ordinal(fromTop(hitech))} highest share among {hitech.of} countries in the World Bank data (UN Comtrade).</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are Filipino women more likely to have a bank account than men?</h2>
+    <p>Yes. The {accF.year} Global Findex survey found {accF.text} of Filipino women owning some kind of financial account, mobile money included, against {accM.text} of men, a gap of more than 14 points in women's favour.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many Philippine children miss primary school?</h2>
+    <p>UNESCO counted {people(Number(out.value))} primary-age Filipino children without schooling in {out.year}, the {ordinal(fromTop(out))} largest number of any country, even though adult literacy reached {lit.text} at the {lit.year} count.</p>
+  </div>
+</CountryHub>

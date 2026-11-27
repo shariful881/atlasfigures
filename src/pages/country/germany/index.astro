@@ -1,0 +1,73 @@
+---
+// Germany country hub (task 171). Every figure comes from the country profile (src/data/profiles/DEU.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/germany.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), mig = st('population', 'migrantStock'), migPct = st('population', 'migrantPct'), netMig = st('population', 'netMigrants');
+const births = st('population', 'births'), deaths = st('population', 'deaths'), age = st('population', 'medianAge');
+const gdp = st('economy', 'gdp'), growth = st('economy', 'growth'), gdpPc = st('economy', 'gdpPc'), exp = st('trade', 'exports'), imp = st('trade', 'imports');
+const ws = st('energy', 'wsShare'), ren = st('energy', 'renShare'), prot = st('environment', 'protected'), tourInc = st('trade', 'tourismInc');
+const lpi = st('internet', 'lpi'), fdi = st('economy', 'fdi'), fx = st('economy', 'fx'), art = st('education', 'articles');
+
+assertClaim(fromTop(stat(profile('USA'), 'population', 'migrantStock')) === 1 && fromTop(mig) === 2 && Number(migPct.value) > 19 && Number(netMig.value) > 0, 'second-largest migrant stock, over 19% of residents, net immigration');
+assertClaim(Number(deaths.value) > 1.4 * Number(births.value), 'deaths more than 1.4 times births');
+assertClaim(fromTop(gdp) === 3 && fromBottom(growth) === 19 && Number(growth.value) < 0.5 && fromTop(exp) === 3 && fromTop(imp) === 3, 'third GDP, 19th-weakest growth under 0.5%, third exporter and importer');
+assertClaim(fromTop(ws) === 6 && Number(ren.value) > 55 && fromTop(prot) === 12 && Number(prot.value) >= 40, 'sixth for wind and solar share, renewables over 55%, 40% protected (12th)');
+assertClaim(fromTop(tourInc) === 2 && fromTop(lpi) === 4 && fromTop(fdi) === 4 && fromTop(art) === 4, 'second tourism receipts, fourth logistics, fourth FDI, fourth articles');
+
+const title = `Germany Numbers ${Y}: Immigrants, Exports, Wind and Solar | AtlasFigures`;
+const description = `Germany hosts ${people(Number(mig.value))} foreign-born residents, second only to the US, exports ${exp.text} a year and makes ${ws.text} of its electricity from wind and sun. Growth was ${growth.text} in ${growth.year}.`;
+
+const faq = [
+  { q: 'How many euros to one dollar in Germany?', a: `A dollar bought ${fx.text} euros on average in ${fx.year} (World Bank, official rate).` },
+  { q: 'How rich are Germans per head?', a: `${gdpPc.text} in ${gdpPc.year}, ${ordinal(fromTop(gdpPc))} of ${gdpPc.of}.` },
+  { q: 'How much do foreign visitors spend in Germany?', a: `${tourInc.text} in international tourism receipts for ${tourInc.year} (no later figure is published), second only to one country among ${tourInc.of}.` },
+  { q: 'Is Germany good at logistics?', a: `It scored ${lpi.text} out of 5 on the World Bank's ${lpi.year} Logistics Performance Index, ${ordinal(fromTop(lpi))} of ${lpi.of}.` },
+];
+const headline = `Germany numbers ${Y}: immigration, an ageing population, trade and renewable power`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Germany in numbers: migrants, machines and wind power"
+  headline={headline}
+  faq={faq}
+  faqTitle="Germany: popular questions"
+  related={[
+    { href: '/country/germany/population/', label: 'Germany population: live count and migration' },
+    { href: '/country/germany/economy/', label: 'Germany economy: GDP and exports' },
+    { href: '/country/germany/health/', label: 'Germany health: beds, nurses and spending' },
+    { href: '/country/united-kingdom/', label: 'The United Kingdom in figures' },
+    { href: '/country/france/population/', label: "France's population" },
+    { href: '/country/poland/population/', label: "Poland's population" },
+    { href: '/rankings/exports-by-country/', label: 'Exports by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Germany's <strong>{people(Number(pop.value))}</strong> residents (UN projection for {Y}) include {people(Number(mig.value))} born in other countries, the second-largest such group anywhere. Its <strong>{gdp.text}</strong> economy ranks third but grew just {growth.text} in {growth.year}.</Fragment>
+  <div class="story-block prose">
+    <h2>How many immigrants live in Germany?</h2>
+    <p>UN DESA counted {people(Number(mig.value))} foreign-born people in Germany for {mig.year}, {migPct.text} of all residents; only the United States hosts more. More people still move in than out, by {int(Number(netMig.value))} in the {Y} projection. The <a href={path('/country/germany/population/')}>Germany population page</a> has the details.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Germany's natural population change negative?</h2>
+    <p>Yes. Germany's {Y} projection shows {people(Number(deaths.value))} deaths but only {int(Number(births.value))} births, in a country whose median age is {age.text}. Without migration the population would be falling faster.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is the German economy stagnating?</h2>
+    <p>Growth has nearly stalled: {growth.text} in {growth.year}, {ordinal(fromBottom(growth))} weakest of {growth.of}. Germany nonetheless remains the third-largest exporter, selling {exp.text} abroad against imports of {imp.text}, and drew {fdi.text} of foreign direct investment, {ordinal(fromTop(fdi))} most.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much of Germany's electricity is wind and solar?</h2>
+    <p>{ws.text} of German generation came from wind turbines and solar panels in {ws.year}, a share beaten by only {fromTop(ws) - 1} of the {ws.of} countries Ember tracks; renewables of all kinds supplied {ren.text}. Protected areas cover {prot.text} of German land and waters, {ordinal(fromTop(prot))} of {prot.of}.</p>
+  </div>
+</CountryHub>

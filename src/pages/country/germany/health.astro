@@ -1,0 +1,90 @@
+---
+// Germany health (task 171). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/germany.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), neo = st('neonatal'), mat = st('maternal'), doc = st('doctors'), nurse = st('nurses'), beds = st('beds');
+const hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop'), measles = st('measles'), dpt = st('dpt'), tob = st('tobacco'), diab = st('diabetes');
+const U = u5.year!;
+
+assertClaim(fromTop(beds) === 7 && fromTop(nurse) === 12 && fromTop(doc) === 15, 'seventh for beds, 12th nurses, 15th doctors');
+assertClaim(fromTop(hGdp) === 9 && fromTop(hPc) === 10 && hGdp.year === 2024, 'ninth health share, tenth per person, 2024 data');
+const neoFlat = s.neonatalMortality.filter(([y]) => y >= 2010).every(([, x]) => x === Number(neo.value));
+const u5Flat = s.under5Mortality.filter(([y]) => y >= 2019).every(([, x]) => x === Number(u5.value));
+assertClaim(neoFlat && u5Flat && U === 2024, 'newborn rate unchanged since 2010, under-five since 2019');
+assertClaim(Number(dpt.value) < Number(measles.value) && Number(dpt.value) < v('dptVaccPct', 2021) && fromTop(dpt) > 100, 'DPT below measles cover and below 2021, outside the top 100');
+const tob00 = v('tobaccoPct', 2000);
+assertClaim(tob00 - Number(tob.value) > 12, 'tobacco down more than 12 points since 2000');
+
+const title = `Germany Health ${U}: Hospital Beds, Spending, Vaccination | AtlasFigures`;
+const description = `With ${beds.text} beds per thousand inhabitants, Germany's hospital capacity ranks seventh; and spent ${hGdp.text} of GDP on health in ${hGdp.year}. Its newborn death rate has sat at ${neo.text} per 1,000 since 2010.`;
+
+const faq = [
+  { q: 'What does health care cost per German?', a: `${hPc.text} in ${hPc.year}, ${ordinal(fromTop(hPc))} highest of ${hPc.of}, with ${oop.text} paid directly by patients.` },
+  { q: 'Does Germany have plenty of medical staff?', a: `Yes: in ${doc.year} there were ${doc.text} physicians per thousand Germans and an even larger nursing workforce, ${nurse.text}.` },
+  { q: 'Is childbirth safe in Germany?', a: `Very: modelled German maternal mortality came to ${mat.text} per 100,000 births in ${mat.year}, down from ${v('maternalMortality', 1990)} in 1990 (UN MMEIG).` },
+  { q: 'How many Germans have diabetes or smoke?', a: `Diabetes: ${diab.text} of adults (${diab.year}, IDF). Tobacco: ${tob.text} (${tob.year}, WHO), down from ${pct(tob00)} in 2000.` },
+];
+const headline = `Germany health ${U}: hospital beds, health spending, infant survival and vaccination`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Health in Germany: many beds, big budgets, stalled gains"
+  headline={headline}
+  tableTitle={`Health trends in Germany, 1990–${U}`}
+  tableSubtitle="On screen, twelve reference years; in the CSV, every German value by year."
+  faq={faq}
+  faqTitle="German health: compact answers"
+  related={[
+    { href: '/country/germany/', label: 'Germany in numbers' },
+    { href: '/country/germany/population/', label: 'Germany population and ageing' },
+    { href: '/country/united-kingdom/health/', label: 'UK health' },
+    { href: '/country/japan/health/', label: 'Japan health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality, every country ranked' },
+  ]}
+>
+  <Fragment slot="answer">German hospitals keep <strong>{beds.text} beds per 1,000 population</strong>, {ordinal(fromTop(beds))} most worldwide, and devoted <strong>{hGdp.text} of GDP</strong> to health in {hGdp.year}. Infant survival has stopped improving: newborn mortality has held at {neo.text} per thousand since 2010.</Fragment>
+  <div class="story-block prose">
+    <h2>How many hospital beds and staff does Germany have?</h2>
+    <p>Plenty by world standards. Germany's {beds.year} figure of {beds.text} hospital beds per thousand residents ranked {ordinal(fromTop(beds))} of {beds.of}; there were {nurse.text} nurses and midwives ({ordinal(fromTop(nurse))}) and {doc.text} doctors ({ordinal(fromTop(doc))}) per thousand in {doc.year}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is German health care expensive?</h2>
+    <p>By most measures, yes: {hGdp.text} of GDP in {hGdp.year} ({ordinal(fromTop(hGdp))} highest share), or {hPc.text} per person, of which patients paid {oop.text} themselves.</p>
+  </div>
+  <LineChart
+    title={`German health spending relative to GDP, 2000–${hGdp.year}`}
+    subtitle="German current health expenditure from every source, as a share of GDP (WHO)."
+    points={s.healthSpendPctGdp.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="percent"
+    highlight={hGdp.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Has infant survival in Germany stopped improving?</h2>
+    <p>On UN estimates, yes. German neonatal mortality has read {neo.text} each year from 2010 onwards, and the under-five rate {u5.text} since 2019, down from {v('under5Mortality', 1990)} in 1990.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is childhood vaccination slipping in Germany?</h2>
+    <p>For DPT, slightly: three-dose coverage was {pct(v('dptVaccPct', 2021))} in 2021 and {dpt.text} in {dpt.year}, {ordinal(fromTop(dpt))} of {dpt.of}, while measles coverage held at {measles.text}. Ageing and lifespans: see <a href={path('/country/germany/population/')}>Germany's population</a>.</p>
+  </div>
+</HealthTopic>

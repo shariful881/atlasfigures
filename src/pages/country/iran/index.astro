@@ -1,0 +1,72 @@
+---
+// Iran country hub (task 171). Every figure comes from the country profile (src/data/profiles/IRN.json), built from
+// the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/iran.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), urban = st('population', 'urban'), tfr = st('population', 'fertility'), mig = st('population', 'migrantStock');
+const infl = st('economy', 'inflation'), growth = st('economy', 'growth'), gdp = st('economy', 'gdp'), gdpPc = st('economy', 'gdpPc'), debt = st('economy', 'extDebtPct');
+const fossil = st('energy', 'fossilShare'), ren = st('energy', 'renShare'), co2 = st('environment', 'co2'), co2pc = st('environment', 'co2pc');
+const lfpF = st('jobs', 'lfpF'), lfpM = st('jobs', 'lfpM'), parl = st('governance', 'womenParl'), art = st('education', 'articles'), youth = st('jobs', 'youthUnemp');
+
+assertClaim(fromTop(pop) === 17, '17th by population');
+assertClaim(fromTop(infl) === 5 && Number(infl.value) > 40 && fromBottom(growth) === 4 && Number(growth.value) < 0, 'fifth-highest inflation above 40%, fourth-weakest growth, a contraction');
+assertClaim(fromTop(fossil) === 4 && fromBottom(ren) === 4 && fromTop(co2) === 6 && fromTop(co2pc) === 26, 'fourth-highest fossil share, fourth-lowest renewables, sixth CO2, 26th per person');
+assertClaim(fromBottom(lfpF) === 5 && fromBottom(parl) === 11 && Number(parl.value) < 5, "fifth-lowest women's participation, 11th-lowest share of women MPs (under 5%)");
+assertClaim(fromTop(mig) === 17 && fromBottom(debt) === 3 && fromTop(art) === 14, '17th migrant stock, third-lowest external debt ratio, 14th for science articles');
+
+const title = `Iran Statistics ${Y}: Inflation, Fossil Power, Women at Work | AtlasFigures`;
+const description = `Iranian inflation reached ${infl.text} in ${infl.year} while output shrank ${growth.text.replace('-', '')}. Fossil fuels make ${fossil.text} of its electricity, and only ${lfpF.text} of women are in the labour force. ${people(Number(pop.value))} people (UN, ${Y}).`;
+
+const faq = [
+  { q: 'What was Iran\'s GDP?', a: `${gdp.text} in ${gdp.year} at market exchange rates, ${ordinal(fromTop(gdp))} worldwide, or ${gdpPc.text} per Iranian.` },
+  { q: 'Does Iran owe much abroad?', a: `Little: Iran's external debt was ${debt.text} of gross national income in ${debt.year}, below all but two of the ${debt.of} borrowers in the World Bank's debt statistics.` },
+  { q: 'Is youth unemployment high in Iran?', a: `${youth.text} of 15 to 24-year-olds in the labour force were jobless in ${youth.year} (ILO modelled estimate).` },
+  { q: 'How much science does Iran publish?', a: `${art.text} scientific and technical articles in ${art.year}, ${ordinal(fromTop(art))} most of ${art.of} countries.` },
+];
+const headline = `Iran statistics ${Y}: inflation, energy, emissions, women's work and migration`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Iran by the numbers: prices, power plants and people"
+  headline={headline}
+  faq={faq}
+  faqTitle="Common Iran questions"
+  related={[
+    { href: '/country/iran/population/', label: 'Iran population: live count and outlook' },
+    { href: '/country/iran/economy/', label: 'Iran economy: GDP and inflation' },
+    { href: '/country/iran/health/', label: 'Iran health: vaccines and mothers' },
+    { href: '/country/turkey/', label: 'Turkey in figures' },
+    { href: '/country/pakistan/', label: 'Pakistan by numbers' },
+    { href: '/country/iraq/population/', label: "Iraq's population" },
+    { href: '/rankings/inflation-rate-by-country/', label: 'Inflation rate by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">By UN projection, {Y} finds <strong>{people(Number(pop.value))}</strong> people in Iran. In {infl.year} consumer prices climbed <strong>{infl.text}</strong>, fifth fastest anywhere, while real GDP fell {growth.text.replace('-', '')}; fossil fuels generate nearly all of its power.</Fragment>
+  <div class="story-block prose">
+    <h2>How bad is inflation in Iran?</h2>
+    <p>Severe. At {infl.text} in {infl.year}, Iranian inflation ranked {ordinal(fromTop(infl))} of {infl.of}, and the economy contracted by {growth.text.replace('-', '')}; just three economies did worse. The <a href={path('/country/iran/economy/')}>Iran economy page</a> has the yearly series.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Does Iran generate any renewable power?</h2>
+    <p>Very little: renewables supplied {ren.text} in {ren.year} (Ember), while fossil fuels produced {fossil.text}, {ordinal(fromTop(fossil))} highest share of {fossil.of}. Fossil CO₂ emissions of {co2.text} million tonnes rank {ordinal(fromTop(co2))}, or {co2pc.text} tonnes per person.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are Iranian women in work and in parliament?</h2>
+    <p>Very few. ILO modelling puts women's labour force participation at {lfpF.text} in {lfpF.year}, against {lfpM.text} for men, {ordinal(fromBottom(lfpF))} lowest of {lfpF.of}. Women held {parl.text} of seats in parliament in {parl.year} (IPU).</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Does Iran host a large foreign-born population?</h2>
+    <p>Yes: UN DESA counted {people(Number(mig.value))} people born outside Iran living there in {mig.year}, {ordinal(fromTop(mig))} most worldwide. Fertility has dropped to {tfr.text} births per Iranian woman, and towns and cities hold {urban.text} of Iranians.</p>
+  </div>
+</CountryHub>

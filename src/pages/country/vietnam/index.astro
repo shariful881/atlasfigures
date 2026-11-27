@@ -1,0 +1,74 @@
+---
+// Vietnam country hub (task 171). Every figure comes from the country profile (src/data/profiles/VNM.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/vietnam.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people, countryData } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), urban = st('population', 'urban');
+const expPct = st('trade', 'exportsPct'), exp = st('trade', 'exports'), hitech = st('trade', 'hitech'), teu = st('internet', 'ports');
+const growth = st('economy', 'growth'), gdp = st('economy', 'gdp'), gdpPc = st('economy', 'gdpPc'), fdi = st('economy', 'fdi'), fx = st('economy', 'fx');
+const empInd = st('jobs', 'empInd'), unemp = st('jobs', 'unemp'), lfpF = st('jobs', 'lfpF'), povNat = st('economy', 'povNat'), fert = st('farming', 'fert');
+
+const crossed = countryData('VNM').years.find((y) => y.population > 100e6)!.year;
+assertClaim(fromTop(pop) === 16 && crossed < Y, '16th by population, crossed 100 million before this year');
+assertClaim(Number(empInd.value) > 33 && Number(empInd.value) < 36, 'about a third of workers in industry');
+assertClaim(fromTop(expPct) === 9 && Number(expPct.value) > 95 && fromTop(hitech) === 11 && fromTop(teu) === 6, 'exports near GDP (9th), 11th high-tech share, 6th container traffic');
+assertClaim(fromTop(growth) === 12 && Number(growth.value) >= 8, '12th-fastest growth, 8% or more');
+assertClaim(fromTop(empInd) === 5 && fromBottom(unemp) === 11 && fromTop(lfpF) === 20, 'fifth-highest industry jobs share, 11th-lowest unemployment, 20th women\'s participation');
+assertClaim(fromBottom(povNat) === 4 && fromTop(fert) === 11, 'fourth-lowest national poverty rate, 11th fertiliser use');
+
+const title = `Vietnam Statistics ${Y}: Exports, Fast Growth, Factory Jobs | AtlasFigures`;
+const description = `Vietnam's exports equal ${expPct.text} of GDP, its economy grew ${growth.text} in ${growth.year}, and a third of workers hold industrial jobs. ${people(Number(pop.value))} people (UN, ${Y}).`;
+
+const faq = [
+  { q: 'How many dong to one US dollar?', a: `${fx.text} dong per dollar in ${fx.year}, the latest official yearly average in the World Bank series.` },
+  { q: 'What is the average Vietnamese income?', a: `Measured as GDP per head, ${gdpPc.text} in ${gdpPc.year} (total output ${gdp.text}).` },
+  { q: 'How much foreign investment flows into Vietnam?', a: `${fdi.text} of net FDI inflows in ${fdi.year}, ${ordinal(fromTop(fdi))} among ${fdi.of} economies.` },
+  { q: 'How many Vietnamese are poor?', a: `${povNat.text} by the national poverty line in ${povNat.year}, ${ordinal(fromBottom(povNat))} lowest rate of ${povNat.of} countries reporting one.` },
+];
+const headline = `Vietnam statistics ${Y}: exports, growth, industrial jobs and working women`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1={`Vietnam in numbers: an export powerhouse of ${people(Number(pop.value))}`}
+  headline={headline}
+  faq={faq}
+  faqTitle="Vietnam explained in short"
+  related={[
+    { href: '/country/vietnam/population/', label: 'Vietnam population: live count and outlook' },
+    { href: '/country/vietnam/economy/', label: 'Vietnam economy: GDP and growth' },
+    { href: '/country/vietnam/health/', label: 'Vietnam health: road deaths and stunting' },
+    { href: '/country/thailand/', label: 'Thailand in figures' },
+    { href: '/country/philippines/', label: 'The Philippines in data' },
+    { href: '/country/laos/population/', label: "Laos's population" },
+    { href: '/rankings/exports-by-country/', label: 'Exports by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Above the 100 million mark in UN estimates since {crossed}, Vietnam is projected to have <strong>{people(Number(pop.value))}</strong> people in {Y}. Its foreign sales, <strong>{exp.text}</strong> in {exp.year}, were worth {expPct.text} of GDP, and real growth reached {growth.text}.</Fragment>
+  <div class="story-block prose">
+    <h2>How much does Vietnam rely on exports?</h2>
+    <p>Heavily: export sales nearly matched the whole of GDP in {expPct.year} ({expPct.text}), {ordinal(fromTop(expPct))} highest ratio of {expPct.of}. Hi-tech products formed {hitech.text} of Vietnam's manufactured exports ({hitech.year}), and Vietnamese ports moved {people(Number(teu.value))} containers in {teu.year}, {ordinal(fromTop(teu))} most worldwide.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Vietnam's economy growing fast?</h2>
+    <p>One of the fastest: {growth.text} in {growth.year}, {ordinal(fromTop(growth))} of {growth.of}, lifting Vietnamese output to {gdp.text}. Foreign direct investment brought in {fdi.text}. The <a href={path('/country/vietnam/economy/')}>Vietnamese economy page</a> charts the record.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>What kind of jobs do Vietnamese workers have?</h2>
+    <p>Factory and construction work stands out: industry employed {empInd.text} of workers in {empInd.year}, {ordinal(fromTop(empInd))} highest share on ILO estimates. Unemployment was only {unemp.text}, and {lfpF.text} of women were in the labour force, {ordinal(fromTop(lfpF))} of {lfpF.of}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Do most Vietnamese still live in the countryside?</h2>
+    <p>Yes: under the national definition only {urban.text} count as urban. Its median age is {age.text}; the <a href={path('/country/vietnam/population/')}>Vietnam population page</a> shows the projected peak.</p>
+  </div>
+</CountryHub>

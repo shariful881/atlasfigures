@@ -1,0 +1,73 @@
+---
+// Turkey country hub (task 171). Every figure comes from the country profile (src/data/profiles/TUR.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/turkey.json';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), mig = st('population', 'migrantStock'), migPct = st('population', 'migrantPct'), netMig = st('population', 'netMigrants');
+const infl = st('economy', 'inflation'), debt = st('economy', 'extDebt'), gdp = st('economy', 'gdp'), gdpPc = st('economy', 'gdpPc'), fx = st('economy', 'fx'), growth = st('economy', 'growth');
+const air = st('internet', 'air'), tour = st('trade', 'tourists'), tourInc = st('trade', 'tourismInc'), ter = st('education', 'enrTer');
+const lfpF = st('jobs', 'lfpF'), pat = st('education', 'patRes'), urban = st('population', 'urban');
+
+assertClaim(fromTop(pop) === 18 && fromTop(mig) === 11 && Number(migPct.value) > 8, '18th by population, 11th migrant stock, over 8% of residents');
+assertClaim(fromTop(infl) === 6 && Number(infl.value) > 30 && fromTop(debt) === 5, 'sixth-highest inflation above 30%, fifth-largest external debt');
+assertClaim(fromTop(air) === 5 && fromTop(tour) === 15 && fromTop(tourInc) === 12, 'fifth for air passengers, 15th tourist arrivals, 12th tourism receipts');
+assertClaim(fromTop(ter) === 10 && Number(ter.value) > 100 && fromTop(pat) === 10, 'tenth for tertiary enrolment (over 100%), tenth for resident patents');
+assertClaim(Number(lfpF.value) < 40, 'fewer than two in five women in the labour force');
+assertClaim(Number(netMig.value) < 0 && fromTop(lfpF) > 155, 'net emigration this year; women\'s participation outside the top 155');
+
+const title = `Turkey Data ${Y}: Inflation, Migrants, Air Travel, Universities | AtlasFigures`;
+const description = `Inflation in Turkey hit ${infl.text} in ${infl.year}, sixth fastest anywhere. It hosts ${people(Number(mig.value))} people born abroad, its airlines fly the fifth most passengers, and university enrolment tops 100%.`;
+
+const faq = [
+  { q: 'How many lira to a dollar?', a: `${fx.text} Turkish lira, the ${fx.year} average of the official rate per World Bank data.` },
+  { q: 'How much does Turkey\'s economy produce?', a: `GDP was ${gdp.text} for ${gdp.year} (real growth ${growth.text}), ${ordinal(fromTop(gdp))} of ${gdp.of}; per head, ${gdpPc.text}.` },
+  { q: 'Is Turkey a major tourist destination?', a: `Yes: ${people(Number(tour.value))} visitors from abroad in ${tour.year} (the most recent figure available), ${ordinal(fromTop(tour))} of ${tour.of}, spending ${tourInc.text}.` },
+  { q: 'Do many Turkish women work?', a: `Fewer than two in five: Turkish women's participation rate was ${lfpF.text} for ${lfpF.year} (modelled by the ILO), ${ordinal(fromTop(lfpF))} of ${lfpF.of}.` },
+];
+const headline = `Turkey data ${Y}: inflation, external debt, migrants, air travel and higher education`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Turkey in data: prices, migrants, flights and campuses"
+  headline={headline}
+  faq={faq}
+  faqTitle="Turkey questions in brief"
+  related={[
+    { href: '/country/turkey/population/', label: 'Turkey population: live count and outlook' },
+    { href: '/country/turkey/economy/', label: 'Turkey economy: GDP, inflation and the lira' },
+    { href: '/country/turkey/health/', label: 'Turkey health: smoking and diabetes' },
+    { href: '/country/iran/', label: 'Iran by the numbers' },
+    { href: '/country/greece/population/', label: "Greece's population" },
+    { href: '/country/syria/population/', label: "Syria's population" },
+    { href: '/rankings/inflation-rate-by-country/', label: 'Inflation rate by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">For {Y} the UN expects Turkey's population to reach <strong>{people(Number(pop.value))}</strong>, {urban.text} of it urban. Inflation reached <strong>{infl.text}</strong> in {infl.year}, and {people(Number(mig.value))} of its residents were born abroad, {ordinal(fromTop(mig))} most of any country.</Fragment>
+  <div class="story-block prose">
+    <h2>Does Turkey have some of the world's fastest inflation?</h2>
+    <p>It is: {infl.text} in {infl.year}, {ordinal(fromTop(infl))} of {infl.of}. Turkey also carries the {ordinal(fromTop(debt))} largest external debt in the World Bank's debtor tables, {debt.text}. The lira, growth and prices by year: <a href={path('/country/turkey/economy/')}>Turkey's economy</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How large is Turkey's migrant population?</h2>
+    <p>Large: UN DESA's {mig.year} count of {people(Number(mig.value))} foreign-born residents equals {migPct.text} of everyone living in Turkey. This year the UN still projects more people leaving than arriving, a net loss of {int(-Number(netMig.value))} people.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How busy is Turkish aviation?</h2>
+    <p>Very. Turkish-registered airlines flew {people(Number(air.value))} travellers in {air.year}, behind only {fromTop(air) - 1} countries (ICAO data). Tourism earned {tourInc.text} in {tourInc.year}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many young Turks go to university?</h2>
+    <p>Gross tertiary enrolment stood at {ter.text} in {ter.year}, {ordinal(fromTop(ter))} highest of {ter.of}; ratios above 100% happen when older or part-time students swell the count beyond the age group. Residents of Turkey submitted {pat.text} domestic patent filings in {pat.year}.</p>
+  </div>
+</CountryHub>

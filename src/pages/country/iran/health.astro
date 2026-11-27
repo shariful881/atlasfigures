@@ -1,0 +1,105 @@
+---
+// Iran health (task 171). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips by
+// check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/iran.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), neo = st('neonatal'), mat = st('maternal'), doc = st('doctors'), nurse = st('nurses'), hGdp = st('healthGdp'), hPc = st('healthPc');
+const oop = st('oop'), measles = st('measles'), dpt = st('dpt'), tob = st('tobacco'), diab = st('diabetes');
+const U = u5.year!;
+
+const since = s.measlesVaccPct.filter(([, x]) => x < 99).at(-1)![0] + 1;
+assertClaim(since === 2014 && Number(measles.value) === 99 && fromTop(measles) === 7, 'measles 99% every year since 2014, seventh highest');
+const m19 = v('maternalMortality', 2019), m21 = v('maternalMortality', 2021);
+assertClaim(mat.year === 2023 && m21 < 3 * m19 && m21 > 2.5 * m19 && Number(mat.value) < m19, 'maternal ratio more than 2.5 times 2019 in 2021, now below 2019');
+const u5_90 = v('under5Mortality', 1990);
+const fifth = Number(u5.value) / u5_90;
+assertClaim(U === 2024 && fifth > 0.18 && fifth < 0.21, 'under-five rate about a fifth of 1990');
+const oop20 = v('outOfPocketPct', 2020);
+assertClaim(oop.year === 2023 && Number(oop.value) > oop20 + 5, 'out-of-pocket share up over 5 points since 2020');
+const doc15 = v('doctorsPer1000', 2015), tob00 = v('tobaccoPct', 2000);
+assertClaim(doc.year === 2023 && Number(doc.value) > 1.6 * doc15 && Number(tob.value) < 0.52 * tob00, 'doctors up over 60% since 2015; tobacco about halved');
+
+const title = `Iran Health Data ${U}: Vaccination, Maternal Deaths, Costs | AtlasFigures`;
+const description = `Iran has vaccinated ${measles.text} of toddlers against measles every year since ${since}. Maternal deaths spiked to ${m21} per 100,000 births in 2021 before falling to ${mat.text}; patients' share of costs is climbing.`;
+
+const faq = [
+  { q: 'Has Iranian child mortality fallen?', a: `To roughly one fifth of its 1990 level (${u5_90}): Iran's ${U} rate was ${u5.text}, and its newborn rate ${neo.text}.` },
+  { q: 'Has Iran added doctors?', a: `Yes: ${doc.text} per 1,000 people in ${doc.year} against ${doc15} in 2015, and there were ${nurse.text} nurses or midwives per 1,000.` },
+  { q: 'What proportion of Iranians have diabetes?', a: `${diab.text} of Iranian adults in ${diab.year} on the International Diabetes Federation estimate.` },
+  { q: 'What share of GDP does Iran devote to health?', a: `${hGdp.text} in ${hGdp.year}, equal to ${hPc.text} a head at market exchange rates.` },
+];
+const headline = `Iran health ${U}: vaccination coverage, maternal deaths, child mortality and costs`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Health in Iran: near-universal vaccines, rising bills"
+  headline={headline}
+  tableTitle={`Iran's health in numbers, 1990–${U}`}
+  tableSubtitle="Rows for twelve chosen years; the CSV runs through every year Iran reports."
+  faq={faq}
+  faqTitle="Iran health: fast answers"
+  related={[
+    { href: '/country/iran/', label: 'Iran by the numbers' },
+    { href: '/country/iran/population/', label: 'Iran population and life expectancy' },
+    { href: '/country/turkey/health/', label: 'Turkey health' },
+    { href: '/country/egypt/health/', label: 'Egypt health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal mortality by country' },
+  ]}
+>
+  <Fragment slot="answer">Every year since {since}, <strong>{measles.text} of Iranian toddlers</strong> have been vaccinated against measles. Under-five mortality is roughly one fifth of what it was in 1990, but Iranian families now pay <strong>{oop.text}</strong> of all health costs directly, against {pct(oop20)} in 2020.</Fragment>
+  <div class="story-block prose">
+    <h2>How well vaccinated are Iran's children?</h2>
+    <p>Almost completely. WHO and UNICEF put Iranian measles coverage at {measles.text} in each year from {since} to {measles.year}, {ordinal(fromTop(measles))} highest of {measles.of}, with DPT3 at {dpt.text}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How high did Iran's maternal mortality go in 2021?</h2>
+    <p>To {m21} per 100,000 births, nearly triple the {m19} of 2019, after {v('maternalMortality', 2020)} in 2020. The UN-modelled ratio then dropped to {v('maternalMortality', 2022)} and reached {mat.text} in {mat.year}.</p>
+  </div>
+  <LineChart
+    title={`Maternal deaths in Iran, 1990–${mat.year}`}
+    subtitle="Iran, maternal deaths for every 100,000 babies born alive, modelled by the UN MMEIG."
+    points={s.maternalMortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    unit="per 100,000 live births"
+    highlight={mat.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Are Iranians paying more for health care?</h2>
+    <p>Yes, as a share. Out-of-pocket payments made up {pct(oop20)} of Iran's health spending in 2020 and {oop.text} by {oop.year} (WHO); Iran's health spending overall came to {hGdp.text} of GDP.</p>
+  </div>
+  <LineChart
+    title={`Out-of-pocket payments in Iran, 2000–${oop.year}`}
+    subtitle="Share of Iran's health spending paid directly by households at the time of care (WHO), %."
+    points={s.outOfPocketPct.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="percent"
+    highlight={oop.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Do fewer Iranians use tobacco now?</h2>
+    <p>Roughly by half: from {pct(tob00)} of Iranian adults in 2000 to {tob.text} in {tob.year}. The <a href={path('/country/iran/population/')}>Iran population page</a> covers life expectancy and births.</p>
+  </div>
+</HealthTopic>

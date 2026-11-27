@@ -1,0 +1,103 @@
+---
+// Japan health (task 171). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/japan.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), infant = st('infant'), neo = st('neonatal'), mat = st('maternal'), doc = st('doctors'), nurse = st('nurses'), beds = st('beds');
+const hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop'), dpt = st('dpt'), tob = st('tobacco'), diab = st('diabetes');
+const U = u5.year!;
+
+assertClaim(fromBottom(infant) === 4 && fromBottom(neo) === 5 && fromBottom(u5) === 7 && U === 2024, 'fourth-lowest infant, fifth-lowest newborn, seventh-lowest under-five rate');
+assertClaim(fromTop(beds) === 3 && Number(beds.value) > 12, 'third-most hospital beds per person, over 12 per 1,000');
+const ratio = Number(nurse.value) / Number(doc.value);
+assertClaim(nurse.year === doc.year && ratio > 4.8 && ratio < 5, 'about five nurses per doctor');
+const peak = s.healthSpendPctGdp.reduce((a, b) => (b[1] > a[1] ? b : a));
+assertClaim(peak[0] === 2022 && Number(hGdp.value) < peak[1] - 1.5 && fromTop(hGdp) === 20, 'health share peaked in 2022, now over 1.5 points lower, 20th');
+const tob00 = v('tobaccoPct', 2000), mat90 = v('maternalMortality', 1990);
+assertClaim(Number(tob.value) / tob00 > 0.5 && Number(tob.value) / tob00 < 0.55 && mat90 / Number(mat.value) > 4, 'tobacco nearly halved; maternal deaths less than a quarter of 1990');
+assertClaim(fromTop(dpt) === 7, 'seventh-highest DPT coverage');
+
+const title = `Japan Health Data ${U}: Infant Survival, Hospital Beds, Nurses | AtlasFigures`;
+const description = `Japan's ${U} infant mortality of ${infant.text} per 1,000 births is fourth lowest worldwide. Hospitals offer ${beds.text} beds per thousand and about five nurses for every doctor.`;
+
+const faq = [
+  { q: 'Does Japan have the lowest infant mortality?', a: `Close to it: ${infant.text} per thousand births (${U}) puts Japan ${ordinal(fromBottom(infant))} from the bottom of ${infant.of}, with neonatal deaths at ${neo.text}.` },
+  { q: 'Does Japan have more hospital beds than other countries?', a: `More than almost all: ${beds.text} per 1,000 Japanese in ${beds.year}, ${ordinal(fromTop(beds))} highest of ${beds.of}.` },
+  { q: 'Do Japanese patients pay much themselves?', a: `Only a small part falls directly on patients: households paid ${oop.text} out of pocket in ${oop.year}, out of ${hPc.text} spent per person.` },
+  { q: 'What share of Japanese adults are diabetic?', a: `${diab.text} in ${diab.year}; the International Diabetes Federation ranks Japan ${ordinal(fromTop(diab))} of ${diab.of}.` },
+];
+const headline = `Japan health ${U}: infant survival, hospital beds, nurses and health spending`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Japan's health: tiny infant losses, beds and nurses aplenty"
+  headline={headline}
+  tableTitle={`Japanese health record, 1990–${U}`}
+  tableSubtitle="A dozen sample years on screen; Japan's every year sits in the CSV."
+  faq={faq}
+  faqTitle="Health in Japan: brief answers"
+  related={[
+    { href: '/country/japan/', label: 'Japan in figures' },
+    { href: '/country/japan/population/', label: 'Japan population and ageing' },
+    { href: '/country/germany/health/', label: 'Germany health' },
+    { href: '/country/china/health/', label: 'China health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality, every country ranked' },
+  ]}
+>
+  <Fragment slot="answer">Just <strong>{infant.text} in every thousand Japanese infants</strong> die within their first year ({U}), fourth fewest of any country. Its hospitals provide <strong>{beds.text} beds per 1,000 inhabitants</strong>, {ordinal(fromTop(beds))} most of any country, and employs about five nurses for each doctor.</Fragment>
+  <div class="story-block prose">
+    <h2>How rare are infant deaths in Japan?</h2>
+    <p>Among the rarest anywhere. Japan's infant rate of {infant.text} ({U}) is beaten by only three countries, and its neonatal rate of {neo.text} by four; counting to age five, {u5.text} children per thousand die, down from {v('under5Mortality', 1990)} in 1990. Japan's maternal ratio is down to {mat.text} (per 100,000 births, {mat.year}) from {mat90} in 1990.</p>
+  </div>
+  <LineChart
+    title={`Japanese child deaths before five, 1990–${U}`}
+    subtitle="Japanese children who die before age five, for each thousand live births (UN IGME)."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 live births"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How many hospital beds and nurses does Japan have?</h2>
+    <p>Far more than most countries. Japan's hospitals counted {beds.text} beds for each thousand people in {beds.year}, {ordinal(fromTop(beds))} of {beds.of}. Japan's nursing workforce ({nurse.text} per thousand, {nurse.year}; {ordinal(fromTop(nurse))} in the world) is roughly five times its {doc.text} doctors.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Japan spending less on health than before?</h2>
+    <p>As a share of the economy, yes, since 2022. Japanese health outlays peaked that year at {pct(peak[1])} of GDP, the highest on record, and {hGdp.text} in {hGdp.year}, still {ordinal(fromTop(hGdp))} of {hGdp.of}; per person it came to {hPc.text}. Only {oop.text} was paid at the point of care by patients.</p>
+  </div>
+  <LineChart
+    title={`Japan's health bill as a percent of GDP, 2000–${hGdp.year}`}
+    subtitle="Japan's current health expenditure, all payers, in percent of gross domestic product (WHO)."
+    points={s.healthSpendPctGdp.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="percent"
+    highlight={hGdp.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Has smoking declined in Japan?</h2>
+    <p>Nearly by half. Tobacco was used by {pct(tob00)} of Japanese adults in 2000 and {tob.text} in {tob.year} (WHO). Childhood immunisation is close to complete, with three-dose DPT coverage of {dpt.text}, {ordinal(fromTop(dpt))} highest. Japan's lifespans are charted with its <a href={path('/country/japan/population/')}>population data</a>.</p>
+  </div>
+</HealthTopic>

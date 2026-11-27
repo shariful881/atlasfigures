@@ -1,0 +1,74 @@
+---
+// United Kingdom country hub (task 171). Every figure comes from the country profile (src/data/profiles/GBR.json),
+// built from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/united-kingdom.json';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), mig = st('population', 'migrantStock'), migPct = st('population', 'migrantPct'), netMig = st('population', 'netMigrants');
+const births = st('population', 'births'), deaths = st('population', 'deaths'), tfr = st('population', 'fertility');
+const gdp = st('economy', 'gdp'), gdpPc = st('economy', 'gdpPc'), exp = st('trade', 'exports'), imp = st('trade', 'imports'), srv = st('jobs', 'empSrv');
+const tax = st('economy', 'tax'), prot = st('environment', 'protected'), protSea = st('environment', 'protSea'), ws = st('energy', 'wsShare');
+const acc = st('internet', 'account'), parl = st('governance', 'womenParl'), fx = st('economy', 'fx'), art = st('education', 'articles');
+
+const gap = Number(births.value) - Number(deaths.value);
+assertClaim(gap > 0 && gap < 1000, 'births exceed deaths by fewer than a thousand');
+assertClaim(fromTop(mig) === 4 && Number(migPct.value) > 17 && Number(netMig.value) > 300e3, 'fourth-largest migrant stock, over 17% of residents, net migration above 300,000');
+assertClaim(fromTop(gdp) === 5 && fromTop(exp) === 4 && fromTop(imp) === 4 && fromTop(srv) === 12, 'fifth GDP, fourth exporter and importer, 12th services jobs share');
+assertClaim(fromTop(prot) === 8 && fromTop(protSea) === 8 && fromTop(ws) === 13 && fromTop(acc) === 4, 'eighth for protected areas and protected sea, 13th wind and solar, fourth for accounts');
+assertClaim(fromTop(tax) === 9 && fromTop(art) === 5 && fromTop(parl) === 28, 'ninth tax take, fifth articles, 28th women MPs');
+
+const title = `United Kingdom Facts ${Y}: Migration, Births vs Deaths, Trade | AtlasFigures`;
+const description = `UK births now exceed deaths by only ${int(gap)} a year (UN, ${Y}), so growth comes from migration; ${people(Number(mig.value))} people living in Britain were born elsewhere. Britain is the fourth-largest exporter and fifth-largest economy.`;
+
+const faq = [
+  { q: 'How many pounds to one dollar?', a: `Around ${fx.text} pounds sterling per dollar in ${fx.year}, the official yearly average (World Bank).` },
+  { q: 'What is the UK\'s GDP per person?', a: `${gdpPc.text} in ${gdpPc.year}, ${ordinal(fromTop(gdpPc))} of ${gdpPc.of}.` },
+  { q: 'How much tax does the UK government collect?', a: `Taxes brought in ${tax.text} of British GDP during ${tax.year}, ${ordinal(fromTop(tax))} highest of ${tax.of} in the World Bank's government finance data.` },
+  { q: 'What share of British MPs are women?', a: `${parl.text} of House of Commons seats in ${parl.year} on IPU figures, ${ordinal(fromTop(parl))} of ${parl.of}.` },
+];
+const headline = `United Kingdom facts ${Y}: migration, births and deaths, trade, protected land and sea`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="The United Kingdom in figures: a nation growing by migration"
+  headline={headline}
+  faq={faq}
+  faqTitle="UK facts: reader questions"
+  related={[
+    { href: '/country/united-kingdom/population/', label: 'UK population: live count and migration' },
+    { href: '/country/united-kingdom/economy/', label: 'UK economy: GDP and trade' },
+    { href: '/country/united-kingdom/health/', label: 'UK health: children, vaccines and spending' },
+    { href: '/country/germany/', label: 'Germany in numbers' },
+    { href: '/country/ireland/population/', label: "Ireland's population" },
+    { href: '/country/france/population/', label: "France's population" },
+    { href: '/rankings/immigrant-population-by-country/', label: 'Immigrant population by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">The UK's <strong>{people(Number(pop.value))}</strong> people (UN projection, {Y}) are growing almost entirely through migration: births outnumber deaths by just {int(gap)}, while net arrivals add {int(Number(netMig.value))}. Its economy of <strong>{gdp.text}</strong> ranks fifth.</Fragment>
+  <div class="story-block prose">
+    <h2>Are births and deaths now equal in the UK?</h2>
+    <p>Almost. In the UN's {Y} projection, British babies ({int(Number(births.value))}) outnumber British deaths ({int(Number(deaths.value))}) by a mere {int(gap)}, with fertility at {tfr.text}. More on the <a href={path('/country/united-kingdom/population/')}>United Kingdom population</a> page.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many people born abroad live in Britain?</h2>
+    <p>UN DESA's {mig.year} estimate is {people(Number(mig.value))}, which is {migPct.text} of the population; only {fromTop(mig) - 1} countries host more people born abroad. The UN projects a further net gain of {int(Number(netMig.value))} migrants in {Y}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How big is British trade?</h2>
+    <p>Fourth largest in the world each way: exports of {exp.text} and imports of {imp.text} in {exp.year}. Services dominate work, employing {srv.text} of the labour force, {ordinal(fromTop(srv))} highest share. Trends in output and prices: <a href={path('/country/united-kingdom/economy/')}>the British economy</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much of the UK is protected?</h2>
+    <p>Protected status covered {prot.text} of British land and coastal waters in {prot.year}, {ordinal(fromTop(prot))} highest; at sea alone the share is {protSea.text}. Wind and solar produced {ws.text} of British electricity in {ws.year} (Ember), {ordinal(fromTop(ws))} of {ws.of}.</p>
+  </div>
+</CountryHub>
