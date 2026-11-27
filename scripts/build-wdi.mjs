@@ -50,6 +50,8 @@ export const LABELS = {
   'SE.XPD.TOTL.GD.ZS': { key: 'eduSpendPctGdp', label: 'Government expenditure on education', unit: '% of GDP' },
   'SL.TLF.CACT.FE.ZS': { key: 'lfpFemale', label: 'Labour force participation, women', unit: '% of women ages 15+ (modelled ILO estimate)' },
   'SL.TLF.CACT.MA.ZS': { key: 'lfpMale', label: 'Labour force participation, men', unit: '% of men ages 15+ (modelled ILO estimate)' },
+  'SM.POP.TOTL': { key: 'migrantStock', label: 'International migrant stock', unit: 'people born in another country (UN DESA)' },
+  'SM.POP.TOTL.ZS': { key: 'migrantPct', label: 'International migrant stock, share of population', unit: '% of population (UN DESA)' },
   'SL.AGR.EMPL.ZS': { key: 'empAgriPct', label: 'Employment in agriculture', unit: '% of total employment (modelled ILO estimate)' },
   'SL.IND.EMPL.ZS': { key: 'empIndPct', label: 'Employment in industry', unit: '% of total employment (modelled ILO estimate)' },
   'SL.SRV.EMPL.ZS': { key: 'empSrvPct', label: 'Employment in services', unit: '% of total employment (modelled ILO estimate)' },
