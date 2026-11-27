@@ -39,9 +39,16 @@ jobs:
           for C in $CODES; do
             ZURL="https://api.worldbank.org/v2/en/indicator/$C?downloadformat=csv"
             MURL="https://api.worldbank.org/v2/sources/2/series/$C/metadata?format=json"
-            curl -fSL --retry 3 -A "$UA" -o "$DIR/$C.zip" "$ZURL"
-            curl -fSL --retry 3 -A "$UA" -o "$DIR/$C.metadata.json" "$MURL"
-            unzip -tq "$DIR/$C.zip"
+            # api.worldbank.org sometimes answers a burst of downloads with a "Just a moment..." page (task 150):
+            # wait and try again until the zip is a real zip and the metadata is real JSON
+            for TRY in 1 2 3 4 5 6; do
+              curl -sSL --retry 3 -A "$UA" -o "$DIR/$C.zip" "$ZURL" || true
+              curl -sSL --retry 3 -A "$UA" -o "$DIR/$C.metadata.json" "$MURL" || true
+              unzip -tq "$DIR/$C.zip" >/dev/null 2>&1 && jq -e . "$DIR/$C.metadata.json" >/dev/null 2>&1 && break
+              echo "$C: not a zip / JSON yet (try $TRY), waiting"; sleep $((TRY * 10))
+            done
+            unzip -tq "$DIR/$C.zip"; jq -e . "$DIR/$C.metadata.json" >/dev/null
+            sleep 1
             LIC=$(jq -r '.source[0].concept[0].variable[0].metatype[] | select(.id=="License_Type") | .value' "$DIR/$C.metadata.json")
             NAME=$(jq -r '.source[0].concept[0].variable[0].metatype[] | select(.id=="IndicatorName") | .value' "$DIR/$C.metadata.json")
             UPD=$(unzip -p "$DIR/$C.zip" "API_*" | grep -m1 'Last Updated Date' | sed -E 's/.*"Last Updated Date","([^"]+)".*/\1/')
