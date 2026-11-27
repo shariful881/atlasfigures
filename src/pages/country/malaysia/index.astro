@@ -1,0 +1,72 @@
+---
+// Malaysia country hub (task 175). Every figure comes from the country profile (src/data/profiles/MYS.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/malaysia.json';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), grow = st('population', 'growth');
+const net = st('population', 'netMigrants'), mig = st('population', 'migrantStock'), migPct = st('population', 'migrantPct');
+const hitech = st('trade', 'hitech'), expPct = st('trade', 'exportsPct'), ports = st('internet', 'ports');
+const forest = st('environment', 'forestPct'), fert = st('farming', 'fert'), parl = st('governance', 'womenParl'), gdp = st('economy', 'gdp'), urban = st('population', 'urban');
+
+assertClaim(fromTop(hitech) === 6 && Number(hitech.value) > 50 && fromTop(expPct) === 28, 'high-tech over half of manufactured exports, sixth; exports/GDP 28th');
+assertClaim(fromTop(ports) === 5, 'fifth busiest container ports');
+assertClaim(Number(migPct.value) < 11 && Number(net.value) > 0 && fromTop(mig) === 18 && Number(migPct.value) > 10, 'net immigration; migrant stock 18th, over 10%');
+assertClaim(Number(forest.value) > 50 && fromTop(fert) === 2, 'over half forest; fertiliser use second');
+assertClaim(fromTop(parl) === 156 && fromTop(gdp) === 34, 'women MPs 156th; GDP 34th');
+
+const title = `Malaysia in Figures ${Y}: High-Tech Exports, Container Ports, Migrants, Forests | AtlasFigures`;
+const description = `High-technology goods account for ${hitech.text} of manufactured exports from Malaysia, sixth highest anywhere. Its ports handled ${people(Number(ports.value))} containers, and ${forest.text} of the land is still forest.`;
+
+const faq = [
+  { q: 'Do Malaysians drive on the left?', a: 'Yes, Malaysia keeps to the left side of the road (RAC list, checked by hand).' },
+  { q: 'What share of seats in Malaysia\'s Dewan Rakyat do women hold?', a: `${parl.text} in ${parl.year}, which places Malaysia ${ordinal(fromTop(parl))} of ${parl.of} parliaments.` },
+  { q: 'What is the total size of Malaysia\'s GDP?', a: `${gdp.text} for ${gdp.year}, which ranks the Malaysian economy ${ordinal(fromTop(gdp))} by size among ${gdp.of}.` },
+  { q: 'Is Malaysia mainly urban?', a: `Yes: ${urban.text} as of ${urban.year}, applying Malaysia's own urban criteria (UN World Urbanization Prospects 2025).` },
+];
+const headline = `Malaysia in figures ${Y}: an export powerhouse with busy ports and millions of migrants`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Malaysia in figures: high-tech trade, shipping lanes and forests"
+  headline={headline}
+  faq={faq}
+  faqTitle="Malaysia fact check"
+  related={[
+    { href: '/country/malaysia/population/', label: 'Malaysia population: live count' },
+    { href: '/country/malaysia/economy/', label: 'Malaysia economy: GDP and trade' },
+    { href: '/country/malaysia/health/', label: 'Malaysia health: diabetes, roads, spending' },
+    { href: '/country/indonesia/', label: 'Indonesia in figures' },
+    { href: '/country/thailand/', label: 'Thailand at a glance' },
+    { href: '/country/vietnam/', label: 'Vietnam data hub' },
+    { href: '/rankings/forest-area-by-country/', label: 'Forest area by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Malaysia, {Y}: <strong>{people(Number(pop.value))}</strong> residents per the UN, a total gaining {grow.text} yearly around a median age of {age.text}. Its exports are equal to <strong>{expPct.text}</strong> of GDP, {ordinal(fromTop(expPct))} highest of {expPct.of}.</Fragment>
+  <div class="story-block prose">
+    <h2>Is Malaysia a major high-tech exporter?</h2>
+    <p>Yes. High-technology products formed {hitech.text} of what Malaysian factories sold abroad in {hitech.year}, which only five of {hitech.of} exporters surpass. Trade and growth are detailed on <a href={path('/country/malaysia/economy/')}>the Malaysian economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Do Malaysian harbours rank among the world's busiest?</h2>
+    <p>Yes. Malaysian terminals handled {people(Number(ports.value))} containers, counted in twenty-foot units, through {ports.year}; only four countries shifted more boxes.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How big is Malaysia's migrant community?</h2>
+    <p>{people(Number(mig.value))} in {mig.year}, roughly one resident in ten ({migPct.text}) and the {ordinal(fromTop(mig))} biggest such group worldwide. In {Y} the UN expects {int(Number(net.value))} more arrivals than departures. Totals are tracked on <a href={path('/country/malaysia/population/')}>Malaysia's population counter</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is most of Malaysia still forested?</h2>
+    <p>More than half of it: trees blanketed {forest.text} of the Malaysian land surface in {forest.year}. Its farms apply {fert.text} kilograms of fertiliser per hectare of arable land ({fert.year}), the {ordinal(fromTop(fert))} heaviest rate in the World Bank data.</p>
+  </div>
+</CountryHub>

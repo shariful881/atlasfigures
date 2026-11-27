@@ -1,0 +1,96 @@
+---
+// Ghana health (task 175). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/ghana.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct, int, dec } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const mat = st('maternal'), mal = st('malaria'), tob = st('tobacco'), diab = st('diabetes'), u5 = st('u5');
+const hGdp = st('healthGdp'), hPc = st('healthPc'), doc = st('doctors'), nurse = st('nurses');
+const U = u5.year!;
+const m90 = v('maternalMortality', 1990), t00 = v('tobaccoPct', 2000), u90 = v('under5Mortality', 1990);
+const malPeak = s.malariaIncidence.reduce((a, b) => (b[1] > a[1] ? b : a));
+
+assertClaim(Number(mat.value) < m90 / 3, 'maternal ratio under a third of 1990');
+assertClaim(fromTop(mal) === 25 && malPeak[0] === 2000 && Number(mal.value) < malPeak[1] / 2, 'malaria 25th; less than half the 2000 peak');
+assertClaim(fromBottom(tob) === 2 && t00 > 2 * Number(tob.value) && 100 / Number(tob.value) > 29 && 100 / Number(tob.value) < 31, 'tobacco second lowest, under half the 2000 level');
+assertClaim(fromTop(mat) === 32 && fromBottom(diab) === 4 && fromBottom(hGdp) === 16, 'diabetes fourth lowest; health spending 16th lowest');
+assertClaim(Number(nurse.value) / Number(doc.value) > 15 && Number(nurse.value) / Number(doc.value) < 16, 'about 15 nurses per doctor');
+
+const title = `Ghana Health Data ${U}: Motherhood, Malaria, Tobacco, Diabetes | AtlasFigures`;
+const description = `Maternal deaths in Ghana dropped from ${int(m90)} to ${mat.text} per 100,000 births between 1990 and ${mat.year}. Only ${tob.text} of adults use tobacco, second lowest anywhere, while malaria still hits ${mal.text} in every 1,000 exposed.`;
+
+const faq = [
+  { q: 'Are diabetes rates in Ghana low?', a: `Comparatively few: the IDF estimate for ${diab.year} is ${diab.text} of Ghanaians in the 20–79 range, a prevalence lower in only three of ${diab.of} countries.` },
+  { q: 'What does Ghana devote to health care?', a: `${hGdp.text} of its GDP in ${hGdp.year}, a share undercut by fifteen countries, equal to about ${hPc.text} a head.` },
+  { q: 'Does Ghana have more nurses than doctors?', a: `About fifteen times as many: ${nurse.text} nursing staff per 1,000 Ghanaians in ${nurse.year}, against ${doc.text} doctors in ${doc.year}.` },
+  { q: 'What is Ghana\'s child mortality rate?', a: `In ${U}, ${u5.text} of each 1,000 Ghanaian children died before reaching five, compared with ${dec(u90, 1)} in 1990.` },
+];
+const headline = `Ghana health ${U}: maternal deaths down sharply, very little tobacco, persistent malaria`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Ghana's health: safer motherhood, few smokers, malaria remains"
+  headline={headline}
+  tableTitle={`Ghanaian health figures, 1990 to ${U}`}
+  tableSubtitle="Milestone years; the CSV carries every Ghanaian year."
+  faq={faq}
+  faqTitle="Ghana health facts"
+  related={[
+    { href: '/country/ghana/', label: 'Ghana in figures' },
+    { href: '/country/ghana/population/', label: 'Ghana population' },
+    { href: '/country/cote-divoire/health/', label: "Côte d'Ivoire health" },
+    { href: '/country/nigeria/health/', label: 'Nigeria health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal deaths by country' },
+  ]}
+>
+  <Fragment slot="answer">For every 100,000 Ghanaian babies born alive, <strong>{mat.text} mothers died</strong> in {mat.year}, less than a third of the 1990 toll. Just <strong>{tob.text}</strong> of Ghanaian adults use tobacco, yet malaria remains common.</Fragment>
+  <div class="story-block prose">
+    <h2>Is childbirth getting safer in Ghana?</h2>
+    <p>Much safer than a generation ago: the ratio stood at {int(m90)} in 1990 and {mat.text} in {mat.year}, though thirty-one of {mat.of} countries still have a higher one. Birth totals are on <a href={path('/country/ghana/population/')}>Ghana's population page</a>.</p>
+  </div>
+  <LineChart
+    title={`Deaths of Ghanaian mothers since 1990 (to ${mat.year})`}
+    subtitle="Ghana's modelled maternal deaths per 100,000 babies delivered, MMEIG inter-agency series."
+    points={s.maternalMortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    highlight={mat.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How much malaria is there in Ghana?</h2>
+    <p>A lot, but less than before. WHO puts the {mal.year} rate at {mal.text} cases for each thousand Ghanaians exposed, {ordinal(fromTop(mal))} of {mal.of}, under half the {dec(malPeak[1], 1)} logged in {malPeak[0]}.</p>
+  </div>
+  <LineChart
+    title={`Ghanaian malaria incidence, 2000–${mal.year}`}
+    subtitle="New malaria infections each year in Ghana per 1,000 residents in risk areas, WHO estimates."
+    points={s.malariaIncidence.map(([x, y]) => ({ x, y }))}
+    format="plain"
+    highlight={mal.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is tobacco use rare in Ghana?</h2>
+    <p>Yes. Barely one Ghanaian in thirty over age 15 used tobacco in {tob.year} ({tob.text}); just one country in {tob.of} reports less. In 2000 the share was {pct(t00)}.</p>
+  </div>
+</HealthTopic>

@@ -1,0 +1,72 @@
+---
+// Madagascar country hub (task 175). Every figure comes from the country profile (src/data/profiles/MDG.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/madagascar.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), life = st('population', 'lifeExp'), grow = st('population', 'growth');
+const migPct = st('population', 'migrantPct'), lfpF = st('jobs', 'lfpF'), lfpM = st('jobs', 'lfpM');
+const povN = st('economy', 'povNat'), gdpPc = st('economy', 'gdpPc');
+const san = st('environment', 'sanBasic'), water = st('environment', 'waterBasic'), cook = st('internet', 'cleanCook');
+const nb = st('facts', 'neighbours'), cur = st('facts', 'currency'), tour = st('trade', 'tourists'), ws = st('energy', 'wsShare');
+
+assertClaim(fromTop(lfpF) === 1 && fromTop(lfpM) === 5, 'women\'s labour force participation highest; men fifth');
+assertClaim(Number(povN.value) > 72 && Number(povN.value) < 78 && fromTop(povN) === 2 && fromBottom(gdpPc) === 4, 'national poverty second highest; GDP per head fourth lowest');
+assertClaim(fromBottom(san) === 5 && fromBottom(water) === 8 && Number(cook.value) < 3, 'basic sanitation fifth lowest; water eighth lowest; clean cooking under 3%');
+assertClaim(fromBottom(migPct) === 5 && nb.text.startsWith('None') && tour.year === 2020, 'migrant share fifth lowest; no land borders; arrivals for 2020');
+
+const title = `Madagascar in Figures ${Y}: Working Women, Poverty, Sanitation, No Land Borders | AtlasFigures`;
+const description = `No country has a higher share of women in its labour force than Madagascar (${lfpF.text}). Yet ${povN.text} of Malagasy fall below the national poverty line, and only ${san.text} have basic sanitation.`;
+
+const faq = [
+  { q: 'Does Madagascar share a land border with any country?', a: 'No. Madagascar has no land borders at all.' },
+  { q: 'What is the currency of Madagascar?', a: `The ${cur.text}.` },
+  { q: 'How many tourists does Madagascar receive?', a: `${people(Number(tour.value))} international arrivals were counted in ${tour.year}, a pandemic year.` },
+  { q: 'Does Madagascar use solar and wind power?', a: `A little: Ember credits Malagasy wind farms and solar panels with ${ws.text} of generation for ${ws.year}.` },
+];
+const headline = `Madagascar in figures ${Y}: high labour participation alongside very low incomes`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Madagascar in figures: women at work, deep poverty and few toilets"
+  headline={headline}
+  faq={faq}
+  faqTitle="Madagascar in a few lines"
+  related={[
+    { href: '/country/madagascar/population/', label: 'Madagascar population: live count' },
+    { href: '/country/madagascar/economy/', label: 'Madagascar economy: GDP and poverty' },
+    { href: '/country/madagascar/health/', label: 'Madagascar health: hunger, vaccines, spending' },
+    { href: '/country/mozambique/', label: 'Mozambique in figures' },
+    { href: '/country/tanzania/', label: 'Tanzania at a glance' },
+    { href: '/country/kenya/', label: 'Kenya data hub' },
+    { href: '/rankings/female-labor-force-participation-by-country/', label: 'Women in the labour force by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Madagascar's {Y} population: <strong>{people(Number(pop.value))}</strong> by UN estimate, up {grow.text} on the year before; half of them are younger than {age.text}. Output per head was <strong>{gdpPc.text}</strong> in {gdpPc.year}, {ordinal(fromBottom(gdpPc))} lowest of {gdpPc.of}.</Fragment>
+  <div class="story-block prose">
+    <h2>Do more Malagasy women work than women anywhere else?</h2>
+    <p>On the ILO's modelled estimates, yes: {lfpF.text} of Malagasy women held or looked for jobs in {lfpF.year}, putting Madagascar first of {lfpF.of} countries. The male rate, {lfpM.text}, ranks {ordinal(fromTop(lfpM))}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many Malagasy live below the poverty line?</h2>
+    <p>Three in four. Madagascar's own poverty line left {povN.text} of the population below it in {povN.year}; among {povN.of} national poverty rates on file, just one is higher. Income and prices are tracked on <a href={path('/country/madagascar/economy/')}>the Madagascar economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many people in Madagascar have a basic toilet and clean water?</h2>
+    <p>Few. Basic sanitation reached {san.text} of the population in {san.year} ({ordinal(fromBottom(san))} lowest), basic drinking water {water.text} ({ordinal(fromBottom(water))} lowest), and just {cook.text} cooked with clean fuels.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are there many immigrants in Madagascar?</h2>
+    <p>Hardly any. Foreign-born residents were a mere {migPct.text} of the Malagasy population in {migPct.year}, a proportion undercut by four countries in {migPct.of}. Average lifespan for a Malagasy baby born today: {life.text} years; see <a href={path('/country/madagascar/population/')}>the Malagasy population tracker</a>.</p>
+  </div>
+</CountryHub>

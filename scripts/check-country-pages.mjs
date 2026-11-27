@@ -63,7 +63,7 @@ for (const c of pages) {
       const w = wantHere.find((x) => x.key === key);
       if (!ok(w, where, `row ${key} is not a live profile statistic`)) continue;
       const v = textOf(tr.querySelector('[data-value]'));
-      ok(v === w.s.text, where, `${key}: page "${v}" ≠ profile "${w.s.text}"`);
+      ok(v === w.s.text.replace(/\s+/g, ' ').trim(), where, `${key}: page "${v}" ≠ profile "${w.s.text}"`);
       const y = textOf(tr.querySelector('.sl-y'));
       ok(w.s.year == null ? y === '' : y.startsWith(String(w.s.year)), where, `${key}: year "${y}" ≠ ${w.s.year}`);
       ok(!!w.s.projection === y.includes('UN projection'), where, `${key}: UN projection label`);

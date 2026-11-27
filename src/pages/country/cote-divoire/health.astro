@@ -1,0 +1,97 @@
+---
+// Côte d'Ivoire health (task 175). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/cote-divoire.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, int, dec } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const mat = st('maternal'), u5 = st('u5'), neo = st('neonatal'), mal = st('malaria'), tob = st('tobacco');
+const doc = st('doctors'), hGdp = st('healthGdp'), hPc = st('healthPc'), measles = st('measles');
+const U = u5.year!;
+const m90 = v('maternalMortality', 1990), u90 = v('under5Mortality', 1990), n90 = v('neonatalMortality', 1990);
+const after = s.maternalMortality.filter(([y]) => y >= 1997);
+const mPeak = after.reduce((a, b) => (b[1] > a[1] ? b : a));
+const mLow = s.maternalMortality.filter(([y]) => y >= 1990 && y <= mPeak[0]).reduce((a, b) => (b[1] < a[1] ? b : a));
+
+assertClaim(mLow[0] === 1997 && mPeak[0] === 2010 && Number(mat.value) < mLow[1] && fromTop(mat) === 17, 'maternal low in 1997, peak in 2010, now below the 1997 low; 17th');
+assertClaim(fromTop(neo) === 17 && Number(neo.value) > 0.55 * n90 && Number(neo.value) < 0.6 * n90, 'newborn deaths 17th; a bit over half of 1990');
+assertClaim(fromTop(u5) === 18 && Number(u5.value) < u90 / 2, 'under-five 18th, under half of 1990');
+assertClaim(fromTop(mal) === 13 && fromBottom(tob) === 11, 'malaria 13th; tobacco 11th lowest');
+
+const title = `Côte d'Ivoire Health Data ${U}: Mothers, Newborns, Malaria, Tobacco | AtlasFigures`;
+const description = `Côte d'Ivoire's maternal mortality ratio peaked at ${int(mPeak[1])} in ${mPeak[0]}; the latest estimate is ${mat.text}. Newborn deaths run at ${neo.text} in each 1,000 births, 17th highest, and malaria at ${mal.text} per 1,000 exposed.`;
+
+const faq = [
+  { q: 'Do many Ivorians use tobacco?', a: `No: ${tob.text} of Ivorians past their fifteenth birthday used tobacco in ${tob.year}; ten of ${tob.of} countries report less.` },
+  { q: 'How many doctors practise in Côte d\'Ivoire?', a: `For each thousand Ivorians there were ${doc.text} doctors in ${doc.year}, the ${ordinal(fromBottom(doc))} thinnest coverage of ${doc.of}.` },
+  { q: 'How much is spent on each Ivorian\'s health?', a: `${hPc.text} per head in ${hPc.year}, equivalent to ${hGdp.text} of national output.` },
+  { q: 'How many Ivorian infants get the measles vaccine?', a: `${measles.text} were given a first shot in ${measles.year}.` },
+];
+const headline = `Côte d'Ivoire health ${U}: maternal deaths finally falling, newborn risk still high`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Côte d'Ivoire's health: a maternal mortality reversal, fragile newborns, heavy malaria"
+  headline={headline}
+  tableTitle={`Côte d'Ivoire: health measures from 1990 to ${U}`}
+  tableSubtitle="Key years displayed; the CSV includes every Ivorian year."
+  faq={faq}
+  faqTitle="Côte d'Ivoire health briefing"
+  related={[
+    { href: '/country/cote-divoire/', label: "Côte d'Ivoire in figures" },
+    { href: '/country/cote-divoire/population/', label: "Côte d'Ivoire population" },
+    { href: '/country/ghana/health/', label: 'Ghana health' },
+    { href: '/country/nigeria/health/', label: 'Nigeria health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal deaths by country' },
+  ]}
+>
+  <Fragment slot="answer">In {mat.year}, <strong>{mat.text} Ivorian women died</strong> from pregnancy-related causes, measured against 100,000 live births, {ordinal(fromTop(mat))} highest worldwide but well below the {mPeak[0]} peak. Of each 1,000 children, <strong>{u5.text}</strong> do not reach age five.</Fragment>
+  <div class="story-block prose">
+    <h2>Did maternal deaths in Côte d'Ivoire rise before they fell?</h2>
+    <p>Yes. The ratio dipped from {int(m90)} in 1990 to {int(mLow[1])} by {mLow[0]}, then climbed back up to {int(mPeak[1])} in {mPeak[0]}. It has since dropped to {mat.text}, beneath the {mLow[0]} level.</p>
+  </div>
+  <LineChart
+    title={`Ivorian maternal mortality, 1990–${mat.year}`}
+    subtitle="How many women in Côte d'Ivoire die from pregnancy for every 100,000 live births, according to the MMEIG model."
+    points={s.maternalMortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    highlight={mat.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How many Ivorian newborns die within four weeks?</h2>
+    <p>{neo.text} in every thousand ({neo.year}), a rate only sixteen of {neo.of} countries exceed; it was {dec(n90, 1)} in 1990. Over the same span the under-five rate has more than halved, {dec(u90, 1)} to {u5.text}. Birth counts sit on <a href={path('/country/cote-divoire/population/')}>Côte d'Ivoire's population counter</a>.</p>
+  </div>
+  <LineChart
+    title={`Côte d'Ivoire: children lost before age five, 1990–${U}`}
+    subtitle="Côte d'Ivoire's under-five mortality, expressed per 1,000 births, from IGME."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How heavy is the malaria burden in Côte d'Ivoire?</h2>
+    <p>Heavy: WHO models {mal.text} Ivorian cases annually per thousand people exposed ({mal.year}), the {ordinal(fromTop(mal))} highest incidence among the {mal.of} malaria-endemic countries WHO models.</p>
+  </div>
+</HealthTopic>

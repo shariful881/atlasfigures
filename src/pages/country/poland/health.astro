@@ -1,0 +1,95 @@
+---
+// Poland health (task 175). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/poland.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct, dec } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), mat = st('maternal'), tob = st('tobacco'), beds = st('beds'), doc = st('doctors'), nurse = st('nurses');
+const stunt = st('stunting'), hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop'), measles = st('measles');
+const U = u5.year!;
+const u90 = v('under5Mortality', 1990), t00 = v('tobaccoPct', 2000);
+
+assertClaim(fromBottom(mat) === 5 && u90 > 4 * Number(u5.value), 'maternal fifth lowest; under-five rate cut by more than three-quarters since 1990');
+assertClaim(t00 > 40 && Number(tob.value) < 22 && fromTop(tob) === 69, 'tobacco from over 40% to under 22%; 69th');
+assertClaim(fromTop(beds) === 16 && Number(beds.value) >= 6 && fromTop(doc) === 30, 'about six beds per 1,000, 16th; doctors 30th');
+assertClaim(Number(tob.value) > 18 && Number(tob.value) / t00 > 0.5 && Number(tob.value) / t00 < 0.6, 'about one in five; down by close to half');
+assertClaim(fromBottom(stunt) === 4 && fromTop(hPc) === 40, 'stunting fourth lowest; spending per person 40th');
+
+const title = `Poland Health Data ${U}: Maternal Safety, Tobacco, Hospital Beds, Spending | AtlasFigures`;
+const description = `Just ${mat.text} Polish mothers die for every 100,000 births, fifth lowest anywhere. Adult tobacco use fell from ${pct(t00)} in 2000 to ${tob.text}, and Polish wards hold ${beds.text} beds for each thousand residents.`;
+
+const faq = [
+  { q: 'How common is stunting among Polish children?', a: `Rare: ${stunt.text} of under-fives were stunted in the ${stunt.year} survey, fourth lowest of ${stunt.of} countries measured.` },
+  { q: 'Does Poland have enough physicians?', a: `Poland counted ${doc.text} practising doctors for every thousand inhabitants in ${doc.year} (${ordinal(fromTop(doc))} of ${doc.of}) plus ${nurse.text} nurses.` },
+  { q: 'What does a Pole\'s health care cost each year?', a: `On average ${hPc.text} in ${hPc.year}, or ${hGdp.text} of GDP, the ${ordinal(fromTop(hPc))} biggest outlay per head; ${oop.text} came straight from patients.` },
+  { q: 'Do Polish infants get the MMR jab?', a: `Most do: ${measles.text} received their first measles-containing dose in ${measles.year}.` },
+];
+const headline = `Poland health ${U}: near-zero maternal deaths, falling tobacco use, many hospital beds`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Poland's health: safe births, fewer smokers, plenty of beds"
+  headline={headline}
+  tableTitle={`Poland's health over time, 1990 to ${U}`}
+  tableSubtitle="Selected years shown; the CSV holds every Polish data year."
+  faq={faq}
+  faqTitle="Health in Poland, briefly"
+  related={[
+    { href: '/country/poland/', label: 'Poland in figures' },
+    { href: '/country/poland/population/', label: 'Poland population and ageing' },
+    { href: '/country/germany/health/', label: 'Germany health' },
+    { href: '/country/ukraine/health/', label: 'Ukraine health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal deaths by country' },
+  ]}
+>
+  <Fragment slot="answer">Childbirth in Poland is among the safest in the world, with a modelled <strong>{mat.text} maternal deaths for every 100,000 births</strong> in {mat.year}. About <strong>{tob.text}</strong> of adults still use tobacco, and the country's hospitals provide {beds.text} beds for every 1,000 Poles.</Fragment>
+  <div class="story-block prose">
+    <h2>How rare are maternal and child deaths in Poland?</h2>
+    <p>Very rare. Only four countries report a lower maternal ratio, and out of every 1,000 Polish babies, {u5.text} now die before turning five, against {dec(u90, 1)} in 1990.</p>
+  </div>
+  <LineChart
+    title={`Poland: deaths of children under five, 1990–${U}`}
+    subtitle="Polish under-fives who die, for each 1,000 babies born; UN inter-agency group estimates."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How many Poles still use tobacco?</h2>
+    <p>Roughly a fifth of grown-ups: {tob.text} in {tob.year}, placing Poland {ordinal(fromTop(tob))} among {tob.of}. That is down by close to half from {pct(t00)} in 2000.</p>
+  </div>
+  <LineChart
+    title={`Polish tobacco use, 2000–${tob.year}`}
+    subtitle="Age-standardised share of Poles over 15 using cigarettes or other tobacco, WHO."
+    points={s.tobaccoPct.map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={tob.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Does Poland have a lot of hospital beds?</h2>
+    <p>Plenty: {beds.text} for each thousand Poles in {beds.year}, a provision only fifteen of {beds.of} countries exceed. Ageing trends are tracked on <a href={path('/country/poland/population/')}>the Polish population page</a>.</p>
+  </div>
+</HealthTopic>

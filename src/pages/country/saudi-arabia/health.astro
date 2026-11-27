@@ -1,0 +1,95 @@
+---
+// Saudi Arabia health (task 175). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/saudi-arabia.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct, dec } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const road = st('road'), diab = st('diabetes'), u5 = st('u5'), hPc = st('healthPc'), hGdp = st('healthGdp');
+const tob = st('tobacco'), mat = st('maternal'), doc = st('doctors'), nurse = st('nurses');
+const U = u5.year!;
+const r00 = v('roadDeathsPer100k', 2000), d11 = v('diabetesPct', 2011), u90 = v('under5Mortality', 1990);
+const tobs = s.tobaccoPct.map(([, x]) => x);
+
+assertClaim(fromTop(road) === 8 && Number(road.value) > 2 * r00, 'road deaths eighth highest, more than double 2000');
+assertClaim(fromTop(diab) === 7 && Number(diab.value) > 20 && Number(diab.value) > d11, 'diabetes seventh highest, up since 2011');
+assertClaim(Number(u5.value) < u90 / 7, 'under-five rate below a seventh of 1990');
+assertClaim(Math.max(...tobs) - Math.min(...tobs) < 0.5 && fromTop(hPc) === 42 && fromBottom(mat) === 37, 'tobacco flat; spending per person 42nd; maternal 37th lowest');
+
+const title = `Saudi Arabia Health Data ${U}: Road Deaths, Diabetes, Child Survival, Spending | AtlasFigures`;
+const description = `Saudi roads killed ${road.text} people per 100k in ${road.year}, eighth worst in the world and more than twice the 2000 rate. Diabetes affects ${diab.text} of adults, seventh highest.`;
+
+const faq = [
+  { q: 'How much is spent on health for each Saudi resident?', a: `${hPc.text} per resident in ${hPc.year} (${ordinal(fromTop(hPc))} of ${hPc.of}), which was ${hGdp.text} of Saudi GDP.` },
+  { q: 'Has Saudi tobacco use come down?', a: `Not noticeably: every WHO estimate from 2000 onward lies in a tight ${pct(Math.min(...tobs))}–${pct(Math.max(...tobs))} range, with ${tob.text} the latest (${tob.year}).` },
+  { q: 'How safe is childbirth for Saudi mothers?', a: `Safe by global standards: a modelled ${mat.text} deaths for each 100,000 births in ${mat.year}, ${ordinal(fromBottom(mat))} lowest of ${mat.of}.` },
+  { q: 'Is Saudi Arabia short of medical staff?', a: `In ${doc.year} the kingdom had ${doc.text} doctors and ${nurse.text} nurses per 1,000 inhabitants.` },
+];
+const headline = `Saudi Arabia health ${U}: deadly roads, high diabetes, far fewer child deaths`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Saudi Arabia's health: dangerous roads, diabetes and longer childhoods"
+  headline={headline}
+  tableTitle={`Saudi health statistics, 1990 to ${U}`}
+  tableSubtitle="Selected years here; the CSV contains every Saudi data point."
+  faq={faq}
+  faqTitle="Saudi Arabia's health, in answers"
+  related={[
+    { href: '/country/saudi-arabia/', label: 'Saudi Arabia in figures' },
+    { href: '/country/saudi-arabia/population/', label: 'Saudi Arabia population' },
+    { href: '/country/iraq/health/', label: 'Iraq health' },
+    { href: '/country/egypt/health/', label: 'Egypt health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality by country' },
+  ]}
+>
+  <Fragment slot="answer">Saudi roads are unusually dangerous: <strong>{road.text} traffic deaths for each 100k people</strong> in {road.year}, {ordinal(fromTop(road))} highest worldwide. Diabetes reaches <strong>{diab.text}</strong> of adults, while child deaths have fallen steeply since 1990.</Fragment>
+  <div class="story-block prose">
+    <h2>Are Saudi Arabia's roads among the deadliest?</h2>
+    <p>Yes. The traffic death rate climbed from {dec(r00, 1)} per 100k in 2000 to {road.text} in {road.year}, a level only seven countries exceed.</p>
+  </div>
+  <LineChart
+    title={`Road traffic deaths in Saudi Arabia, 2000–${road.year}`}
+    subtitle="Estimated Saudi lives lost in road crashes per 100,000 residents, WHO Global Status Report."
+    points={s.roadDeathsPer100k.map(([x, y]) => ({ x, y }))}
+    format="plain"
+    highlight={road.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Do more than a fifth of Saudi adults have diabetes?</h2>
+    <p>Yes, {diab.text} of Saudis in the 20–79 bracket in {diab.year}, up from {pct(d11)} in 2011. Just six of {diab.of} countries in the IDF atlas report a higher prevalence.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much safer is early childhood in Saudi Arabia than in 1990?</h2>
+    <p>Dramatically: {dec(u90, 1)} of each thousand Saudi children did not reach age five in 1990; by {U} it was {u5.text}, a cut of more than six-sevenths. Population totals appear on <a href={path('/country/saudi-arabia/population/')}>the Saudi population counter</a>.</p>
+  </div>
+  <LineChart
+    title={`Saudi Arabia: mortality among under-fives, 1990–${U}`}
+    subtitle="Saudi children's deaths before age five, rate per 1,000 births; inter-agency group estimate."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+</HealthTopic>

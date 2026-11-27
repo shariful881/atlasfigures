@@ -1,0 +1,74 @@
+---
+// Cameroon country hub (task 175). Every figure comes from the country profile (src/data/profiles/CMR.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/cameroon.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), life = st('population', 'lifeExp'), grow = st('population', 'growth');
+const births = st('population', 'births'), deaths = st('population', 'deaths');
+const tariff = st('trade', 'tariff'), expPct = st('trade', 'exportsPct'), lpi = st('internet', 'lpi');
+const hydro = st('energy', 'hydroShare'), ren = st('energy', 'renShare'), pm = st('environment', 'pm25');
+const lang = st('facts', 'languages'), parl = st('governance', 'womenParl'), fArea = st('environment', 'forestArea'), nb = st('facts', 'neighbours');
+
+const ratio = Number(births.value) / Number(deaths.value);
+assertClaim(ratio > 4.6 && ratio < 4.9, 'almost five births per death');
+assertClaim(fromTop(tariff) === 6 && fromTop(pm) === 10 && fromBottom(expPct) === 16 && fromBottom(lpi) === 9, 'tariff sixth highest; exports/GDP 16th lowest; logistics ninth lowest');
+assertClaim(fromTop(hydro) === 24 && Number(ren.value) > 70, 'hydro 24th; renewables over 70%');
+assertClaim(fromTop(pm) === 10, 'PM2.5 tenth highest');
+assertClaim(fromTop(parl) === 52 && fromTop(fArea) === 33 && nb.text.split(', ').length === 6, 'women MPs 52nd; forest 33rd; six neighbours');
+
+const title = `Cameroon in Figures ${Y}: Population Growth, Tariffs, Hydropower, Air Quality | AtlasFigures`;
+const description = `Cameroon's average applied tariff of ${tariff.text} is the sixth highest in the world. Hydropower supplies ${hydro.text} of Cameroonian electricity, and almost five babies are born for every death.`;
+
+const faq = [
+  { q: 'What are the official languages of Cameroon?', a: `${lang.text}.` },
+  { q: 'How many neighbours does Cameroon have?', a: `Six: ${nb.text}.` },
+  { q: 'What share of Cameroon\'s parliament is female?', a: `Cameroonian women occupied ${parl.text} of lower-chamber places as of ${parl.year} (rank ${ordinal(fromTop(parl))}, ${parl.of} chambers).` },
+  { q: 'How big are Cameroon\'s forests?', a: `Trees cover ${int(Number(fArea.value))} km² of Cameroonian land (${fArea.year}), the ${ordinal(fromTop(fArea))} biggest forest estate on a list of ${fArea.of}.` },
+];
+const headline = `Cameroon in figures ${Y}: a young, growing country with high trade barriers`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Cameroon in figures: a bilingual nation of rivers, forests and costly imports"
+  headline={headline}
+  faq={faq}
+  faqTitle="Cameroon at a glance"
+  related={[
+    { href: '/country/cameroon/population/', label: 'Cameroon population: live count' },
+    { href: '/country/cameroon/economy/', label: 'Cameroon economy: GDP and prices' },
+    { href: '/country/cameroon/health/', label: 'Cameroon health: costs, malaria, children' },
+    { href: '/country/nigeria/', label: 'Nigeria in figures' },
+    { href: '/country/dr-congo/', label: 'DR Congo at a glance' },
+    { href: '/country/cote-divoire/', label: "Côte d'Ivoire data hub" },
+    { href: '/rankings/renewable-electricity-by-country/', label: 'Renewable electricity by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Cameroon's {Y} population should reach <strong>{people(Number(pop.value))}</strong> on UN numbers, gaining {grow.text} each year. The median Cameroonian is just <strong>{age.text}</strong>, and clean sources such as water and sun gave {ren.text} of Cameroon's power in {ren.year}.</Fragment>
+  <div class="story-block prose">
+    <h2>Is Cameroon's population still on a steep climb?</h2>
+    <p>Yes. Cameroon should record {int(Number(births.value))} births against {int(Number(deaths.value))} deaths in {Y}, almost five to one. Cameroonians can anticipate {life.text} years of life at birth. The count runs on <a href={path('/country/cameroon/population/')}>Cameroon's population counter</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are Cameroon's import tariffs high?</h2>
+    <p>Yes. Weighted by trade, Cameroon's applied duties averaged {tariff.text} for {tariff.year}; only five of {tariff.of} economies charged more. Exports equal only {expPct.text} of GDP ({ordinal(fromBottom(expPct))} lowest), and the World Bank logistics score of {lpi.text} out of 5 is {ordinal(fromBottom(lpi))} weakest. See <a href={path('/country/cameroon/economy/')}>the Cameroonian economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Do Cameroon's rivers generate most of its power?</h2>
+    <p>Dams on Cameroonian rivers delivered {hydro.text} of generation during {hydro.year}, placing the country {ordinal(fromTop(hydro))} for hydro dependence among {hydro.of} that Ember follows.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How clean is the air in Cameroon?</h2>
+    <p>Not very. Cameroonians breathed an average of {pm.text} µg/m³ of fine particulate matter (PM2.5) through {pm.year}, a concentration exceeded by just nine of the {pm.of} nations tracked.</p>
+  </div>
+</CountryHub>

@@ -1,0 +1,73 @@
+---
+// Peru country hub (task 175). Every figure comes from the country profile (src/data/profiles/PER.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/peru.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), life = st('population', 'lifeExp'), grow = st('population', 'growth');
+const urban = st('population', 'urban'), dens = st('population', 'density'), mig = st('population', 'migrantStock');
+const fArea = st('environment', 'forestArea'), fPct = st('environment', 'forestPct');
+const ren = st('energy', 'renShare'), hydro = st('energy', 'hydroShare'), tariff = st('trade', 'tariff');
+const parl = st('governance', 'womenParl'), lang = st('facts', 'languages'), gdp = st('economy', 'gdp'), infl = st('economy', 'inflation');
+
+assertClaim(fromTop(fArea) === 10 && Number(fPct.value) > 50, 'tenth largest forest, over half the land');
+assertClaim(Number(urban.value) > 85 && Number(dens.value) < 30, 'over 85% urban, under 30 per km²');
+assertClaim(Number(ren.value) > 60 && fromTop(hydro) === 13 && Number(hydro.value) > 50, 'renewables over 60%, hydro over half and 13th');
+assertClaim(fromBottom(tariff) === 9 && Number(tariff.value) < 1, 'tariff under 1%, ninth lowest');
+assertClaim(fromTop(parl) === 23 && fromTop(mig) === 40, 'women MPs 23rd; migrant stock 40th');
+
+const title = `Peru in Figures ${Y}: Vast Forests, City Living, Hydropower, Low Tariffs | AtlasFigures`;
+const description = `Peru holds ${int(Number(fArea.value))} square kilometres of forest, tenth most in the world, yet ${urban.text} of its people are urban dwellers. Hydropower makes ${hydro.text} of its electricity.`;
+
+const faq = [
+  { q: 'How many women sit in Peru\'s Congress?', a: `Peruvian women held ${parl.text} of congressional seats in ${parl.year}; twenty-two of ${parl.of} legislatures had a larger female share.` },
+  { q: 'Which languages does Peru list as official?', a: `${lang.text}.` },
+  { q: 'Does Peru host many immigrants?', a: `Yes: UN estimates count ${people(Number(mig.value))} foreign-born Peruvian residents for ${mig.year}, ${ordinal(fromTop(mig))} by size.` },
+  { q: 'What was Peru\'s GDP in the latest year?', a: `GDP worth ${gdp.text} in ${gdp.year}, while inflation was held to ${infl.text}.` },
+];
+const headline = `Peru in figures ${Y}: a forest giant where most people live in cities`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Peru in figures: vast forests, crowded cities and hydro-powered grids"
+  headline={headline}
+  faq={faq}
+  faqTitle="Peru: more answers"
+  related={[
+    { href: '/country/peru/population/', label: 'Peru population: live count' },
+    { href: '/country/peru/economy/', label: 'Peru economy: GDP and inflation' },
+    { href: '/country/peru/health/', label: 'Peru health: child survival, TB, stunting' },
+    { href: '/country/colombia/', label: 'Colombia in figures' },
+    { href: '/country/brazil/', label: 'Brazil at a glance' },
+    { href: '/country/argentina/', label: 'Argentina data hub' },
+    { href: '/rankings/forest-area-by-country/', label: 'Forest area by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">The UN's figure for Peru in {Y} is <strong>{people(Number(pop.value))}</strong> people, increasing {grow.text} a year. More than half its land is forest, and <strong>{ren.text}</strong> of its electricity came from renewable sources in {ren.year}.</Fragment>
+  <div class="story-block prose">
+    <h2>Is more than half of Peru wooded?</h2>
+    <p>Yes, {fPct.text} of it in {fPct.year}. Measured in square kilometres, its {int(Number(fArea.value))} of forest in {fArea.year} rank {ordinal(fromTop(fArea))} of {fArea.of} countries.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Peru a nation of city dwellers?</h2>
+    <p>Yes, {urban.text} in {urban.year} by Peru's national definition (UN World Urbanization Prospects 2025), even though there are only {dens.text} Peruvians for every km² of territory. Median age is {age.text} and life expectancy {life.text} years; the live total is on <a href={path('/country/peru/population/')}>Peru's population counter</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much of Peru's power is hydroelectric?</h2>
+    <p>More than half: Peruvian hydro plants supplied {hydro.text} of the national grid's output during {hydro.year}, the bulk of the {ren.text} renewable total. Of the {hydro.of} countries Ember covers, just twelve lean on water more heavily.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are Peru's import tariffs low?</h2>
+    <p>Among the lowest anywhere: the trade-weighted applied tariff averaged {tariff.text} in {tariff.year}, {ordinal(fromBottom(tariff))} lowest of {tariff.of}. Growth and prices sit on <a href={path('/country/peru/economy/')}>the Peruvian economy page</a>.</p>
+  </div>
+</CountryHub>

@@ -1,0 +1,74 @@
+---
+// Ghana country hub (task 175). Every figure comes from the country profile (src/data/profiles/GHA.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/ghana.json';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), life = st('population', 'lifeExp'), grow = st('population', 'growth');
+const births = st('population', 'births'), deaths = st('population', 'deaths'), urban = st('population', 'urban'), dens = st('population', 'density');
+const infl = st('economy', 'inflation'), gdp = st('economy', 'gdp'), gdpPc = st('economy', 'gdpPc');
+const hydro = st('energy', 'hydroShare'), fossil = st('energy', 'fossilShare'), ws = st('energy', 'wsShare');
+const parl = st('governance', 'womenParl'), nb = st('facts', 'neighbours'), cur = st('facts', 'currency');
+
+const ratio = Number(births.value) / Number(deaths.value);
+assertClaim(ratio > 3.5 && ratio < 3.7, 'about three and a half births per death');
+assertClaim(fromTop(infl) === 14 && Number(infl.value) > 14, 'inflation above 14%, 14th highest');
+assertClaim(Number(fossil.value) > 60 && Number(hydro.value) > 30 && Number(ws.value) < 3, 'fossil over 60%, hydro over 30%, wind and solar under 3%');
+assertClaim(Number(urban.value) > 55 && Number(urban.value) < 60, 'close to three in five urban');
+assertClaim(fromTop(parl) === 150 && nb.text.split(', ').length === 3, 'women MPs 150th; three neighbours');
+
+const title = `Ghana in Figures ${Y}: Population, Inflation, Hydropower, Cities | AtlasFigures`;
+const description = `Ghana expects ${int(Number(births.value))} births in ${Y}, about three and a half for each death. Ghanaian inflation hit ${infl.text} for ${infl.year}, and hydropower supplies ${hydro.text} of electricity.`;
+
+const faq = [
+  { q: 'Who are Ghana\'s neighbours?', a: `Three countries share land borders with it: ${nb.text}.` },
+  { q: 'What currency is used in Ghana?', a: `The ${cur.text}.` },
+  { q: 'How many women are in Ghana\'s parliament?', a: `Ghanaian women filled ${parl.text} of parliamentary places in ${parl.year}, leaving the country ${ordinal(fromTop(parl))} out of ${parl.of} on representation.` },
+  { q: 'How much GDP does Ghana generate for each resident?', a: `GDP per capita was ${gdpPc.text} in ${gdpPc.year}, on total output of ${gdp.text}.` },
+];
+const headline = `Ghana in figures ${Y}: a young, increasingly urban West African nation`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Ghana in figures: growing cities, rising prices and power from dams"
+  headline={headline}
+  faq={faq}
+  faqTitle="About Ghana, briefly"
+  related={[
+    { href: '/country/ghana/population/', label: 'Ghana population: live count' },
+    { href: '/country/ghana/economy/', label: 'Ghana economy: GDP and inflation' },
+    { href: '/country/ghana/health/', label: 'Ghana health: mothers, malaria, tobacco' },
+    { href: '/country/cote-divoire/', label: "Côte d'Ivoire in figures" },
+    { href: '/country/nigeria/', label: 'Nigeria at a glance' },
+    { href: '/country/cameroon/', label: 'Cameroon data hub' },
+    { href: '/rankings/inflation-rate-by-country/', label: 'Inflation by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Ghana's {Y} headcount, as projected by the UN, is <strong>{people(Number(pop.value))}</strong>, rising {grow.text} a year. The median Ghanaian is <strong>{age.text}</strong>, and Ghanaian shoppers faced {infl.text} inflation across {infl.year}.</Fragment>
+  <div class="story-block prose">
+    <h2>Do Ghanaian births still far outnumber deaths?</h2>
+    <p>Yes. The UN puts Ghanaian births at {int(Number(births.value))} in {Y}, roughly three and a half times the {int(Number(deaths.value))} deaths. Newborn Ghanaians are projected to live {life.text} years. Watch the count on <a href={path('/country/ghana/population/')}>Ghana's population page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are Ghanaian prices climbing fast?</h2>
+    <p>Faster than in most places. Ghana's {infl.year} inflation rate of {infl.text} placed it {ordinal(fromTop(infl))} among {infl.of} countries with data. Output and the cedi are followed on <a href={path('/country/ghana/economy/')}>Ghana's economy tracker</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>What keeps Ghana's lights on?</h2>
+    <p>Fossil fuels produced {fossil.text} in {fossil.year} and hydropower {hydro.text}; wind and solar contributed just {ws.text}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Ghana now a mostly urban country?</h2>
+    <p>Yes, narrowly: close to three Ghanaians in five ({urban.text}, {urban.year}) were classed as urban by the national statistical service's yardstick, as reported in UN World Urbanization Prospects 2025. Overall density is {dens.text} people per square kilometre.</p>
+  </div>
+</CountryHub>

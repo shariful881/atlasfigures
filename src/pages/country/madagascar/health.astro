@@ -1,0 +1,95 @@
+---
+// Madagascar health (task 175). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/madagascar.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const hPc = st('healthPc'), hGdp = st('healthGdp'), und = st('undernour'), measles = st('measles'), dpt = st('dpt');
+const nurse = st('nurses'), doc = st('doctors'), mat = st('maternal'), stunt = st('stunting'), mal = st('malaria'), u5 = st('u5');
+const U = u5.year!;
+const undLow = s.undernourishedPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const mPeak = s.measlesVaccPct.filter(([y]) => y >= 1990).reduce((a, b) => (b[1] > a[1] ? b : a));
+
+assertClaim(fromBottom(hPc) === 1 && fromBottom(hGdp) === 24, 'lowest health spending per person; share of GDP 24th lowest');
+assertClaim(fromTop(und) === 3 && undLow[0] === 2011 && Number(und.value) > undLow[1] + 14, 'undernourishment third highest, up over 14 points since 2011');
+assertClaim(fromBottom(measles) === 7 && fromBottom(dpt) === 9 && mPeak[0] === 2007 && Number(measles.value) < 0.6 * mPeak[1], 'measles seventh lowest, DPT ninth lowest; well below 2007 peak');
+assertClaim(fromBottom(nurse) === 5 && fromTop(mat) === 12 && fromTop(stunt) === 8 && Number(measles.value) < 50 && Math.abs(Number(stunt.value) - 40) < 1.5, 'nurses fifth lowest; maternal 12th highest; stunting eighth');
+
+const title = `Madagascar Health Data ${U}: Hunger, Vaccination Gaps, Health Spending, Mothers | AtlasFigures`;
+const description = `Madagascar devotes ${hPc.text} per person to health, the least of ${hPc.of} countries. ${und.text} of Malagasy are undernourished, third highest, and only ${measles.text} of toddlers got a first measles dose.`;
+
+const faq = [
+  { q: 'How risky is childbirth in Madagascar?', a: `Very risky: a modelled ${mat.text} Malagasy mothers die per 100,000 deliveries of a live baby (${mat.year}), ${ordinal(fromTop(mat))} highest of ${mat.of}.` },
+  { q: 'How many nurses and doctors serve Madagascar?', a: `Very few. In ${nurse.year} it had ${nurse.text} nurses and ${doc.text} doctors for each thousand residents; the nurse ratio is fifth lowest anywhere.` },
+  { q: 'How common is stunting in Madagascar?', a: `Two in five Malagasy under-fives had stunted growth (${stunt.text}, ${stunt.year}), ${ordinal(fromTop(stunt))} worst of ${stunt.of} countries surveyed.` },
+  { q: 'Is malaria common in Madagascar?', a: `Yes: WHO counted ${mal.text} infections for each 1,000 Malagasy at risk in ${mal.year}.` },
+];
+const headline = `Madagascar health ${U}: the world's lowest health spending and rising hunger`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Madagascar's health: rising hunger, low vaccination and very thin funding"
+  headline={headline}
+  tableTitle={`Madagascar health, 1990 to ${U}, at a glance`}
+  tableSubtitle="Selected years; the downloadable CSV lists them all."
+  faq={faq}
+  faqTitle="Malagasy health: the essentials"
+  related={[
+    { href: '/country/madagascar/', label: 'Madagascar in figures' },
+    { href: '/country/madagascar/population/', label: 'Madagascar population' },
+    { href: '/country/mozambique/health/', label: 'Mozambique health' },
+    { href: '/country/kenya/health/', label: 'Kenya health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal deaths by country' },
+  ]}
+>
+  <Fragment slot="answer">Madagascar spent just <strong>{hPc.text} on health per person</strong> in {hPc.year}, the smallest sum of any country in the WHO accounts. <strong>{und.text}</strong> of the population is undernourished, and childhood vaccination lags far behind most of the world.</Fragment>
+  <div class="story-block prose">
+    <h2>Are more Malagasy going hungry than a decade ago?</h2>
+    <p>Yes. The undernourished share climbed from a low of {pct(undLow[1])} in {undLow[0]} to {und.text} in {und.year}; FAO estimates rank only two of {und.of} countries worse.</p>
+  </div>
+  <LineChart
+    title={`Undernourishment in Madagascar, 2001–${und.year}`}
+    subtitle="Percent of Malagasy residents eating too little to meet their energy needs, FAO estimates."
+    points={s.undernourishedPct.map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={und.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Are Malagasy children protected against measles?</h2>
+    <p>Fewer than half are. First-dose measles cover was {measles.text} in {measles.year} ({ordinal(fromBottom(measles))} lowest), down from a {mPeak[0]} high of {pct(mPeak[1])}; three-dose DPT reached {dpt.text}, {ordinal(fromBottom(dpt))} lowest.</p>
+  </div>
+  <LineChart
+    title={`First-dose measles coverage, Madagascar, 1990–${measles.year}`}
+    subtitle="Share of Malagasy babies aged 12–23 months with a first measles jab, WHO/UNICEF."
+    points={s.measlesVaccPct.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={measles.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Does Madagascar spend less on health than anywhere else?</h2>
+    <p>Per person, yes: {hPc.text} in {hPc.year}, last of {hPc.of}. As a slice of the economy that is {hGdp.text}, with just twenty-three countries lower. The Malagasy headcount is tracked by <a href={path('/country/madagascar/population/')}>Madagascar's population clock</a>.</p>
+  </div>
+</HealthTopic>

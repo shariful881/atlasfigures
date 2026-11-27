@@ -1,0 +1,97 @@
+---
+// Uzbekistan health (task 175). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/uzbekistan.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, pct, dec } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), oop = st('oop'), hPc = st('healthPc'), hGdp = st('healthGdp'), nurse = st('nurses'), doc = st('doctors');
+const measles = st('measles'), tb = st('tb'), diab = st('diabetes'), tob = st('tobacco');
+const U = u5.year!;
+const u90 = v('under5Mortality', 1990);
+const mMin = Math.min(...s.measlesVaccPct.filter(([y]) => y >= 1996).map(([, x]) => x));
+const tbPeak = s.tbIncidence.reduce((a, b) => (b[1] > a[1] ? b : a));
+
+assertClaim(Number(u5.value) < u90 / 5, 'under-five rate cut by more than four-fifths since 1990');
+assertClaim(fromTop(oop) === 13 && Number(oop.value) > 60, 'out-of-pocket over 60%, 13th');
+assertClaim(fromTop(nurse) === 19 && Number(nurse.value) / Number(doc.value) > 3.8 && Number(nurse.value) / Number(doc.value) < 4, 'nurses 19th, nearly four per doctor');
+assertClaim(fromTop(measles) === 18 && mMin >= 95, 'measles 18th; 95%+ every year since 1996');
+assertClaim(tbPeak[0] === 2003 && Number(tb.value) < tbPeak[1] / 3, 'TB peaked in 2003, now under a third');
+
+const title = `Uzbekistan Health Data ${U}: Child Survival, Out-of-Pocket Costs, Nurses, Vaccines | AtlasFigures`;
+const description = `Uzbek patients pay ${oop.text} of health costs themselves, 13th highest share worldwide. Under-five mortality dropped from ${dec(u90, 1)} to ${u5.text} for each 1,000 births since 1990, and measles cover is ${measles.text}.`;
+
+const faq = [
+  { q: 'Has tuberculosis declined in Uzbekistan?', a: `Sharply: new cases fell from a peak of ${tbPeak[1]} per 100k in ${tbPeak[0]} to ${tb.text} in ${tb.year}.` },
+  { q: 'What share of Uzbekistan\'s adults live with diabetes?', a: `IDF modelling puts it at ${diab.text} of Uzbeks between 20 and 79 (${diab.year}).` },
+  { q: 'Do many people in Uzbekistan smoke or chew tobacco?', a: `${tob.text} of Uzbeks aged 15-plus did so in ${tob.year}; ${ordinal(fromTop(tob))} on a list of ${tob.of}.` },
+  { q: 'How much of GDP goes on health in Uzbekistan?', a: `${hGdp.text} in ${hGdp.year}, or ${hPc.text} per resident.` },
+];
+const headline = `Uzbekistan health ${U}: child deaths down sharply, high private costs, many nurses`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Uzbekistan's health: more children surviving, patients paying"
+  headline={headline}
+  tableTitle={`Uzbek health trends, 1990 to ${U}`}
+  tableSubtitle="Key years only; the CSV download has the full Uzbek series."
+  faq={faq}
+  faqTitle="Uzbekistan health in brief"
+  related={[
+    { href: '/country/uzbekistan/', label: 'Uzbekistan in figures' },
+    { href: '/country/uzbekistan/population/', label: 'Uzbekistan population growth' },
+    { href: '/country/afghanistan/health/', label: 'Afghanistan health' },
+    { href: '/country/russia/health/', label: 'Russia health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality by country' },
+  ]}
+>
+  <Fragment slot="answer">Uzbekistan's under-five mortality rate is down to <strong>{u5.text}</strong> per 1,000 births ({U}), a fraction of the 1990 toll. Households still cover <strong>{oop.text}</strong> of health spending from their own pockets.</Fragment>
+  <div class="story-block prose">
+    <h2>How much has Uzbek child survival improved?</h2>
+    <p>By more than four-fifths since 1990, when the Uzbek under-five rate was {dec(u90, 1)}; by {U} it was {u5.text}. Measles coverage has never fallen under {pct(mMin)} since 1996 and stood at {measles.text} in {measles.year}, {ordinal(fromTop(measles))} highest.</p>
+  </div>
+  <LineChart
+    title={`Uzbek deaths under age five, 1990–${U}`}
+    subtitle="Uzbek children lost before age five, counted per thousand newborns; UN IGME."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How much do patients in Uzbekistan pay out of pocket?</h2>
+    <p>Most of the bill. Uzbek families paid {oop.text} of current health expenditure directly in {oop.year}, more than in all but twelve of {oop.of} countries; in 2000 the figure was {pct(v('outOfPocketPct', 2000))}.</p>
+  </div>
+  <LineChart
+    title={`Uzbek households' direct payments for care, 2000–${oop.year}`}
+    subtitle="Money Uzbeks paid at the clinic or pharmacy; percent of the country's health outlays (WHO)."
+    points={s.outOfPocketPct.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="percent"
+    highlight={oop.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Does Uzbekistan have many nurses?</h2>
+    <p>Yes, {nurse.text} nursing and midwifery staff for each thousand Uzbeks in {nurse.year}, {ordinal(fromTop(nurse))} of {nurse.of} and nearly four for every doctor ({doc.text} per 1,000 in {doc.year}). Births and deaths overall feature on <a href={path('/country/uzbekistan/population/')}>Uzbekistan's population counter</a>.</p>
+  </div>
+</HealthTopic>

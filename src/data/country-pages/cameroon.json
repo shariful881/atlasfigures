@@ -1,0 +1,85 @@
+{
+  "_about": "Editorial data for the Cameroon country hub (/country/cameroon/) and its health page, written in task 175. Figures are never stored here: pages take them from src/data/profiles/CMR.json and the generated series.",
+  "slug": "cameroon",
+  "name": "Cameroon",
+  "demonym": "Cameroonian",
+  "capital": "Yaoundé",
+  "iso3": "CMR",
+  "wikipedia": "https://en.wikipedia.org/wiki/Cameroon",
+  "checkedFacts": [
+    "driving",
+    "emergency"
+  ],
+  "factChecks": [
+    {
+      "fact": "driving",
+      "value": "Right",
+      "wikidata": "Right",
+      "checkedOn": "2026-11-27",
+      "against": "RAC, Driving on the left or right across the world: Cameroon – R",
+      "url": "https://www.rac.co.uk/drive/travel/advice/driving-on-the-left-or-right-across-the-world/",
+      "label": "driving on the right",
+      "sourceName": "RAC"
+    },
+    {
+      "fact": "emergency",
+      "value": "117 police, 112 ambulance",
+      "wikidata": "112",
+      "checkedOn": "2026-11-27",
+      "against": "FCDO Cameroon travel advice, Getting help: ambulance 112, police 117 (fire is listed as 119 by FCDO but 118 by Global Affairs Canada, so it is not shown)",
+      "url": "https://www.gov.uk/foreign-travel-advice/cameroon/getting-help",
+      "label": "emergency numbers 117 police, 112 ambulance",
+      "sourceName": "UK FCDO travel advice"
+    }
+  ],
+  "pages": {
+    "hub": {
+      "published": "2026-11-27",
+      "updated": "2026-11-27",
+      "changelog": [
+        {
+          "date": "2026-11-27",
+          "type": "new",
+          "note": "Page published (task 175)."
+        }
+      ],
+      "verification": {
+        "checkedOn": "2026-11-27",
+        "checkedBy": "Claude (task 175)",
+        "what": "Every statistic row (value, year, world rank) on the page, every number in the text, title, description and JSON-LD, and every claim in the story and FAQ (ranks, comparisons, trends, our counts); the build also asserts each claim (assertClaim); driving side and emergency numbers by hand (factChecks)",
+        "against": "Original UN WPP 2024, UN WUP 2025 and World Bank WDI files read by scripts/verify/batch-175.py (independent of the site code); energy rows by check-energy and country facts by check-facts against their original files"
+      }
+    },
+    "health": {
+      "published": "2026-11-27",
+      "updated": "2026-11-27",
+      "tableYears": [
+        1990,
+        1995,
+        2000,
+        2005,
+        2010,
+        2015,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024
+      ],
+      "changelog": [
+        {
+          "date": "2026-11-27",
+          "type": "new",
+          "note": "Page published (task 175)."
+        }
+      ],
+      "verification": {
+        "checkedOn": "2026-11-27",
+        "checkedBy": "Claude (task 175)",
+        "what": "Every figure in the text, cards, Key facts, title, description, JSON-LD, statistic rows and every cell of the yearly table; every claim in the story, chart captions and FAQ (ranks, comparisons, trends, our counts)",
+        "against": "Original World Bank WDI files read by scripts/verify/batch-175.py; check-country-pages compares the table and CSV with the World Bank values"
+      }
+    }
+  }
+}

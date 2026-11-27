@@ -1,0 +1,97 @@
+---
+// Mozambique health (task 175). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/mozambique.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct, dec } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), mal = st('malaria'), tb = st('tb'), measles = st('measles'), doc = st('doctors'), nurse = st('nurses');
+const diab = st('diabetes'), hGdp = st('healthGdp'), hPc = st('healthPc'), neo = st('neonatal');
+const U = u5.year!;
+const u90 = v('under5Mortality', 1990), m19 = v('measlesVaccPct', 2019);
+const malPeak = s.malariaIncidence.reduce((a, b) => (b[1] > a[1] ? b : a));
+const tbFlat = s.tbIncidence.filter(([y]) => y >= 2012);
+
+assertClaim(u90 > 200 && Number(u5.value) < u90 / 3.5 && 1000 / Number(u5.value) > 16.5 && 1000 / Number(u5.value) < 17.5, 'under-five rate above 200 in 1990, now under two-sevenths of that');
+assertClaim(fromTop(mal) === 8 && malPeak[0] === 2002 && Number(mal.value) < 0.65 * malPeak[1], 'malaria eighth highest; peak in 2002, down over a third');
+assertClaim(tbFlat.every(([, x]) => x === Number(tb.value)) && v('tbIncidence', 2011) < Number(tb.value) && fromTop(tb) === 18, 'TB flat since 2012; 18th');
+assertClaim(fromBottom(measles) === 17 && m19 - Number(measles.value) >= 15, 'measles 17th lowest, at least 15 points below 2019');
+assertClaim(fromBottom(doc) === 25 && fromBottom(diab) === 5, 'doctors 25th lowest; diabetes fifth lowest');
+
+const title = `Mozambique Health Data ${U}: Child Deaths, Malaria, TB, Vaccination | AtlasFigures`;
+const description = `${u5.text} of every 1,000 Mozambican children die before turning five, down from ${dec(u90, 1)} in 1990. Malaria strikes ${mal.text} per 1,000 people exposed, eighth highest, and measles cover slipped to ${measles.text}.`;
+
+const faq = [
+  { q: 'Is tuberculosis still widespread in Mozambique?', a: `Yes: WHO has estimated ${tb.text} fresh cases for every 100k Mozambicans in each year since 2012, ${ordinal(fromTop(tb))} highest of ${tb.of}.` },
+  { q: 'Are there enough doctors in Mozambique?', a: `Far from it: ${doc.text} doctors per 1,000 Mozambicans in ${doc.year}, just twenty-four countries having fewer, with ${nurse.text} nurses alongside them.` },
+  { q: 'Is diabetes a big problem in Mozambique?', a: `Not by world standards: ${diab.text} of Mozambicans in the 20–79 age band in ${diab.year}, fifth lowest of ${diab.of}.` },
+  { q: 'What share of Mozambique\'s economy goes to health?', a: `${hGdp.text} of GDP in ${hGdp.year}, a mere ${hPc.text} per inhabitant.` },
+];
+const headline = `Mozambique health ${U}: child deaths falling, malaria and TB still heavy`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Mozambique's health: children surviving more often, malaria still everywhere"
+  headline={headline}
+  tableTitle={`Mozambique by health indicator, 1990 to ${U}`}
+  tableSubtitle="Selected years; the CSV file covers the rest."
+  faq={faq}
+  faqTitle="Mozambique's health in a few answers"
+  related={[
+    { href: '/country/mozambique/', label: 'Mozambique in figures' },
+    { href: '/country/mozambique/population/', label: 'Mozambique population' },
+    { href: '/country/tanzania/health/', label: 'Tanzania health' },
+    { href: '/country/madagascar/health/', label: 'Madagascar health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality by country' },
+  ]}
+>
+  <Fragment slot="answer">Mozambique loses <strong>{u5.text} of every 1,000 children</strong> before their fifth birthday ({U}), far fewer than in 1990 but still many. Malaria incidence of <strong>{mal.text} for every 1,000 people exposed</strong> ranks {ordinal(fromTop(mal))} worldwide.</Fragment>
+  <div class="story-block prose">
+    <h2>What share of Mozambican children die young?</h2>
+    <p>About one in seventeen fails to reach five: the {U} rate was {u5.text}, down from {dec(u90, 1)} in 1990. Deaths in the first month alone run at {neo.text} per 1,000. Birth numbers are tracked by <a href={path('/country/mozambique/population/')}>our Mozambique population clock</a>.</p>
+  </div>
+  <LineChart
+    title={`Mozambique's under-five deaths, 1990 to ${U}`}
+    subtitle="Mozambican youngsters dying before five years old, per 1,000 born; UN IGME."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is malaria still rampant in Mozambique?</h2>
+    <p>Yes: {mal.text} infections for each thousand Mozambicans in malarial areas during {mal.year}, putting the country {ordinal(fromTop(mal))} of the {mal.of} with WHO estimates. The rate has eased from a {malPeak[0]} high of {dec(malPeak[1], 1)}.</p>
+  </div>
+  <LineChart
+    title={`Malaria cases in Mozambique, 2000–${mal.year}`}
+    subtitle="New Mozambican malaria infections each year per 1,000 residents exposed, WHO World Malaria Report."
+    points={s.malariaIncidence.map(([x, y]) => ({ x, y }))}
+    format="plain"
+    highlight={mal.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Did measles vaccination in Mozambique drop after 2019?</h2>
+    <p>Yes. First-dose coverage stood at {pct(m19)} in 2019 but only {measles.text} in {measles.year}, {ordinal(fromBottom(measles))} lowest of {measles.of} countries.</p>
+  </div>
+</HealthTopic>

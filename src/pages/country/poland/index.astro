@@ -1,0 +1,73 @@
+---
+// Poland country hub (task 175). Every figure comes from the country profile (src/data/profiles/POL.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/poland.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), life = st('population', 'lifeExp'), grow = st('population', 'growth');
+const births = st('population', 'births'), deaths = st('population', 'deaths'), net = st('population', 'netMigrants'), mig = st('population', 'migrantStock'), migPct = st('population', 'migrantPct');
+const gdp = st('economy', 'gdp'), exp = st('trade', 'exports'), tour = st('trade', 'tourists');
+const ws = st('energy', 'wsShare'), fossil = st('energy', 'fossilShare'), mat = st('health', 'maternal'), nb = st('facts', 'neighbours');
+
+assertClaim(Number(deaths.value) > 1.4 * Number(births.value) && Number(deaths.value) < 1.5 * Number(births.value), 'deaths roughly one and a half times births');
+assertClaim(Number(net.value) < 0 && Number(grow.value) < 0, 'net emigration and a shrinking population');
+assertClaim(fromTop(tour) === 2 && tour.year === 2019, 'second most international arrivals (2019)');
+assertClaim(fromTop(gdp) === 21 && fromTop(exp) === 20, 'GDP 21st, exports 20th');
+assertClaim(fromTop(ws) === 25 && Number(ws.value) > 24 && Number(ws.value) < 26.5 && Number(fossil.value) > 60, 'wind and solar 25th; fossil fuels over 60%');
+assertClaim(fromBottom(mat) === 5 && nb.text.split(', ').length === 7, 'maternal fifth lowest; seven neighbours');
+
+const title = `Poland in Figures ${Y}: Falling Population, Foreign Arrivals, Exports, Wind and Solar | AtlasFigures`;
+const description = `Poland's deaths outrun its births by about half, so the population of ${people(Number(pop.value))} is drifting down. The World Bank ranks it second for foreign arrivals, and its exports reached ${exp.text}.`;
+
+const faq = [
+  { q: 'Which countries share a border with Poland?', a: `Seven: ${nb.text}.` },
+  { q: 'Do Polish mothers face much risk in childbirth?', a: `Very little. Modelled estimates put Polish maternal deaths at ${mat.text} per 100,000 live-born Polish babies in ${mat.year}, a ratio where just four countries do better.` },
+  { q: 'Is Poland home to many immigrants?', a: `${people(Number(mig.value))} in ${mig.year}, or ${migPct.text} of all residents, according to UN migrant stock estimates.` },
+  { q: 'Is Poland one of the world\'s big exporters?', a: `Yes. Polish sales of goods and services abroad totalled ${exp.text} for ${exp.year}, position ${ordinal(fromTop(exp))} out of ${exp.of}; set against GDP, that is ${st('trade', 'exportsPct').text}.` },
+];
+const headline = `Poland in figures ${Y}: a slowly shrinking nation with a trillion-dollar economy`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Poland in figures: fewer cradles, more visitors, a growing export machine"
+  headline={headline}
+  faq={faq}
+  faqTitle="Poland: things people ask"
+  related={[
+    { href: '/country/poland/population/', label: 'Poland population: live count' },
+    { href: '/country/poland/economy/', label: 'Poland economy: GDP and prices' },
+    { href: '/country/poland/health/', label: 'Poland health: births, beds, smoking' },
+    { href: '/country/germany/', label: 'Germany in figures' },
+    { href: '/country/ukraine/', label: 'Ukraine at a glance' },
+    { href: '/country/russia/', label: 'Russia data hub' },
+    { href: '/rankings/exports-by-country/', label: 'Exports by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Poles number <strong>{people(Number(pop.value))}</strong> by UN reckoning for {Y}, and that headcount slips {grow.text.replace('-', '')} annually. Annual output topped <strong>{gdp.text}</strong> during {gdp.year}, placing Poland {ordinal(fromTop(gdp))} on the global league table.</Fragment>
+  <div class="story-block prose">
+    <h2>How fast is Poland's population shrinking?</h2>
+    <p>Slowly but steadily. The UN expects {int(Number(deaths.value))} Polish deaths in {Y} against {int(Number(births.value))} births, while emigrants outnumber newcomers by {int(-Number(net.value))}. Half the country is older than {age.text}; a Polish baby born this year should reach {life.text}. Follow it on <a href={path('/country/poland/population/')}>Poland's live population counter</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Does Poland really get more foreign arrivals than almost anywhere?</h2>
+    <p>On the World Bank's series it does: {people(Number(tour.value))} visitors from abroad were logged for {tour.year}, and just one country logged more. National statistics offices do not all count arrivals in the same way, so the comparison is a rough one.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>What does the Polish economy add up to?</h2>
+    <p>Measured at market prices, Polish GDP ranks {ordinal(fromTop(gdp))} out of {gdp.of} economies, and Polish exports hold {ordinal(fromTop(exp))} place. For growth, inflation and jobs, open <a href={path('/country/poland/economy/')}>Poland's economic dashboard</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much Polish electricity comes from wind and solar?</h2>
+    <p>A quarter: {ws.text} in {ws.year}, giving Poland {ordinal(fromTop(ws))} place for wind and solar among the {ws.of} countries Ember reports monthly. Fossil fuels still generated {fossil.text}.</p>
+  </div>
+</CountryHub>

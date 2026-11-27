@@ -1,0 +1,74 @@
+---
+// Mozambique country hub (task 175). Every figure comes from the country profile (src/data/profiles/MOZ.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/mozambique.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), life = st('population', 'lifeExp'), grow = st('population', 'growth');
+const births = st('population', 'births'), deaths = st('population', 'deaths');
+const pov = st('economy', 'pov300'), gdpPc = st('economy', 'gdpPc'), debt = st('economy', 'extDebtPct');
+const hydro = st('energy', 'hydroShare'), elec = st('internet', 'electricity'), agri = st('jobs', 'empAgri');
+const forest = st('environment', 'forestArea'), parl = st('governance', 'womenParl');
+
+const ratio = Number(births.value) / Number(deaths.value);
+assertClaim(ratio > 5 && ratio < 5.5, 'more than five births per death');
+assertClaim(fromTop(pov) === 2 && fromBottom(gdpPc) === 5, 'extreme poverty second highest; GDP per head fifth lowest');
+assertClaim(fromTop(debt) === 1 && Number(debt.value) > 300, 'external debt over 300% of GNI, highest');
+assertClaim(fromTop(hydro) === 14 && Number(hydro.value) > 80 && fromBottom(elec) === 10 && Number(elec.value) > 33.4 && Number(elec.value) < 40, 'hydro over 80%, 14th; electricity access barely over a third, tenth lowest');
+assertClaim(fromTop(agri) === 2 && fromTop(forest) === 21 && fromTop(parl) === 37, 'farm jobs second; forest 21st; women MPs 37th');
+
+const title = `Mozambique in Figures ${Y}: Teenage Median Age, Poverty, Debt, Hydropower | AtlasFigures`;
+const description = `Mozambique's median age is ${age.text} years. ${pov.text} live below $3.00 a day, external debt equals ${debt.text} of national income, and dams make ${hydro.text} of its power.`;
+
+const faq = [
+  { q: 'Which side of the road do Mozambicans drive on?', a: 'On the left, according to the RAC\'s country-by-country list.' },
+  { q: 'How many Mozambicans work on farms?', a: `${agri.text} of employed people were in agriculture in ${agri.year} (ILO modelled), ${ordinal(fromTop(agri))} highest share of ${agri.of}.` },
+  { q: 'Is Mozambique heavily forested?', a: `Mozambican woodland spans ${int(Number(forest.value))} km² (${forest.year}); twenty countries have more forest by area, out of ${forest.of}.` },
+  { q: 'Are women well represented in Mozambique\'s parliament?', a: `Relatively: ${parl.text} of Assembly of the Republic seats in ${parl.year}, ${ordinal(fromTop(parl))} of ${parl.of}.` },
+];
+const headline = `Mozambique in figures ${Y}: a very young, fast-growing nation facing deep poverty`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Mozambique in figures: a teenage median age, rivers of hydropower and heavy debts"
+  headline={headline}
+  faq={faq}
+  faqTitle="Mozambique explained briefly"
+  related={[
+    { href: '/country/mozambique/population/', label: 'Mozambique population: live count' },
+    { href: '/country/mozambique/economy/', label: 'Mozambique economy: GDP and debt' },
+    { href: '/country/mozambique/health/', label: 'Mozambique health: malaria, TB, child survival' },
+    { href: '/country/tanzania/', label: 'Tanzania in figures' },
+    { href: '/country/south-africa/', label: 'South Africa at a glance' },
+    { href: '/country/madagascar/', label: 'Madagascar data hub' },
+    { href: '/rankings/employment-in-agriculture-by-country/', label: 'Farm employment by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Some <strong>{people(Number(pop.value))}</strong> Mozambicans are alive in {Y} according to UN demographers, multiplying at {grow.text} annually, and their median age is only <strong>{age.text}</strong>. GDP per inhabitant, {gdpPc.text} in {gdpPc.year}, sits fifth from the bottom of {gdpPc.of}.</Fragment>
+  <div class="story-block prose">
+    <h2>How young is the typical Mozambican?</h2>
+    <p>Very young. For every Mozambican death the UN expects more than five births in {Y}: {int(Number(births.value))} against {int(Number(deaths.value))}. A Mozambican baby's life expectancy is {life.text}. See <a href={path('/country/mozambique/population/')}>the Mozambique population counter</a> for the running total.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How widespread is poverty in Mozambique?</h2>
+    <p>Extremely. In the {pov.year} household survey {pov.text} of residents lived on less than $3.00 a day (2021 prices adjusted for purchasing power); of {pov.of} countries measured, one had a higher rate.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Does Mozambique owe more abroad than any other country?</h2>
+    <p>Relative to its income, yes: Mozambican external debt stood at {debt.text} of GNI in {debt.year}, the top figure among {debt.of} borrowers in the World Bank tables. Growth and prices feature on <a href={path('/country/mozambique/economy/')}>the Mozambique economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Mozambique's grid powered by dams?</h2>
+    <p>Largely. Turbines in dams turned out {hydro.text} of Mozambican electricity during {hydro.year}, the {ordinal(fromTop(hydro))} heaviest reliance on hydropower Ember records. Yet barely more than one Mozambican in three ({elec.text}, {elec.year}) could switch on a light at home, {ordinal(fromBottom(elec))} worst of {elec.of}.</p>
+  </div>
+</CountryHub>

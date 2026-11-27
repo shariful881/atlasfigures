@@ -1,0 +1,72 @@
+---
+// Saudi Arabia country hub (task 175). Every figure comes from the country profile (src/data/profiles/SAU.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/saudi-arabia.json';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), grow = st('population', 'growth');
+const mig = st('population', 'migrantStock'), migPct = st('population', 'migrantPct'), paid = st('trade', 'remitPaid');
+const fossil = st('energy', 'fossilShare'), ren = st('energy', 'renShare'), pm = st('environment', 'pm25'), co2pc = st('environment', 'co2pc');
+const water = st('environment', 'water'), gdp = st('economy', 'gdp'), res = st('economy', 'reserves'), land = st('facts', 'landArea'), nb = st('facts', 'neighbours');
+
+assertClaim(fromTop(mig) === 3 && Number(migPct.value) > 40 && Number(migPct.value) < 41 && fromTop(paid) === 3, 'migrant stock third, over 40%; remittances paid third');
+assertClaim(fromTop(fossil) === 3 && Number(fossil.value) > 95, 'fossil over 95%, third');
+assertClaim(fromTop(pm) === 2 && fromTop(co2pc) === 7, 'PM2.5 second highest; CO2 per person seventh');
+assertClaim(fromTop(water) === 5 && Number(water.value) > 900, 'freshwater withdrawals over 900% of renewable resources, fifth');
+assertClaim(fromTop(gdp) === 19 && fromTop(res) === 8 && fromTop(land) === 12 && nb.text.split(', ').length === 7, 'GDP 19th; reserves eighth; area 12th; seven neighbours');
+
+const title = `Saudi Arabia in Figures ${Y}: Migrant Workers, Fossil Power, Polluted Air, Scarce Water | AtlasFigures`;
+const description = `${migPct.text} of Saudi Arabia's residents were born abroad, and fossil fuels generated ${fossil.text} of its electricity. Water withdrawals ran at ${water.text} of renewable freshwater supplies.`;
+
+const faq = [
+  { q: 'Has Saudi GDP passed the trillion-dollar mark?', a: `Yes, at ${gdp.text} in ${gdp.year}, enough for ${ordinal(fromTop(gdp))} place on a list of ${gdp.of}.` },
+  { q: 'How large are Saudi foreign reserves?', a: `Total reserves including gold were ${res.text} in ${res.year}, the ${ordinal(fromTop(res))} biggest stockpile.` },
+  { q: 'How much land does Saudi Arabia cover?', a: `${int(Number(land.value))} km², the ${ordinal(fromTop(land))} largest land area of ${land.of}, with only ${st('population', 'density').text} inhabitants per km².` },
+  { q: 'How many countries touch Saudi Arabia\'s borders?', a: `Seven: ${nb.text}.` },
+];
+const headline = `Saudi Arabia in figures ${Y}: a migrant-heavy workforce on fossil power`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Saudi Arabia in figures: foreign workers, fossil electricity and thin water supplies"
+  headline={headline}
+  faq={faq}
+  faqTitle="More on Saudi Arabia"
+  related={[
+    { href: '/country/saudi-arabia/population/', label: 'Saudi Arabia population: live count' },
+    { href: '/country/saudi-arabia/economy/', label: 'Saudi Arabia economy: GDP and prices' },
+    { href: '/country/saudi-arabia/health/', label: 'Saudi Arabia health: diabetes, roads, spending' },
+    { href: '/country/iraq/', label: 'Iraq in figures' },
+    { href: '/country/yemen/', label: 'Yemen at a glance' },
+    { href: '/country/egypt/', label: 'Egypt data hub' },
+    { href: '/rankings/immigrant-percentage-by-country/', label: 'Immigrant share by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Projected Saudi population for {Y}: <strong>{people(Number(pop.value))}</strong>, up {grow.text} a year, median age {age.text}. About <strong>{migPct.text}</strong> of them were born in another country.</Fragment>
+  <div class="story-block prose">
+    <h2>Are most Saudi residents migrants?</h2>
+    <p>Not most, but four in ten: {migPct.text} of residents, about {people(Number(mig.value))} people as of {mig.year}, form the {ordinal(fromTop(mig))} biggest foreign-born community anywhere. Transfers sent out of the kingdom as remittances totalled {paid.text} that same period ({paid.year}), {ordinal(fromTop(paid))} worldwide. The total is updated on <a href={path('/country/saudi-arabia/population/')}>the Saudi population counter</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Does Saudi Arabia make almost all its power from fossil fuels?</h2>
+    <p>Yes: {fossil.text} of Saudi generation in {fossil.year}, more than all but two of the {fossil.of} nations Ember tracks month by month, leaving renewables {ren.text}. Carbon dioxide emissions per person reached {co2pc.text} tonnes, {ordinal(fromTop(co2pc))} highest.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Saudi air thick with fine particles?</h2>
+    <p>It is. Saudi residents were exposed to {pm.text} µg/m³ of PM2.5 on average across {pm.year}, worse than every country but one of {pm.of}. Output, prices and reserves have <a href={path('/country/saudi-arabia/economy/')}>their own Saudi economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Saudi Arabia drawing water faster than rain refills it?</h2>
+    <p>Far more. Annual freshwater withdrawals equalled {water.text} of the kingdom's internal renewable resources during {water.year}; a rate exceeded in four of the {water.of} countries measured.</p>
+  </div>
+</CountryHub>

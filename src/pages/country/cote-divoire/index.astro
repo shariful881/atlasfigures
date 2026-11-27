@@ -1,0 +1,72 @@
+---
+// Côte d'Ivoire country hub (task 175). Every figure comes from the country profile (src/data/profiles/CIV.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/cote-divoire.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), life = st('population', 'lifeExp'), grow = st('population', 'growth');
+const mig = st('population', 'migrantStock'), migPct = st('population', 'migrantPct');
+const lit = st('education', 'literacy'), mob = st('internet', 'mobile'), agri = st('farming', 'agriLand'), forest = st('environment', 'forestPct');
+const infl = st('economy', 'inflation'), gdp = st('economy', 'gdp'), cap = st('facts', 'capital'), cur = st('facts', 'currency'), nb = st('facts', 'neighbours');
+
+assertClaim(fromTop(mig) === 26 && Number(migPct.value) > 8, 'migrant stock 26th, over 8% of residents');
+assertClaim(fromBottom(lit) === 9 && Math.abs(Number(lit.value) - 50) < 0.5, 'literacy one in two, ninth lowest');
+assertClaim(fromTop(mob) === 10 && Number(mob.value) > 180, 'mobile subscriptions above 180 per 100, tenth');
+assertClaim(fromTop(agri) === 5 && Number(forest.value) < 13, 'farmland share fifth; forest under 13%');
+assertClaim(fromBottom(infl) === 15 && nb.text.split(', ').length === 5 && cap.text === 'Yamoussoukro', 'inflation 15th lowest; five neighbours; capital');
+
+const title = `Côte d'Ivoire in Figures ${Y}: Migrants, Literacy, Mobile Phones, Farmland | AtlasFigures`;
+const description = `UN estimates place ${people(Number(mig.value))} migrants in Côte d'Ivoire, and mobile subscriptions reach ${mob.text} per 100 residents. Only half of adults can read and write.`;
+
+const faq = [
+  { q: 'Is Abidjan or Yamoussoukro the Ivorian capital?', a: `Officially, ${cap.text}.` },
+  { q: 'Which currency does Côte d\'Ivoire use?', a: `The ${cur.text}.` },
+  { q: 'Did Ivorian prices rise much in the latest year?', a: `Remarkably: Ivorian consumer prices barely moved, up ${infl.text} across ${infl.year}, a slower pace than in all but fourteen of ${infl.of} countries.` },
+  { q: 'Which countries surround Côte d\'Ivoire?', a: `Five: ${nb.text}.` },
+];
+const headline = `Côte d'Ivoire in figures ${Y}: a magnet for migrants with a young, connected population`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Côte d'Ivoire in figures: migrants, nearly two phone lines each and fields everywhere"
+  headline={headline}
+  faq={faq}
+  faqTitle="Côte d'Ivoire basics"
+  related={[
+    { href: '/country/cote-divoire/population/', label: "Côte d'Ivoire population: live count" },
+    { href: '/country/cote-divoire/economy/', label: "Côte d'Ivoire economy: GDP and prices" },
+    { href: '/country/cote-divoire/health/', label: "Côte d'Ivoire health: mothers, newborns, malaria" },
+    { href: '/country/ghana/', label: 'Ghana in figures' },
+    { href: '/country/nigeria/', label: 'Nigeria at a glance' },
+    { href: '/country/cameroon/', label: 'Cameroon data hub' },
+    { href: '/rankings/literacy-rate-by-country/', label: 'Literacy rate by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">The UN pencils in <strong>{people(Number(pop.value))}</strong> Ivorians for {Y}, a number swelling {grow.text} each year; half are under <strong>{age.text}</strong>. Ivorian GDP amounted to {gdp.text} over {gdp.year}.</Fragment>
+  <div class="story-block prose">
+    <h2>Is Côte d'Ivoire a destination for migrants?</h2>
+    <p>Very much so. UN estimates count {people(Number(mig.value))} residents born outside the country as of {mig.year}, {migPct.text} of everyone living there and a migrant community ranked {ordinal(fromTop(mig))} by size. Ivorians born now are expected to live to {life.text}. The total updates on <a href={path('/country/cote-divoire/population/')}>the Ivorian population counter</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>What share of Ivorian adults can read?</h2>
+    <p>One in two. Adult literacy measured {lit.text} in the {lit.year} survey; just eight of {lit.of} nations surveyed recently score lower.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are there more mobile phone lines than people in Côte d'Ivoire?</h2>
+    <p>Many more. Ivorians held {mob.text} mobile subscriptions for every hundred residents during {mob.year}, so just nine of {mob.of} countries have a denser web of SIM cards. Output and prices live on <a href={path('/country/cote-divoire/economy/')}>our Ivorian GDP and inflation tracker</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much of Côte d'Ivoire is farmland?</h2>
+    <p>Crops and pasture take up {agri.text} of Ivorian land ({agri.year}), fifth among {agri.of} countries, while woodland covers only {forest.text}.</p>
+  </div>
+</CountryHub>

@@ -1,0 +1,94 @@
+---
+// Cameroon health (task 175). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/cameroon.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct, dec } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const oop = st('oop'), u5 = st('u5'), mal = st('malaria'), doc = st('doctors'), nurse = st('nurses');
+const tob = st('tobacco'), mat = st('maternal'), measles = st('measles'), hPc = st('healthPc');
+const U = u5.year!;
+const o00 = v('outOfPocketPct', 2000), u90 = v('under5Mortality', 1990);
+const uPeak = s.under5Mortality.filter(([y]) => y >= 1990).reduce((a, b) => (b[1] > a[1] ? b : a));
+
+assertClaim(fromTop(oop) === 9 && Number(oop.value) > 2 / 3 * 100 && o00 > Number(oop.value), 'out-of-pocket over two-thirds, ninth; lower than 2000');
+assertClaim(uPeak[0] === 1997 && uPeak[1] > u90 && Number(u5.value) < uPeak[1] / 2 && fromTop(u5) === 16, 'under-five peak in 1997, now under half; 16th');
+assertClaim(fromBottom(doc) === 17 && fromTop(mal) === 15 && fromBottom(tob) === 8, 'doctors 17th lowest; malaria 15th; tobacco eighth lowest');
+
+const title = `Cameroon Health Data ${U}: Patient Costs, Child Mortality, Malaria, Doctors | AtlasFigures`;
+const description = `Cameroonian households pay ${oop.text} of health spending directly, ninth highest share of ${oop.of} countries. Deaths before age five dropped to ${u5.text} in every 1,000 births from a ${uPeak[0]} peak of ${dec(uPeak[1], 1)}.`;
+
+const faq = [
+  { q: 'Is malaria a major threat in Cameroon?', a: `Yes: ${mal.text} infections per 1,000 Cameroonians at risk in ${mal.year}, the ${ordinal(fromTop(mal))} worst rate of ${mal.of}.` },
+  { q: 'Do Cameroonians smoke much?', a: `Yes: only ${tob.text} of Cameroonians over 15 used it in ${tob.year}, ${ordinal(fromBottom(tob))} lowest.` },
+  { q: 'What is Cameroon\'s maternal mortality ratio?', a: `A modelled ${mat.text} for every 100,000 births in ${mat.year}.` },
+  { q: 'Are Cameroonian babies vaccinated against measles?', a: `${measles.text} in ${measles.year}, first dose.` },
+];
+const headline = `Cameroon health ${U}: patients pay most costs, child deaths halved since the late 1990s`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Cameroon's health: costly care, fewer child deaths, few doctors"
+  headline={headline}
+  tableTitle={`Health in Cameroon by the numbers, 1990 to ${U}`}
+  tableSubtitle="Selected milestones; the CSV has every Cameroonian year."
+  faq={faq}
+  faqTitle="Cameroon health basics"
+  related={[
+    { href: '/country/cameroon/', label: 'Cameroon in figures' },
+    { href: '/country/cameroon/population/', label: 'Cameroon population' },
+    { href: '/country/nigeria/health/', label: 'Nigeria health' },
+    { href: '/country/dr-congo/health/', label: 'DR Congo health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality by country' },
+  ]}
+>
+  <Fragment slot="answer">In Cameroon, <strong>{oop.text}</strong> of health spending is paid by patients at the point of care ({oop.year}). The death rate before age five has eased to <strong>{u5.text} of every 1,000 children</strong>, but physicians remain scarce.</Fragment>
+  <div class="story-block prose">
+    <h2>Do Cameroonian patients pay for most of their own care?</h2>
+    <p>Yes, more than two-thirds of it: {oop.text} in {oop.year}, a share topped in just eight of {oop.of} countries; back in 2000 it was {pct(o00)}, on overall spending of {hPc.text} a head.</p>
+  </div>
+  <LineChart
+    title={`What Cameroonian patients pay themselves, 2000–${oop.year}`}
+    subtitle="Direct cash outlays by Cameroonian households, percent share of current health expenditure, WHO."
+    points={s.outOfPocketPct.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="percent"
+    highlight={oop.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Did Cameroonian child mortality rise in the 1990s?</h2>
+    <p>Yes, before turning down. Measured per thousand births, it went from {dec(u90, 1)} in 1990 up to {dec(uPeak[1], 1)} in {uPeak[0]}, then down to {u5.text} by {U}; fifteen of {u5.of} countries fare worse. Births are counted on <a href={path('/country/cameroon/population/')}>Cameroon's population page</a>.</p>
+  </div>
+  <LineChart
+    title={`Cameroon's toll of young children, 1990–${U}`}
+    subtitle="Under-five deaths among Cameroonians per 1,000 live births, inter-agency (IGME) model."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How thin is Cameroon's medical workforce?</h2>
+    <p>Very thin: {doc.text} for each thousand Cameroonians in {doc.year}, sixteen countries reporting fewer out of {doc.of}, with {nurse.text} nurses besides.</p>
+  </div>
+</HealthTopic>

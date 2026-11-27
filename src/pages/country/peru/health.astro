@@ -1,0 +1,96 @@
+---
+// Peru health (task 175). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/peru.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct, dec } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), stunt = st('stunting'), tb = st('tb'), dpt = st('dpt'), mal = st('malaria');
+const hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop'), doc = st('doctors'), infant = st('infant');
+const U = u5.year!;
+const u90 = v('under5Mortality', 1990), s91 = v('stuntingPct', 1991), tb00 = v('tbIncidence', 2000), d19 = v('dptVaccPct', 2019);
+const tbLow = s.tbIncidence.reduce((a, b) => (b[1] < a[1] ? b : a));
+
+const u90on = s.under5Mortality.filter(([y]) => y >= 1990).map(([, x]) => x);
+assertClaim(Number(u5.value) < u90 / 6 && u90on.every((x, i) => i === 0 || x < u90on[i - 1]), 'under-five rate below a sixth of 1990, falling every year');
+assertClaim(Number(stunt.value) < s91 / 3 && Number(stunt.value) > 0.28 * s91, 'stunting down about two-thirds since 1991');
+assertClaim(tbLow[0] === 2017 && Number(tb.value) > tbLow[1] && Number(tb.value) < tb00 / 2 && fromTop(tb) === 49, 'TB low in 2017, higher now, under half of 2000; 49th');
+assertClaim(fromBottom(dpt) === 48 && d19 > Number(dpt.value), 'DPT 48th lowest, below 2019');
+
+const title = `Peru Health Data ${U}: Stunting, Child Deaths, Tuberculosis, Vaccines | AtlasFigures`;
+const description = `Child stunting in Peru dropped from ${pct(s91)} in 1991 to ${stunt.text} in ${stunt.year}. Peruvian child mortality is down to ${u5.text}, but tuberculosis, at ${tb.text} per 100k, is above its ${tbLow[0]} low.`;
+
+const faq = [
+  { q: 'Are Peruvian children getting all their DPT shots?', a: `Fewer than before: third-dose coverage reached ${dpt.text} of Peruvian infants in ${dpt.year}, versus ${pct(d19)} in 2019, ${ordinal(fromBottom(dpt))} lowest of ${dpt.of}.` },
+  { q: 'Is there malaria in Peru?', a: `Yes, at a low level: WHO puts Peruvian incidence at ${mal.text} for each 1,000 people exposed in ${mal.year}.` },
+  { q: 'What slice of Peruvian GDP funds health care?', a: `${hGdp.text} of GDP in ${hGdp.year}, or ${hPc.text} per Peruvian; households paid ${oop.text} of that themselves.` },
+  { q: 'How many physicians practise in Peru?', a: `${doc.text} for every thousand Peruvians in ${doc.year}, ${ordinal(fromTop(doc))} on a list of ${doc.of}.` },
+];
+const headline = `Peru health ${U}: stunting cut by two-thirds, child deaths way down, TB edging up`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Peru's health: taller children, fewer infant deaths, a tuberculosis setback"
+  headline={headline}
+  tableTitle={`Peru health indicators, 1990 to ${U}`}
+  tableSubtitle="Selected years shown; the full Peruvian series is in the CSV."
+  faq={faq}
+  faqTitle="Peruvian health, answered"
+  related={[
+    { href: '/country/peru/', label: 'Peru in figures' },
+    { href: '/country/peru/population/', label: 'Peru population' },
+    { href: '/country/colombia/health/', label: 'Colombia health' },
+    { href: '/country/brazil/health/', label: 'Brazil health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality by country' },
+  ]}
+>
+  <Fragment slot="answer">Peru has cut child stunting to <strong>{stunt.text}</strong> ({stunt.year}) and the child death rate to <strong>{u5.text} in each 1,000 births</strong> ({U}). Tuberculosis, notified at a rate of {tb.text} per 100k a year, has crept up from its recent low.</Fragment>
+  <div class="story-block prose">
+    <h2>How much has child stunting dropped in Peru?</h2>
+    <p>By about two-thirds. Surveys found {pct(s91)} of Peruvian under-fives stunted in 1991; the {stunt.year} reading was {stunt.text}.</p>
+  </div>
+  <LineChart
+    title={`Stunting among young Peruvians, 1991–${stunt.year}`}
+    subtitle="Share of Peruvian children under five whose height is low for their age, survey estimates."
+    points={s.stuntingPct.map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={stunt.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Has Peru's child death rate kept falling since 1990?</h2>
+    <p>Every year. Starting at {dec(u90, 1)} in 1990, the Peruvian rate slid to {u5.text} by {U}; infant deaths alone run at {infant.text}. Births and deaths in total are on <a href={path('/country/peru/population/')}>Peru's population counter</a>.</p>
+  </div>
+  <LineChart
+    title={`Peru: under-five mortality rate, 1990–${U}`}
+    subtitle="Peru's deaths of under-fives per thousand births, UN IGME series."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is tuberculosis rising again in Peru?</h2>
+    <p>Somewhat. Peruvian TB incidence fell from {tb00} per 100k in 2000 to {tbLow[1]} in {tbLow[0]}, then rose to {tb.text} by {tb.year}, {ordinal(fromTop(tb))} highest of {tb.of}.</p>
+  </div>
+</HealthTopic>

@@ -1,0 +1,74 @@
+---
+// Uzbekistan country hub (task 175). Every figure comes from the country profile (src/data/profiles/UZB.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/uzbekistan.json';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), life = st('population', 'lifeExp'), grow = st('population', 'growth');
+const births = st('population', 'births'), deaths = st('population', 'deaths');
+const remit = st('trade', 'remitPct'), lit = st('education', 'literacy'), pri = st('education', 'enrPri');
+const fossil = st('energy', 'fossilShare'), ws = st('energy', 'wsShare'), hydro = st('energy', 'hydroShare');
+const parl = st('governance', 'womenParl'), tour = st('trade', 'tourists'), gdp = st('economy', 'gdp'), infl = st('economy', 'inflation'), nb = st('facts', 'neighbours');
+
+const ratio = Number(births.value) / Number(deaths.value);
+assertClaim(ratio > 3.8 && ratio < 4, 'nearly four births per death');
+assertClaim(fromTop(remit) === 21 && Number(remit.value) > 14, 'remittances over 14% of GDP, 21st');
+assertClaim(fromTop(lit) === 2 && fromTop(pri) === 10 && Number(pri.value) > 100, 'literacy second; gross primary enrolment above 100%, tenth');
+assertClaim(fromTop(fossil) === 19 && Number(fossil.value) > 80, 'fossil share above 80%, 19th');
+assertClaim(fromTop(parl) === 38 && fromTop(tour) === 30 && tour.year === 2019 && nb.text.split(', ').length === 5, 'women MPs 38th; arrivals 30th; five neighbours');
+
+const title = `Uzbekistan in Figures ${Y}: Births, Remittances, Literacy, Fossil-Fuel Power | AtlasFigures`;
+const description = `Uzbekistan expects nearly four births for every death in ${Y}. Remittances from Uzbeks abroad equal ${remit.text} of GDP, while fossil-fuelled plants supply ${fossil.text} of Uzbek electricity.`;
+
+const faq = [
+  { q: 'What countries surround Uzbekistan?', a: `Five: ${nb.text}.` },
+  { q: 'Are there many women in Uzbekistan\'s Legislative Chamber?', a: `Women made up ${parl.text} of its members in ${parl.year}; Uzbekistan sits ${ordinal(fromTop(parl))} of ${parl.of} on that measure.` },
+  { q: 'Do many foreigners travel to Uzbekistan?', a: `Before the pandemic, in ${tour.year}, Uzbekistan logged ${people(Number(tour.value))} inbound visitors, ${ordinal(fromTop(tour))} of ${tour.of} on the World Bank list.` },
+  { q: 'What is Uzbekistan\'s GDP and inflation?', a: `Uzbek GDP measured ${gdp.text} in ${gdp.year} (${ordinal(fromTop(gdp))} of ${gdp.of}); inflation that year ran at ${infl.text}.` },
+];
+const headline = `Uzbekistan in figures ${Y}: a fast-growing Central Asian population supported by remittances`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Uzbekistan in figures: births far ahead of deaths, migrant earnings, universal literacy"
+  headline={headline}
+  faq={faq}
+  faqTitle="Uzbekistan Q&A"
+  related={[
+    { href: '/country/uzbekistan/population/', label: 'Uzbekistan population: live count' },
+    { href: '/country/uzbekistan/economy/', label: 'Uzbekistan economy: GDP and inflation' },
+    { href: '/country/uzbekistan/health/', label: 'Uzbekistan health: nurses, vaccines, costs' },
+    { href: '/country/afghanistan/', label: 'Afghanistan in figures' },
+    { href: '/country/russia/', label: 'Russia at a glance' },
+    { href: '/country/iran/', label: 'Iran data hub' },
+    { href: '/rankings/remittances-by-country/', label: 'Remittances by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Uzbekistan's population, {Y} UN estimate: <strong>{people(Number(pop.value))}</strong>, expanding {grow.text} yearly. The median Uzbek is only <strong>{age.text}</strong>, and transfers from Uzbeks working abroad equal {remit.text} of national output.</Fragment>
+  <div class="story-block prose">
+    <h2>How far do Uzbek births outpace deaths?</h2>
+    <p>By almost four to one: {int(Number(births.value))} babies against {int(Number(deaths.value))} deaths in the UN's {Y} figures. Life expectancy for an Uzbek newborn: {life.text} years. The running total is on <a href={path('/country/uzbekistan/population/')}>the Uzbekistan population clock</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much do Uzbek households depend on money sent from abroad?</h2>
+    <p>Heavily. Inflows of personal remittances equalled {remit.text} of the economy's output in {remit.year}; twenty of {remit.of} countries rely on such money more. GDP and prices have <a href={path('/country/uzbekistan/economy/')}>a dedicated Uzbekistan economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Can nearly every adult in Uzbekistan read?</h2>
+    <p>Yes. Adult literacy was recorded at {lit.text} in {lit.year}, second among the {lit.of} nations that published a reading lately. Gross primary enrolment reached {pri.text}; a gross ratio can top 100% because pupils outside the official age band are counted too.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>What generates Uzbekistan's electricity?</h2>
+    <p>Mostly fossil fuels, which made {fossil.text} of Uzbek power in {fossil.year} and rank the country {ordinal(fromTop(fossil))} for fossil reliance among {fossil.of} in Ember's data. Hydropower added {hydro.text} and wind plus solar {ws.text}.</p>
+  </div>
+</CountryHub>

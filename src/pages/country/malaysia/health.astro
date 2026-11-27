@@ -1,0 +1,96 @@
+---
+// Malaysia health (task 175). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/malaysia.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct, dec } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), diab = st('diabetes'), hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop');
+const road = st('road'), stunt = st('stunting'), tob = st('tobacco'), doc = st('doctors');
+const U = u5.year!;
+const d11 = v('diabetesPct', 2011), h00 = v('healthSpendPctGdp', 2000), u90 = v('under5Mortality', 1990);
+const since04 = s.under5Mortality.filter(([y]) => y >= 2004).map(([, x]) => x);
+const lo = Math.min(...since04), hi = Math.max(...since04);
+
+assertClaim(fromTop(diab) === 13 && Number(diab.value) > 20 && d11 < 12.5, 'diabetes above 20%, 13th; about 12% in 2011');
+assertClaim(hi - lo < 0.5 && u90 > 1.9 * Number(u5.value), 'under-five rate within half a point since 2004; well below 1990');
+assertClaim(fromBottom(hGdp) === 38 && h00 < 2.6 && Number(hGdp.value) < 4.05, 'health spending around 4% of GDP, 38th lowest');
+assertClaim(fromTop(road) === 57 && fromTop(stunt) === 44 && fromTop(diab) === 13, 'road deaths 57th; stunting 44th');
+
+const title = `Malaysia Health Data ${U}: Diabetes, Child Survival, Health Spending, Road Deaths | AtlasFigures`;
+const description = `Diabetes affects ${diab.text} of Malaysian adults, 13th highest rate in the world and up from ${pct(d11)} in 2011. Child mortality has hardly shifted since 2004 while health takes ${hGdp.text} of GDP.`;
+
+const faq = [
+  { q: 'Are traffic deaths high in Malaysia?', a: `Fairly: crashes claimed ${road.text} lives for each 100k Malaysians in ${road.year}, ${ordinal(fromTop(road))} worst of ${road.of}.` },
+  { q: 'How many Malaysian children are stunted?', a: `${stunt.text} of under-fives in ${stunt.year}, a share exceeded in forty-three of ${stunt.of} countries surveyed.` },
+  { q: 'What share of Malaysians use tobacco?', a: `${tob.text} of the 15-plus population in ${tob.year}.` },
+  { q: 'How many doctors serve Malaysians?', a: `Roughly ${doc.text} doctors for each thousand Malaysians as of ${doc.year}, a ratio ranked ${ordinal(fromTop(doc))} of ${doc.of}.` },
+];
+const headline = `Malaysia health ${U}: widespread diabetes and a child mortality rate that stopped falling`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Malaysia's health: diabetes on the rise, child deaths on a plateau"
+  headline={headline}
+  tableTitle={`Malaysia's health record, 1990 to ${U}`}
+  tableSubtitle="A sample of years; download the CSV for the complete Malaysian record."
+  faq={faq}
+  faqTitle="Health in Malaysia: answers"
+  related={[
+    { href: '/country/malaysia/', label: 'Malaysia in figures' },
+    { href: '/country/malaysia/population/', label: 'Malaysia population' },
+    { href: '/country/indonesia/health/', label: 'Indonesia health' },
+    { href: '/country/thailand/health/', label: 'Thailand health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality by country' },
+  ]}
+>
+  <Fragment slot="answer">More than one Malaysian adult in five, <strong>{diab.text}</strong>, lives with diabetes ({diab.year}). Malaysia's child death rate, <strong>{u5.text} for every thousand births</strong>, has stayed almost unchanged since 2004.</Fragment>
+  <div class="story-block prose">
+    <h2>How widespread is diabetes in Malaysia?</h2>
+    <p>Very. On IDF figures, {diab.text} of Malaysians in their twenties to seventies had the disease in {diab.year}; Malaysia is {ordinal(fromTop(diab))} of the {diab.of} countries assessed, and Malaysia's own figure was {pct(d11)} back in 2011.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Has Malaysian child mortality stopped improving?</h2>
+    <p>Largely, yes. After dropping from {dec(u90, 1)} in 1990, the rate has hovered between {dec(lo, 1)} and {dec(hi, 1)} every single year from 2004; {U} brought {u5.text}. Overall births and deaths are on <a href={path('/country/malaysia/population/')}>Malaysia's live population counter</a>.</p>
+  </div>
+  <LineChart
+    title={`Malaysia: under-five mortality trend since 1990`}
+    subtitle="Deaths of Malaysian children aged under five, rate per thousand births, from the IGME model."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is Malaysian health care cheap for the economy?</h2>
+    <p>Relatively: health swallowed {hGdp.text} of Malaysian output in {hGdp.year}, a smaller slice than in all but thirty-seven of {hGdp.of} countries, though up from {pct(h00)} in 2000. Per resident that is {hPc.text}, and patients cover {oop.text} directly.</p>
+  </div>
+  <LineChart
+    title={`Malaysia's health bill against GDP, 2000–${hGdp.year}`}
+    subtitle="Malaysia's current health expenditure in percent of GDP, WHO global database."
+    points={s.healthSpendPctGdp.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="percent"
+    highlight={hGdp.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+</HealthTopic>
