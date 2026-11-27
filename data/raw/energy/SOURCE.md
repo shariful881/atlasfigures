@@ -4,7 +4,7 @@ Downloaded automatically by .github/workflows/fetch-energy.yml. Do not edit by h
 
 - Global Carbon Project: Andrew, R. M. & Peters, G. P., The Global Carbon Project's fossil CO2 emissions dataset, version 2026v11 (published 2026-10-26), Zenodo, https://doi.org/10.5281/zenodo.23667912 — licence CC BY 4.0 (checked in the Zenodo record metadata at download).
 - Ember: Yearly Electricity Data, https://ember-energy.org/data/yearly-electricity-data/ — licence CC BY 4.0 (stated on Ember's site; checked by hand 26 November 2026).
-- Downloaded (UTC): 2026-11-26T03:35:47Z
+- Downloaded (UTC): 2026-11-27T04:59:45Z
 
 | Source | File | Licence | URL | Bytes | SHA-256 |
 |---|---|---|---|---|---|
