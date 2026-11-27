@@ -9,7 +9,7 @@
 // differ is NOT used as a live figure: profiles show it as "to check" until it has been checked by hand.
 // (Wikidata's "shares border with" also lists sea borders, so a GeoNames land neighbour only has to appear there.)
 // Output (generated, git-ignored): src/data/facts/index.json. Runs in `npm run data` and before every build.
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 
@@ -177,4 +177,27 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const differ = all.flatMap((f) => Object.entries(f.checks).filter(([, v]) => v !== 'agree').map(([k]) => `${f.iso3}.${k}`));
   const has = (k) => all.filter((f) => (Array.isArray(f[k]) ? f[k].length : f[k] != null)).length;
   console.log(`✓ facts: ${all.length} countries or areas — currency ${has('currencies')}, languages ${has('languages')}, calling code ${has('callingCode')}, domain ${has('tld')}, time zones ${has('timeZones')}, highest point ${has('highestPoint')}, driving side ${has('drivingSide')}, plugs ${has('plugs')}, emergency ${has('emergency')}; ${differ.length} facts where the second source differs (check-facts lists them).`);
+}
+
+// Hand checks of single-source Wikidata facts recorded on country pages (task 172): src/data/country-pages/<slug>.json
+// `factChecks` entries with `wikidata` (the Wikidata text when it was checked) and `value` (what the cited source says,
+// shown on the page). The checked value is used only while Wikidata still says what it said at the check; if Wikidata
+// changes, the fact goes back to "to check" (and check-country-pages fails until it is checked again).
+export function pageFactChecks(dir = 'src/data/country-pages') {
+  const out = {};
+  if (!existsSync(dir)) return out;
+  for (const f of readdirSync(dir).filter((x) => x.endsWith('.json'))) {
+    const pg = JSON.parse(readFileSync(`${dir}/${f}`, 'utf8'));
+    for (const id of pg.checkedFacts ?? []) {
+      const chk = (pg.factChecks ?? []).find((x) => x.fact === id);
+      if (chk) (out[pg.iso3] ??= {})[id] = chk;
+    }
+  }
+  return out;
+}
+/** Applies a page hand check to a Wikidata fact text: { value, source } when it applies, { stale } when Wikidata changed. */
+export function applyHandCheck(chk, wikidataText) {
+  if (!chk || wikidataText == null) return null;
+  if (chk.wikidata != null && chk.wikidata !== wikidataText) return { stale: true };
+  return { value: chk.value, source: `${chk.sourceName} (checked by hand ${chk.checkedOn})` };
 }

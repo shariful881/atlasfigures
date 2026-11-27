@@ -31,6 +31,13 @@ const HEALTH_DIGITS = [1, 1, 1, 0, 0, 1, 1];
 for (const c of pages) {
   const prof = JSON.parse(readFileSync(`src/data/profiles/${c.iso3}.json`, 'utf8'));
   const wdi = JSON.parse(readFileSync(`src/data/wdi/countries/${c.iso3}.json`, 'utf8')).series;
+  for (const f of c.checkedFacts ?? []) {
+    const chk = (c.factChecks ?? []).find((x) => x.fact === f);
+    const st = prof.sections.find((x) => x.id === 'facts')?.stats.find((x) => x.id === f);
+    ok(chk && typeof chk.wikidata === 'string' && typeof chk.value === 'string', `${c.slug}`, `fact "${f}": factChecks needs "wikidata" (text at the check) and "value" (what the source says)`);
+    ok(st?.status === 'live', `${c.slug}`, `fact "${f}" is in checkedFacts but not live in the profile (Wikidata changed since the hand check? check it again)`);
+    ok(!st || st.status !== 'live' || st.text === chk?.value, `${c.slug}`, `fact "${f}": page shows "${st?.text}", hand check says "${chk?.value}"`);
+  }
   for (const f of c.checkedFacts ?? []) ok((c.factChecks ?? []).some((x) => x.fact === f && /^https?:\/\//.test(x.url) && x.checkedOn), `${c.slug}`, `fact "${f}" is shown without a recorded hand check (factChecks with url and checkedOn)`);
   for (const [topic, meta] of Object.entries(c.pages)) {
     const url = topic === 'hub' ? `/country/${c.slug}/` : `/country/${c.slug}/${topic}/`;
