@@ -22,7 +22,6 @@ independent verify script, screenshots, and the owner's approval.
 3. Anything needing a hand step (e.g. a new Global Carbon Project record, a new UN revision) or an unreachable
    source → one issue, "Data sources need attention".
 4. Pages whose sentences no longer hold are fixed and re-verified; dates and changelog change only for real data
-   changes. Then it goes live without waiting (owner's rule, 27 Nov 2026) and the owner gets the list of every
-   changed live link to check.
+   changes. Then it goes live without waiting (owner's rule, 27 Nov 2026).
 5. A source that keeps failing keeps its current data. A backup address is added to `data/sources.json` only after
    a hand check that it serves the identical file; a different dataset is a new source and needs the owner's OK.

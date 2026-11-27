@@ -10,8 +10,8 @@
   (`watch-sources.yml` → branch `data-update-YYYYMMDD` → pull request into `main`) may go live WITHOUT waiting
   for approval, but only after `npm run check` passes, the changed figures are re-verified against the original
   files (verify scripts + reading the changed sentences), and Updated/dateModified/sitemap/changelog are set for
-  the real changes. Right after it is live, send the owner a list of every changed live page link; the owner
-  reports any change wanted later. Everything else (new pages, design, tools) still needs explicit approval.
+  the real changes. No link list to the owner is needed afterwards (owner, 27 Nov 2026). Everything else (new
+  pages, design, tools) still needs explicit approval.
 - **URLs before launch (owner, 27 Nov 2026):** the site is not in Google yet, so URLs may still change. Country
   pages move to `/country/<slug>/` (hub) and `/country/<slug>/<topic>/` (task 148). From launch on, URLs never change.
 - **Launch pacing (owner, 27 Nov 2026):** the 3–5 countries a day rule starts at launch; until then, finish the project.

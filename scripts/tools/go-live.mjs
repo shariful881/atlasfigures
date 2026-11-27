@@ -1,7 +1,7 @@
 // go-live (task 149): the owner's go-live steps in one command — ONLY after the owner has explicitly said to
 // make this piece of work live ("live koro"). One approval covers one piece of work (CLAUDE.md).
 // Exception (owner's rule, 27 Nov 2026): a weekly data update on a data-update-YYYYMMDD branch goes live with
-// --data-update after the checks and the re-verification; afterwards send the owner the changed live links.
+// --data-update after the checks and the re-verification (no link list needed).
 //
 //   node scripts/tools/go-live.mjs --task 149 --approved "১৪৯ live কর" --title "Tools: find-facts, …" \
 //        --body-file /tmp/pr.md [--verify scripts/verify/econ-batch20.py --verify …]
@@ -69,4 +69,4 @@ for (let i = 0; ; i++) {
   await sleep(10);
 }
 if (!dataUpdate) { run('git fetch origin'); run('git merge --ff-only origin/main'); run(`git push origin ${branch}`); }
-console.log(dataUpdate ? `\n✓ Data update live (PR #${pr.number}). Now send the owner the list of changed live page links, and merge main into dev, dev-data and dev-site.` : `\n✓ Task ${task} is live (PR #${pr.number}). Mark it ✅ in the work list with today's date.`);
+console.log(dataUpdate ? `\n✓ Data update live (PR #${pr.number}). Merge main into dev, dev-data and dev-site.` : `\n✓ Task ${task} is live (PR #${pr.number}). Mark it ✅ in the work list with today's date.`);

@@ -83,6 +83,6 @@ jobs:
           if git diff --quiet origin/main HEAD; then echo 'No change against main'; exit 0; fi
           gh pr list --head "${{ github.ref_name }}" --base main --json number --jq '.[0].number // empty' | grep -q . && exit 0
           gh workflow run check.yml --ref "${{ github.ref_name }}"   # pushes made with the workflow token do not start Check by themselves
-          MSG="Fetched by ${{ github.workflow }} after the weekly source check (watch-sources.yml) into branch ${{ github.ref_name }}. The Check run on that branch shows which page sentences no longer hold. Fix the pages, re-verify the figures, set Updated/changelog for real changes, then merge into main (owner's rule of 27 Nov 2026: data updates go live after the checks, then the owner gets the list of changed links)."
+          MSG="Fetched by ${{ github.workflow }} after the weekly source check (watch-sources.yml) into branch ${{ github.ref_name }}. The Check run on that branch shows which page sentences no longer hold. Fix the pages, re-verify the figures, set Updated/changelog for real changes, then merge into main (owner's rule of 27 Nov 2026: data updates go live after the checks)."
           gh pr create --base main --head "${{ github.ref_name }}" --title "Data update: new source version (${{ github.ref_name }})" --body "$MSG" \
             || gh issue create --title "Data update ready: ${{ github.ref_name }}" --body "$MSG (A pull request could not be opened automatically — allow GitHub Actions to create pull requests in the repository settings, or open it by hand.)"
