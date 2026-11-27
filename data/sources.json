@@ -1,0 +1,83 @@
+{
+  "_about": "Source registry (task 149). Every dataset the site uses: licence, how a new version is detected, which workflow fetches it, and backup addresses of the SAME file. A backup is added only after a hand check that it serves the identical dataset; a different dataset is never switched in automatically (new licence, different definitions) — that is a new source, checked and approved by the owner first. scripts/tools/check-sources.mjs reads this file; .github/workflows/watch-sources.yml runs it every week.",
+  "sources": [
+    {
+      "id": "wdi",
+      "name": "World Bank, World Development Indicators",
+      "licence": "CC BY 4.0 (checked per indicator by fetch-wdi.yml)",
+      "status": "active",
+      "raw": "data/raw/wdi",
+      "fetch": "fetch-wdi.yml",
+      "autoFetch": true,
+      "frequency": "several times a year",
+      "check": { "type": "wdi", "api": "https://api.worldbank.org/v2/sources/2?format=json" },
+      "backups": [],
+      "feeds": "economy pages, World Bank rankings, literacy, migration, telecom, health"
+    },
+    {
+      "id": "ember",
+      "name": "Ember, Yearly Electricity Data",
+      "licence": "CC BY 4.0 (stated on ember-energy.org)",
+      "status": "active",
+      "raw": "data/raw/energy",
+      "fetch": "fetch-energy.yml",
+      "autoFetch": true,
+      "frequency": "yearly file, revised during the year",
+      "check": { "type": "sha", "file": "ember-yearly-electricity-global.csv", "urls": ["https://files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv"] },
+      "backups": [],
+      "feeds": "renewable electricity ranking, energy rows"
+    },
+    {
+      "id": "gcb",
+      "name": "Global Carbon Project, fossil CO2 emissions dataset (Zenodo)",
+      "licence": "CC BY 4.0 (checked in the Zenodo record by fetch-energy.yml)",
+      "status": "active",
+      "raw": "data/raw/energy",
+      "fetch": "fetch-energy.yml",
+      "autoFetch": false,
+      "frequency": "yearly (each version is a new Zenodo record: update GCB_RECORD and GCB_VERSION in fetch-energy.yml)",
+      "check": { "type": "zenodo-latest", "record": "23667912" },
+      "backups": [],
+      "feeds": "CO2 ranking, energy rows"
+    },
+    {
+      "id": "un-wpp",
+      "name": "UN World Population Prospects 2024 (+ interim update 19 January 2026)",
+      "licence": "CC BY 3.0 IGO",
+      "status": "active",
+      "raw": "data/raw/un-wpp-2024",
+      "fetch": "fetch-un-data.yml (population tab, branch dev)",
+      "autoFetch": false,
+      "frequency": "new revision every two years — a new revision means re-verifying ALL pages together (CLAUDE.md)",
+      "check": { "type": "sha", "file": "WPP2024_CSV_files_update.zip", "urls": ["https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/WPP2024_CSV_files_update.zip"], "note": "detects a new interim update; a new revision (WPP 2026…) is checked by hand on population.un.org/wpp" },
+      "backups": [],
+      "feeds": "every population page and ranking, live counters"
+    },
+    {
+      "id": "un-wup",
+      "name": "UN World Urbanization Prospects 2025 (F15)",
+      "licence": "CC BY 3.0 IGO",
+      "status": "active",
+      "raw": "data/raw/un-wup-2025",
+      "fetch": "fetch-un-wup.yml (population tab, branch dev)",
+      "autoFetch": false,
+      "frequency": "new revision every few years",
+      "check": { "type": "sha", "file": "WUP2025-F15-National-Definitions_percPop_by_category.xlsx", "urls": ["https://population.un.org/wup/assets/Download/Countries%20and%20Aggregates/WUP2025-F15-National-Definitions_percPop_by_category.xlsx"] },
+      "backups": [],
+      "feeds": "urban share on population pages"
+    },
+    { "id": "faostat", "name": "FAOSTAT (crops, livestock, food balances, prices)", "licence": "CC BY 4.0 — verify when building (task 151)", "status": "planned", "task": 151 },
+    { "id": "usgs-mcs", "name": "USGS Mineral Commodity Summaries", "licence": "US public domain — verify (task 152)", "status": "planned", "task": 152 },
+    { "id": "eia-intl", "name": "US EIA International Energy Data", "licence": "US public domain — verify (task 152)", "status": "planned", "task": 152 },
+    { "id": "ilostat", "name": "ILOSTAT (wages, hours, informality)", "licence": "CC BY 4.0 — verify (task 153)", "status": "planned", "task": 153 },
+    { "id": "baci", "name": "CEPII BACI (trade by product and partner)", "licence": "Licence Ouverte / Etalab — verify commercial use (task 153)", "status": "planned", "task": 153 },
+    { "id": "climatewatch", "name": "Climate Watch / EDGAR greenhouse gases", "licence": "CC BY 4.0 — verify (task 154)", "status": "planned", "task": 154 },
+    { "id": "gfw", "name": "Global Forest Watch tree cover loss", "licence": "CC BY 4.0 — verify (task 154)", "status": "planned", "task": 154 },
+    { "id": "cckp", "name": "World Bank Climate Change Knowledge Portal", "licence": "CC BY 4.0 — verify (task 154)", "status": "planned", "task": 154 },
+    { "id": "unhcr", "name": "UNHCR Refugee Data Finder", "licence": "verify (task 155)", "status": "planned", "task": 155 },
+    { "id": "ourairports", "name": "OurAirports", "licence": "public domain — verify (task 155)", "status": "planned", "task": 155 },
+    { "id": "naturalearth", "name": "Natural Earth (borders, coastlines)", "licence": "public domain — verify (task 156)", "status": "planned", "task": 156 },
+    { "id": "geonames", "name": "GeoNames (cities)", "licence": "CC BY 4.0 — verify (task 156)", "status": "planned", "task": 156 },
+    { "id": "wikidata", "name": "Wikidata (static country facts)", "licence": "CC0 — verify (task 156)", "status": "planned", "task": 156 }
+  ]
+}
