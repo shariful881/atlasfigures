@@ -1,0 +1,1968 @@
+[
+  {
+    "iso3": "BRN",
+    "item": "http://www.wikidata.org/entity/Q921",
+    "metres": "1850",
+    "value": "http://www.wikidata.org/entity/Q1003282",
+    "valueLabel": "Bukit Pagon"
+  },
+  {
+    "iso3": "SVN",
+    "item": "http://www.wikidata.org/entity/Q215",
+    "metres": "2864",
+    "value": "http://www.wikidata.org/entity/Q1024",
+    "valueLabel": "Triglav"
+  },
+  {
+    "iso3": "BHR",
+    "item": "http://www.wikidata.org/entity/Q398",
+    "metres": "134",
+    "value": "http://www.wikidata.org/entity/Q1032812",
+    "valueLabel": "Mountain of Smoke"
+  },
+  {
+    "iso3": "IDN",
+    "item": "http://www.wikidata.org/entity/Q252",
+    "metres": "4884",
+    "value": "http://www.wikidata.org/entity/Q1045888",
+    "valueLabel": "Puncak Jaya"
+  },
+  {
+    "iso3": "GBR",
+    "item": "http://www.wikidata.org/entity/Q145",
+    "metres": "1344.527",
+    "value": "http://www.wikidata.org/entity/Q104674",
+    "valueLabel": "Ben Nevis"
+  },
+  {
+    "iso3": "GBR",
+    "item": "http://www.wikidata.org/entity/Q145",
+    "metres": "1344.53",
+    "value": "http://www.wikidata.org/entity/Q104674",
+    "valueLabel": "Ben Nevis"
+  },
+  {
+    "iso3": "VAT",
+    "item": "http://www.wikidata.org/entity/Q237",
+    "metres": "75",
+    "value": "http://www.wikidata.org/entity/Q1053000",
+    "valueLabel": "Vatican Hill"
+  },
+  {
+    "iso3": "URY",
+    "item": "http://www.wikidata.org/entity/Q77",
+    "metres": "513.7",
+    "value": "http://www.wikidata.org/entity/Q1055837",
+    "valueLabel": "Cerro Catedral"
+  },
+  {
+    "iso3": "HND",
+    "item": "http://www.wikidata.org/entity/Q783",
+    "metres": "2849",
+    "value": "http://www.wikidata.org/entity/Q1055875",
+    "valueLabel": "Cerro Las Minas"
+  },
+  {
+    "iso3": "PRY",
+    "item": "http://www.wikidata.org/entity/Q733",
+    "metres": "842",
+    "value": "http://www.wikidata.org/entity/Q1055965",
+    "valueLabel": "Cerro Tres Kandú"
+  },
+  {
+    "iso3": "TTO",
+    "item": "http://www.wikidata.org/entity/Q754",
+    "metres": "940",
+    "value": "http://www.wikidata.org/entity/Q1056103",
+    "valueLabel": "El Cerro del Aripo"
+  },
+  {
+    "iso3": "FLK",
+    "item": "http://www.wikidata.org/entity/Q9648",
+    "metres": "705",
+    "value": "http://www.wikidata.org/entity/Q1064229",
+    "valueLabel": "Mount Usborne"
+  },
+  {
+    "iso3": "IRQ",
+    "item": "http://www.wikidata.org/entity/Q796",
+    "metres": "3611",
+    "value": "http://www.wikidata.org/entity/Q1068860",
+    "valueLabel": "Cheekha Dar"
+  },
+  {
+    "iso3": "MCO",
+    "item": "http://www.wikidata.org/entity/Q235",
+    "metres": "162",
+    "value": "http://www.wikidata.org/entity/Q1069352",
+    "valueLabel": "Chemin des Révoires"
+  },
+  {
+    "iso3": "PRK",
+    "item": "http://www.wikidata.org/entity/Q423",
+    "metres": "2744",
+    "value": "http://www.wikidata.org/entity/Q107635",
+    "valueLabel": "Baekdu Mountain"
+  },
+  {
+    "iso3": "MNG",
+    "item": "http://www.wikidata.org/entity/Q711",
+    "metres": "4374",
+    "value": "http://www.wikidata.org/entity/Q1091113",
+    "valueLabel": "Hüiten Peak"
+  },
+  {
+    "iso3": "GNB",
+    "item": "http://www.wikidata.org/entity/Q1007",
+    "metres": "262",
+    "value": "http://www.wikidata.org/entity/Q109837809",
+    "valueLabel": "Monte Torin"
+  },
+  {
+    "iso3": "LVA",
+    "item": "http://www.wikidata.org/entity/Q211",
+    "metres": "311.94",
+    "value": "http://www.wikidata.org/entity/Q1122342",
+    "valueLabel": "Gaiziņkalns"
+  },
+  {
+    "iso3": "THA",
+    "item": "http://www.wikidata.org/entity/Q869",
+    "metres": "2565",
+    "value": "http://www.wikidata.org/entity/Q1140075",
+    "valueLabel": "Doi Inthanon"
+  },
+  {
+    "iso3": "EGY",
+    "item": "http://www.wikidata.org/entity/Q79",
+    "metres": "2629",
+    "value": "http://www.wikidata.org/entity/Q1140642",
+    "valueLabel": "Mount Catherine"
+  },
+  {
+    "iso3": "EGY",
+    "item": "http://www.wikidata.org/entity/Q79",
+    "metres": "2637",
+    "value": "http://www.wikidata.org/entity/Q1140642",
+    "valueLabel": "Mount Catherine"
+  },
+  {
+    "iso3": "CUB",
+    "item": "http://www.wikidata.org/entity/Q241",
+    "metres": "1974",
+    "value": "http://www.wikidata.org/entity/Q1145743",
+    "valueLabel": "Pico Turquino"
+  },
+  {
+    "iso3": "LKA",
+    "item": "http://www.wikidata.org/entity/Q854",
+    "metres": "2524",
+    "value": "http://www.wikidata.org/entity/Q1146327",
+    "valueLabel": "Pidurutalagala"
+  },
+  {
+    "iso3": "MDG",
+    "item": "http://www.wikidata.org/entity/Q1019",
+    "metres": "2876",
+    "value": "http://www.wikidata.org/entity/Q1147144",
+    "valueLabel": "Maromokotro"
+  },
+  {
+    "iso3": "WSM",
+    "item": "http://www.wikidata.org/entity/Q683",
+    "metres": "1858",
+    "value": "http://www.wikidata.org/entity/Q1147814",
+    "valueLabel": "Silisili"
+  },
+  {
+    "iso3": "GLP",
+    "item": "http://www.wikidata.org/entity/Q17012",
+    "metres": "1467",
+    "value": "http://www.wikidata.org/entity/Q1149310",
+    "valueLabel": "Soufrière"
+  },
+  {
+    "iso3": "BFA",
+    "item": "http://www.wikidata.org/entity/Q965",
+    "metres": "749",
+    "value": "http://www.wikidata.org/entity/Q116675",
+    "valueLabel": "Mount Tenakourou"
+  },
+  {
+    "iso3": "UMI",
+    "item": "http://www.wikidata.org/entity/Q16645",
+    "metres": "76",
+    "value": "http://www.wikidata.org/entity/Q11695306",
+    "valueLabel": "Dunning Hill"
+  },
+  {
+    "iso3": "PLW",
+    "item": "http://www.wikidata.org/entity/Q695",
+    "metres": "242",
+    "value": "http://www.wikidata.org/entity/Q1191219",
+    "valueLabel": "Mount Ngerchelchuus"
+  },
+  {
+    "iso3": "CAN",
+    "item": "http://www.wikidata.org/entity/Q16",
+    "metres": "5959",
+    "value": "http://www.wikidata.org/entity/Q120306",
+    "valueLabel": "Mount Logan"
+  },
+  {
+    "iso3": "ASM",
+    "item": "http://www.wikidata.org/entity/Q16641",
+    "metres": "963",
+    "value": "http://www.wikidata.org/entity/Q1226878",
+    "valueLabel": "Lata Mountain"
+  },
+  {
+    "iso3": "TUN",
+    "item": "http://www.wikidata.org/entity/Q948",
+    "metres": "1544",
+    "value": "http://www.wikidata.org/entity/Q1232136",
+    "valueLabel": "Jebel ech Chambi"
+  },
+  {
+    "iso3": "FSM",
+    "item": "http://www.wikidata.org/entity/Q702",
+    "metres": "791",
+    "value": "http://www.wikidata.org/entity/Q1236265",
+    "valueLabel": "Dolohmwar"
+  },
+  {
+    "iso3": "VNM",
+    "item": "http://www.wikidata.org/entity/Q881",
+    "metres": "3143",
+    "value": "http://www.wikidata.org/entity/Q123782",
+    "valueLabel": "Fansipan"
+  },
+  {
+    "iso3": "VNM",
+    "item": "http://www.wikidata.org/entity/Q881",
+    "metres": "3147.3",
+    "value": "http://www.wikidata.org/entity/Q123782",
+    "valueLabel": "Fansipan"
+  },
+  {
+    "iso3": "SAU",
+    "item": "http://www.wikidata.org/entity/Q851",
+    "metres": "3207",
+    "value": "http://www.wikidata.org/entity/Q1261892",
+    "valueLabel": "Jabal Sawda"
+  },
+  {
+    "iso3": "JOR",
+    "item": "http://www.wikidata.org/entity/Q810",
+    "metres": "1854",
+    "value": "http://www.wikidata.org/entity/Q1261902",
+    "valueLabel": "Jabal Umm ad Dami"
+  },
+  {
+    "iso3": "OMN",
+    "item": "http://www.wikidata.org/entity/Q842",
+    "metres": "3018",
+    "value": "http://www.wikidata.org/entity/Q1261915",
+    "valueLabel": "Jebel Shams"
+  },
+  {
+    "iso3": "YEM",
+    "item": "http://www.wikidata.org/entity/Q805",
+    "metres": "3666",
+    "value": "http://www.wikidata.org/entity/Q1261935",
+    "valueLabel": "Jabal an Nabi Shu'ayb"
+  },
+  {
+    "iso3": "KNA",
+    "item": "http://www.wikidata.org/entity/Q763",
+    "metres": "1156",
+    "value": "http://www.wikidata.org/entity/Q1269774",
+    "valueLabel": "Mount Liamuiga"
+  },
+  {
+    "iso3": "USA",
+    "item": "http://www.wikidata.org/entity/Q30",
+    "metres": "6190",
+    "value": "http://www.wikidata.org/entity/Q130018",
+    "valueLabel": "Denali"
+  },
+  {
+    "iso3": "BES",
+    "item": "http://www.wikidata.org/entity/Q27561",
+    "metres": "870",
+    "value": "http://www.wikidata.org/entity/Q1301834",
+    "valueLabel": "Mount Scenery"
+  },
+  {
+    "iso3": "NLD",
+    "item": "http://www.wikidata.org/entity/Q29999",
+    "metres": "870",
+    "value": "http://www.wikidata.org/entity/Q1301834",
+    "valueLabel": "Mount Scenery"
+  },
+  {
+    "iso3": "BES",
+    "item": "http://www.wikidata.org/entity/Q27561",
+    "metres": "887",
+    "value": "http://www.wikidata.org/entity/Q1301834",
+    "valueLabel": "Mount Scenery"
+  },
+  {
+    "iso3": "NLD",
+    "item": "http://www.wikidata.org/entity/Q29999",
+    "metres": "887",
+    "value": "http://www.wikidata.org/entity/Q1301834",
+    "valueLabel": "Mount Scenery"
+  },
+  {
+    "iso3": "SWZ",
+    "item": "http://www.wikidata.org/entity/Q1050",
+    "metres": "1862",
+    "value": "http://www.wikidata.org/entity/Q1337951",
+    "valueLabel": "Emlembe"
+  },
+  {
+    "iso3": "AGO",
+    "item": "http://www.wikidata.org/entity/Q916",
+    "metres": "2619",
+    "value": "http://www.wikidata.org/entity/Q1348116",
+    "valueLabel": "Mount Moco"
+  },
+  {
+    "iso3": "MOZ",
+    "item": "http://www.wikidata.org/entity/Q1029",
+    "metres": "2436",
+    "value": "http://www.wikidata.org/entity/Q1353678",
+    "valueLabel": "Monte Binga"
+  },
+  {
+    "iso3": "TZA",
+    "item": "http://www.wikidata.org/entity/Q924",
+    "metres": "5895",
+    "value": "http://www.wikidata.org/entity/Q1394606",
+    "valueLabel": "Mount Kibo"
+  },
+  {
+    "iso3": "ISL",
+    "item": "http://www.wikidata.org/entity/Q189",
+    "metres": "2110",
+    "value": "http://www.wikidata.org/entity/Q140084",
+    "valueLabel": "Hvannadalshnúkur"
+  },
+  {
+    "iso3": "ECU",
+    "item": "http://www.wikidata.org/entity/Q736",
+    "metres": "6263.47",
+    "value": "http://www.wikidata.org/entity/Q14081",
+    "valueLabel": "Chimborazo"
+  },
+  {
+    "iso3": "SJM",
+    "item": "http://www.wikidata.org/entity/Q842829",
+    "metres": "1713",
+    "value": "http://www.wikidata.org/entity/Q1419222",
+    "valueLabel": "Newtontoppen"
+  },
+  {
+    "iso3": "MLI",
+    "item": "http://www.wikidata.org/entity/Q912",
+    "metres": "1153",
+    "value": "http://www.wikidata.org/entity/Q1454300",
+    "valueLabel": "Mount Hombori"
+  },
+  {
+    "iso3": "STP",
+    "item": "http://www.wikidata.org/entity/Q1039",
+    "metres": "2024",
+    "value": "http://www.wikidata.org/entity/Q1471391",
+    "valueLabel": "Pico de São Tomé"
+  },
+  {
+    "iso3": "IMN",
+    "item": "http://www.wikidata.org/entity/Q9676",
+    "metres": "621",
+    "value": "http://www.wikidata.org/entity/Q147557",
+    "valueLabel": "Snaefell"
+  },
+  {
+    "iso3": "HKG",
+    "item": "http://www.wikidata.org/entity/Q8646",
+    "metres": "957",
+    "value": "http://www.wikidata.org/entity/Q1481864",
+    "valueLabel": "Tai Mo Shan"
+  },
+  {
+    "iso3": "MWI",
+    "item": "http://www.wikidata.org/entity/Q1020",
+    "metres": "3002",
+    "value": "http://www.wikidata.org/entity/Q1510436",
+    "valueLabel": "Mulanje Massif"
+  },
+  {
+    "iso3": "FJI",
+    "item": "http://www.wikidata.org/entity/Q712",
+    "metres": "1324",
+    "value": "http://www.wikidata.org/entity/Q1513944",
+    "valueLabel": "Mount Tomanivi"
+  },
+  {
+    "iso3": "GNQ",
+    "item": "http://www.wikidata.org/entity/Q983",
+    "metres": "3011",
+    "value": "http://www.wikidata.org/entity/Q1518286",
+    "valueLabel": "Pico Basilé"
+  },
+  {
+    "iso3": "TON",
+    "item": "http://www.wikidata.org/entity/Q678",
+    "metres": "1030",
+    "value": "http://www.wikidata.org/entity/Q1520405",
+    "valueLabel": "Kao"
+  },
+  {
+    "iso3": "ZWE",
+    "item": "http://www.wikidata.org/entity/Q954",
+    "metres": "2592",
+    "value": "http://www.wikidata.org/entity/Q152294",
+    "valueLabel": "Mount Nyangani"
+  },
+  {
+    "iso3": "TLS",
+    "item": "http://www.wikidata.org/entity/Q574",
+    "metres": "2963",
+    "value": "http://www.wikidata.org/entity/Q1539961",
+    "valueLabel": "Tatamailau"
+  },
+  {
+    "iso3": "VUT",
+    "item": "http://www.wikidata.org/entity/Q686",
+    "metres": "1879",
+    "value": "http://www.wikidata.org/entity/Q1542459",
+    "valueLabel": "Mount Tabwemasana"
+  },
+  {
+    "iso3": "REU",
+    "item": "http://www.wikidata.org/entity/Q17070",
+    "metres": "3070",
+    "value": "http://www.wikidata.org/entity/Q1545452",
+    "valueLabel": "Piton des Neiges"
+  },
+  {
+    "iso3": "SUR",
+    "item": "http://www.wikidata.org/entity/Q730",
+    "metres": "1280",
+    "value": "http://www.wikidata.org/entity/Q1549215",
+    "valueLabel": "Julianatop"
+  },
+  {
+    "iso3": "WLF",
+    "item": "http://www.wikidata.org/entity/Q35555",
+    "metres": "522",
+    "value": "http://www.wikidata.org/entity/Q1549756",
+    "valueLabel": "Mont Puke"
+  },
+  {
+    "iso3": "WLF",
+    "item": "http://www.wikidata.org/entity/Q35555",
+    "metres": "524",
+    "value": "http://www.wikidata.org/entity/Q1549756",
+    "valueLabel": "Mont Puke"
+  },
+  {
+    "iso3": "SGS",
+    "item": "http://www.wikidata.org/entity/Q35086",
+    "metres": "2934",
+    "value": "http://www.wikidata.org/entity/Q1573762",
+    "valueLabel": "Mount Paget"
+  },
+  {
+    "iso3": "SYC",
+    "item": "http://www.wikidata.org/entity/Q1042",
+    "metres": "905",
+    "value": "http://www.wikidata.org/entity/Q1579060",
+    "valueLabel": "Morne Seychellois"
+  },
+  {
+    "iso3": "SMR",
+    "item": "http://www.wikidata.org/entity/Q238",
+    "metres": "739",
+    "value": "http://www.wikidata.org/entity/Q158526",
+    "valueLabel": "Monte Titano"
+  },
+  {
+    "iso3": "SMR",
+    "item": "http://www.wikidata.org/entity/Q238",
+    "metres": "756",
+    "value": "http://www.wikidata.org/entity/Q158526",
+    "valueLabel": "Monte Titano"
+  },
+  {
+    "iso3": "QAT",
+    "item": "http://www.wikidata.org/entity/Q846",
+    "metres": "103",
+    "value": "http://www.wikidata.org/entity/Q1633034",
+    "valueLabel": "Qurayn Abu al Bawl"
+  },
+  {
+    "iso3": "ATA",
+    "item": "http://www.wikidata.org/entity/Q10372207",
+    "metres": "4892",
+    "value": "http://www.wikidata.org/entity/Q163758",
+    "valueLabel": "Vinson Massif"
+  },
+  {
+    "iso3": "ATA",
+    "item": "http://www.wikidata.org/entity/Q51",
+    "metres": "4892",
+    "value": "http://www.wikidata.org/entity/Q163758",
+    "valueLabel": "Vinson Massif"
+  },
+  {
+    "iso3": "DMA",
+    "item": "http://www.wikidata.org/entity/Q784",
+    "metres": "1447",
+    "value": "http://www.wikidata.org/entity/Q1638549",
+    "valueLabel": "Morne Diablotins"
+  },
+  {
+    "iso3": "BDI",
+    "item": "http://www.wikidata.org/entity/Q967",
+    "metres": "2684",
+    "value": "http://www.wikidata.org/entity/Q1649074",
+    "valueLabel": "Mount Heha"
+  },
+  {
+    "iso3": "ATG",
+    "item": "http://www.wikidata.org/entity/Q781",
+    "metres": "402",
+    "value": "http://www.wikidata.org/entity/Q1718336",
+    "valueLabel": "Mount Obama"
+  },
+  {
+    "iso3": "KEN",
+    "item": "http://www.wikidata.org/entity/Q114",
+    "metres": "5199",
+    "value": "http://www.wikidata.org/entity/Q172070",
+    "valueLabel": "Mount Kenya"
+  },
+  {
+    "iso3": "TGO",
+    "item": "http://www.wikidata.org/entity/Q945",
+    "metres": "986",
+    "value": "http://www.wikidata.org/entity/Q1753509",
+    "valueLabel": "Mount Agou"
+  },
+  {
+    "iso3": "ERI",
+    "item": "http://www.wikidata.org/entity/Q986",
+    "metres": "3013",
+    "value": "http://www.wikidata.org/entity/Q1753730",
+    "valueLabel": "Emba Soira"
+  },
+  {
+    "iso3": "ERI",
+    "item": "http://www.wikidata.org/entity/Q986",
+    "metres": "3018",
+    "value": "http://www.wikidata.org/entity/Q1753730",
+    "valueLabel": "Emba Soira"
+  },
+  {
+    "iso3": "MUS",
+    "item": "http://www.wikidata.org/entity/Q1027",
+    "metres": "828",
+    "value": "http://www.wikidata.org/entity/Q1760978",
+    "valueLabel": "Piton de la Petite Rivière Noire"
+  },
+  {
+    "iso3": "MDV",
+    "item": "http://www.wikidata.org/entity/Q826",
+    "metres": "5.1",
+    "value": "http://www.wikidata.org/entity/Q176749",
+    "valueLabel": "Villingili"
+  },
+  {
+    "iso3": "LCA",
+    "item": "http://www.wikidata.org/entity/Q760",
+    "metres": "952.4",
+    "value": "http://www.wikidata.org/entity/Q1811114",
+    "valueLabel": "Mount Gimie"
+  },
+  {
+    "iso3": "ZMB",
+    "item": "http://www.wikidata.org/entity/Q953",
+    "metres": "2339",
+    "value": "http://www.wikidata.org/entity/Q18351462",
+    "valueLabel": "Mafinga Central"
+  },
+  {
+    "iso3": "MLT",
+    "item": "http://www.wikidata.org/entity/Q233",
+    "metres": "253",
+    "value": "http://www.wikidata.org/entity/Q1850604",
+    "valueLabel": "Ta' Dmejrek"
+  },
+  {
+    "iso3": "BRB",
+    "item": "http://www.wikidata.org/entity/Q244",
+    "metres": "340",
+    "value": "http://www.wikidata.org/entity/Q1854502",
+    "valueLabel": "Mount Hillaby"
+  },
+  {
+    "iso3": "ZAF",
+    "item": "http://www.wikidata.org/entity/Q258",
+    "metres": "3450",
+    "value": "http://www.wikidata.org/entity/Q1883683",
+    "valueLabel": "Mafadi"
+  },
+  {
+    "iso3": "CMR",
+    "item": "http://www.wikidata.org/entity/Q1009",
+    "metres": "4095",
+    "value": "http://www.wikidata.org/entity/Q190562",
+    "valueLabel": "Mount Cameroon"
+  },
+  {
+    "iso3": "ATF",
+    "item": "http://www.wikidata.org/entity/Q129003",
+    "metres": "1850",
+    "value": "http://www.wikidata.org/entity/Q1945447",
+    "valueLabel": "Mont Ross"
+  },
+  {
+    "iso3": "LBR",
+    "item": "http://www.wikidata.org/entity/Q1014",
+    "metres": "1440",
+    "value": "http://www.wikidata.org/entity/Q1950836",
+    "valueLabel": "Mount Wuteve"
+  },
+  {
+    "iso3": "DJI",
+    "item": "http://www.wikidata.org/entity/Q977",
+    "metres": "2028",
+    "value": "http://www.wikidata.org/entity/Q1951029",
+    "valueLabel": "Mousa Ali"
+  },
+  {
+    "iso3": "HTI",
+    "item": "http://www.wikidata.org/entity/Q790",
+    "metres": "2674",
+    "value": "http://www.wikidata.org/entity/Q1971319",
+    "valueLabel": "Pic la Selle"
+  },
+  {
+    "iso3": "PER",
+    "item": "http://www.wikidata.org/entity/Q419",
+    "metres": "6768",
+    "value": "http://www.wikidata.org/entity/Q200935",
+    "valueLabel": "Huascarán"
+  },
+  {
+    "iso3": "ALA",
+    "item": "http://www.wikidata.org/entity/Q5689",
+    "metres": "127",
+    "value": "http://www.wikidata.org/entity/Q2031587",
+    "valueLabel": "Orrdalsklint"
+  },
+  {
+    "iso3": "ARM",
+    "item": "http://www.wikidata.org/entity/Q399",
+    "metres": "4090",
+    "value": "http://www.wikidata.org/entity/Q203568",
+    "valueLabel": "Mount Aragats"
+  },
+  {
+    "iso3": "NOR",
+    "item": "http://www.wikidata.org/entity/Q20",
+    "metres": "2468.854",
+    "value": "http://www.wikidata.org/entity/Q203942",
+    "valueLabel": "Galdhøpiggen"
+  },
+  {
+    "iso3": "SRB",
+    "item": "http://www.wikidata.org/entity/Q403",
+    "metres": "2658",
+    "value": "http://www.wikidata.org/entity/Q20568528",
+    "valueLabel": "Velika Rudoka"
+  },
+  {
+    "iso3": "SHN",
+    "item": "http://www.wikidata.org/entity/Q192184",
+    "metres": "2062",
+    "value": "http://www.wikidata.org/entity/Q2062890",
+    "valueLabel": "Queen Mary's Peak"
+  },
+  {
+    "iso3": "NIC",
+    "item": "http://www.wikidata.org/entity/Q811",
+    "metres": "2107",
+    "value": "http://www.wikidata.org/entity/Q2092378",
+    "valueLabel": "Cerro Mogotón"
+  },
+  {
+    "iso3": "BGR",
+    "item": "http://www.wikidata.org/entity/Q219",
+    "metres": "2925.4",
+    "value": "http://www.wikidata.org/entity/Q209341",
+    "valueLabel": "Musala"
+  },
+  {
+    "iso3": "MYT",
+    "item": "http://www.wikidata.org/entity/Q17063",
+    "metres": "660",
+    "value": "http://www.wikidata.org/entity/Q210180",
+    "valueLabel": "Benara"
+  },
+  {
+    "iso3": "HMD",
+    "item": "http://www.wikidata.org/entity/Q131198",
+    "metres": "2745",
+    "value": "http://www.wikidata.org/entity/Q2114101",
+    "valueLabel": "Mawson Peak"
+  },
+  {
+    "iso3": "AUS",
+    "item": "http://www.wikidata.org/entity/Q408",
+    "metres": "2745",
+    "value": "http://www.wikidata.org/entity/Q2114101",
+    "valueLabel": "Mawson Peak"
+  },
+  {
+    "iso3": "KAZ",
+    "item": "http://www.wikidata.org/entity/Q232",
+    "metres": "7010",
+    "value": "http://www.wikidata.org/entity/Q211529",
+    "valueLabel": "Khan Tengri"
+  },
+  {
+    "iso3": "VEN",
+    "item": "http://www.wikidata.org/entity/Q717",
+    "metres": "4978",
+    "value": "http://www.wikidata.org/entity/Q213704",
+    "valueLabel": "Pico Bolívar"
+  },
+  {
+    "iso3": "SWE",
+    "item": "http://www.wikidata.org/entity/Q34",
+    "metres": "2096.8",
+    "value": "http://www.wikidata.org/entity/Q214011",
+    "valueLabel": "Kebnekaise"
+  },
+  {
+    "iso3": "SWE",
+    "item": "http://www.wikidata.org/entity/Q34",
+    "metres": "2135",
+    "value": "http://www.wikidata.org/entity/Q214011",
+    "valueLabel": "Kebnekaise"
+  },
+  {
+    "iso3": "SYR",
+    "item": "http://www.wikidata.org/entity/Q858",
+    "metres": "2813.95",
+    "value": "http://www.wikidata.org/entity/Q215471",
+    "valueLabel": "Mount Hermon"
+  },
+  {
+    "iso3": "FIN",
+    "item": "http://www.wikidata.org/entity/Q33",
+    "metres": "1361.4",
+    "value": "http://www.wikidata.org/entity/Q216035",
+    "valueLabel": "Halti"
+  },
+  {
+    "iso3": "GEO",
+    "item": "http://www.wikidata.org/entity/Q230",
+    "metres": "5193.2",
+    "value": "http://www.wikidata.org/entity/Q217457",
+    "valueLabel": "Shkhara"
+  },
+  {
+    "iso3": "BTN",
+    "item": "http://www.wikidata.org/entity/Q917",
+    "metres": "7570",
+    "value": "http://www.wikidata.org/entity/Q219986",
+    "valueLabel": "Gangkhar Puensum"
+  },
+  {
+    "iso3": "UGA",
+    "item": "http://www.wikidata.org/entity/Q1036",
+    "metres": "5109",
+    "value": "http://www.wikidata.org/entity/Q221666",
+    "valueLabel": "Mount Stanley"
+  },
+  {
+    "iso3": "COD",
+    "item": "http://www.wikidata.org/entity/Q974",
+    "metres": "5109",
+    "value": "http://www.wikidata.org/entity/Q221666",
+    "valueLabel": "Mount Stanley"
+  },
+  {
+    "iso3": "CHL",
+    "item": "http://www.wikidata.org/entity/Q298",
+    "metres": "6893",
+    "value": "http://www.wikidata.org/entity/Q233836",
+    "valueLabel": "Ojos del Salado"
+  },
+  {
+    "iso3": "MEX",
+    "item": "http://www.wikidata.org/entity/Q96",
+    "metres": "5636",
+    "value": "http://www.wikidata.org/entity/Q238147",
+    "valueLabel": "Citlaltepetl"
+  },
+  {
+    "iso3": "LAO",
+    "item": "http://www.wikidata.org/entity/Q819",
+    "metres": "2819",
+    "value": "http://www.wikidata.org/entity/Q239485",
+    "valueLabel": "Phou Bia"
+  },
+  {
+    "iso3": "CAF",
+    "item": "http://www.wikidata.org/entity/Q929",
+    "metres": "1410",
+    "value": "http://www.wikidata.org/entity/Q2422162",
+    "valueLabel": "Mont Ngaoui"
+  },
+  {
+    "iso3": "LUX",
+    "item": "http://www.wikidata.org/entity/Q32",
+    "metres": "560",
+    "value": "http://www.wikidata.org/entity/Q24457",
+    "valueLabel": "Kneiff"
+  },
+  {
+    "iso3": "SDN",
+    "item": "http://www.wikidata.org/entity/Q1049",
+    "metres": "3042",
+    "value": "http://www.wikidata.org/entity/Q2520348",
+    "valueLabel": "Deriba Caldera"
+  },
+  {
+    "iso3": "CRI",
+    "item": "http://www.wikidata.org/entity/Q800",
+    "metres": "3820",
+    "value": "http://www.wikidata.org/entity/Q252362",
+    "valueLabel": "Cerro Chirripó"
+  },
+  {
+    "iso3": "GUF",
+    "item": "http://www.wikidata.org/entity/Q3769",
+    "metres": "831",
+    "value": "http://www.wikidata.org/entity/Q2550799",
+    "valueLabel": "Bellevue de l'Inini"
+  },
+  {
+    "iso3": "TCD",
+    "item": "http://www.wikidata.org/entity/Q657",
+    "metres": "3445",
+    "value": "http://www.wikidata.org/entity/Q257441",
+    "valueLabel": "Emi Koussi"
+  },
+  {
+    "iso3": "MRT",
+    "item": "http://www.wikidata.org/entity/Q1025",
+    "metres": "915",
+    "value": "http://www.wikidata.org/entity/Q2595789",
+    "valueLabel": "Kediet ej Jill"
+  },
+  {
+    "iso3": "VCT",
+    "item": "http://www.wikidata.org/entity/Q757",
+    "metres": "1220",
+    "value": "http://www.wikidata.org/entity/Q26544",
+    "valueLabel": "La Soufrière"
+  },
+  {
+    "iso3": "NRU",
+    "item": "http://www.wikidata.org/entity/Q697",
+    "metres": "71",
+    "value": "http://www.wikidata.org/entity/Q2667931",
+    "valueLabel": "Command Ridge"
+  },
+  {
+    "iso3": "BGD",
+    "item": "http://www.wikidata.org/entity/Q902",
+    "metres": "1054",
+    "value": "http://www.wikidata.org/entity/Q2696459",
+    "valueLabel": "Mowdok tiang"
+  },
+  {
+    "iso3": "PRI",
+    "item": "http://www.wikidata.org/entity/Q1183",
+    "metres": "1338",
+    "value": "http://www.wikidata.org/entity/Q2714342",
+    "valueLabel": "Cerro de Punta"
+  },
+  {
+    "iso3": "AFG",
+    "item": "http://www.wikidata.org/entity/Q889",
+    "metres": "7492",
+    "value": "http://www.wikidata.org/entity/Q271700",
+    "valueLabel": "Noshaq"
+  },
+  {
+    "iso3": "KIR",
+    "item": "http://www.wikidata.org/entity/Q710",
+    "metres": "81",
+    "value": "http://www.wikidata.org/entity/Q271901",
+    "valueLabel": "Banaba Island"
+  },
+  {
+    "iso3": "MNE",
+    "item": "http://www.wikidata.org/entity/Q236",
+    "metres": "2534",
+    "value": "http://www.wikidata.org/entity/Q2720697",
+    "valueLabel": "Zla Kolata"
+  },
+  {
+    "iso3": "BOL",
+    "item": "http://www.wikidata.org/entity/Q750",
+    "metres": "6542",
+    "value": "http://www.wikidata.org/entity/Q272593",
+    "valueLabel": "Nevado Sajama"
+  },
+  {
+    "iso3": "ETH",
+    "item": "http://www.wikidata.org/entity/Q115",
+    "metres": "4533",
+    "value": "http://www.wikidata.org/entity/Q275435",
+    "valueLabel": "Ras Dashen"
+  },
+  {
+    "iso3": "MNP",
+    "item": "http://www.wikidata.org/entity/Q16644",
+    "value": "http://www.wikidata.org/entity/Q27728822",
+    "valueLabel": "Mount Agrihan"
+  },
+  {
+    "iso3": "PNG",
+    "item": "http://www.wikidata.org/entity/Q691",
+    "metres": "4509",
+    "value": "http://www.wikidata.org/entity/Q277441",
+    "valueLabel": "Mount Wilhelm"
+  },
+  {
+    "iso3": "NIU",
+    "item": "http://www.wikidata.org/entity/Q34020",
+    "metres": "68",
+    "value": "http://www.wikidata.org/entity/Q28745318",
+    "valueLabel": "Niue Highest Point"
+  },
+  {
+    "iso3": "VIR",
+    "item": "http://www.wikidata.org/entity/Q11703",
+    "metres": "473",
+    "value": "http://www.wikidata.org/entity/Q3005470",
+    "valueLabel": "Crown Mountain"
+  },
+  {
+    "iso3": "NER",
+    "item": "http://www.wikidata.org/entity/Q1032",
+    "metres": "2022",
+    "value": "http://www.wikidata.org/entity/Q3042286",
+    "valueLabel": "Mont Idoukal-n-Taghès"
+  },
+  {
+    "iso3": "SPM",
+    "item": "http://www.wikidata.org/entity/Q34617",
+    "metres": "240",
+    "value": "http://www.wikidata.org/entity/Q3051597",
+    "valueLabel": "Morne de la Grande Montagne"
+  },
+  {
+    "iso3": "BLM",
+    "item": "http://www.wikidata.org/entity/Q25362",
+    "metres": "286",
+    "value": "http://www.wikidata.org/entity/Q3055081",
+    "valueLabel": "Morne du Vitet"
+  },
+  {
+    "iso3": "COG",
+    "item": "http://www.wikidata.org/entity/Q971",
+    "metres": "1020",
+    "value": "http://www.wikidata.org/entity/Q3113296",
+    "valueLabel": "Mont Nabemba"
+  },
+  {
+    "iso3": "LBN",
+    "item": "http://www.wikidata.org/entity/Q822",
+    "metres": "3088",
+    "value": "http://www.wikidata.org/entity/Q311330",
+    "valueLabel": "Qurnat as Sawda'"
+  },
+  {
+    "iso3": "HRV",
+    "item": "http://www.wikidata.org/entity/Q224",
+    "metres": "1831",
+    "value": "http://www.wikidata.org/entity/Q3183447",
+    "valueLabel": "Dinara"
+  },
+  {
+    "iso3": "JTN",
+    "item": "http://www.wikidata.org/entity/Q131008",
+    "metres": "10",
+    "value": "http://www.wikidata.org/entity/Q32015296",
+    "valueLabel": "Sand Island"
+  },
+  {
+    "iso3": "MID",
+    "item": "http://www.wikidata.org/entity/Q47863",
+    "metres": "12",
+    "value": "http://www.wikidata.org/entity/Q32015300",
+    "valueLabel": "Sand Island"
+  },
+  {
+    "iso3": "GAB",
+    "item": "http://www.wikidata.org/entity/Q1000",
+    "metres": "1070",
+    "value": "http://www.wikidata.org/entity/Q3210770",
+    "valueLabel": "Mont Bengoué"
+  },
+  {
+    "iso3": "GGY",
+    "item": "http://www.wikidata.org/entity/Q25230",
+    "metres": "109",
+    "value": "http://www.wikidata.org/entity/Q3224807",
+    "valueLabel": "Le Moulin"
+  },
+  {
+    "iso3": "CRQ",
+    "item": "http://www.wikidata.org/entity/Q3405693",
+    "metres": "109",
+    "value": "http://www.wikidata.org/entity/Q3224807",
+    "valueLabel": "Le Moulin"
+  },
+  {
+    "iso3": "GGY",
+    "item": "http://www.wikidata.org/entity/Q25230",
+    "metres": "114",
+    "value": "http://www.wikidata.org/entity/Q3224807",
+    "valueLabel": "Le Moulin"
+  },
+  {
+    "iso3": "CRQ",
+    "item": "http://www.wikidata.org/entity/Q3405693",
+    "metres": "114",
+    "value": "http://www.wikidata.org/entity/Q3224807",
+    "valueLabel": "Le Moulin"
+  },
+  {
+    "iso3": "BEL",
+    "item": "http://www.wikidata.org/entity/Q31",
+    "metres": "694.24",
+    "value": "http://www.wikidata.org/entity/Q322824",
+    "valueLabel": "Signal de Botrange"
+  },
+  {
+    "iso3": "KGZ",
+    "item": "http://www.wikidata.org/entity/Q813",
+    "metres": "7439",
+    "value": "http://www.wikidata.org/entity/Q332762",
+    "valueLabel": "Jengish Chokusu"
+  },
+  {
+    "iso3": "DEU",
+    "item": "http://www.wikidata.org/entity/Q183",
+    "metres": "2962.06",
+    "value": "http://www.wikidata.org/entity/Q3375",
+    "valueLabel": "Zugspitze"
+  },
+  {
+    "iso3": "COL",
+    "item": "http://www.wikidata.org/entity/Q739",
+    "metres": "5775",
+    "value": "http://www.wikidata.org/entity/Q338790",
+    "valueLabel": "Pico Simón Bolívar"
+  },
+  {
+    "iso3": "AUT",
+    "item": "http://www.wikidata.org/entity/Q40",
+    "metres": "3798",
+    "value": "http://www.wikidata.org/entity/Q3388",
+    "valueLabel": "Grossglockner"
+  },
+  {
+    "iso3": "CHE",
+    "item": "http://www.wikidata.org/entity/Q39",
+    "metres": "4634",
+    "value": "http://www.wikidata.org/entity/Q3403",
+    "valueLabel": "Dufourspitze"
+  },
+  {
+    "iso3": "XKS",
+    "item": "http://www.wikidata.org/entity/Q1246",
+    "metres": "2656",
+    "value": "http://www.wikidata.org/entity/Q341983",
+    "valueLabel": "Gjeravica"
+  },
+  {
+    "iso3": "BWA",
+    "item": "http://www.wikidata.org/entity/Q963",
+    "metres": "1491",
+    "value": "http://www.wikidata.org/entity/Q3491942",
+    "valueLabel": "Otse Hill"
+  },
+  {
+    "iso3": "TCA",
+    "item": "http://www.wikidata.org/entity/Q18221",
+    "metres": "49",
+    "value": "http://www.wikidata.org/entity/Q3492008",
+    "valueLabel": "Blue Hills"
+  },
+  {
+    "iso3": "ARE",
+    "item": "http://www.wikidata.org/entity/Q878",
+    "metres": "1911",
+    "value": "http://www.wikidata.org/entity/Q3492099",
+    "valueLabel": "Jebel Jais"
+  },
+  {
+    "iso3": "ESP",
+    "item": "http://www.wikidata.org/entity/Q29",
+    "metres": "3715",
+    "value": "http://www.wikidata.org/entity/Q38954",
+    "valueLabel": "Teide"
+  },
+  {
+    "iso3": "JPN",
+    "item": "http://www.wikidata.org/entity/Q17",
+    "metres": "3777.24",
+    "value": "http://www.wikidata.org/entity/Q39231",
+    "valueLabel": "Mount Fuji"
+  },
+  {
+    "iso3": "ARG",
+    "item": "http://www.wikidata.org/entity/Q414",
+    "metres": "6962",
+    "value": "http://www.wikidata.org/entity/Q39739",
+    "valueLabel": "Aconcagua"
+  },
+  {
+    "iso3": "IRN",
+    "item": "http://www.wikidata.org/entity/Q794",
+    "metres": "5610",
+    "value": "http://www.wikidata.org/entity/Q40758",
+    "valueLabel": "Damavand"
+  },
+  {
+    "iso3": "IRN",
+    "item": "http://www.wikidata.org/entity/Q794",
+    "metres": "5628",
+    "value": "http://www.wikidata.org/entity/Q40758",
+    "valueLabel": "Damavand"
+  },
+  {
+    "iso3": "KWT",
+    "item": "http://www.wikidata.org/entity/Q817",
+    "metres": "140",
+    "value": "http://www.wikidata.org/entity/Q4116111",
+    "valueLabel": "Mutla Ridge"
+  },
+  {
+    "iso3": "TJK",
+    "item": "http://www.wikidata.org/entity/Q863",
+    "metres": "7495",
+    "value": "http://www.wikidata.org/entity/Q41413",
+    "valueLabel": "Ismoil Somoni Peak"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "metres": "5642",
+    "value": "http://www.wikidata.org/entity/Q43105",
+    "valueLabel": "Mount Elbrus"
+  },
+  {
+    "iso3": "PAK",
+    "item": "http://www.wikidata.org/entity/Q843",
+    "metres": "8611",
+    "value": "http://www.wikidata.org/entity/Q43512",
+    "valueLabel": "K2"
+  },
+  {
+    "iso3": "GUM",
+    "item": "http://www.wikidata.org/entity/Q16635",
+    "metres": "405.9943992",
+    "value": "http://www.wikidata.org/entity/Q4380977",
+    "valueLabel": "Mount Lamlam"
+  },
+  {
+    "iso3": "GUM",
+    "item": "http://www.wikidata.org/entity/Q16635",
+    "metres": "406",
+    "value": "http://www.wikidata.org/entity/Q4380977",
+    "valueLabel": "Mount Lamlam"
+  },
+  {
+    "iso3": "PHL",
+    "item": "http://www.wikidata.org/entity/Q928",
+    "metres": "2954",
+    "value": "http://www.wikidata.org/entity/Q455963",
+    "valueLabel": "Mount Apo"
+  },
+  {
+    "iso3": "MDV",
+    "item": "http://www.wikidata.org/entity/Q826",
+    "metres": "2.4",
+    "value": "http://www.wikidata.org/entity/Q4681407",
+    "valueLabel": "Addu City"
+  },
+  {
+    "iso3": "BLZ",
+    "item": "http://www.wikidata.org/entity/Q242",
+    "metres": "1124",
+    "value": "http://www.wikidata.org/entity/Q47490",
+    "valueLabel": "Doyle's Delight"
+  },
+  {
+    "iso3": "GUY",
+    "item": "http://www.wikidata.org/entity/Q734",
+    "metres": "2810",
+    "value": "http://www.wikidata.org/entity/Q4777",
+    "valueLabel": "Mount Roraima"
+  },
+  {
+    "iso3": "MDA",
+    "item": "http://www.wikidata.org/entity/Q217",
+    "metres": "430",
+    "value": "http://www.wikidata.org/entity/Q47940",
+    "valueLabel": "Bălănești Hill"
+  },
+  {
+    "iso3": "KOR",
+    "item": "http://www.wikidata.org/entity/Q884",
+    "metres": "1947.06",
+    "value": "http://www.wikidata.org/entity/Q494645",
+    "valueLabel": "Hallasan"
+  },
+  {
+    "iso3": "COK",
+    "item": "http://www.wikidata.org/entity/Q26988",
+    "metres": "652",
+    "value": "http://www.wikidata.org/entity/Q498069",
+    "valueLabel": "Te Manga"
+  },
+  {
+    "iso3": "CPV",
+    "item": "http://www.wikidata.org/entity/Q1011",
+    "metres": "2829",
+    "value": "http://www.wikidata.org/entity/Q499108",
+    "valueLabel": "Pico do Fogo"
+  },
+  {
+    "iso3": "TWN",
+    "item": "http://www.wikidata.org/entity/Q865",
+    "metres": "3952",
+    "value": "http://www.wikidata.org/entity/Q500275",
+    "valueLabel": "Yushan Main Peak"
+  },
+  {
+    "iso3": "IRL",
+    "item": "http://www.wikidata.org/entity/Q27",
+    "metres": "1038.6",
+    "value": "http://www.wikidata.org/entity/Q503368",
+    "valueLabel": "Carrauntoohil"
+  },
+  {
+    "iso3": "MAR",
+    "item": "http://www.wikidata.org/entity/Q1028",
+    "metres": "4167",
+    "value": "http://www.wikidata.org/entity/Q503433",
+    "valueLabel": "Jbel Toubkal"
+  },
+  {
+    "iso3": "EST",
+    "item": "http://www.wikidata.org/entity/Q191",
+    "metres": "317.4",
+    "value": "http://www.wikidata.org/entity/Q504991",
+    "valueLabel": "Suur Munamägi"
+  },
+  {
+    "iso3": "NZL",
+    "item": "http://www.wikidata.org/entity/Q664",
+    "metres": "3724",
+    "value": "http://www.wikidata.org/entity/Q5059",
+    "valueLabel": "Aoraki / Mount Cook"
+  },
+  {
+    "iso3": "PYF",
+    "item": "http://www.wikidata.org/entity/Q30971",
+    "metres": "2241",
+    "value": "http://www.wikidata.org/entity/Q512465",
+    "valueLabel": "Mont Orohena"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "metres": "8844.43",
+    "value": "http://www.wikidata.org/entity/Q513",
+    "valueLabel": "Mount Everest"
+  },
+  {
+    "iso3": "NPL",
+    "item": "http://www.wikidata.org/entity/Q837",
+    "metres": "8844.43",
+    "value": "http://www.wikidata.org/entity/Q513",
+    "valueLabel": "Mount Everest"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "metres": "8847.93",
+    "value": "http://www.wikidata.org/entity/Q513",
+    "valueLabel": "Mount Everest"
+  },
+  {
+    "iso3": "NPL",
+    "item": "http://www.wikidata.org/entity/Q837",
+    "metres": "8847.93",
+    "value": "http://www.wikidata.org/entity/Q513",
+    "valueLabel": "Mount Everest"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "metres": "8848",
+    "value": "http://www.wikidata.org/entity/Q513",
+    "valueLabel": "Mount Everest"
+  },
+  {
+    "iso3": "NPL",
+    "item": "http://www.wikidata.org/entity/Q837",
+    "metres": "8848",
+    "value": "http://www.wikidata.org/entity/Q513",
+    "valueLabel": "Mount Everest"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "metres": "8848.361418",
+    "value": "http://www.wikidata.org/entity/Q513",
+    "valueLabel": "Mount Everest"
+  },
+  {
+    "iso3": "NPL",
+    "item": "http://www.wikidata.org/entity/Q837",
+    "metres": "8848.361418",
+    "value": "http://www.wikidata.org/entity/Q513",
+    "valueLabel": "Mount Everest"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "metres": "8848.86",
+    "value": "http://www.wikidata.org/entity/Q513",
+    "valueLabel": "Mount Everest"
+  },
+  {
+    "iso3": "NPL",
+    "item": "http://www.wikidata.org/entity/Q837",
+    "metres": "8848.86",
+    "value": "http://www.wikidata.org/entity/Q513",
+    "valueLabel": "Mount Everest"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "metres": "8850",
+    "value": "http://www.wikidata.org/entity/Q513",
+    "valueLabel": "Mount Everest"
+  },
+  {
+    "iso3": "NPL",
+    "item": "http://www.wikidata.org/entity/Q837",
+    "metres": "8850",
+    "value": "http://www.wikidata.org/entity/Q513",
+    "valueLabel": "Mount Everest"
+  },
+  {
+    "iso3": "MAC",
+    "item": "http://www.wikidata.org/entity/Q14773",
+    "metres": "170.6",
+    "value": "http://www.wikidata.org/entity/Q5147805",
+    "valueLabel": "Alto de Coloane"
+  },
+  {
+    "iso3": "MHL",
+    "item": "http://www.wikidata.org/entity/Q709",
+    "metres": "10",
+    "value": "http://www.wikidata.org/entity/Q518353",
+    "valueLabel": "Likiep Atoll"
+  },
+  {
+    "iso3": "UZB",
+    "item": "http://www.wikidata.org/entity/Q265",
+    "metres": "4643",
+    "value": "http://www.wikidata.org/entity/Q519822",
+    "valueLabel": "Khazret Sultan"
+  },
+  {
+    "iso3": "CXR",
+    "item": "http://www.wikidata.org/entity/Q31063",
+    "metres": "357",
+    "value": "http://www.wikidata.org/entity/Q524471",
+    "valueLabel": "Murray Hill, Christmas Island"
+  },
+  {
+    "iso3": "CXR",
+    "item": "http://www.wikidata.org/entity/Q31063",
+    "metres": "361",
+    "value": "http://www.wikidata.org/entity/Q524471",
+    "valueLabel": "Murray Hill, Christmas Island"
+  },
+  {
+    "iso3": "GRD",
+    "item": "http://www.wikidata.org/entity/Q769",
+    "metres": "840",
+    "value": "http://www.wikidata.org/entity/Q525281",
+    "valueLabel": "Mount Saint Catherine"
+  },
+  {
+    "iso3": "COM",
+    "item": "http://www.wikidata.org/entity/Q970",
+    "metres": "2361",
+    "value": "http://www.wikidata.org/entity/Q527548",
+    "valueLabel": "Mount Karthala"
+  },
+  {
+    "iso3": "KHM",
+    "item": "http://www.wikidata.org/entity/Q424",
+    "metres": "1813",
+    "value": "http://www.wikidata.org/entity/Q539772",
+    "valueLabel": "Phnom Aural"
+  },
+  {
+    "iso3": "ISR",
+    "item": "http://www.wikidata.org/entity/Q801",
+    "metres": "1208",
+    "value": "http://www.wikidata.org/entity/Q540520",
+    "valueLabel": "Meron"
+  },
+  {
+    "iso3": "COL",
+    "item": "http://www.wikidata.org/entity/Q739",
+    "metres": "5775",
+    "value": "http://www.wikidata.org/entity/Q578862",
+    "valueLabel": "Pico Cristóbal Colón"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "metres": "4805.59",
+    "value": "http://www.wikidata.org/entity/Q583",
+    "valueLabel": "Mont Blanc"
+  },
+  {
+    "iso3": "ITA",
+    "item": "http://www.wikidata.org/entity/Q38",
+    "metres": "4805.59",
+    "value": "http://www.wikidata.org/entity/Q583",
+    "valueLabel": "Mont Blanc"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "metres": "4807.02",
+    "value": "http://www.wikidata.org/entity/Q583",
+    "valueLabel": "Mont Blanc"
+  },
+  {
+    "iso3": "ITA",
+    "item": "http://www.wikidata.org/entity/Q38",
+    "metres": "4807.02",
+    "value": "http://www.wikidata.org/entity/Q583",
+    "valueLabel": "Mont Blanc"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "metres": "4807.81",
+    "value": "http://www.wikidata.org/entity/Q583",
+    "valueLabel": "Mont Blanc"
+  },
+  {
+    "iso3": "ITA",
+    "item": "http://www.wikidata.org/entity/Q38",
+    "metres": "4807.81",
+    "value": "http://www.wikidata.org/entity/Q583",
+    "valueLabel": "Mont Blanc"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "metres": "4808.06",
+    "value": "http://www.wikidata.org/entity/Q583",
+    "valueLabel": "Mont Blanc"
+  },
+  {
+    "iso3": "ITA",
+    "item": "http://www.wikidata.org/entity/Q38",
+    "metres": "4808.06",
+    "value": "http://www.wikidata.org/entity/Q583",
+    "valueLabel": "Mont Blanc"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "metres": "4808.72",
+    "value": "http://www.wikidata.org/entity/Q583",
+    "valueLabel": "Mont Blanc"
+  },
+  {
+    "iso3": "ITA",
+    "item": "http://www.wikidata.org/entity/Q38",
+    "metres": "4808.72",
+    "value": "http://www.wikidata.org/entity/Q583",
+    "valueLabel": "Mont Blanc"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "metres": "4810.02",
+    "value": "http://www.wikidata.org/entity/Q583",
+    "valueLabel": "Mont Blanc"
+  },
+  {
+    "iso3": "ITA",
+    "item": "http://www.wikidata.org/entity/Q38",
+    "metres": "4810.02",
+    "value": "http://www.wikidata.org/entity/Q583",
+    "valueLabel": "Mont Blanc"
+  },
+  {
+    "iso3": "MAF",
+    "item": "http://www.wikidata.org/entity/Q126125",
+    "metres": "424",
+    "value": "http://www.wikidata.org/entity/Q5919800",
+    "valueLabel": "Pic Paradis"
+  },
+  {
+    "iso3": "PAN",
+    "item": "http://www.wikidata.org/entity/Q804",
+    "metres": "3475",
+    "value": "http://www.wikidata.org/entity/Q594726",
+    "valueLabel": "Volcan Baru"
+  },
+  {
+    "iso3": "ABW",
+    "item": "http://www.wikidata.org/entity/Q21203",
+    "metres": "188",
+    "value": "http://www.wikidata.org/entity/Q594885",
+    "valueLabel": "Mount Jamanota"
+  },
+  {
+    "iso3": "MYS",
+    "item": "http://www.wikidata.org/entity/Q833",
+    "metres": "4095",
+    "value": "http://www.wikidata.org/entity/Q60967",
+    "valueLabel": "Mount Kinabalu"
+  },
+  {
+    "iso3": "CZE",
+    "item": "http://www.wikidata.org/entity/Q213",
+    "metres": "1603.3",
+    "value": "http://www.wikidata.org/entity/Q617511",
+    "valueLabel": "Sněžka"
+  },
+  {
+    "iso3": "BVT",
+    "item": "http://www.wikidata.org/entity/Q23408",
+    "metres": "780",
+    "value": "http://www.wikidata.org/entity/Q618361",
+    "valueLabel": "Olavtoppen"
+  },
+  {
+    "iso3": "AND",
+    "item": "http://www.wikidata.org/entity/Q228",
+    "metres": "2942",
+    "value": "http://www.wikidata.org/entity/Q62467",
+    "valueLabel": "Coma Pedrosa"
+  },
+  {
+    "iso3": "UKR",
+    "item": "http://www.wikidata.org/entity/Q212",
+    "metres": "2061",
+    "value": "http://www.wikidata.org/entity/Q627508",
+    "valueLabel": "Hoverla"
+  },
+  {
+    "iso3": "TUV",
+    "item": "http://www.wikidata.org/entity/Q672",
+    "metres": "4.6",
+    "value": "http://www.wikidata.org/entity/Q632489",
+    "valueLabel": "Niulakita"
+  },
+  {
+    "iso3": "GHA",
+    "item": "http://www.wikidata.org/entity/Q117",
+    "metres": "885",
+    "value": "http://www.wikidata.org/entity/Q635179",
+    "valueLabel": "Mount Afadja"
+  },
+  {
+    "iso3": "GHA",
+    "item": "http://www.wikidata.org/entity/Q117",
+    "metres": "885.1409424",
+    "value": "http://www.wikidata.org/entity/Q635179",
+    "valueLabel": "Mount Afadja"
+  },
+  {
+    "iso3": "SOM",
+    "item": "http://www.wikidata.org/entity/Q1045",
+    "metres": "2460",
+    "value": "http://www.wikidata.org/entity/Q649162",
+    "valueLabel": "Shimbiris"
+  },
+  {
+    "iso3": "LIE",
+    "item": "http://www.wikidata.org/entity/Q347",
+    "metres": "2599",
+    "value": "http://www.wikidata.org/entity/Q665000",
+    "valueLabel": "Grauspitz"
+  },
+  {
+    "iso3": "POL",
+    "item": "http://www.wikidata.org/entity/Q36",
+    "metres": "2501",
+    "value": "http://www.wikidata.org/entity/Q672936",
+    "valueLabel": "Rysy"
+  },
+  {
+    "iso3": "DNK",
+    "item": "http://www.wikidata.org/entity/Q35",
+    "metres": "170.86",
+    "value": "http://www.wikidata.org/entity/Q689106",
+    "valueLabel": "Møllehøj"
+  },
+  {
+    "iso3": "ATB",
+    "item": "http://www.wikidata.org/entity/Q165783",
+    "metres": "3239",
+    "value": "http://www.wikidata.org/entity/Q6921286",
+    "valueLabel": "Mount Hope"
+  },
+  {
+    "iso3": "PSE",
+    "item": "http://www.wikidata.org/entity/Q219060",
+    "metres": "1026",
+    "value": "http://www.wikidata.org/entity/Q6922335",
+    "valueLabel": "Mount Nabi Yunis"
+  },
+  {
+    "iso3": "SGP",
+    "item": "http://www.wikidata.org/entity/Q334",
+    "metres": "163.63",
+    "value": "http://www.wikidata.org/entity/Q720209",
+    "valueLabel": "Bukit Timah"
+  },
+  {
+    "iso3": "TUR",
+    "item": "http://www.wikidata.org/entity/Q43",
+    "metres": "5137",
+    "value": "http://www.wikidata.org/entity/Q72303",
+    "valueLabel": "Mount Ararat"
+  },
+  {
+    "iso3": "AZE",
+    "item": "http://www.wikidata.org/entity/Q227",
+    "metres": "2706",
+    "value": "http://www.wikidata.org/entity/Q725591",
+    "valueLabel": "Mount Bazardüzü"
+  },
+  {
+    "iso3": "AZE",
+    "item": "http://www.wikidata.org/entity/Q227",
+    "metres": "4466",
+    "value": "http://www.wikidata.org/entity/Q725591",
+    "valueLabel": "Mount Bazardüzü"
+  },
+  {
+    "iso3": "LSO",
+    "item": "http://www.wikidata.org/entity/Q1013",
+    "metres": "3482",
+    "value": "http://www.wikidata.org/entity/Q733132",
+    "valueLabel": "Thabana Ntlenyana"
+  },
+  {
+    "iso3": "RWA",
+    "item": "http://www.wikidata.org/entity/Q1037",
+    "metres": "4507",
+    "value": "http://www.wikidata.org/entity/Q737859",
+    "valueLabel": "Mount Karisimbi"
+  },
+  {
+    "iso3": "FRO",
+    "item": "http://www.wikidata.org/entity/Q4628",
+    "metres": "880",
+    "value": "http://www.wikidata.org/entity/Q738746",
+    "valueLabel": "Slættaratindur"
+  },
+  {
+    "iso3": "BRA",
+    "item": "http://www.wikidata.org/entity/Q155",
+    "metres": "2994",
+    "value": "http://www.wikidata.org/entity/Q739484",
+    "valueLabel": "Pico da Neblina"
+  },
+  {
+    "iso3": "SLV",
+    "item": "http://www.wikidata.org/entity/Q792",
+    "metres": "2730",
+    "value": "http://www.wikidata.org/entity/Q74214",
+    "valueLabel": "Cerro El Pital"
+  },
+  {
+    "iso3": "BHS",
+    "item": "http://www.wikidata.org/entity/Q778",
+    "metres": "63",
+    "value": "http://www.wikidata.org/entity/Q746274",
+    "valueLabel": "Mount Alvernia"
+  },
+  {
+    "iso3": "ROU",
+    "item": "http://www.wikidata.org/entity/Q218",
+    "metres": "2544",
+    "value": "http://www.wikidata.org/entity/Q746524",
+    "valueLabel": "Moldoveanu Peak"
+  },
+  {
+    "iso3": "HUN",
+    "item": "http://www.wikidata.org/entity/Q28",
+    "metres": "1014",
+    "value": "http://www.wikidata.org/entity/Q747618",
+    "valueLabel": "Kékes"
+  },
+  {
+    "iso3": "SLB",
+    "item": "http://www.wikidata.org/entity/Q685",
+    "metres": "2335",
+    "value": "http://www.wikidata.org/entity/Q760819",
+    "valueLabel": "Mount Popomanaseu"
+  },
+  {
+    "iso3": "MTQ",
+    "item": "http://www.wikidata.org/entity/Q17054",
+    "metres": "1397",
+    "value": "http://www.wikidata.org/entity/Q76309",
+    "valueLabel": "Mount Pelée"
+  },
+  {
+    "iso3": "SLE",
+    "item": "http://www.wikidata.org/entity/Q1044",
+    "metres": "1945",
+    "value": "http://www.wikidata.org/entity/Q769525",
+    "valueLabel": "Mount Bintumani"
+  },
+  {
+    "iso3": "LTU",
+    "item": "http://www.wikidata.org/entity/Q37",
+    "metres": "293.84",
+    "value": "http://www.wikidata.org/entity/Q771431",
+    "valueLabel": "Aukštojas Hill"
+  },
+  {
+    "iso3": "DOM",
+    "item": "http://www.wikidata.org/entity/Q786",
+    "metres": "3101",
+    "value": "http://www.wikidata.org/entity/Q783742",
+    "valueLabel": "Pico Duarte"
+  },
+  {
+    "iso3": "TKM",
+    "item": "http://www.wikidata.org/entity/Q874",
+    "metres": "3139",
+    "value": "http://www.wikidata.org/entity/Q794684",
+    "valueLabel": "Aýrybaba"
+  },
+  {
+    "iso3": "GRC",
+    "item": "http://www.wikidata.org/entity/Q41",
+    "metres": "2917.727",
+    "value": "http://www.wikidata.org/entity/Q80344",
+    "valueLabel": "Mount Olympus"
+  },
+  {
+    "iso3": "SVK",
+    "item": "http://www.wikidata.org/entity/Q214",
+    "metres": "2654.4",
+    "value": "http://www.wikidata.org/entity/Q81213",
+    "valueLabel": "Gerlachovský štít"
+  },
+  {
+    "iso3": "CSK",
+    "item": "http://www.wikidata.org/entity/Q33946",
+    "metres": "2654.4",
+    "value": "http://www.wikidata.org/entity/Q81213",
+    "valueLabel": "Gerlachovský štít"
+  },
+  {
+    "iso3": "SVK",
+    "item": "http://www.wikidata.org/entity/Q214",
+    "metres": "2655",
+    "value": "http://www.wikidata.org/entity/Q81213",
+    "valueLabel": "Gerlachovský štít"
+  },
+  {
+    "iso3": "CSK",
+    "item": "http://www.wikidata.org/entity/Q33946",
+    "metres": "2655",
+    "value": "http://www.wikidata.org/entity/Q81213",
+    "valueLabel": "Gerlachovský štít"
+  },
+  {
+    "iso3": "GTM",
+    "item": "http://www.wikidata.org/entity/Q774",
+    "metres": "4203",
+    "value": "http://www.wikidata.org/entity/Q818467",
+    "valueLabel": "Volcán Tajumulco"
+  },
+  {
+    "iso3": "GTM",
+    "item": "http://www.wikidata.org/entity/Q774",
+    "metres": "4220",
+    "value": "http://www.wikidata.org/entity/Q818467",
+    "valueLabel": "Volcán Tajumulco"
+  },
+  {
+    "iso3": "CYP",
+    "item": "http://www.wikidata.org/entity/Q229",
+    "metres": "1952",
+    "value": "http://www.wikidata.org/entity/Q819979",
+    "valueLabel": "Mount Olympus"
+  },
+  {
+    "iso3": "IND",
+    "item": "http://www.wikidata.org/entity/Q668",
+    "metres": "8586",
+    "value": "http://www.wikidata.org/entity/Q82019",
+    "valueLabel": "Kanchenjunga"
+  },
+  {
+    "iso3": "DZA",
+    "item": "http://www.wikidata.org/entity/Q262",
+    "metres": "2908",
+    "value": "http://www.wikidata.org/entity/Q822326",
+    "valueLabel": "Mount Tahat"
+  },
+  {
+    "iso3": "DZA",
+    "item": "http://www.wikidata.org/entity/Q262",
+    "metres": "2918",
+    "value": "http://www.wikidata.org/entity/Q822326",
+    "valueLabel": "Mount Tahat"
+  },
+  {
+    "iso3": "GRL",
+    "item": "http://www.wikidata.org/entity/Q223",
+    "metres": "3694",
+    "value": "http://www.wikidata.org/entity/Q825709",
+    "valueLabel": "Gunnbjørn Fjeld"
+  },
+  {
+    "iso3": "BIH",
+    "item": "http://www.wikidata.org/entity/Q225",
+    "metres": "2386",
+    "value": "http://www.wikidata.org/entity/Q837723",
+    "valueLabel": "Maglić"
+  },
+  {
+    "iso3": "GIN",
+    "item": "http://www.wikidata.org/entity/Q1006",
+    "metres": "1752",
+    "value": "http://www.wikidata.org/entity/Q849129",
+    "valueLabel": "Mount Richard-Molard"
+  },
+  {
+    "iso3": "CIV",
+    "item": "http://www.wikidata.org/entity/Q1008",
+    "metres": "1752",
+    "value": "http://www.wikidata.org/entity/Q849129",
+    "valueLabel": "Mount Richard-Molard"
+  },
+  {
+    "iso3": "LBY",
+    "item": "http://www.wikidata.org/entity/Q1016",
+    "metres": "2267",
+    "value": "http://www.wikidata.org/entity/Q860146",
+    "valueLabel": "Bikku Bitti"
+  },
+  {
+    "iso3": "MMR",
+    "item": "http://www.wikidata.org/entity/Q836",
+    "metres": "5881",
+    "value": "http://www.wikidata.org/entity/Q870063",
+    "valueLabel": "Hkakabo Razi"
+  },
+  {
+    "iso3": "JAM",
+    "item": "http://www.wikidata.org/entity/Q766",
+    "metres": "2256",
+    "value": "http://www.wikidata.org/entity/Q885798",
+    "valueLabel": "Blue Mountain Peak"
+  },
+  {
+    "iso3": "NAM",
+    "item": "http://www.wikidata.org/entity/Q1030",
+    "metres": "2573",
+    "value": "http://www.wikidata.org/entity/Q897834",
+    "valueLabel": "Brandberg"
+  },
+  {
+    "iso3": "MKD",
+    "item": "http://www.wikidata.org/entity/Q221",
+    "metres": "2764",
+    "value": "http://www.wikidata.org/entity/Q912579",
+    "valueLabel": "Korab"
+  },
+  {
+    "iso3": "ALB",
+    "item": "http://www.wikidata.org/entity/Q222",
+    "metres": "2764",
+    "value": "http://www.wikidata.org/entity/Q912579",
+    "valueLabel": "Korab"
+  },
+  {
+    "iso3": "BLR",
+    "item": "http://www.wikidata.org/entity/Q184",
+    "metres": "345",
+    "value": "http://www.wikidata.org/entity/Q921447",
+    "valueLabel": "Dziaržynkaja hara"
+  },
+  {
+    "iso3": "BEN",
+    "item": "http://www.wikidata.org/entity/Q962",
+    "metres": "658",
+    "value": "http://www.wikidata.org/entity/Q923330",
+    "valueLabel": "Mont Sokbaro"
+  },
+  {
+    "iso3": "PRT",
+    "item": "http://www.wikidata.org/entity/Q45",
+    "metres": "2351",
+    "value": "http://www.wikidata.org/entity/Q928681",
+    "valueLabel": "Mount Pico"
+  },
+  {
+    "iso3": "SSD",
+    "item": "http://www.wikidata.org/entity/Q958",
+    "metres": "3187",
+    "value": "http://www.wikidata.org/entity/Q948298",
+    "valueLabel": "Kinyeti"
+  },
+  {
+    "iso3": "NGA",
+    "item": "http://www.wikidata.org/entity/Q1033",
+    "metres": "2419",
+    "value": "http://www.wikidata.org/entity/Q976055",
+    "valueLabel": "Chappal Waddi"
+  },
+  {
+    "iso3": "SEN",
+    "item": "http://www.wikidata.org/entity/Q1041",
+    "metres": "531",
+    "value": "http://www.wikidata.org/entity/Q98596662",
+    "valueLabel": "Népin Cliff"
+  }
+]

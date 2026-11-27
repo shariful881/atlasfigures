@@ -1,0 +1,4432 @@
+[
+  {
+    "iso3": "GAB",
+    "item": "http://www.wikidata.org/entity/Q1000",
+    "value": "AGO"
+  },
+  {
+    "iso3": "GAB",
+    "item": "http://www.wikidata.org/entity/Q1000",
+    "value": "CMR"
+  },
+  {
+    "iso3": "GAB",
+    "item": "http://www.wikidata.org/entity/Q1000",
+    "value": "COG"
+  },
+  {
+    "iso3": "GAB",
+    "item": "http://www.wikidata.org/entity/Q1000",
+    "value": "GNQ"
+  },
+  {
+    "iso3": "GAB",
+    "item": "http://www.wikidata.org/entity/Q1000",
+    "value": "STP"
+  },
+  {
+    "iso3": "GMB",
+    "item": "http://www.wikidata.org/entity/Q1005",
+    "value": "SEN"
+  },
+  {
+    "iso3": "GIN",
+    "item": "http://www.wikidata.org/entity/Q1006",
+    "value": "CIV"
+  },
+  {
+    "iso3": "GIN",
+    "item": "http://www.wikidata.org/entity/Q1006",
+    "value": "GNB"
+  },
+  {
+    "iso3": "GIN",
+    "item": "http://www.wikidata.org/entity/Q1006",
+    "value": "LBR"
+  },
+  {
+    "iso3": "GIN",
+    "item": "http://www.wikidata.org/entity/Q1006",
+    "value": "MLI"
+  },
+  {
+    "iso3": "GIN",
+    "item": "http://www.wikidata.org/entity/Q1006",
+    "value": "SEN"
+  },
+  {
+    "iso3": "GIN",
+    "item": "http://www.wikidata.org/entity/Q1006",
+    "value": "SLE"
+  },
+  {
+    "iso3": "GNB",
+    "item": "http://www.wikidata.org/entity/Q1007",
+    "value": "GIN"
+  },
+  {
+    "iso3": "GNB",
+    "item": "http://www.wikidata.org/entity/Q1007",
+    "value": "SEN"
+  },
+  {
+    "iso3": "CIV",
+    "item": "http://www.wikidata.org/entity/Q1008",
+    "value": "BFA"
+  },
+  {
+    "iso3": "CIV",
+    "item": "http://www.wikidata.org/entity/Q1008",
+    "value": "GHA"
+  },
+  {
+    "iso3": "CIV",
+    "item": "http://www.wikidata.org/entity/Q1008",
+    "value": "GIN"
+  },
+  {
+    "iso3": "CIV",
+    "item": "http://www.wikidata.org/entity/Q1008",
+    "value": "LBR"
+  },
+  {
+    "iso3": "CIV",
+    "item": "http://www.wikidata.org/entity/Q1008",
+    "value": "MLI"
+  },
+  {
+    "iso3": "CMR",
+    "item": "http://www.wikidata.org/entity/Q1009",
+    "value": "CAF"
+  },
+  {
+    "iso3": "CMR",
+    "item": "http://www.wikidata.org/entity/Q1009",
+    "value": "COG"
+  },
+  {
+    "iso3": "CMR",
+    "item": "http://www.wikidata.org/entity/Q1009",
+    "value": "GAB"
+  },
+  {
+    "iso3": "CMR",
+    "item": "http://www.wikidata.org/entity/Q1009",
+    "value": "GNQ"
+  },
+  {
+    "iso3": "CMR",
+    "item": "http://www.wikidata.org/entity/Q1009",
+    "value": "NGA"
+  },
+  {
+    "iso3": "CMR",
+    "item": "http://www.wikidata.org/entity/Q1009",
+    "value": "TCD"
+  },
+  {
+    "iso3": "LSO",
+    "item": "http://www.wikidata.org/entity/Q1013",
+    "value": "ZAF"
+  },
+  {
+    "iso3": "LBR",
+    "item": "http://www.wikidata.org/entity/Q1014",
+    "value": "CIV"
+  },
+  {
+    "iso3": "LBR",
+    "item": "http://www.wikidata.org/entity/Q1014",
+    "value": "GIN"
+  },
+  {
+    "iso3": "LBR",
+    "item": "http://www.wikidata.org/entity/Q1014",
+    "value": "SLE"
+  },
+  {
+    "iso3": "LBY",
+    "item": "http://www.wikidata.org/entity/Q1016",
+    "value": "DZA"
+  },
+  {
+    "iso3": "LBY",
+    "item": "http://www.wikidata.org/entity/Q1016",
+    "value": "EGY"
+  },
+  {
+    "iso3": "LBY",
+    "item": "http://www.wikidata.org/entity/Q1016",
+    "value": "NER"
+  },
+  {
+    "iso3": "LBY",
+    "item": "http://www.wikidata.org/entity/Q1016",
+    "value": "SDN"
+  },
+  {
+    "iso3": "LBY",
+    "item": "http://www.wikidata.org/entity/Q1016",
+    "value": "TCD"
+  },
+  {
+    "iso3": "LBY",
+    "item": "http://www.wikidata.org/entity/Q1016",
+    "value": "TUN"
+  },
+  {
+    "iso3": "MDG",
+    "item": "http://www.wikidata.org/entity/Q1019",
+    "value": "COM"
+  },
+  {
+    "iso3": "MDG",
+    "item": "http://www.wikidata.org/entity/Q1019",
+    "value": "FRA"
+  },
+  {
+    "iso3": "MDG",
+    "item": "http://www.wikidata.org/entity/Q1019",
+    "value": "MOZ"
+  },
+  {
+    "iso3": "MDG",
+    "item": "http://www.wikidata.org/entity/Q1019",
+    "value": "SYC"
+  },
+  {
+    "iso3": "MWI",
+    "item": "http://www.wikidata.org/entity/Q1020",
+    "value": "MOZ"
+  },
+  {
+    "iso3": "MWI",
+    "item": "http://www.wikidata.org/entity/Q1020",
+    "value": "TZA"
+  },
+  {
+    "iso3": "MWI",
+    "item": "http://www.wikidata.org/entity/Q1020",
+    "value": "ZMB"
+  },
+  {
+    "iso3": "MRT",
+    "item": "http://www.wikidata.org/entity/Q1025",
+    "value": "DZA"
+  },
+  {
+    "iso3": "MRT",
+    "item": "http://www.wikidata.org/entity/Q1025",
+    "value": "ESH"
+  },
+  {
+    "iso3": "MRT",
+    "item": "http://www.wikidata.org/entity/Q1025",
+    "value": "MLI"
+  },
+  {
+    "iso3": "MRT",
+    "item": "http://www.wikidata.org/entity/Q1025",
+    "value": "SEN"
+  },
+  {
+    "iso3": "MUS",
+    "item": "http://www.wikidata.org/entity/Q1027",
+    "value": "FRA"
+  },
+  {
+    "iso3": "MUS",
+    "item": "http://www.wikidata.org/entity/Q1027",
+    "value": "MDV"
+  },
+  {
+    "iso3": "MUS",
+    "item": "http://www.wikidata.org/entity/Q1027",
+    "value": "SYC"
+  },
+  {
+    "iso3": "MAR",
+    "item": "http://www.wikidata.org/entity/Q1028",
+    "value": "DZA"
+  },
+  {
+    "iso3": "MAR",
+    "item": "http://www.wikidata.org/entity/Q1028",
+    "value": "ESH"
+  },
+  {
+    "iso3": "MAR",
+    "item": "http://www.wikidata.org/entity/Q1028",
+    "value": "ESP"
+  },
+  {
+    "iso3": "MOZ",
+    "item": "http://www.wikidata.org/entity/Q1029",
+    "value": "COM"
+  },
+  {
+    "iso3": "MOZ",
+    "item": "http://www.wikidata.org/entity/Q1029",
+    "value": "MWI"
+  },
+  {
+    "iso3": "MOZ",
+    "item": "http://www.wikidata.org/entity/Q1029",
+    "value": "SWZ"
+  },
+  {
+    "iso3": "MOZ",
+    "item": "http://www.wikidata.org/entity/Q1029",
+    "value": "TZA"
+  },
+  {
+    "iso3": "MOZ",
+    "item": "http://www.wikidata.org/entity/Q1029",
+    "value": "ZAF"
+  },
+  {
+    "iso3": "MOZ",
+    "item": "http://www.wikidata.org/entity/Q1029",
+    "value": "ZMB"
+  },
+  {
+    "iso3": "MOZ",
+    "item": "http://www.wikidata.org/entity/Q1029",
+    "value": "ZWE"
+  },
+  {
+    "iso3": "NAM",
+    "item": "http://www.wikidata.org/entity/Q1030",
+    "value": "AGO"
+  },
+  {
+    "iso3": "NAM",
+    "item": "http://www.wikidata.org/entity/Q1030",
+    "value": "BWA"
+  },
+  {
+    "iso3": "NAM",
+    "item": "http://www.wikidata.org/entity/Q1030",
+    "value": "ZAF"
+  },
+  {
+    "iso3": "NAM",
+    "item": "http://www.wikidata.org/entity/Q1030",
+    "value": "ZMB"
+  },
+  {
+    "iso3": "NER",
+    "item": "http://www.wikidata.org/entity/Q1032",
+    "value": "BEN"
+  },
+  {
+    "iso3": "NER",
+    "item": "http://www.wikidata.org/entity/Q1032",
+    "value": "BFA"
+  },
+  {
+    "iso3": "NER",
+    "item": "http://www.wikidata.org/entity/Q1032",
+    "value": "DZA"
+  },
+  {
+    "iso3": "NER",
+    "item": "http://www.wikidata.org/entity/Q1032",
+    "value": "LBY"
+  },
+  {
+    "iso3": "NER",
+    "item": "http://www.wikidata.org/entity/Q1032",
+    "value": "MLI"
+  },
+  {
+    "iso3": "NER",
+    "item": "http://www.wikidata.org/entity/Q1032",
+    "value": "NGA"
+  },
+  {
+    "iso3": "NER",
+    "item": "http://www.wikidata.org/entity/Q1032",
+    "value": "TCD"
+  },
+  {
+    "iso3": "NGA",
+    "item": "http://www.wikidata.org/entity/Q1033",
+    "value": "BEN"
+  },
+  {
+    "iso3": "NGA",
+    "item": "http://www.wikidata.org/entity/Q1033",
+    "value": "CMR"
+  },
+  {
+    "iso3": "NGA",
+    "item": "http://www.wikidata.org/entity/Q1033",
+    "value": "NER"
+  },
+  {
+    "iso3": "NGA",
+    "item": "http://www.wikidata.org/entity/Q1033",
+    "value": "STP"
+  },
+  {
+    "iso3": "NGA",
+    "item": "http://www.wikidata.org/entity/Q1033",
+    "value": "TCD"
+  },
+  {
+    "iso3": "UGA",
+    "item": "http://www.wikidata.org/entity/Q1036",
+    "value": "COD"
+  },
+  {
+    "iso3": "UGA",
+    "item": "http://www.wikidata.org/entity/Q1036",
+    "value": "KEN"
+  },
+  {
+    "iso3": "UGA",
+    "item": "http://www.wikidata.org/entity/Q1036",
+    "value": "RWA"
+  },
+  {
+    "iso3": "UGA",
+    "item": "http://www.wikidata.org/entity/Q1036",
+    "value": "SDN"
+  },
+  {
+    "iso3": "UGA",
+    "item": "http://www.wikidata.org/entity/Q1036",
+    "value": "SSD"
+  },
+  {
+    "iso3": "UGA",
+    "item": "http://www.wikidata.org/entity/Q1036",
+    "value": "TZA"
+  },
+  {
+    "iso3": "RWA",
+    "item": "http://www.wikidata.org/entity/Q1037",
+    "value": "BDI"
+  },
+  {
+    "iso3": "RWA",
+    "item": "http://www.wikidata.org/entity/Q1037",
+    "value": "COD"
+  },
+  {
+    "iso3": "RWA",
+    "item": "http://www.wikidata.org/entity/Q1037",
+    "value": "TZA"
+  },
+  {
+    "iso3": "RWA",
+    "item": "http://www.wikidata.org/entity/Q1037",
+    "value": "UGA"
+  },
+  {
+    "iso3": "STP",
+    "item": "http://www.wikidata.org/entity/Q1039",
+    "value": "GAB"
+  },
+  {
+    "iso3": "STP",
+    "item": "http://www.wikidata.org/entity/Q1039",
+    "value": "GNQ"
+  },
+  {
+    "iso3": "STP",
+    "item": "http://www.wikidata.org/entity/Q1039",
+    "value": "NGA"
+  },
+  {
+    "iso3": "SEN",
+    "item": "http://www.wikidata.org/entity/Q1041",
+    "value": "GIN"
+  },
+  {
+    "iso3": "SEN",
+    "item": "http://www.wikidata.org/entity/Q1041",
+    "value": "GMB"
+  },
+  {
+    "iso3": "SEN",
+    "item": "http://www.wikidata.org/entity/Q1041",
+    "value": "GNB"
+  },
+  {
+    "iso3": "SEN",
+    "item": "http://www.wikidata.org/entity/Q1041",
+    "value": "MLI"
+  },
+  {
+    "iso3": "SEN",
+    "item": "http://www.wikidata.org/entity/Q1041",
+    "value": "MRT"
+  },
+  {
+    "iso3": "SYC",
+    "item": "http://www.wikidata.org/entity/Q1042",
+    "value": "COM"
+  },
+  {
+    "iso3": "SYC",
+    "item": "http://www.wikidata.org/entity/Q1042",
+    "value": "FRA"
+  },
+  {
+    "iso3": "SYC",
+    "item": "http://www.wikidata.org/entity/Q1042",
+    "value": "MDG"
+  },
+  {
+    "iso3": "SYC",
+    "item": "http://www.wikidata.org/entity/Q1042",
+    "value": "MUS"
+  },
+  {
+    "iso3": "SYC",
+    "item": "http://www.wikidata.org/entity/Q1042",
+    "value": "TZA"
+  },
+  {
+    "iso3": "SLE",
+    "item": "http://www.wikidata.org/entity/Q1044",
+    "value": "GIN"
+  },
+  {
+    "iso3": "SLE",
+    "item": "http://www.wikidata.org/entity/Q1044",
+    "value": "LBR"
+  },
+  {
+    "iso3": "SOM",
+    "item": "http://www.wikidata.org/entity/Q1045",
+    "value": "DJI"
+  },
+  {
+    "iso3": "SOM",
+    "item": "http://www.wikidata.org/entity/Q1045",
+    "value": "ETH"
+  },
+  {
+    "iso3": "SOM",
+    "item": "http://www.wikidata.org/entity/Q1045",
+    "value": "KEN"
+  },
+  {
+    "iso3": "SDN",
+    "item": "http://www.wikidata.org/entity/Q1049",
+    "value": "CAF"
+  },
+  {
+    "iso3": "SDN",
+    "item": "http://www.wikidata.org/entity/Q1049",
+    "value": "COD"
+  },
+  {
+    "iso3": "SDN",
+    "item": "http://www.wikidata.org/entity/Q1049",
+    "value": "EGY"
+  },
+  {
+    "iso3": "SDN",
+    "item": "http://www.wikidata.org/entity/Q1049",
+    "value": "ERI"
+  },
+  {
+    "iso3": "SDN",
+    "item": "http://www.wikidata.org/entity/Q1049",
+    "value": "ETH"
+  },
+  {
+    "iso3": "SDN",
+    "item": "http://www.wikidata.org/entity/Q1049",
+    "value": "KEN"
+  },
+  {
+    "iso3": "SDN",
+    "item": "http://www.wikidata.org/entity/Q1049",
+    "value": "LBY"
+  },
+  {
+    "iso3": "SDN",
+    "item": "http://www.wikidata.org/entity/Q1049",
+    "value": "SSD"
+  },
+  {
+    "iso3": "SDN",
+    "item": "http://www.wikidata.org/entity/Q1049",
+    "value": "TCD"
+  },
+  {
+    "iso3": "SDN",
+    "item": "http://www.wikidata.org/entity/Q1049",
+    "value": "UGA"
+  },
+  {
+    "iso3": "SWZ",
+    "item": "http://www.wikidata.org/entity/Q1050",
+    "value": "MOZ"
+  },
+  {
+    "iso3": "SWZ",
+    "item": "http://www.wikidata.org/entity/Q1050",
+    "value": "ZAF"
+  },
+  {
+    "iso3": "KEN",
+    "item": "http://www.wikidata.org/entity/Q114",
+    "value": "ETH"
+  },
+  {
+    "iso3": "KEN",
+    "item": "http://www.wikidata.org/entity/Q114",
+    "value": "SDN"
+  },
+  {
+    "iso3": "KEN",
+    "item": "http://www.wikidata.org/entity/Q114",
+    "value": "SOM"
+  },
+  {
+    "iso3": "KEN",
+    "item": "http://www.wikidata.org/entity/Q114",
+    "value": "SSD"
+  },
+  {
+    "iso3": "KEN",
+    "item": "http://www.wikidata.org/entity/Q114",
+    "value": "TZA"
+  },
+  {
+    "iso3": "KEN",
+    "item": "http://www.wikidata.org/entity/Q114",
+    "value": "UGA"
+  },
+  {
+    "iso3": "ETH",
+    "item": "http://www.wikidata.org/entity/Q115",
+    "value": "DJI"
+  },
+  {
+    "iso3": "ETH",
+    "item": "http://www.wikidata.org/entity/Q115",
+    "value": "ERI"
+  },
+  {
+    "iso3": "ETH",
+    "item": "http://www.wikidata.org/entity/Q115",
+    "value": "KEN"
+  },
+  {
+    "iso3": "ETH",
+    "item": "http://www.wikidata.org/entity/Q115",
+    "value": "SDN"
+  },
+  {
+    "iso3": "ETH",
+    "item": "http://www.wikidata.org/entity/Q115",
+    "value": "SOM"
+  },
+  {
+    "iso3": "ETH",
+    "item": "http://www.wikidata.org/entity/Q115",
+    "value": "SSD"
+  },
+  {
+    "iso3": "GHA",
+    "item": "http://www.wikidata.org/entity/Q117",
+    "value": "BFA"
+  },
+  {
+    "iso3": "GHA",
+    "item": "http://www.wikidata.org/entity/Q117",
+    "value": "CIV"
+  },
+  {
+    "iso3": "GHA",
+    "item": "http://www.wikidata.org/entity/Q117",
+    "value": "TGO"
+  },
+  {
+    "iso3": "VIR",
+    "item": "http://www.wikidata.org/entity/Q11703",
+    "value": "PRI"
+  },
+  {
+    "iso3": "VIR",
+    "item": "http://www.wikidata.org/entity/Q11703",
+    "value": "VGB"
+  },
+  {
+    "iso3": "XKS",
+    "item": "http://www.wikidata.org/entity/Q1246",
+    "value": "ALB"
+  },
+  {
+    "iso3": "XKS",
+    "item": "http://www.wikidata.org/entity/Q1246",
+    "value": "MKD"
+  },
+  {
+    "iso3": "XKS",
+    "item": "http://www.wikidata.org/entity/Q1246",
+    "value": "MNE"
+  },
+  {
+    "iso3": "XKS",
+    "item": "http://www.wikidata.org/entity/Q1246",
+    "value": "SRB"
+  },
+  {
+    "iso3": "MAF",
+    "item": "http://www.wikidata.org/entity/Q126125",
+    "value": "SXM"
+  },
+  {
+    "iso3": "GIB",
+    "item": "http://www.wikidata.org/entity/Q1410",
+    "value": "ESP"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "value": "AND"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "value": "BEL"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "value": "BRA"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "value": "CHE"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "value": "DEU"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "value": "ESP"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "value": "ITA"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "value": "LUX"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "value": "MCO"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "value": "NLD"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "value": "SUR"
+  },
+  {
+    "iso3": "GBR",
+    "item": "http://www.wikidata.org/entity/Q145",
+    "value": "IRL"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "AFG"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "BTN"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "IND"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "JPN"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "KAZ"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "KGZ"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "KOR"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "LAO"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "MMR"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "MNG"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "NPL"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "PAK"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "PRK"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "RUS"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "TJK"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "VNM"
+  },
+  {
+    "iso3": "SUN",
+    "item": "http://www.wikidata.org/entity/Q15180",
+    "value": "AFG"
+  },
+  {
+    "iso3": "SUN",
+    "item": "http://www.wikidata.org/entity/Q15180",
+    "value": "BGR"
+  },
+  {
+    "iso3": "SUN",
+    "item": "http://www.wikidata.org/entity/Q15180",
+    "value": "CHN"
+  },
+  {
+    "iso3": "SUN",
+    "item": "http://www.wikidata.org/entity/Q15180",
+    "value": "CSK"
+  },
+  {
+    "iso3": "SUN",
+    "item": "http://www.wikidata.org/entity/Q15180",
+    "value": "FIN"
+  },
+  {
+    "iso3": "SUN",
+    "item": "http://www.wikidata.org/entity/Q15180",
+    "value": "HUN"
+  },
+  {
+    "iso3": "SUN",
+    "item": "http://www.wikidata.org/entity/Q15180",
+    "value": "IRN"
+  },
+  {
+    "iso3": "SUN",
+    "item": "http://www.wikidata.org/entity/Q15180",
+    "value": "JPN"
+  },
+  {
+    "iso3": "SUN",
+    "item": "http://www.wikidata.org/entity/Q15180",
+    "value": "POL"
+  },
+  {
+    "iso3": "SUN",
+    "item": "http://www.wikidata.org/entity/Q15180",
+    "value": "PRK"
+  },
+  {
+    "iso3": "SUN",
+    "item": "http://www.wikidata.org/entity/Q15180",
+    "value": "ROU"
+  },
+  {
+    "iso3": "SUN",
+    "item": "http://www.wikidata.org/entity/Q15180",
+    "value": "TUR"
+  },
+  {
+    "iso3": "SUN",
+    "item": "http://www.wikidata.org/entity/Q15180",
+    "value": "USA"
+  },
+  {
+    "iso3": "BRA",
+    "item": "http://www.wikidata.org/entity/Q155",
+    "value": "ARG"
+  },
+  {
+    "iso3": "BRA",
+    "item": "http://www.wikidata.org/entity/Q155",
+    "value": "BOL"
+  },
+  {
+    "iso3": "BRA",
+    "item": "http://www.wikidata.org/entity/Q155",
+    "value": "COL"
+  },
+  {
+    "iso3": "BRA",
+    "item": "http://www.wikidata.org/entity/Q155",
+    "value": "FRA"
+  },
+  {
+    "iso3": "BRA",
+    "item": "http://www.wikidata.org/entity/Q155",
+    "value": "GUF"
+  },
+  {
+    "iso3": "BRA",
+    "item": "http://www.wikidata.org/entity/Q155",
+    "value": "GUY"
+  },
+  {
+    "iso3": "BRA",
+    "item": "http://www.wikidata.org/entity/Q155",
+    "value": "PER"
+  },
+  {
+    "iso3": "BRA",
+    "item": "http://www.wikidata.org/entity/Q155",
+    "value": "PRY"
+  },
+  {
+    "iso3": "BRA",
+    "item": "http://www.wikidata.org/entity/Q155",
+    "value": "SUR"
+  },
+  {
+    "iso3": "BRA",
+    "item": "http://www.wikidata.org/entity/Q155",
+    "value": "URY"
+  },
+  {
+    "iso3": "BRA",
+    "item": "http://www.wikidata.org/entity/Q155",
+    "value": "VEN"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "AZE"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "BLR"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "CHN"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "EST"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "FIN"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "GEO"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "JPN"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "KAZ"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "LTU"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "LVA"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "MNG"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "NOR"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "POL"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "PRK"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "SWE"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "UKR"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "USA"
+  },
+  {
+    "iso3": "CAN",
+    "item": "http://www.wikidata.org/entity/Q16",
+    "value": "USA"
+  },
+  {
+    "iso3": "GUM",
+    "item": "http://www.wikidata.org/entity/Q16635",
+    "value": "FSM"
+  },
+  {
+    "iso3": "GUM",
+    "item": "http://www.wikidata.org/entity/Q16635",
+    "value": "MNP"
+  },
+  {
+    "iso3": "DDR",
+    "item": "http://www.wikidata.org/entity/Q16957",
+    "value": "DEU"
+  },
+  {
+    "iso3": "DDR",
+    "item": "http://www.wikidata.org/entity/Q16957",
+    "value": "POL"
+  },
+  {
+    "iso3": "JPN",
+    "item": "http://www.wikidata.org/entity/Q17",
+    "value": "CHN"
+  },
+  {
+    "iso3": "JPN",
+    "item": "http://www.wikidata.org/entity/Q17",
+    "value": "KOR"
+  },
+  {
+    "iso3": "JPN",
+    "item": "http://www.wikidata.org/entity/Q17",
+    "value": "PHL"
+  },
+  {
+    "iso3": "JPN",
+    "item": "http://www.wikidata.org/entity/Q17",
+    "value": "RUS"
+  },
+  {
+    "iso3": "JPN",
+    "item": "http://www.wikidata.org/entity/Q17",
+    "value": "TWN"
+  },
+  {
+    "iso3": "JPN",
+    "item": "http://www.wikidata.org/entity/Q17",
+    "value": "USA"
+  },
+  {
+    "iso3": "MYT",
+    "item": "http://www.wikidata.org/entity/Q17063",
+    "value": "COM"
+  },
+  {
+    "iso3": "MYT",
+    "item": "http://www.wikidata.org/entity/Q17063",
+    "value": "MDG"
+  },
+  {
+    "iso3": "TCA",
+    "item": "http://www.wikidata.org/entity/Q18221",
+    "value": "BHS"
+  },
+  {
+    "iso3": "TCA",
+    "item": "http://www.wikidata.org/entity/Q18221",
+    "value": "DOM"
+  },
+  {
+    "iso3": "TCA",
+    "item": "http://www.wikidata.org/entity/Q18221",
+    "value": "HTI"
+  },
+  {
+    "iso3": "DEU",
+    "item": "http://www.wikidata.org/entity/Q183",
+    "value": "AUT"
+  },
+  {
+    "iso3": "DEU",
+    "item": "http://www.wikidata.org/entity/Q183",
+    "value": "BEL"
+  },
+  {
+    "iso3": "DEU",
+    "item": "http://www.wikidata.org/entity/Q183",
+    "value": "CHE"
+  },
+  {
+    "iso3": "DEU",
+    "item": "http://www.wikidata.org/entity/Q183",
+    "value": "CZE"
+  },
+  {
+    "iso3": "DEU",
+    "item": "http://www.wikidata.org/entity/Q183",
+    "value": "DNK"
+  },
+  {
+    "iso3": "DEU",
+    "item": "http://www.wikidata.org/entity/Q183",
+    "value": "FRA"
+  },
+  {
+    "iso3": "DEU",
+    "item": "http://www.wikidata.org/entity/Q183",
+    "value": "LUX"
+  },
+  {
+    "iso3": "DEU",
+    "item": "http://www.wikidata.org/entity/Q183",
+    "value": "POL"
+  },
+  {
+    "iso3": "BLR",
+    "item": "http://www.wikidata.org/entity/Q184",
+    "value": "LTU"
+  },
+  {
+    "iso3": "BLR",
+    "item": "http://www.wikidata.org/entity/Q184",
+    "value": "LVA"
+  },
+  {
+    "iso3": "BLR",
+    "item": "http://www.wikidata.org/entity/Q184",
+    "value": "POL"
+  },
+  {
+    "iso3": "BLR",
+    "item": "http://www.wikidata.org/entity/Q184",
+    "value": "RUS"
+  },
+  {
+    "iso3": "BLR",
+    "item": "http://www.wikidata.org/entity/Q184",
+    "value": "UKR"
+  },
+  {
+    "iso3": "ISL",
+    "item": "http://www.wikidata.org/entity/Q189",
+    "value": "FRO"
+  },
+  {
+    "iso3": "ISL",
+    "item": "http://www.wikidata.org/entity/Q189",
+    "value": "GRL"
+  },
+  {
+    "iso3": "EST",
+    "item": "http://www.wikidata.org/entity/Q191",
+    "value": "LVA"
+  },
+  {
+    "iso3": "EST",
+    "item": "http://www.wikidata.org/entity/Q191",
+    "value": "RUS"
+  },
+  {
+    "iso3": "NOR",
+    "item": "http://www.wikidata.org/entity/Q20",
+    "value": "FIN"
+  },
+  {
+    "iso3": "NOR",
+    "item": "http://www.wikidata.org/entity/Q20",
+    "value": "RUS"
+  },
+  {
+    "iso3": "NOR",
+    "item": "http://www.wikidata.org/entity/Q20",
+    "value": "SWE"
+  },
+  {
+    "iso3": "LVA",
+    "item": "http://www.wikidata.org/entity/Q211",
+    "value": "BLR"
+  },
+  {
+    "iso3": "LVA",
+    "item": "http://www.wikidata.org/entity/Q211",
+    "value": "EST"
+  },
+  {
+    "iso3": "LVA",
+    "item": "http://www.wikidata.org/entity/Q211",
+    "value": "LTU"
+  },
+  {
+    "iso3": "LVA",
+    "item": "http://www.wikidata.org/entity/Q211",
+    "value": "RUS"
+  },
+  {
+    "iso3": "LVA",
+    "item": "http://www.wikidata.org/entity/Q211",
+    "value": "SWE"
+  },
+  {
+    "iso3": "UKR",
+    "item": "http://www.wikidata.org/entity/Q212",
+    "value": "BLR"
+  },
+  {
+    "iso3": "UKR",
+    "item": "http://www.wikidata.org/entity/Q212",
+    "value": "HUN"
+  },
+  {
+    "iso3": "UKR",
+    "item": "http://www.wikidata.org/entity/Q212",
+    "value": "MDA"
+  },
+  {
+    "iso3": "UKR",
+    "item": "http://www.wikidata.org/entity/Q212",
+    "value": "POL"
+  },
+  {
+    "iso3": "UKR",
+    "item": "http://www.wikidata.org/entity/Q212",
+    "value": "ROU"
+  },
+  {
+    "iso3": "UKR",
+    "item": "http://www.wikidata.org/entity/Q212",
+    "value": "RUS"
+  },
+  {
+    "iso3": "UKR",
+    "item": "http://www.wikidata.org/entity/Q212",
+    "value": "SVK"
+  },
+  {
+    "iso3": "CZE",
+    "item": "http://www.wikidata.org/entity/Q213",
+    "value": "AUT"
+  },
+  {
+    "iso3": "CZE",
+    "item": "http://www.wikidata.org/entity/Q213",
+    "value": "DEU"
+  },
+  {
+    "iso3": "CZE",
+    "item": "http://www.wikidata.org/entity/Q213",
+    "value": "POL"
+  },
+  {
+    "iso3": "CZE",
+    "item": "http://www.wikidata.org/entity/Q213",
+    "value": "SVK"
+  },
+  {
+    "iso3": "SVK",
+    "item": "http://www.wikidata.org/entity/Q214",
+    "value": "AUT"
+  },
+  {
+    "iso3": "SVK",
+    "item": "http://www.wikidata.org/entity/Q214",
+    "value": "CZE"
+  },
+  {
+    "iso3": "SVK",
+    "item": "http://www.wikidata.org/entity/Q214",
+    "value": "HUN"
+  },
+  {
+    "iso3": "SVK",
+    "item": "http://www.wikidata.org/entity/Q214",
+    "value": "POL"
+  },
+  {
+    "iso3": "SVK",
+    "item": "http://www.wikidata.org/entity/Q214",
+    "value": "UKR"
+  },
+  {
+    "iso3": "SVN",
+    "item": "http://www.wikidata.org/entity/Q215",
+    "value": "AUT"
+  },
+  {
+    "iso3": "SVN",
+    "item": "http://www.wikidata.org/entity/Q215",
+    "value": "HRV"
+  },
+  {
+    "iso3": "SVN",
+    "item": "http://www.wikidata.org/entity/Q215",
+    "value": "HUN"
+  },
+  {
+    "iso3": "SVN",
+    "item": "http://www.wikidata.org/entity/Q215",
+    "value": "ITA"
+  },
+  {
+    "iso3": "MDA",
+    "item": "http://www.wikidata.org/entity/Q217",
+    "value": "ROU"
+  },
+  {
+    "iso3": "MDA",
+    "item": "http://www.wikidata.org/entity/Q217",
+    "value": "UKR"
+  },
+  {
+    "iso3": "ROU",
+    "item": "http://www.wikidata.org/entity/Q218",
+    "value": "BGR"
+  },
+  {
+    "iso3": "ROU",
+    "item": "http://www.wikidata.org/entity/Q218",
+    "value": "HUN"
+  },
+  {
+    "iso3": "ROU",
+    "item": "http://www.wikidata.org/entity/Q218",
+    "value": "MDA"
+  },
+  {
+    "iso3": "ROU",
+    "item": "http://www.wikidata.org/entity/Q218",
+    "value": "SRB"
+  },
+  {
+    "iso3": "ROU",
+    "item": "http://www.wikidata.org/entity/Q218",
+    "value": "UKR"
+  },
+  {
+    "iso3": "BGR",
+    "item": "http://www.wikidata.org/entity/Q219",
+    "value": "GRC"
+  },
+  {
+    "iso3": "BGR",
+    "item": "http://www.wikidata.org/entity/Q219",
+    "value": "MKD"
+  },
+  {
+    "iso3": "BGR",
+    "item": "http://www.wikidata.org/entity/Q219",
+    "value": "ROU"
+  },
+  {
+    "iso3": "BGR",
+    "item": "http://www.wikidata.org/entity/Q219",
+    "value": "SRB"
+  },
+  {
+    "iso3": "BGR",
+    "item": "http://www.wikidata.org/entity/Q219",
+    "value": "TUR"
+  },
+  {
+    "iso3": "PSE",
+    "item": "http://www.wikidata.org/entity/Q219060",
+    "value": "EGY"
+  },
+  {
+    "iso3": "PSE",
+    "item": "http://www.wikidata.org/entity/Q219060",
+    "value": "ISR"
+  },
+  {
+    "iso3": "PSE",
+    "item": "http://www.wikidata.org/entity/Q219060",
+    "value": "JOR"
+  },
+  {
+    "iso3": "MKD",
+    "item": "http://www.wikidata.org/entity/Q221",
+    "value": "ALB"
+  },
+  {
+    "iso3": "MKD",
+    "item": "http://www.wikidata.org/entity/Q221",
+    "value": "BGR"
+  },
+  {
+    "iso3": "MKD",
+    "item": "http://www.wikidata.org/entity/Q221",
+    "value": "GRC"
+  },
+  {
+    "iso3": "MKD",
+    "item": "http://www.wikidata.org/entity/Q221",
+    "value": "SCG"
+  },
+  {
+    "iso3": "MKD",
+    "item": "http://www.wikidata.org/entity/Q221",
+    "value": "SRB"
+  },
+  {
+    "iso3": "MKD",
+    "item": "http://www.wikidata.org/entity/Q221",
+    "value": "XKS"
+  },
+  {
+    "iso3": "MKD",
+    "item": "http://www.wikidata.org/entity/Q221",
+    "value": "YUG"
+  },
+  {
+    "iso3": "ALB",
+    "item": "http://www.wikidata.org/entity/Q222",
+    "value": "GRC"
+  },
+  {
+    "iso3": "ALB",
+    "item": "http://www.wikidata.org/entity/Q222",
+    "value": "MKD"
+  },
+  {
+    "iso3": "ALB",
+    "item": "http://www.wikidata.org/entity/Q222",
+    "value": "MNE"
+  },
+  {
+    "iso3": "ALB",
+    "item": "http://www.wikidata.org/entity/Q222",
+    "value": "SRB"
+  },
+  {
+    "iso3": "ALB",
+    "item": "http://www.wikidata.org/entity/Q222",
+    "value": "XKS"
+  },
+  {
+    "iso3": "GRL",
+    "item": "http://www.wikidata.org/entity/Q223",
+    "value": "CAN"
+  },
+  {
+    "iso3": "GRL",
+    "item": "http://www.wikidata.org/entity/Q223",
+    "value": "ISL"
+  },
+  {
+    "iso3": "GRL",
+    "item": "http://www.wikidata.org/entity/Q223",
+    "value": "NOR"
+  },
+  {
+    "iso3": "HRV",
+    "item": "http://www.wikidata.org/entity/Q224",
+    "value": "BIH"
+  },
+  {
+    "iso3": "HRV",
+    "item": "http://www.wikidata.org/entity/Q224",
+    "value": "HUN"
+  },
+  {
+    "iso3": "HRV",
+    "item": "http://www.wikidata.org/entity/Q224",
+    "value": "MNE"
+  },
+  {
+    "iso3": "HRV",
+    "item": "http://www.wikidata.org/entity/Q224",
+    "value": "SRB"
+  },
+  {
+    "iso3": "HRV",
+    "item": "http://www.wikidata.org/entity/Q224",
+    "value": "SVN"
+  },
+  {
+    "iso3": "BIH",
+    "item": "http://www.wikidata.org/entity/Q225",
+    "value": "HRV"
+  },
+  {
+    "iso3": "BIH",
+    "item": "http://www.wikidata.org/entity/Q225",
+    "value": "MNE"
+  },
+  {
+    "iso3": "BIH",
+    "item": "http://www.wikidata.org/entity/Q225",
+    "value": "SCG"
+  },
+  {
+    "iso3": "BIH",
+    "item": "http://www.wikidata.org/entity/Q225",
+    "value": "SRB"
+  },
+  {
+    "iso3": "BIH",
+    "item": "http://www.wikidata.org/entity/Q225",
+    "value": "YUG"
+  },
+  {
+    "iso3": "AZE",
+    "item": "http://www.wikidata.org/entity/Q227",
+    "value": "ARM"
+  },
+  {
+    "iso3": "AZE",
+    "item": "http://www.wikidata.org/entity/Q227",
+    "value": "GEO"
+  },
+  {
+    "iso3": "AZE",
+    "item": "http://www.wikidata.org/entity/Q227",
+    "value": "IRN"
+  },
+  {
+    "iso3": "AZE",
+    "item": "http://www.wikidata.org/entity/Q227",
+    "value": "RUS"
+  },
+  {
+    "iso3": "AZE",
+    "item": "http://www.wikidata.org/entity/Q227",
+    "value": "TUR"
+  },
+  {
+    "iso3": "AND",
+    "item": "http://www.wikidata.org/entity/Q228",
+    "value": "ESP"
+  },
+  {
+    "iso3": "AND",
+    "item": "http://www.wikidata.org/entity/Q228",
+    "value": "FRA"
+  },
+  {
+    "iso3": "CYP",
+    "item": "http://www.wikidata.org/entity/Q229",
+    "value": "GBR"
+  },
+  {
+    "iso3": "CYP",
+    "item": "http://www.wikidata.org/entity/Q229",
+    "value": "ISR"
+  },
+  {
+    "iso3": "CYP",
+    "item": "http://www.wikidata.org/entity/Q229",
+    "value": "TUR"
+  },
+  {
+    "iso3": "GEO",
+    "item": "http://www.wikidata.org/entity/Q230",
+    "value": "ARM"
+  },
+  {
+    "iso3": "GEO",
+    "item": "http://www.wikidata.org/entity/Q230",
+    "value": "AZE"
+  },
+  {
+    "iso3": "GEO",
+    "item": "http://www.wikidata.org/entity/Q230",
+    "value": "RUS"
+  },
+  {
+    "iso3": "GEO",
+    "item": "http://www.wikidata.org/entity/Q230",
+    "value": "TUR"
+  },
+  {
+    "iso3": "KAZ",
+    "item": "http://www.wikidata.org/entity/Q232",
+    "value": "CHN"
+  },
+  {
+    "iso3": "KAZ",
+    "item": "http://www.wikidata.org/entity/Q232",
+    "value": "KGZ"
+  },
+  {
+    "iso3": "KAZ",
+    "item": "http://www.wikidata.org/entity/Q232",
+    "value": "RUS"
+  },
+  {
+    "iso3": "KAZ",
+    "item": "http://www.wikidata.org/entity/Q232",
+    "value": "TKM"
+  },
+  {
+    "iso3": "KAZ",
+    "item": "http://www.wikidata.org/entity/Q232",
+    "value": "UZB"
+  },
+  {
+    "iso3": "MLT",
+    "item": "http://www.wikidata.org/entity/Q233",
+    "value": "ITA"
+  },
+  {
+    "iso3": "MCO",
+    "item": "http://www.wikidata.org/entity/Q235",
+    "value": "FRA"
+  },
+  {
+    "iso3": "MNE",
+    "item": "http://www.wikidata.org/entity/Q236",
+    "value": "ALB"
+  },
+  {
+    "iso3": "MNE",
+    "item": "http://www.wikidata.org/entity/Q236",
+    "value": "BIH"
+  },
+  {
+    "iso3": "MNE",
+    "item": "http://www.wikidata.org/entity/Q236",
+    "value": "HRV"
+  },
+  {
+    "iso3": "MNE",
+    "item": "http://www.wikidata.org/entity/Q236",
+    "value": "SRB"
+  },
+  {
+    "iso3": "MNE",
+    "item": "http://www.wikidata.org/entity/Q236",
+    "value": "XKS"
+  },
+  {
+    "iso3": "VAT",
+    "item": "http://www.wikidata.org/entity/Q237",
+    "value": "ITA"
+  },
+  {
+    "iso3": "SMR",
+    "item": "http://www.wikidata.org/entity/Q238",
+    "value": "ITA"
+  },
+  {
+    "iso3": "CUB",
+    "item": "http://www.wikidata.org/entity/Q241",
+    "value": "GBR"
+  },
+  {
+    "iso3": "CUB",
+    "item": "http://www.wikidata.org/entity/Q241",
+    "value": "USA"
+  },
+  {
+    "iso3": "BLZ",
+    "item": "http://www.wikidata.org/entity/Q242",
+    "value": "GTM"
+  },
+  {
+    "iso3": "BLZ",
+    "item": "http://www.wikidata.org/entity/Q242",
+    "value": "MEX"
+  },
+  {
+    "iso3": "IDN",
+    "item": "http://www.wikidata.org/entity/Q252",
+    "value": "AUS"
+  },
+  {
+    "iso3": "IDN",
+    "item": "http://www.wikidata.org/entity/Q252",
+    "value": "IND"
+  },
+  {
+    "iso3": "IDN",
+    "item": "http://www.wikidata.org/entity/Q252",
+    "value": "MYS"
+  },
+  {
+    "iso3": "IDN",
+    "item": "http://www.wikidata.org/entity/Q252",
+    "value": "PHL"
+  },
+  {
+    "iso3": "IDN",
+    "item": "http://www.wikidata.org/entity/Q252",
+    "value": "PLW"
+  },
+  {
+    "iso3": "IDN",
+    "item": "http://www.wikidata.org/entity/Q252",
+    "value": "PNG"
+  },
+  {
+    "iso3": "IDN",
+    "item": "http://www.wikidata.org/entity/Q252",
+    "value": "SGP"
+  },
+  {
+    "iso3": "IDN",
+    "item": "http://www.wikidata.org/entity/Q252",
+    "value": "THA"
+  },
+  {
+    "iso3": "IDN",
+    "item": "http://www.wikidata.org/entity/Q252",
+    "value": "TLS"
+  },
+  {
+    "iso3": "IDN",
+    "item": "http://www.wikidata.org/entity/Q252",
+    "value": "VNM"
+  },
+  {
+    "iso3": "ANT",
+    "item": "http://www.wikidata.org/entity/Q25227",
+    "value": "FRA"
+  },
+  {
+    "iso3": "VGB",
+    "item": "http://www.wikidata.org/entity/Q25305",
+    "value": "VIR"
+  },
+  {
+    "iso3": "ZAF",
+    "item": "http://www.wikidata.org/entity/Q258",
+    "value": "BWA"
+  },
+  {
+    "iso3": "ZAF",
+    "item": "http://www.wikidata.org/entity/Q258",
+    "value": "LSO"
+  },
+  {
+    "iso3": "ZAF",
+    "item": "http://www.wikidata.org/entity/Q258",
+    "value": "MOZ"
+  },
+  {
+    "iso3": "ZAF",
+    "item": "http://www.wikidata.org/entity/Q258",
+    "value": "NAM"
+  },
+  {
+    "iso3": "ZAF",
+    "item": "http://www.wikidata.org/entity/Q258",
+    "value": "SWZ"
+  },
+  {
+    "iso3": "ZAF",
+    "item": "http://www.wikidata.org/entity/Q258",
+    "value": "ZWE"
+  },
+  {
+    "iso3": "DZA",
+    "item": "http://www.wikidata.org/entity/Q262",
+    "value": "ESH"
+  },
+  {
+    "iso3": "DZA",
+    "item": "http://www.wikidata.org/entity/Q262",
+    "value": "ESP"
+  },
+  {
+    "iso3": "DZA",
+    "item": "http://www.wikidata.org/entity/Q262",
+    "value": "ITA"
+  },
+  {
+    "iso3": "DZA",
+    "item": "http://www.wikidata.org/entity/Q262",
+    "value": "LBY"
+  },
+  {
+    "iso3": "DZA",
+    "item": "http://www.wikidata.org/entity/Q262",
+    "value": "MAR"
+  },
+  {
+    "iso3": "DZA",
+    "item": "http://www.wikidata.org/entity/Q262",
+    "value": "MLI"
+  },
+  {
+    "iso3": "DZA",
+    "item": "http://www.wikidata.org/entity/Q262",
+    "value": "MRT"
+  },
+  {
+    "iso3": "DZA",
+    "item": "http://www.wikidata.org/entity/Q262",
+    "value": "NER"
+  },
+  {
+    "iso3": "DZA",
+    "item": "http://www.wikidata.org/entity/Q262",
+    "value": "TUN"
+  },
+  {
+    "iso3": "SXM",
+    "item": "http://www.wikidata.org/entity/Q26273",
+    "value": "FRA"
+  },
+  {
+    "iso3": "SXM",
+    "item": "http://www.wikidata.org/entity/Q26273",
+    "value": "MAF"
+  },
+  {
+    "iso3": "UZB",
+    "item": "http://www.wikidata.org/entity/Q265",
+    "value": "AFG"
+  },
+  {
+    "iso3": "UZB",
+    "item": "http://www.wikidata.org/entity/Q265",
+    "value": "KAZ"
+  },
+  {
+    "iso3": "UZB",
+    "item": "http://www.wikidata.org/entity/Q265",
+    "value": "KGZ"
+  },
+  {
+    "iso3": "UZB",
+    "item": "http://www.wikidata.org/entity/Q265",
+    "value": "TJK"
+  },
+  {
+    "iso3": "UZB",
+    "item": "http://www.wikidata.org/entity/Q265",
+    "value": "TKM"
+  },
+  {
+    "iso3": "IRL",
+    "item": "http://www.wikidata.org/entity/Q27",
+    "value": "GBR"
+  },
+  {
+    "iso3": "HUN",
+    "item": "http://www.wikidata.org/entity/Q28",
+    "value": "AUT"
+  },
+  {
+    "iso3": "HUN",
+    "item": "http://www.wikidata.org/entity/Q28",
+    "value": "HRV"
+  },
+  {
+    "iso3": "HUN",
+    "item": "http://www.wikidata.org/entity/Q28",
+    "value": "ROU"
+  },
+  {
+    "iso3": "HUN",
+    "item": "http://www.wikidata.org/entity/Q28",
+    "value": "SRB"
+  },
+  {
+    "iso3": "HUN",
+    "item": "http://www.wikidata.org/entity/Q28",
+    "value": "SVK"
+  },
+  {
+    "iso3": "HUN",
+    "item": "http://www.wikidata.org/entity/Q28",
+    "value": "SVN"
+  },
+  {
+    "iso3": "HUN",
+    "item": "http://www.wikidata.org/entity/Q28",
+    "value": "UKR"
+  },
+  {
+    "iso3": "ESP",
+    "item": "http://www.wikidata.org/entity/Q29",
+    "value": "AND"
+  },
+  {
+    "iso3": "ESP",
+    "item": "http://www.wikidata.org/entity/Q29",
+    "value": "FRA"
+  },
+  {
+    "iso3": "ESP",
+    "item": "http://www.wikidata.org/entity/Q29",
+    "value": "GIB"
+  },
+  {
+    "iso3": "ESP",
+    "item": "http://www.wikidata.org/entity/Q29",
+    "value": "MAR"
+  },
+  {
+    "iso3": "ESP",
+    "item": "http://www.wikidata.org/entity/Q29",
+    "value": "PRT"
+  },
+  {
+    "iso3": "CHL",
+    "item": "http://www.wikidata.org/entity/Q298",
+    "value": "ARG"
+  },
+  {
+    "iso3": "CHL",
+    "item": "http://www.wikidata.org/entity/Q298",
+    "value": "BOL"
+  },
+  {
+    "iso3": "CHL",
+    "item": "http://www.wikidata.org/entity/Q298",
+    "value": "PER"
+  },
+  {
+    "iso3": "NLD",
+    "item": "http://www.wikidata.org/entity/Q29999",
+    "value": "BEL"
+  },
+  {
+    "iso3": "NLD",
+    "item": "http://www.wikidata.org/entity/Q29999",
+    "value": "DEU"
+  },
+  {
+    "iso3": "NLD",
+    "item": "http://www.wikidata.org/entity/Q29999",
+    "value": "FRA"
+  },
+  {
+    "iso3": "NLD",
+    "item": "http://www.wikidata.org/entity/Q29999",
+    "value": "VEN"
+  },
+  {
+    "iso3": "USA",
+    "item": "http://www.wikidata.org/entity/Q30",
+    "value": "CAN"
+  },
+  {
+    "iso3": "USA",
+    "item": "http://www.wikidata.org/entity/Q30",
+    "value": "MEX"
+  },
+  {
+    "iso3": "BEL",
+    "item": "http://www.wikidata.org/entity/Q31",
+    "value": "DEU"
+  },
+  {
+    "iso3": "BEL",
+    "item": "http://www.wikidata.org/entity/Q31",
+    "value": "FRA"
+  },
+  {
+    "iso3": "BEL",
+    "item": "http://www.wikidata.org/entity/Q31",
+    "value": "LUX"
+  },
+  {
+    "iso3": "LUX",
+    "item": "http://www.wikidata.org/entity/Q32",
+    "value": "BEL"
+  },
+  {
+    "iso3": "LUX",
+    "item": "http://www.wikidata.org/entity/Q32",
+    "value": "DEU"
+  },
+  {
+    "iso3": "LUX",
+    "item": "http://www.wikidata.org/entity/Q32",
+    "value": "FRA"
+  },
+  {
+    "iso3": "FIN",
+    "item": "http://www.wikidata.org/entity/Q33",
+    "value": "NOR"
+  },
+  {
+    "iso3": "FIN",
+    "item": "http://www.wikidata.org/entity/Q33",
+    "value": "RUS"
+  },
+  {
+    "iso3": "FIN",
+    "item": "http://www.wikidata.org/entity/Q33",
+    "value": "SWE"
+  },
+  {
+    "iso3": "SGP",
+    "item": "http://www.wikidata.org/entity/Q334",
+    "value": "IDN"
+  },
+  {
+    "iso3": "SGP",
+    "item": "http://www.wikidata.org/entity/Q334",
+    "value": "MYS"
+  },
+  {
+    "iso3": "NCL",
+    "item": "http://www.wikidata.org/entity/Q33788",
+    "value": "AUS"
+  },
+  {
+    "iso3": "CSK",
+    "item": "http://www.wikidata.org/entity/Q33946",
+    "value": "AUT"
+  },
+  {
+    "iso3": "CSK",
+    "item": "http://www.wikidata.org/entity/Q33946",
+    "value": "DDR"
+  },
+  {
+    "iso3": "CSK",
+    "item": "http://www.wikidata.org/entity/Q33946",
+    "value": "DEU"
+  },
+  {
+    "iso3": "CSK",
+    "item": "http://www.wikidata.org/entity/Q33946",
+    "value": "HUN"
+  },
+  {
+    "iso3": "CSK",
+    "item": "http://www.wikidata.org/entity/Q33946",
+    "value": "POL"
+  },
+  {
+    "iso3": "CSK",
+    "item": "http://www.wikidata.org/entity/Q33946",
+    "value": "ROU"
+  },
+  {
+    "iso3": "CSK",
+    "item": "http://www.wikidata.org/entity/Q33946",
+    "value": "SUN"
+  },
+  {
+    "iso3": "CSK",
+    "item": "http://www.wikidata.org/entity/Q33946",
+    "value": "UKR"
+  },
+  {
+    "iso3": "SWE",
+    "item": "http://www.wikidata.org/entity/Q34",
+    "value": "DNK"
+  },
+  {
+    "iso3": "SWE",
+    "item": "http://www.wikidata.org/entity/Q34",
+    "value": "FIN"
+  },
+  {
+    "iso3": "SWE",
+    "item": "http://www.wikidata.org/entity/Q34",
+    "value": "NOR"
+  },
+  {
+    "iso3": "SPM",
+    "item": "http://www.wikidata.org/entity/Q34617",
+    "value": "CAN"
+  },
+  {
+    "iso3": "LIE",
+    "item": "http://www.wikidata.org/entity/Q347",
+    "value": "AUT"
+  },
+  {
+    "iso3": "LIE",
+    "item": "http://www.wikidata.org/entity/Q347",
+    "value": "CHE"
+  },
+  {
+    "iso3": "DNK",
+    "item": "http://www.wikidata.org/entity/Q35",
+    "value": "DEU"
+  },
+  {
+    "iso3": "DNK",
+    "item": "http://www.wikidata.org/entity/Q35",
+    "value": "NOR"
+  },
+  {
+    "iso3": "DNK",
+    "item": "http://www.wikidata.org/entity/Q35",
+    "value": "SWE"
+  },
+  {
+    "iso3": "POL",
+    "item": "http://www.wikidata.org/entity/Q36",
+    "value": "BLR"
+  },
+  {
+    "iso3": "POL",
+    "item": "http://www.wikidata.org/entity/Q36",
+    "value": "CZE"
+  },
+  {
+    "iso3": "POL",
+    "item": "http://www.wikidata.org/entity/Q36",
+    "value": "DEU"
+  },
+  {
+    "iso3": "POL",
+    "item": "http://www.wikidata.org/entity/Q36",
+    "value": "LTU"
+  },
+  {
+    "iso3": "POL",
+    "item": "http://www.wikidata.org/entity/Q36",
+    "value": "RUS"
+  },
+  {
+    "iso3": "POL",
+    "item": "http://www.wikidata.org/entity/Q36",
+    "value": "SVK"
+  },
+  {
+    "iso3": "POL",
+    "item": "http://www.wikidata.org/entity/Q36",
+    "value": "UKR"
+  },
+  {
+    "iso3": "LTU",
+    "item": "http://www.wikidata.org/entity/Q37",
+    "value": "BLR"
+  },
+  {
+    "iso3": "LTU",
+    "item": "http://www.wikidata.org/entity/Q37",
+    "value": "LVA"
+  },
+  {
+    "iso3": "LTU",
+    "item": "http://www.wikidata.org/entity/Q37",
+    "value": "POL"
+  },
+  {
+    "iso3": "LTU",
+    "item": "http://www.wikidata.org/entity/Q37",
+    "value": "RUS"
+  },
+  {
+    "iso3": "LTU",
+    "item": "http://www.wikidata.org/entity/Q37",
+    "value": "SWE"
+  },
+  {
+    "iso3": "SCG",
+    "item": "http://www.wikidata.org/entity/Q37024",
+    "value": "ALB"
+  },
+  {
+    "iso3": "SCG",
+    "item": "http://www.wikidata.org/entity/Q37024",
+    "value": "BGR"
+  },
+  {
+    "iso3": "SCG",
+    "item": "http://www.wikidata.org/entity/Q37024",
+    "value": "BIH"
+  },
+  {
+    "iso3": "SCG",
+    "item": "http://www.wikidata.org/entity/Q37024",
+    "value": "HRV"
+  },
+  {
+    "iso3": "SCG",
+    "item": "http://www.wikidata.org/entity/Q37024",
+    "value": "HUN"
+  },
+  {
+    "iso3": "SCG",
+    "item": "http://www.wikidata.org/entity/Q37024",
+    "value": "MKD"
+  },
+  {
+    "iso3": "SCG",
+    "item": "http://www.wikidata.org/entity/Q37024",
+    "value": "ROU"
+  },
+  {
+    "iso3": "GUF",
+    "item": "http://www.wikidata.org/entity/Q3769",
+    "value": "BRA"
+  },
+  {
+    "iso3": "GUF",
+    "item": "http://www.wikidata.org/entity/Q3769",
+    "value": "SUR"
+  },
+  {
+    "iso3": "ITA",
+    "item": "http://www.wikidata.org/entity/Q38",
+    "value": "AUT"
+  },
+  {
+    "iso3": "ITA",
+    "item": "http://www.wikidata.org/entity/Q38",
+    "value": "CHE"
+  },
+  {
+    "iso3": "ITA",
+    "item": "http://www.wikidata.org/entity/Q38",
+    "value": "FRA"
+  },
+  {
+    "iso3": "ITA",
+    "item": "http://www.wikidata.org/entity/Q38",
+    "value": "MLT"
+  },
+  {
+    "iso3": "ITA",
+    "item": "http://www.wikidata.org/entity/Q38",
+    "value": "SMR"
+  },
+  {
+    "iso3": "ITA",
+    "item": "http://www.wikidata.org/entity/Q38",
+    "value": "SVN"
+  },
+  {
+    "iso3": "ITA",
+    "item": "http://www.wikidata.org/entity/Q38",
+    "value": "VAT"
+  },
+  {
+    "iso3": "CHE",
+    "item": "http://www.wikidata.org/entity/Q39",
+    "value": "AUT"
+  },
+  {
+    "iso3": "CHE",
+    "item": "http://www.wikidata.org/entity/Q39",
+    "value": "DEU"
+  },
+  {
+    "iso3": "CHE",
+    "item": "http://www.wikidata.org/entity/Q39",
+    "value": "FRA"
+  },
+  {
+    "iso3": "CHE",
+    "item": "http://www.wikidata.org/entity/Q39",
+    "value": "ITA"
+  },
+  {
+    "iso3": "CHE",
+    "item": "http://www.wikidata.org/entity/Q39",
+    "value": "LIE"
+  },
+  {
+    "iso3": "BHR",
+    "item": "http://www.wikidata.org/entity/Q398",
+    "value": "IRN"
+  },
+  {
+    "iso3": "BHR",
+    "item": "http://www.wikidata.org/entity/Q398",
+    "value": "SAU"
+  },
+  {
+    "iso3": "ARM",
+    "item": "http://www.wikidata.org/entity/Q399",
+    "value": "AZE"
+  },
+  {
+    "iso3": "ARM",
+    "item": "http://www.wikidata.org/entity/Q399",
+    "value": "GEO"
+  },
+  {
+    "iso3": "ARM",
+    "item": "http://www.wikidata.org/entity/Q399",
+    "value": "IRN"
+  },
+  {
+    "iso3": "ARM",
+    "item": "http://www.wikidata.org/entity/Q399",
+    "value": "TUR"
+  },
+  {
+    "iso3": "AUT",
+    "item": "http://www.wikidata.org/entity/Q40",
+    "value": "CHE"
+  },
+  {
+    "iso3": "AUT",
+    "item": "http://www.wikidata.org/entity/Q40",
+    "value": "CZE"
+  },
+  {
+    "iso3": "AUT",
+    "item": "http://www.wikidata.org/entity/Q40",
+    "value": "DEU"
+  },
+  {
+    "iso3": "AUT",
+    "item": "http://www.wikidata.org/entity/Q40",
+    "value": "HUN"
+  },
+  {
+    "iso3": "AUT",
+    "item": "http://www.wikidata.org/entity/Q40",
+    "value": "ITA"
+  },
+  {
+    "iso3": "AUT",
+    "item": "http://www.wikidata.org/entity/Q40",
+    "value": "LIE"
+  },
+  {
+    "iso3": "AUT",
+    "item": "http://www.wikidata.org/entity/Q40",
+    "value": "SVK"
+  },
+  {
+    "iso3": "AUT",
+    "item": "http://www.wikidata.org/entity/Q40",
+    "value": "SVN"
+  },
+  {
+    "iso3": "SRB",
+    "item": "http://www.wikidata.org/entity/Q403",
+    "value": "ALB"
+  },
+  {
+    "iso3": "SRB",
+    "item": "http://www.wikidata.org/entity/Q403",
+    "value": "BGR"
+  },
+  {
+    "iso3": "SRB",
+    "item": "http://www.wikidata.org/entity/Q403",
+    "value": "BIH"
+  },
+  {
+    "iso3": "SRB",
+    "item": "http://www.wikidata.org/entity/Q403",
+    "value": "HRV"
+  },
+  {
+    "iso3": "SRB",
+    "item": "http://www.wikidata.org/entity/Q403",
+    "value": "HUN"
+  },
+  {
+    "iso3": "SRB",
+    "item": "http://www.wikidata.org/entity/Q403",
+    "value": "MKD"
+  },
+  {
+    "iso3": "SRB",
+    "item": "http://www.wikidata.org/entity/Q403",
+    "value": "MNE"
+  },
+  {
+    "iso3": "SRB",
+    "item": "http://www.wikidata.org/entity/Q403",
+    "value": "ROU"
+  },
+  {
+    "iso3": "SRB",
+    "item": "http://www.wikidata.org/entity/Q403",
+    "value": "XKS"
+  },
+  {
+    "iso3": "PSE",
+    "item": "http://www.wikidata.org/entity/Q407199",
+    "value": "EGY"
+  },
+  {
+    "iso3": "PSE",
+    "item": "http://www.wikidata.org/entity/Q407199",
+    "value": "ISR"
+  },
+  {
+    "iso3": "PSE",
+    "item": "http://www.wikidata.org/entity/Q407199",
+    "value": "JOR"
+  },
+  {
+    "iso3": "AUS",
+    "item": "http://www.wikidata.org/entity/Q408",
+    "value": "IDN"
+  },
+  {
+    "iso3": "AUS",
+    "item": "http://www.wikidata.org/entity/Q408",
+    "value": "NCL"
+  },
+  {
+    "iso3": "AUS",
+    "item": "http://www.wikidata.org/entity/Q408",
+    "value": "NZL"
+  },
+  {
+    "iso3": "AUS",
+    "item": "http://www.wikidata.org/entity/Q408",
+    "value": "PNG"
+  },
+  {
+    "iso3": "AUS",
+    "item": "http://www.wikidata.org/entity/Q408",
+    "value": "SLB"
+  },
+  {
+    "iso3": "AUS",
+    "item": "http://www.wikidata.org/entity/Q408",
+    "value": "TLS"
+  },
+  {
+    "iso3": "AUS",
+    "item": "http://www.wikidata.org/entity/Q408",
+    "value": "VUT"
+  },
+  {
+    "iso3": "GRC",
+    "item": "http://www.wikidata.org/entity/Q41",
+    "value": "ALB"
+  },
+  {
+    "iso3": "GRC",
+    "item": "http://www.wikidata.org/entity/Q41",
+    "value": "BGR"
+  },
+  {
+    "iso3": "GRC",
+    "item": "http://www.wikidata.org/entity/Q41",
+    "value": "MKD"
+  },
+  {
+    "iso3": "GRC",
+    "item": "http://www.wikidata.org/entity/Q41",
+    "value": "TUR"
+  },
+  {
+    "iso3": "ARG",
+    "item": "http://www.wikidata.org/entity/Q414",
+    "value": "BOL"
+  },
+  {
+    "iso3": "ARG",
+    "item": "http://www.wikidata.org/entity/Q414",
+    "value": "BRA"
+  },
+  {
+    "iso3": "ARG",
+    "item": "http://www.wikidata.org/entity/Q414",
+    "value": "CHL"
+  },
+  {
+    "iso3": "ARG",
+    "item": "http://www.wikidata.org/entity/Q414",
+    "value": "GBR"
+  },
+  {
+    "iso3": "ARG",
+    "item": "http://www.wikidata.org/entity/Q414",
+    "value": "PRY"
+  },
+  {
+    "iso3": "ARG",
+    "item": "http://www.wikidata.org/entity/Q414",
+    "value": "URY"
+  },
+  {
+    "iso3": "PER",
+    "item": "http://www.wikidata.org/entity/Q419",
+    "value": "BOL"
+  },
+  {
+    "iso3": "PER",
+    "item": "http://www.wikidata.org/entity/Q419",
+    "value": "BRA"
+  },
+  {
+    "iso3": "PER",
+    "item": "http://www.wikidata.org/entity/Q419",
+    "value": "CHL"
+  },
+  {
+    "iso3": "PER",
+    "item": "http://www.wikidata.org/entity/Q419",
+    "value": "COL"
+  },
+  {
+    "iso3": "PER",
+    "item": "http://www.wikidata.org/entity/Q419",
+    "value": "ECU"
+  },
+  {
+    "iso3": "PRK",
+    "item": "http://www.wikidata.org/entity/Q423",
+    "value": "CHN"
+  },
+  {
+    "iso3": "PRK",
+    "item": "http://www.wikidata.org/entity/Q423",
+    "value": "KOR"
+  },
+  {
+    "iso3": "PRK",
+    "item": "http://www.wikidata.org/entity/Q423",
+    "value": "RUS"
+  },
+  {
+    "iso3": "KHM",
+    "item": "http://www.wikidata.org/entity/Q424",
+    "value": "LAO"
+  },
+  {
+    "iso3": "KHM",
+    "item": "http://www.wikidata.org/entity/Q424",
+    "value": "THA"
+  },
+  {
+    "iso3": "KHM",
+    "item": "http://www.wikidata.org/entity/Q424",
+    "value": "VNM"
+  },
+  {
+    "iso3": "TUR",
+    "item": "http://www.wikidata.org/entity/Q43",
+    "value": "ARM"
+  },
+  {
+    "iso3": "TUR",
+    "item": "http://www.wikidata.org/entity/Q43",
+    "value": "AZE"
+  },
+  {
+    "iso3": "TUR",
+    "item": "http://www.wikidata.org/entity/Q43",
+    "value": "BGR"
+  },
+  {
+    "iso3": "TUR",
+    "item": "http://www.wikidata.org/entity/Q43",
+    "value": "GEO"
+  },
+  {
+    "iso3": "TUR",
+    "item": "http://www.wikidata.org/entity/Q43",
+    "value": "GRC"
+  },
+  {
+    "iso3": "TUR",
+    "item": "http://www.wikidata.org/entity/Q43",
+    "value": "IRN"
+  },
+  {
+    "iso3": "TUR",
+    "item": "http://www.wikidata.org/entity/Q43",
+    "value": "IRQ"
+  },
+  {
+    "iso3": "TUR",
+    "item": "http://www.wikidata.org/entity/Q43",
+    "value": "SYR"
+  },
+  {
+    "iso3": "PRT",
+    "item": "http://www.wikidata.org/entity/Q45",
+    "value": "ESP"
+  },
+  {
+    "iso3": "FRO",
+    "item": "http://www.wikidata.org/entity/Q4628",
+    "value": "ISL"
+  },
+  {
+    "iso3": "TLS",
+    "item": "http://www.wikidata.org/entity/Q574",
+    "value": "AUS"
+  },
+  {
+    "iso3": "TLS",
+    "item": "http://www.wikidata.org/entity/Q574",
+    "value": "IDN"
+  },
+  {
+    "iso3": "ESH",
+    "item": "http://www.wikidata.org/entity/Q6250",
+    "value": "DZA"
+  },
+  {
+    "iso3": "ESH",
+    "item": "http://www.wikidata.org/entity/Q6250",
+    "value": "MAR"
+  },
+  {
+    "iso3": "ESH",
+    "item": "http://www.wikidata.org/entity/Q6250",
+    "value": "MRT"
+  },
+  {
+    "iso3": "TCD",
+    "item": "http://www.wikidata.org/entity/Q657",
+    "value": "CAF"
+  },
+  {
+    "iso3": "TCD",
+    "item": "http://www.wikidata.org/entity/Q657",
+    "value": "CMR"
+  },
+  {
+    "iso3": "TCD",
+    "item": "http://www.wikidata.org/entity/Q657",
+    "value": "LBY"
+  },
+  {
+    "iso3": "TCD",
+    "item": "http://www.wikidata.org/entity/Q657",
+    "value": "NER"
+  },
+  {
+    "iso3": "TCD",
+    "item": "http://www.wikidata.org/entity/Q657",
+    "value": "NGA"
+  },
+  {
+    "iso3": "TCD",
+    "item": "http://www.wikidata.org/entity/Q657",
+    "value": "SDN"
+  },
+  {
+    "iso3": "NZL",
+    "item": "http://www.wikidata.org/entity/Q664",
+    "value": "AUS"
+  },
+  {
+    "iso3": "IND",
+    "item": "http://www.wikidata.org/entity/Q668",
+    "value": "AFG"
+  },
+  {
+    "iso3": "IND",
+    "item": "http://www.wikidata.org/entity/Q668",
+    "value": "BGD"
+  },
+  {
+    "iso3": "IND",
+    "item": "http://www.wikidata.org/entity/Q668",
+    "value": "BTN"
+  },
+  {
+    "iso3": "IND",
+    "item": "http://www.wikidata.org/entity/Q668",
+    "value": "CHN"
+  },
+  {
+    "iso3": "IND",
+    "item": "http://www.wikidata.org/entity/Q668",
+    "value": "IDN"
+  },
+  {
+    "iso3": "IND",
+    "item": "http://www.wikidata.org/entity/Q668",
+    "value": "LKA"
+  },
+  {
+    "iso3": "IND",
+    "item": "http://www.wikidata.org/entity/Q668",
+    "value": "MMR"
+  },
+  {
+    "iso3": "IND",
+    "item": "http://www.wikidata.org/entity/Q668",
+    "value": "NPL"
+  },
+  {
+    "iso3": "IND",
+    "item": "http://www.wikidata.org/entity/Q668",
+    "value": "PAK"
+  },
+  {
+    "iso3": "TON",
+    "item": "http://www.wikidata.org/entity/Q678",
+    "value": "USA"
+  },
+  {
+    "iso3": "WSM",
+    "item": "http://www.wikidata.org/entity/Q683",
+    "value": "USA"
+  },
+  {
+    "iso3": "SLB",
+    "item": "http://www.wikidata.org/entity/Q685",
+    "value": "AUS"
+  },
+  {
+    "iso3": "SLB",
+    "item": "http://www.wikidata.org/entity/Q685",
+    "value": "FJI"
+  },
+  {
+    "iso3": "SLB",
+    "item": "http://www.wikidata.org/entity/Q685",
+    "value": "FRA"
+  },
+  {
+    "iso3": "SLB",
+    "item": "http://www.wikidata.org/entity/Q685",
+    "value": "PNG"
+  },
+  {
+    "iso3": "SLB",
+    "item": "http://www.wikidata.org/entity/Q685",
+    "value": "VUT"
+  },
+  {
+    "iso3": "VUT",
+    "item": "http://www.wikidata.org/entity/Q686",
+    "value": "AUS"
+  },
+  {
+    "iso3": "VUT",
+    "item": "http://www.wikidata.org/entity/Q686",
+    "value": "SLB"
+  },
+  {
+    "iso3": "PNG",
+    "item": "http://www.wikidata.org/entity/Q691",
+    "value": "AUS"
+  },
+  {
+    "iso3": "PNG",
+    "item": "http://www.wikidata.org/entity/Q691",
+    "value": "FSM"
+  },
+  {
+    "iso3": "PNG",
+    "item": "http://www.wikidata.org/entity/Q691",
+    "value": "IDN"
+  },
+  {
+    "iso3": "PNG",
+    "item": "http://www.wikidata.org/entity/Q691",
+    "value": "SLB"
+  },
+  {
+    "iso3": "PLW",
+    "item": "http://www.wikidata.org/entity/Q695",
+    "value": "FSM"
+  },
+  {
+    "iso3": "PLW",
+    "item": "http://www.wikidata.org/entity/Q695",
+    "value": "IDN"
+  },
+  {
+    "iso3": "PLW",
+    "item": "http://www.wikidata.org/entity/Q695",
+    "value": "PHL"
+  },
+  {
+    "iso3": "FSM",
+    "item": "http://www.wikidata.org/entity/Q702",
+    "value": "PLW"
+  },
+  {
+    "iso3": "FSM",
+    "item": "http://www.wikidata.org/entity/Q702",
+    "value": "PNG"
+  },
+  {
+    "iso3": "FSM",
+    "item": "http://www.wikidata.org/entity/Q702",
+    "value": "USA"
+  },
+  {
+    "iso3": "MHL",
+    "item": "http://www.wikidata.org/entity/Q709",
+    "value": "FSM"
+  },
+  {
+    "iso3": "MHL",
+    "item": "http://www.wikidata.org/entity/Q709",
+    "value": "KIR"
+  },
+  {
+    "iso3": "MHL",
+    "item": "http://www.wikidata.org/entity/Q709",
+    "value": "NRU"
+  },
+  {
+    "iso3": "MHL",
+    "item": "http://www.wikidata.org/entity/Q709",
+    "value": "USA"
+  },
+  {
+    "iso3": "KIR",
+    "item": "http://www.wikidata.org/entity/Q710",
+    "value": "FRA"
+  },
+  {
+    "iso3": "KIR",
+    "item": "http://www.wikidata.org/entity/Q710",
+    "value": "USA"
+  },
+  {
+    "iso3": "MNG",
+    "item": "http://www.wikidata.org/entity/Q711",
+    "value": "CHN"
+  },
+  {
+    "iso3": "MNG",
+    "item": "http://www.wikidata.org/entity/Q711",
+    "value": "RUS"
+  },
+  {
+    "iso3": "FJI",
+    "item": "http://www.wikidata.org/entity/Q712",
+    "value": "SLB"
+  },
+  {
+    "iso3": "VEN",
+    "item": "http://www.wikidata.org/entity/Q717",
+    "value": "BRA"
+  },
+  {
+    "iso3": "VEN",
+    "item": "http://www.wikidata.org/entity/Q717",
+    "value": "COL"
+  },
+  {
+    "iso3": "VEN",
+    "item": "http://www.wikidata.org/entity/Q717",
+    "value": "DMA"
+  },
+  {
+    "iso3": "VEN",
+    "item": "http://www.wikidata.org/entity/Q717",
+    "value": "DOM"
+  },
+  {
+    "iso3": "VEN",
+    "item": "http://www.wikidata.org/entity/Q717",
+    "value": "FRA"
+  },
+  {
+    "iso3": "VEN",
+    "item": "http://www.wikidata.org/entity/Q717",
+    "value": "GBR"
+  },
+  {
+    "iso3": "VEN",
+    "item": "http://www.wikidata.org/entity/Q717",
+    "value": "GRD"
+  },
+  {
+    "iso3": "VEN",
+    "item": "http://www.wikidata.org/entity/Q717",
+    "value": "GUY"
+  },
+  {
+    "iso3": "VEN",
+    "item": "http://www.wikidata.org/entity/Q717",
+    "value": "KNA"
+  },
+  {
+    "iso3": "VEN",
+    "item": "http://www.wikidata.org/entity/Q717",
+    "value": "LCA"
+  },
+  {
+    "iso3": "VEN",
+    "item": "http://www.wikidata.org/entity/Q717",
+    "value": "NLD"
+  },
+  {
+    "iso3": "VEN",
+    "item": "http://www.wikidata.org/entity/Q717",
+    "value": "TTO"
+  },
+  {
+    "iso3": "VEN",
+    "item": "http://www.wikidata.org/entity/Q717",
+    "value": "USA"
+  },
+  {
+    "iso3": "VEN",
+    "item": "http://www.wikidata.org/entity/Q717",
+    "value": "VCT"
+  },
+  {
+    "iso3": "SUR",
+    "item": "http://www.wikidata.org/entity/Q730",
+    "value": "BRA"
+  },
+  {
+    "iso3": "SUR",
+    "item": "http://www.wikidata.org/entity/Q730",
+    "value": "FRA"
+  },
+  {
+    "iso3": "SUR",
+    "item": "http://www.wikidata.org/entity/Q730",
+    "value": "GUY"
+  },
+  {
+    "iso3": "PRY",
+    "item": "http://www.wikidata.org/entity/Q733",
+    "value": "ARG"
+  },
+  {
+    "iso3": "PRY",
+    "item": "http://www.wikidata.org/entity/Q733",
+    "value": "BOL"
+  },
+  {
+    "iso3": "PRY",
+    "item": "http://www.wikidata.org/entity/Q733",
+    "value": "BRA"
+  },
+  {
+    "iso3": "GUY",
+    "item": "http://www.wikidata.org/entity/Q734",
+    "value": "BRA"
+  },
+  {
+    "iso3": "GUY",
+    "item": "http://www.wikidata.org/entity/Q734",
+    "value": "SUR"
+  },
+  {
+    "iso3": "GUY",
+    "item": "http://www.wikidata.org/entity/Q734",
+    "value": "VEN"
+  },
+  {
+    "iso3": "ECU",
+    "item": "http://www.wikidata.org/entity/Q736",
+    "value": "COL"
+  },
+  {
+    "iso3": "ECU",
+    "item": "http://www.wikidata.org/entity/Q736",
+    "value": "PER"
+  },
+  {
+    "iso3": "COL",
+    "item": "http://www.wikidata.org/entity/Q739",
+    "value": "BRA"
+  },
+  {
+    "iso3": "COL",
+    "item": "http://www.wikidata.org/entity/Q739",
+    "value": "ECU"
+  },
+  {
+    "iso3": "COL",
+    "item": "http://www.wikidata.org/entity/Q739",
+    "value": "NIC"
+  },
+  {
+    "iso3": "COL",
+    "item": "http://www.wikidata.org/entity/Q739",
+    "value": "PAN"
+  },
+  {
+    "iso3": "COL",
+    "item": "http://www.wikidata.org/entity/Q739",
+    "value": "PER"
+  },
+  {
+    "iso3": "COL",
+    "item": "http://www.wikidata.org/entity/Q739",
+    "value": "VEN"
+  },
+  {
+    "iso3": "BOL",
+    "item": "http://www.wikidata.org/entity/Q750",
+    "value": "ARG"
+  },
+  {
+    "iso3": "BOL",
+    "item": "http://www.wikidata.org/entity/Q750",
+    "value": "BRA"
+  },
+  {
+    "iso3": "BOL",
+    "item": "http://www.wikidata.org/entity/Q750",
+    "value": "CHL"
+  },
+  {
+    "iso3": "BOL",
+    "item": "http://www.wikidata.org/entity/Q750",
+    "value": "PER"
+  },
+  {
+    "iso3": "BOL",
+    "item": "http://www.wikidata.org/entity/Q750",
+    "value": "PRY"
+  },
+  {
+    "iso3": "TTO",
+    "item": "http://www.wikidata.org/entity/Q754",
+    "value": "VEN"
+  },
+  {
+    "iso3": "VCT",
+    "item": "http://www.wikidata.org/entity/Q757",
+    "value": "VEN"
+  },
+  {
+    "iso3": "LCA",
+    "item": "http://www.wikidata.org/entity/Q760",
+    "value": "VEN"
+  },
+  {
+    "iso3": "KNA",
+    "item": "http://www.wikidata.org/entity/Q763",
+    "value": "GBR"
+  },
+  {
+    "iso3": "KNA",
+    "item": "http://www.wikidata.org/entity/Q763",
+    "value": "VEN"
+  },
+  {
+    "iso3": "JAM",
+    "item": "http://www.wikidata.org/entity/Q766",
+    "value": "GBR"
+  },
+  {
+    "iso3": "GRD",
+    "item": "http://www.wikidata.org/entity/Q769",
+    "value": "VEN"
+  },
+  {
+    "iso3": "URY",
+    "item": "http://www.wikidata.org/entity/Q77",
+    "value": "ARG"
+  },
+  {
+    "iso3": "URY",
+    "item": "http://www.wikidata.org/entity/Q77",
+    "value": "BRA"
+  },
+  {
+    "iso3": "GTM",
+    "item": "http://www.wikidata.org/entity/Q774",
+    "value": "BLZ"
+  },
+  {
+    "iso3": "GTM",
+    "item": "http://www.wikidata.org/entity/Q774",
+    "value": "HND"
+  },
+  {
+    "iso3": "GTM",
+    "item": "http://www.wikidata.org/entity/Q774",
+    "value": "MEX"
+  },
+  {
+    "iso3": "GTM",
+    "item": "http://www.wikidata.org/entity/Q774",
+    "value": "SLV"
+  },
+  {
+    "iso3": "BHS",
+    "item": "http://www.wikidata.org/entity/Q778",
+    "value": "GBR"
+  },
+  {
+    "iso3": "BHS",
+    "item": "http://www.wikidata.org/entity/Q778",
+    "value": "TCA"
+  },
+  {
+    "iso3": "BHS",
+    "item": "http://www.wikidata.org/entity/Q778",
+    "value": "USA"
+  },
+  {
+    "iso3": "ATG",
+    "item": "http://www.wikidata.org/entity/Q781",
+    "value": "GBR"
+  },
+  {
+    "iso3": "HND",
+    "item": "http://www.wikidata.org/entity/Q783",
+    "value": "GTM"
+  },
+  {
+    "iso3": "HND",
+    "item": "http://www.wikidata.org/entity/Q783",
+    "value": "NIC"
+  },
+  {
+    "iso3": "HND",
+    "item": "http://www.wikidata.org/entity/Q783",
+    "value": "SLV"
+  },
+  {
+    "iso3": "DMA",
+    "item": "http://www.wikidata.org/entity/Q784",
+    "value": "VEN"
+  },
+  {
+    "iso3": "DOM",
+    "item": "http://www.wikidata.org/entity/Q786",
+    "value": "HTI"
+  },
+  {
+    "iso3": "DOM",
+    "item": "http://www.wikidata.org/entity/Q786",
+    "value": "TCA"
+  },
+  {
+    "iso3": "DOM",
+    "item": "http://www.wikidata.org/entity/Q786",
+    "value": "USA"
+  },
+  {
+    "iso3": "DOM",
+    "item": "http://www.wikidata.org/entity/Q786",
+    "value": "VEN"
+  },
+  {
+    "iso3": "EGY",
+    "item": "http://www.wikidata.org/entity/Q79",
+    "value": "ISR"
+  },
+  {
+    "iso3": "EGY",
+    "item": "http://www.wikidata.org/entity/Q79",
+    "value": "LBY"
+  },
+  {
+    "iso3": "EGY",
+    "item": "http://www.wikidata.org/entity/Q79",
+    "value": "PSE"
+  },
+  {
+    "iso3": "EGY",
+    "item": "http://www.wikidata.org/entity/Q79",
+    "value": "SDN"
+  },
+  {
+    "iso3": "HTI",
+    "item": "http://www.wikidata.org/entity/Q790",
+    "value": "DOM"
+  },
+  {
+    "iso3": "HTI",
+    "item": "http://www.wikidata.org/entity/Q790",
+    "value": "TCA"
+  },
+  {
+    "iso3": "HTI",
+    "item": "http://www.wikidata.org/entity/Q790",
+    "value": "USA"
+  },
+  {
+    "iso3": "SLV",
+    "item": "http://www.wikidata.org/entity/Q792",
+    "value": "GTM"
+  },
+  {
+    "iso3": "SLV",
+    "item": "http://www.wikidata.org/entity/Q792",
+    "value": "HND"
+  },
+  {
+    "iso3": "IRN",
+    "item": "http://www.wikidata.org/entity/Q794",
+    "value": "AFG"
+  },
+  {
+    "iso3": "IRN",
+    "item": "http://www.wikidata.org/entity/Q794",
+    "value": "ARE"
+  },
+  {
+    "iso3": "IRN",
+    "item": "http://www.wikidata.org/entity/Q794",
+    "value": "ARM"
+  },
+  {
+    "iso3": "IRN",
+    "item": "http://www.wikidata.org/entity/Q794",
+    "value": "AZE"
+  },
+  {
+    "iso3": "IRN",
+    "item": "http://www.wikidata.org/entity/Q794",
+    "value": "BHR"
+  },
+  {
+    "iso3": "IRN",
+    "item": "http://www.wikidata.org/entity/Q794",
+    "value": "IRQ"
+  },
+  {
+    "iso3": "IRN",
+    "item": "http://www.wikidata.org/entity/Q794",
+    "value": "KWT"
+  },
+  {
+    "iso3": "IRN",
+    "item": "http://www.wikidata.org/entity/Q794",
+    "value": "OMN"
+  },
+  {
+    "iso3": "IRN",
+    "item": "http://www.wikidata.org/entity/Q794",
+    "value": "PAK"
+  },
+  {
+    "iso3": "IRN",
+    "item": "http://www.wikidata.org/entity/Q794",
+    "value": "QAT"
+  },
+  {
+    "iso3": "IRN",
+    "item": "http://www.wikidata.org/entity/Q794",
+    "value": "SAU"
+  },
+  {
+    "iso3": "IRN",
+    "item": "http://www.wikidata.org/entity/Q794",
+    "value": "TKM"
+  },
+  {
+    "iso3": "IRN",
+    "item": "http://www.wikidata.org/entity/Q794",
+    "value": "TUR"
+  },
+  {
+    "iso3": "IRQ",
+    "item": "http://www.wikidata.org/entity/Q796",
+    "value": "IRN"
+  },
+  {
+    "iso3": "IRQ",
+    "item": "http://www.wikidata.org/entity/Q796",
+    "value": "JOR"
+  },
+  {
+    "iso3": "IRQ",
+    "item": "http://www.wikidata.org/entity/Q796",
+    "value": "KWT"
+  },
+  {
+    "iso3": "IRQ",
+    "item": "http://www.wikidata.org/entity/Q796",
+    "value": "SAU"
+  },
+  {
+    "iso3": "IRQ",
+    "item": "http://www.wikidata.org/entity/Q796",
+    "value": "SYR"
+  },
+  {
+    "iso3": "IRQ",
+    "item": "http://www.wikidata.org/entity/Q796",
+    "value": "TUR"
+  },
+  {
+    "iso3": "CRI",
+    "item": "http://www.wikidata.org/entity/Q800",
+    "value": "NIC"
+  },
+  {
+    "iso3": "CRI",
+    "item": "http://www.wikidata.org/entity/Q800",
+    "value": "PAN"
+  },
+  {
+    "iso3": "ISR",
+    "item": "http://www.wikidata.org/entity/Q801",
+    "value": "EGY"
+  },
+  {
+    "iso3": "ISR",
+    "item": "http://www.wikidata.org/entity/Q801",
+    "value": "JOR"
+  },
+  {
+    "iso3": "ISR",
+    "item": "http://www.wikidata.org/entity/Q801",
+    "value": "LBN"
+  },
+  {
+    "iso3": "ISR",
+    "item": "http://www.wikidata.org/entity/Q801",
+    "value": "SYR"
+  },
+  {
+    "iso3": "PAN",
+    "item": "http://www.wikidata.org/entity/Q804",
+    "value": "COL"
+  },
+  {
+    "iso3": "PAN",
+    "item": "http://www.wikidata.org/entity/Q804",
+    "value": "CRI"
+  },
+  {
+    "iso3": "PAN",
+    "item": "http://www.wikidata.org/entity/Q804",
+    "value": "USA"
+  },
+  {
+    "iso3": "YEM",
+    "item": "http://www.wikidata.org/entity/Q805",
+    "value": "OMN"
+  },
+  {
+    "iso3": "YEM",
+    "item": "http://www.wikidata.org/entity/Q805",
+    "value": "SAU"
+  },
+  {
+    "iso3": "JOR",
+    "item": "http://www.wikidata.org/entity/Q810",
+    "value": "IRQ"
+  },
+  {
+    "iso3": "JOR",
+    "item": "http://www.wikidata.org/entity/Q810",
+    "value": "ISR"
+  },
+  {
+    "iso3": "JOR",
+    "item": "http://www.wikidata.org/entity/Q810",
+    "value": "PSE"
+  },
+  {
+    "iso3": "JOR",
+    "item": "http://www.wikidata.org/entity/Q810",
+    "value": "SAU"
+  },
+  {
+    "iso3": "JOR",
+    "item": "http://www.wikidata.org/entity/Q810",
+    "value": "SYR"
+  },
+  {
+    "iso3": "NIC",
+    "item": "http://www.wikidata.org/entity/Q811",
+    "value": "COL"
+  },
+  {
+    "iso3": "NIC",
+    "item": "http://www.wikidata.org/entity/Q811",
+    "value": "CRI"
+  },
+  {
+    "iso3": "NIC",
+    "item": "http://www.wikidata.org/entity/Q811",
+    "value": "HND"
+  },
+  {
+    "iso3": "KGZ",
+    "item": "http://www.wikidata.org/entity/Q813",
+    "value": "CHN"
+  },
+  {
+    "iso3": "KGZ",
+    "item": "http://www.wikidata.org/entity/Q813",
+    "value": "KAZ"
+  },
+  {
+    "iso3": "KGZ",
+    "item": "http://www.wikidata.org/entity/Q813",
+    "value": "TJK"
+  },
+  {
+    "iso3": "KGZ",
+    "item": "http://www.wikidata.org/entity/Q813",
+    "value": "UZB"
+  },
+  {
+    "iso3": "KWT",
+    "item": "http://www.wikidata.org/entity/Q817",
+    "value": "IRN"
+  },
+  {
+    "iso3": "KWT",
+    "item": "http://www.wikidata.org/entity/Q817",
+    "value": "IRQ"
+  },
+  {
+    "iso3": "KWT",
+    "item": "http://www.wikidata.org/entity/Q817",
+    "value": "SAU"
+  },
+  {
+    "iso3": "LAO",
+    "item": "http://www.wikidata.org/entity/Q819",
+    "value": "CHN"
+  },
+  {
+    "iso3": "LAO",
+    "item": "http://www.wikidata.org/entity/Q819",
+    "value": "KHM"
+  },
+  {
+    "iso3": "LAO",
+    "item": "http://www.wikidata.org/entity/Q819",
+    "value": "MMR"
+  },
+  {
+    "iso3": "LAO",
+    "item": "http://www.wikidata.org/entity/Q819",
+    "value": "THA"
+  },
+  {
+    "iso3": "LAO",
+    "item": "http://www.wikidata.org/entity/Q819",
+    "value": "VNM"
+  },
+  {
+    "iso3": "LBN",
+    "item": "http://www.wikidata.org/entity/Q822",
+    "value": "ISR"
+  },
+  {
+    "iso3": "LBN",
+    "item": "http://www.wikidata.org/entity/Q822",
+    "value": "SYR"
+  },
+  {
+    "iso3": "MDV",
+    "item": "http://www.wikidata.org/entity/Q826",
+    "value": "GBR"
+  },
+  {
+    "iso3": "YUG",
+    "item": "http://www.wikidata.org/entity/Q83286",
+    "value": "ALB"
+  },
+  {
+    "iso3": "YUG",
+    "item": "http://www.wikidata.org/entity/Q83286",
+    "value": "AUT"
+  },
+  {
+    "iso3": "YUG",
+    "item": "http://www.wikidata.org/entity/Q83286",
+    "value": "BGR"
+  },
+  {
+    "iso3": "YUG",
+    "item": "http://www.wikidata.org/entity/Q83286",
+    "value": "HUN"
+  },
+  {
+    "iso3": "YUG",
+    "item": "http://www.wikidata.org/entity/Q83286",
+    "value": "ITA"
+  },
+  {
+    "iso3": "YUG",
+    "item": "http://www.wikidata.org/entity/Q83286",
+    "value": "ROU"
+  },
+  {
+    "iso3": "MYS",
+    "item": "http://www.wikidata.org/entity/Q833",
+    "value": "BRN"
+  },
+  {
+    "iso3": "MYS",
+    "item": "http://www.wikidata.org/entity/Q833",
+    "value": "IDN"
+  },
+  {
+    "iso3": "MYS",
+    "item": "http://www.wikidata.org/entity/Q833",
+    "value": "PHL"
+  },
+  {
+    "iso3": "MYS",
+    "item": "http://www.wikidata.org/entity/Q833",
+    "value": "SGP"
+  },
+  {
+    "iso3": "MYS",
+    "item": "http://www.wikidata.org/entity/Q833",
+    "value": "THA"
+  },
+  {
+    "iso3": "MMR",
+    "item": "http://www.wikidata.org/entity/Q836",
+    "value": "BGD"
+  },
+  {
+    "iso3": "MMR",
+    "item": "http://www.wikidata.org/entity/Q836",
+    "value": "CHN"
+  },
+  {
+    "iso3": "MMR",
+    "item": "http://www.wikidata.org/entity/Q836",
+    "value": "IND"
+  },
+  {
+    "iso3": "MMR",
+    "item": "http://www.wikidata.org/entity/Q836",
+    "value": "LAO"
+  },
+  {
+    "iso3": "MMR",
+    "item": "http://www.wikidata.org/entity/Q836",
+    "value": "THA"
+  },
+  {
+    "iso3": "NPL",
+    "item": "http://www.wikidata.org/entity/Q837",
+    "value": "CHN"
+  },
+  {
+    "iso3": "NPL",
+    "item": "http://www.wikidata.org/entity/Q837",
+    "value": "IND"
+  },
+  {
+    "iso3": "YUG",
+    "item": "http://www.wikidata.org/entity/Q838261",
+    "value": "ALB"
+  },
+  {
+    "iso3": "YUG",
+    "item": "http://www.wikidata.org/entity/Q838261",
+    "value": "BGR"
+  },
+  {
+    "iso3": "YUG",
+    "item": "http://www.wikidata.org/entity/Q838261",
+    "value": "BIH"
+  },
+  {
+    "iso3": "YUG",
+    "item": "http://www.wikidata.org/entity/Q838261",
+    "value": "HRV"
+  },
+  {
+    "iso3": "YUG",
+    "item": "http://www.wikidata.org/entity/Q838261",
+    "value": "HUN"
+  },
+  {
+    "iso3": "YUG",
+    "item": "http://www.wikidata.org/entity/Q838261",
+    "value": "MKD"
+  },
+  {
+    "iso3": "YUG",
+    "item": "http://www.wikidata.org/entity/Q838261",
+    "value": "ROU"
+  },
+  {
+    "iso3": "OMN",
+    "item": "http://www.wikidata.org/entity/Q842",
+    "value": "ARE"
+  },
+  {
+    "iso3": "OMN",
+    "item": "http://www.wikidata.org/entity/Q842",
+    "value": "IRN"
+  },
+  {
+    "iso3": "OMN",
+    "item": "http://www.wikidata.org/entity/Q842",
+    "value": "SAU"
+  },
+  {
+    "iso3": "OMN",
+    "item": "http://www.wikidata.org/entity/Q842",
+    "value": "YEM"
+  },
+  {
+    "iso3": "PAK",
+    "item": "http://www.wikidata.org/entity/Q843",
+    "value": "AFG"
+  },
+  {
+    "iso3": "PAK",
+    "item": "http://www.wikidata.org/entity/Q843",
+    "value": "CHN"
+  },
+  {
+    "iso3": "PAK",
+    "item": "http://www.wikidata.org/entity/Q843",
+    "value": "IND"
+  },
+  {
+    "iso3": "PAK",
+    "item": "http://www.wikidata.org/entity/Q843",
+    "value": "IRN"
+  },
+  {
+    "iso3": "QAT",
+    "item": "http://www.wikidata.org/entity/Q846",
+    "value": "IRN"
+  },
+  {
+    "iso3": "QAT",
+    "item": "http://www.wikidata.org/entity/Q846",
+    "value": "SAU"
+  },
+  {
+    "iso3": "SAU",
+    "item": "http://www.wikidata.org/entity/Q851",
+    "value": "ARE"
+  },
+  {
+    "iso3": "SAU",
+    "item": "http://www.wikidata.org/entity/Q851",
+    "value": "BHR"
+  },
+  {
+    "iso3": "SAU",
+    "item": "http://www.wikidata.org/entity/Q851",
+    "value": "EGY"
+  },
+  {
+    "iso3": "SAU",
+    "item": "http://www.wikidata.org/entity/Q851",
+    "value": "IRN"
+  },
+  {
+    "iso3": "SAU",
+    "item": "http://www.wikidata.org/entity/Q851",
+    "value": "IRQ"
+  },
+  {
+    "iso3": "SAU",
+    "item": "http://www.wikidata.org/entity/Q851",
+    "value": "JOR"
+  },
+  {
+    "iso3": "SAU",
+    "item": "http://www.wikidata.org/entity/Q851",
+    "value": "KWT"
+  },
+  {
+    "iso3": "SAU",
+    "item": "http://www.wikidata.org/entity/Q851",
+    "value": "OMN"
+  },
+  {
+    "iso3": "SAU",
+    "item": "http://www.wikidata.org/entity/Q851",
+    "value": "QAT"
+  },
+  {
+    "iso3": "SAU",
+    "item": "http://www.wikidata.org/entity/Q851",
+    "value": "YEM"
+  },
+  {
+    "iso3": "LKA",
+    "item": "http://www.wikidata.org/entity/Q854",
+    "value": "IND"
+  },
+  {
+    "iso3": "SYR",
+    "item": "http://www.wikidata.org/entity/Q858",
+    "value": "IRQ"
+  },
+  {
+    "iso3": "SYR",
+    "item": "http://www.wikidata.org/entity/Q858",
+    "value": "ISR"
+  },
+  {
+    "iso3": "SYR",
+    "item": "http://www.wikidata.org/entity/Q858",
+    "value": "JOR"
+  },
+  {
+    "iso3": "SYR",
+    "item": "http://www.wikidata.org/entity/Q858",
+    "value": "LBN"
+  },
+  {
+    "iso3": "SYR",
+    "item": "http://www.wikidata.org/entity/Q858",
+    "value": "TUR"
+  },
+  {
+    "iso3": "TJK",
+    "item": "http://www.wikidata.org/entity/Q863",
+    "value": "AFG"
+  },
+  {
+    "iso3": "TJK",
+    "item": "http://www.wikidata.org/entity/Q863",
+    "value": "CHN"
+  },
+  {
+    "iso3": "TJK",
+    "item": "http://www.wikidata.org/entity/Q863",
+    "value": "KGZ"
+  },
+  {
+    "iso3": "TJK",
+    "item": "http://www.wikidata.org/entity/Q863",
+    "value": "UZB"
+  },
+  {
+    "iso3": "TWN",
+    "item": "http://www.wikidata.org/entity/Q865",
+    "value": "CHN"
+  },
+  {
+    "iso3": "TWN",
+    "item": "http://www.wikidata.org/entity/Q865",
+    "value": "JPN"
+  },
+  {
+    "iso3": "TWN",
+    "item": "http://www.wikidata.org/entity/Q865",
+    "value": "PHL"
+  },
+  {
+    "iso3": "THA",
+    "item": "http://www.wikidata.org/entity/Q869",
+    "value": "KHM"
+  },
+  {
+    "iso3": "THA",
+    "item": "http://www.wikidata.org/entity/Q869",
+    "value": "LAO"
+  },
+  {
+    "iso3": "THA",
+    "item": "http://www.wikidata.org/entity/Q869",
+    "value": "MMR"
+  },
+  {
+    "iso3": "THA",
+    "item": "http://www.wikidata.org/entity/Q869",
+    "value": "MYS"
+  },
+  {
+    "iso3": "TKM",
+    "item": "http://www.wikidata.org/entity/Q874",
+    "value": "AFG"
+  },
+  {
+    "iso3": "TKM",
+    "item": "http://www.wikidata.org/entity/Q874",
+    "value": "IRN"
+  },
+  {
+    "iso3": "TKM",
+    "item": "http://www.wikidata.org/entity/Q874",
+    "value": "KAZ"
+  },
+  {
+    "iso3": "TKM",
+    "item": "http://www.wikidata.org/entity/Q874",
+    "value": "UZB"
+  },
+  {
+    "iso3": "ARE",
+    "item": "http://www.wikidata.org/entity/Q878",
+    "value": "IRN"
+  },
+  {
+    "iso3": "ARE",
+    "item": "http://www.wikidata.org/entity/Q878",
+    "value": "OMN"
+  },
+  {
+    "iso3": "ARE",
+    "item": "http://www.wikidata.org/entity/Q878",
+    "value": "SAU"
+  },
+  {
+    "iso3": "VNM",
+    "item": "http://www.wikidata.org/entity/Q881",
+    "value": "CHN"
+  },
+  {
+    "iso3": "VNM",
+    "item": "http://www.wikidata.org/entity/Q881",
+    "value": "KHM"
+  },
+  {
+    "iso3": "VNM",
+    "item": "http://www.wikidata.org/entity/Q881",
+    "value": "LAO"
+  },
+  {
+    "iso3": "KOR",
+    "item": "http://www.wikidata.org/entity/Q884",
+    "value": "CHN"
+  },
+  {
+    "iso3": "KOR",
+    "item": "http://www.wikidata.org/entity/Q884",
+    "value": "JPN"
+  },
+  {
+    "iso3": "KOR",
+    "item": "http://www.wikidata.org/entity/Q884",
+    "value": "PRK"
+  },
+  {
+    "iso3": "AFG",
+    "item": "http://www.wikidata.org/entity/Q889",
+    "value": "CHN"
+  },
+  {
+    "iso3": "AFG",
+    "item": "http://www.wikidata.org/entity/Q889",
+    "value": "IRN"
+  },
+  {
+    "iso3": "AFG",
+    "item": "http://www.wikidata.org/entity/Q889",
+    "value": "PAK"
+  },
+  {
+    "iso3": "AFG",
+    "item": "http://www.wikidata.org/entity/Q889",
+    "value": "TJK"
+  },
+  {
+    "iso3": "AFG",
+    "item": "http://www.wikidata.org/entity/Q889",
+    "value": "TKM"
+  },
+  {
+    "iso3": "AFG",
+    "item": "http://www.wikidata.org/entity/Q889",
+    "value": "UZB"
+  },
+  {
+    "iso3": "BGD",
+    "item": "http://www.wikidata.org/entity/Q902",
+    "value": "IND"
+  },
+  {
+    "iso3": "BGD",
+    "item": "http://www.wikidata.org/entity/Q902",
+    "value": "MMR"
+  },
+  {
+    "iso3": "MLI",
+    "item": "http://www.wikidata.org/entity/Q912",
+    "value": "BFA"
+  },
+  {
+    "iso3": "MLI",
+    "item": "http://www.wikidata.org/entity/Q912",
+    "value": "CIV"
+  },
+  {
+    "iso3": "MLI",
+    "item": "http://www.wikidata.org/entity/Q912",
+    "value": "DZA"
+  },
+  {
+    "iso3": "MLI",
+    "item": "http://www.wikidata.org/entity/Q912",
+    "value": "GIN"
+  },
+  {
+    "iso3": "MLI",
+    "item": "http://www.wikidata.org/entity/Q912",
+    "value": "MRT"
+  },
+  {
+    "iso3": "MLI",
+    "item": "http://www.wikidata.org/entity/Q912",
+    "value": "NER"
+  },
+  {
+    "iso3": "MLI",
+    "item": "http://www.wikidata.org/entity/Q912",
+    "value": "SEN"
+  },
+  {
+    "iso3": "AGO",
+    "item": "http://www.wikidata.org/entity/Q916",
+    "value": "COD"
+  },
+  {
+    "iso3": "AGO",
+    "item": "http://www.wikidata.org/entity/Q916",
+    "value": "COG"
+  },
+  {
+    "iso3": "AGO",
+    "item": "http://www.wikidata.org/entity/Q916",
+    "value": "GAB"
+  },
+  {
+    "iso3": "AGO",
+    "item": "http://www.wikidata.org/entity/Q916",
+    "value": "NAM"
+  },
+  {
+    "iso3": "AGO",
+    "item": "http://www.wikidata.org/entity/Q916",
+    "value": "ZMB"
+  },
+  {
+    "iso3": "BTN",
+    "item": "http://www.wikidata.org/entity/Q917",
+    "value": "CHN"
+  },
+  {
+    "iso3": "BTN",
+    "item": "http://www.wikidata.org/entity/Q917",
+    "value": "IND"
+  },
+  {
+    "iso3": "BRN",
+    "item": "http://www.wikidata.org/entity/Q921",
+    "value": "MYS"
+  },
+  {
+    "iso3": "TZA",
+    "item": "http://www.wikidata.org/entity/Q924",
+    "value": "BDI"
+  },
+  {
+    "iso3": "TZA",
+    "item": "http://www.wikidata.org/entity/Q924",
+    "value": "COD"
+  },
+  {
+    "iso3": "TZA",
+    "item": "http://www.wikidata.org/entity/Q924",
+    "value": "KEN"
+  },
+  {
+    "iso3": "TZA",
+    "item": "http://www.wikidata.org/entity/Q924",
+    "value": "MOZ"
+  },
+  {
+    "iso3": "TZA",
+    "item": "http://www.wikidata.org/entity/Q924",
+    "value": "MWI"
+  },
+  {
+    "iso3": "TZA",
+    "item": "http://www.wikidata.org/entity/Q924",
+    "value": "RWA"
+  },
+  {
+    "iso3": "TZA",
+    "item": "http://www.wikidata.org/entity/Q924",
+    "value": "SYC"
+  },
+  {
+    "iso3": "TZA",
+    "item": "http://www.wikidata.org/entity/Q924",
+    "value": "UGA"
+  },
+  {
+    "iso3": "TZA",
+    "item": "http://www.wikidata.org/entity/Q924",
+    "value": "ZMB"
+  },
+  {
+    "iso3": "PHL",
+    "item": "http://www.wikidata.org/entity/Q928",
+    "value": "CHN"
+  },
+  {
+    "iso3": "PHL",
+    "item": "http://www.wikidata.org/entity/Q928",
+    "value": "IDN"
+  },
+  {
+    "iso3": "PHL",
+    "item": "http://www.wikidata.org/entity/Q928",
+    "value": "JPN"
+  },
+  {
+    "iso3": "PHL",
+    "item": "http://www.wikidata.org/entity/Q928",
+    "value": "MYS"
+  },
+  {
+    "iso3": "PHL",
+    "item": "http://www.wikidata.org/entity/Q928",
+    "value": "PLW"
+  },
+  {
+    "iso3": "PHL",
+    "item": "http://www.wikidata.org/entity/Q928",
+    "value": "TWN"
+  },
+  {
+    "iso3": "CAF",
+    "item": "http://www.wikidata.org/entity/Q929",
+    "value": "CMR"
+  },
+  {
+    "iso3": "CAF",
+    "item": "http://www.wikidata.org/entity/Q929",
+    "value": "COD"
+  },
+  {
+    "iso3": "CAF",
+    "item": "http://www.wikidata.org/entity/Q929",
+    "value": "COG"
+  },
+  {
+    "iso3": "CAF",
+    "item": "http://www.wikidata.org/entity/Q929",
+    "value": "SDN"
+  },
+  {
+    "iso3": "CAF",
+    "item": "http://www.wikidata.org/entity/Q929",
+    "value": "SSD"
+  },
+  {
+    "iso3": "CAF",
+    "item": "http://www.wikidata.org/entity/Q929",
+    "value": "TCD"
+  },
+  {
+    "iso3": "TGO",
+    "item": "http://www.wikidata.org/entity/Q945",
+    "value": "BEN"
+  },
+  {
+    "iso3": "TGO",
+    "item": "http://www.wikidata.org/entity/Q945",
+    "value": "BFA"
+  },
+  {
+    "iso3": "TGO",
+    "item": "http://www.wikidata.org/entity/Q945",
+    "value": "GHA"
+  },
+  {
+    "iso3": "TUN",
+    "item": "http://www.wikidata.org/entity/Q948",
+    "value": "DZA"
+  },
+  {
+    "iso3": "TUN",
+    "item": "http://www.wikidata.org/entity/Q948",
+    "value": "LBY"
+  },
+  {
+    "iso3": "ZMB",
+    "item": "http://www.wikidata.org/entity/Q953",
+    "value": "AGO"
+  },
+  {
+    "iso3": "ZMB",
+    "item": "http://www.wikidata.org/entity/Q953",
+    "value": "BWA"
+  },
+  {
+    "iso3": "ZMB",
+    "item": "http://www.wikidata.org/entity/Q953",
+    "value": "COD"
+  },
+  {
+    "iso3": "ZMB",
+    "item": "http://www.wikidata.org/entity/Q953",
+    "value": "MOZ"
+  },
+  {
+    "iso3": "ZMB",
+    "item": "http://www.wikidata.org/entity/Q953",
+    "value": "MWI"
+  },
+  {
+    "iso3": "ZMB",
+    "item": "http://www.wikidata.org/entity/Q953",
+    "value": "NAM"
+  },
+  {
+    "iso3": "ZMB",
+    "item": "http://www.wikidata.org/entity/Q953",
+    "value": "TZA"
+  },
+  {
+    "iso3": "ZMB",
+    "item": "http://www.wikidata.org/entity/Q953",
+    "value": "ZWE"
+  },
+  {
+    "iso3": "ZWE",
+    "item": "http://www.wikidata.org/entity/Q954",
+    "value": "BWA"
+  },
+  {
+    "iso3": "ZWE",
+    "item": "http://www.wikidata.org/entity/Q954",
+    "value": "MOZ"
+  },
+  {
+    "iso3": "ZWE",
+    "item": "http://www.wikidata.org/entity/Q954",
+    "value": "ZAF"
+  },
+  {
+    "iso3": "ZWE",
+    "item": "http://www.wikidata.org/entity/Q954",
+    "value": "ZMB"
+  },
+  {
+    "iso3": "SSD",
+    "item": "http://www.wikidata.org/entity/Q958",
+    "value": "CAF"
+  },
+  {
+    "iso3": "SSD",
+    "item": "http://www.wikidata.org/entity/Q958",
+    "value": "COD"
+  },
+  {
+    "iso3": "SSD",
+    "item": "http://www.wikidata.org/entity/Q958",
+    "value": "ETH"
+  },
+  {
+    "iso3": "SSD",
+    "item": "http://www.wikidata.org/entity/Q958",
+    "value": "KEN"
+  },
+  {
+    "iso3": "SSD",
+    "item": "http://www.wikidata.org/entity/Q958",
+    "value": "SDN"
+  },
+  {
+    "iso3": "SSD",
+    "item": "http://www.wikidata.org/entity/Q958",
+    "value": "UGA"
+  },
+  {
+    "iso3": "MEX",
+    "item": "http://www.wikidata.org/entity/Q96",
+    "value": "BLZ"
+  },
+  {
+    "iso3": "MEX",
+    "item": "http://www.wikidata.org/entity/Q96",
+    "value": "GTM"
+  },
+  {
+    "iso3": "MEX",
+    "item": "http://www.wikidata.org/entity/Q96",
+    "value": "USA"
+  },
+  {
+    "iso3": "BEN",
+    "item": "http://www.wikidata.org/entity/Q962",
+    "value": "BFA"
+  },
+  {
+    "iso3": "BEN",
+    "item": "http://www.wikidata.org/entity/Q962",
+    "value": "NER"
+  },
+  {
+    "iso3": "BEN",
+    "item": "http://www.wikidata.org/entity/Q962",
+    "value": "NGA"
+  },
+  {
+    "iso3": "BEN",
+    "item": "http://www.wikidata.org/entity/Q962",
+    "value": "TGO"
+  },
+  {
+    "iso3": "BWA",
+    "item": "http://www.wikidata.org/entity/Q963",
+    "value": "NAM"
+  },
+  {
+    "iso3": "BWA",
+    "item": "http://www.wikidata.org/entity/Q963",
+    "value": "ZAF"
+  },
+  {
+    "iso3": "BWA",
+    "item": "http://www.wikidata.org/entity/Q963",
+    "value": "ZMB"
+  },
+  {
+    "iso3": "BWA",
+    "item": "http://www.wikidata.org/entity/Q963",
+    "value": "ZWE"
+  },
+  {
+    "iso3": "BFA",
+    "item": "http://www.wikidata.org/entity/Q965",
+    "value": "BEN"
+  },
+  {
+    "iso3": "BFA",
+    "item": "http://www.wikidata.org/entity/Q965",
+    "value": "CIV"
+  },
+  {
+    "iso3": "BFA",
+    "item": "http://www.wikidata.org/entity/Q965",
+    "value": "GHA"
+  },
+  {
+    "iso3": "BFA",
+    "item": "http://www.wikidata.org/entity/Q965",
+    "value": "MLI"
+  },
+  {
+    "iso3": "BFA",
+    "item": "http://www.wikidata.org/entity/Q965",
+    "value": "NER"
+  },
+  {
+    "iso3": "BFA",
+    "item": "http://www.wikidata.org/entity/Q965",
+    "value": "TGO"
+  },
+  {
+    "iso3": "BDI",
+    "item": "http://www.wikidata.org/entity/Q967",
+    "value": "COD"
+  },
+  {
+    "iso3": "BDI",
+    "item": "http://www.wikidata.org/entity/Q967",
+    "value": "RWA"
+  },
+  {
+    "iso3": "BDI",
+    "item": "http://www.wikidata.org/entity/Q967",
+    "value": "TZA"
+  },
+  {
+    "iso3": "COM",
+    "item": "http://www.wikidata.org/entity/Q970",
+    "value": "FRA"
+  },
+  {
+    "iso3": "COM",
+    "item": "http://www.wikidata.org/entity/Q970",
+    "value": "MDG"
+  },
+  {
+    "iso3": "COM",
+    "item": "http://www.wikidata.org/entity/Q970",
+    "value": "MOZ"
+  },
+  {
+    "iso3": "COM",
+    "item": "http://www.wikidata.org/entity/Q970",
+    "value": "SYC"
+  },
+  {
+    "iso3": "COM",
+    "item": "http://www.wikidata.org/entity/Q970",
+    "value": "TZA"
+  },
+  {
+    "iso3": "COG",
+    "item": "http://www.wikidata.org/entity/Q971",
+    "value": "AGO"
+  },
+  {
+    "iso3": "COG",
+    "item": "http://www.wikidata.org/entity/Q971",
+    "value": "CAF"
+  },
+  {
+    "iso3": "COG",
+    "item": "http://www.wikidata.org/entity/Q971",
+    "value": "CMR"
+  },
+  {
+    "iso3": "COG",
+    "item": "http://www.wikidata.org/entity/Q971",
+    "value": "COD"
+  },
+  {
+    "iso3": "COG",
+    "item": "http://www.wikidata.org/entity/Q971",
+    "value": "GAB"
+  },
+  {
+    "iso3": "COD",
+    "item": "http://www.wikidata.org/entity/Q974",
+    "value": "AGO"
+  },
+  {
+    "iso3": "COD",
+    "item": "http://www.wikidata.org/entity/Q974",
+    "value": "BDI"
+  },
+  {
+    "iso3": "COD",
+    "item": "http://www.wikidata.org/entity/Q974",
+    "value": "CAF"
+  },
+  {
+    "iso3": "COD",
+    "item": "http://www.wikidata.org/entity/Q974",
+    "value": "CMR"
+  },
+  {
+    "iso3": "COD",
+    "item": "http://www.wikidata.org/entity/Q974",
+    "value": "COG"
+  },
+  {
+    "iso3": "COD",
+    "item": "http://www.wikidata.org/entity/Q974",
+    "value": "RWA"
+  },
+  {
+    "iso3": "COD",
+    "item": "http://www.wikidata.org/entity/Q974",
+    "value": "SDN"
+  },
+  {
+    "iso3": "COD",
+    "item": "http://www.wikidata.org/entity/Q974",
+    "value": "SSD"
+  },
+  {
+    "iso3": "COD",
+    "item": "http://www.wikidata.org/entity/Q974",
+    "value": "TZA"
+  },
+  {
+    "iso3": "COD",
+    "item": "http://www.wikidata.org/entity/Q974",
+    "value": "UGA"
+  },
+  {
+    "iso3": "COD",
+    "item": "http://www.wikidata.org/entity/Q974",
+    "value": "ZMB"
+  },
+  {
+    "iso3": "DJI",
+    "item": "http://www.wikidata.org/entity/Q977",
+    "value": "ERI"
+  },
+  {
+    "iso3": "DJI",
+    "item": "http://www.wikidata.org/entity/Q977",
+    "value": "ETH"
+  },
+  {
+    "iso3": "DJI",
+    "item": "http://www.wikidata.org/entity/Q977",
+    "value": "SOM"
+  },
+  {
+    "iso3": "GNQ",
+    "item": "http://www.wikidata.org/entity/Q983",
+    "value": "CMR"
+  },
+  {
+    "iso3": "GNQ",
+    "item": "http://www.wikidata.org/entity/Q983",
+    "value": "GAB"
+  },
+  {
+    "iso3": "GNQ",
+    "item": "http://www.wikidata.org/entity/Q983",
+    "value": "STP"
+  },
+  {
+    "iso3": "ERI",
+    "item": "http://www.wikidata.org/entity/Q986",
+    "value": "DJI"
+  },
+  {
+    "iso3": "ERI",
+    "item": "http://www.wikidata.org/entity/Q986",
+    "value": "ETH"
+  },
+  {
+    "iso3": "ERI",
+    "item": "http://www.wikidata.org/entity/Q986",
+    "value": "SDN"
+  }
+]
