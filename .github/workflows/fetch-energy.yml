@@ -20,6 +20,9 @@ env:
   GCB_RECORD: '23667912'        # Zenodo record of "The Global Carbon Project's fossil CO2 emissions dataset", version 2026v11
   GCB_VERSION: 'GCB2026v11'
   EMBER_URL: 'https://files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv'
+concurrency:
+  group: data-fetch-${{ github.ref }}   # one fetch at a time per branch
+  cancel-in-progress: false
 jobs:
   fetch:
     # dev-data, or a data-update-YYYYMMDD branch made by watch-sources.yml (task 149)
@@ -74,8 +77,10 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add data/raw/energy
-          git diff --cached --quiet && { echo 'No change'; exit 0; }
+          # only the download time / record copy changed → nothing new, no commit (task 149)
+          git diff --cached --quiet -- . ':(exclude)*/SOURCE.md' ':(exclude)*.metadata.json' ':(exclude)*zenodo-record.json' && { echo 'No new data'; git reset -q; exit 0; }
           git commit -m 'Data: Ember and Global Carbon Project files (energy and CO2)'
+          git pull --rebase origin ${{ github.ref_name }}   # another fetch may have pushed meanwhile (never a force push)
           git push origin HEAD:${{ github.ref_name }}
       - name: Open a pull request into dev-data (data-update branches only)
         if: startsWith(github.ref, 'refs/heads/data-update-')
