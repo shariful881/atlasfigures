@@ -162,12 +162,12 @@ const schema = [
 
       <div class="story-block prose">
         <h2>Where do most people still work in farming?</h2>
-        <p>Mainly in sub-Saharan Africa, where agriculture accounts for {p1(ssa)} of jobs. In {over50} countries it employs more than half of all workers, led by Burundi ({p1(ranked[0].value)}). Across the World Bank's low-income economies the share is {p1(lic)}; in high-income ones it is {p1(hic)}. The fastest shifts since {B0} came in <a href={path('/economy/vietnam/')}>Vietnam</a>, <a href={path('/economy/rwanda/')}>Rwanda</a> and <a href={path('/economy/cambodia/')}>Cambodia</a>, while <a href={path('/economy/china/')}>China</a>'s farm share fell from {p1(s('CHN', 'empAgriPct', B0))} to {p1(byIso('CHN').value)}.</p>
+        <p>Mainly in sub-Saharan Africa, where agriculture accounts for {p1(ssa)} of jobs. In {over50} countries it employs more than half of all workers, led by Burundi ({p1(ranked[0].value)}). Across the World Bank's low-income economies the share is {p1(lic)}; in high-income ones it is {p1(hic)}. The fastest shifts since {B0} came in <a href={path('/country/vietnam/economy/')}>Vietnam</a>, <a href={path('/country/rwanda/economy/')}>Rwanda</a> and <a href={path('/country/cambodia/economy/')}>Cambodia</a>, while <a href={path('/country/china/economy/')}>China</a>'s farm share fell from {p1(s('CHN', 'empAgriPct', B0))} to {p1(byIso('CHN').value)}.</p>
       </div>
 
       <div class="story-block prose">
         <h2>How many Bangladeshis work in agriculture?</h2>
-        <p>{p1(bgd.value)} of employed people in {L} — {ord(bgd.rank)} of {N} — compared with {p1(s('BGD', 'empAgriPct', B0))} in {B0}. <a href={path('/economy/bangladesh/')}>Bangladesh</a>'s services now employ {p1(s('BGD', 'empSrvPct', L))} of workers and industry {p1(s('BGD', 'empIndPct', L))}. In <a href={path('/economy/india/')}>India</a> the farm share is {p1(byIso('IND').value)} and in <a href={path('/economy/pakistan/')}>Pakistan</a> {p1(byIso('PAK').value)}.</p>
+        <p>{p1(bgd.value)} of employed people in {L} — {ord(bgd.rank)} of {N} — compared with {p1(s('BGD', 'empAgriPct', B0))} in {B0}. <a href={path('/country/bangladesh/economy/')}>Bangladesh</a>'s services now employ {p1(s('BGD', 'empSrvPct', L))} of workers and industry {p1(s('BGD', 'empIndPct', L))}. In <a href={path('/country/india/economy/')}>India</a> the farm share is {p1(byIso('IND').value)} and in <a href={path('/country/pakistan/economy/')}>Pakistan</a> {p1(byIso('PAK').value)}.</p>
       </div>
     </section>
 

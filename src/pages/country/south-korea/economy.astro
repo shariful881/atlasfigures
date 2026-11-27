@@ -1,0 +1,158 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/south-korea.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/south-korea/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, net } = B;
+const jp = econData('JPN').series;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const pc1960 = v('gdpPerCapita', 1960)!;
+const times = perHead / pc1960;
+const jpG = econData('JPN').series.gdp;
+const jpRatio = valueIn(jpG, L)! / gdp;
+const first20k = s.gdpPerCapita.find(([, x]) => x >= 20000)![0];
+const negYears = s.gdpGrowthPct.filter(([, x]) => x < 0).map(([y]) => y);
+const netRank = rankBy('internetPct', net!.year).find((r) => r.iso3 === c.iso3)!.rank;
+
+assertClaim(pc1960 < 200 && times > 200, 'GDP per person more than 200 times its 1960 level');
+assertClaim(negYears.join() === '1980,1998,2020' && s.gdpGrowthPct[0][0] === 1961, 'only three contractions since 1961');
+assertClaim(perHead > valueIn(jp.gdpPerCapita, L)! && v('gdpPerCapita', 2022)! < valueIn(jp.gdpPerCapita, 2022)!, 'ahead of Japan per person, since 2023');
+assertClaim(s.gdpGrowthPct.filter(([y]) => y > 2020 && y < L).every(([, x]) => x > growth) && g(2020) < growth, 'growth in the latest year the weakest since 2020');
+assertClaim(g(1998) < -4 && g(1998) < g(1980) && g(1998) < g(2020), '1998 the largest of the three falls');
+assertClaim(jpRatio > 2 && jpRatio < 3, 'Japan more than twice as large');
+assertClaim(first20k >= 2000 && first20k < 2010, 'passed $20,000 in the 2000s');
+assertClaim(net!.value > 97, 'nearly everyone online');
+assertClaim(unemp! < 3, 'unemployment under 3%');
+
+const title = `South Korea Economy ${L}: GDP and Income | AtlasFigures`;
+const description = `South Korea produced ${usd(gdp)} in ${L}. Output per person rose from ${usdWhole(pc1960)} in 1960 to ${usdWhole(perHead)} and now beats Japan; growth slowed to ${pct(growth)}.`;
+
+const faq = [
+  { q: 'How much richer are Koreans than in 1960?', a: `GDP per person went from ${usdWhole(pc1960)} in 1960 to ${usdWhole(perHead)} in ${L}. In current dollars that is a more than ${Math.floor(times / 100) * 100}-fold rise; the World Bank series records the change, not its causes.` },
+  { q: 'Is Korea\'s GDP per capita higher than Japan\'s?', a: `It has been since 2023, on current-dollar figures: ${usdWhole(perHead)} against ${usdWhole(valueIn(jp.gdpPerCapita, L)!)} in ${L}.` },
+  { q: 'When did South Korea\'s economy last shrink?', a: `In 2020 (${signedPct(g(2020))}). Since 1961 it had dropped only twice before, in 1980 and in 1998, when output fell ${pct(Math.abs(g(1998)))}.` },
+  { q: 'How fast is Korea growing now?', a: `${pct(growth)} in ${L}, its slowest since 2020.` },
+  { q: 'What share of South Koreans use the internet?', a: `${pct(net!.value)} in ${net!.year}, ${ord(netRank)} among the economies with a figure for that year.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `South Korea's economy ${L}: GDP of ${usd(gdp)} and income per person above Japan's`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="South Korea's economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'South Korea', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>South Korea's economy: from {usdWhole(pc1960)} to {usdWhole(perHead)} a head</h1>
+        <p class="answer">
+          Korean output reached <strong>{usd(gdp)}</strong> in {L}, {ord(B.gdpRank!)} in the world, or <strong>{usdWhole(perHead)} a head</strong>, more than {Math.floor(times / 100) * 100} times the 1960 figure. Growth has cooled to {pct(growth)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`South Korea economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="South Korea" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">In one lifetime, output per Korean has gone from under $200 to more than its neighbour Japan's.</p>
+
+        <div class="story-block prose">
+          <h2>How much richer is South Korea than in 1960?</h2>
+          <p>Output per person was {usdWhole(pc1960)} in 1960 and {usdWhole(perHead)} in {L}, in current dollars, a rise of more than {Math.floor(times / 100) * 100}-fold. By 1990 it had reached {usdWhole(v('gdpPerCapita', 1990)!)}, and it first passed {usdWhole(20000)} in {first20k}. On a purchasing-power basis, which corrects for Korean price levels, it now stands at {intDollars(ppp!)}.</p>
+        </div>
+        <LineChart
+          title={`GDP per person in South Korea, 1960–${L}`}
+          subtitle="Current US dollars per resident."
+          points={s.gdpPerCapita.filter(([y]) => y % 5 === 0 || y >= 2019).map(([x, y]) => ({ x, y }))}
+          format="usd" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Has South Korea overtaken Japan?</h2>
+          <p>On income per head, yes. Since 2023 Korea's GDP per person in dollars has been higher than Japan's ({usdWhole(perHead)} against {usdWhole(valueIn(jp.gdpPerCapita, L)!)} in {L}). Japan's total output is still {jpRatio.toFixed(1)} times as large ({usd(valueIn(jpG, L)!)}). See the <a href={path('/country/japan/economy/')}>Japan economy page</a>.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Is the Korean economy slowing down?</h2>
+          <p>Real growth eased to {pct(growth)} in {L}, from {pct(g(L - 1))} the year before, the softest result since 2020. Contractions have been rare: real GDP has gone down just three times since 1961, in 1980, in 1998 ({signedPct(g(1998))}) and in 2020 ({signedPct(g(2020))}).</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How connected and employed are Koreans?</h2>
+          <p>Almost everyone is online: {pct(net!.value)} of people used the internet in {net!.year}. The jobless rate was {pct(unemp!)}, an ILO model estimate, and the cost of living went up {pct(infl.value)} in {L}, down from {pct(v('inflationPct', 2022)!)} in 2022.</p>
+        </div>
+
+        <nav class="related" aria-label="Related pages">
+          <h2>More about South Korea and East Asia</h2>
+          <ul>
+            <li><a href={path('/country/south-korea/population/')}>South Korea's population</a></li>
+            <li><a href={path('/country/japan/economy/')}>Japan's economy</a></li>
+            <li><a href={path('/country/china/economy/')}>China's economy</a></li>
+            <li><a href={path('/rankings/gdp-per-capita-by-country/')}>GDP per person, every country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`South Korea's economy since 1960`}
+          subtitle="Decade marks plus the 1998 crisis, 2016 and recent years; every other year is in the download."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/south-korea-economy.csv')} csvName="south-korea-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">South Korea's economy: FAQ</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), remittances, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">The World Bank lists the country as "Korea, Rep."; we use its common English name. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("South Korea's economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="South Korea" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

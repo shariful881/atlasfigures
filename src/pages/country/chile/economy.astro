@@ -1,0 +1,164 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/chile.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/chile/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const lac = rankBy('gdp', L).filter((r) => r.region === 'Latin America & Caribbean');
+const lPos = lac.findIndex((r) => r.iso3 === c.iso3);
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const hi22Since = Math.max(...s.inflationPct.filter(([y, x]) => y < 2022 && x > i(2022)).map(([y]) => y));
+const best = s.gdpGrowthPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const uMax = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const netRank = rankBy('internetPct', net!.year).find((r) => r.iso3 === c.iso3)!.rank;
+const pcAboveBigs = ['BRA', 'MEX', 'ARG', 'COL', 'PER'].every((k) => perHead > valueIn(econData(k).series.gdpPerCapita, L)!);
+
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita) && lPos === 4 && B.gdpRank === 44 && B.pcRank === 62, 'record GDP and per person; fifth in LAC; 44th, 62nd');
+assertClaim(B.e.incomeGroup === 'High income' && pcAboveBigs, 'high income; per head above the five bigger/near economies');
+assertClaim(iMax[0] === 1974 && iMax[1] > 500 && hi22Since === 1993 && i(2022) > 11.5 && infl.value < 4.3, 'inflation peak 1974; 2022 highest since 1993; now 4.2');
+assertClaim(g(2021) > 11 && g(2020) < -6 && best[0] === 1992 && s.gdpGrowthPct.filter(([, x]) => x > g(2021)).map(([y]) => y).join() === '1966,1992' && pct(g(1966)) === pct(best[1]), '2021 rebound 11.3; only 1966 and 1992 faster');
+assertClaim(g(1975) < -12 && g(1982) < -11, 'slumps 1975 and 1982');
+assertClaim(uMax[0] === 2009 && uMax[1] > 11.3 && unemp! < 9 && unemp! > u(L - 1), 'unemployment peak 2009');
+assertClaim(net!.year === L - 1 && netRank === 24, 'internet 24th');
+assertClaim(s.inflationPct[0][0] === 1971, 'inflation series from 1971');
+
+const title = `Chile Economy ${L}: ${usd(gdp)} Output, Inflation at ${pct(infl.value)} | AtlasFigures`;
+const description = `Chile\'s economy hit ${usd(gdp)} in ${L}, its biggest yet, fifth in Latin America, with income per head of ${usdWhole(perHead)}. Growth was ${pct(growth)}; inflation eased to ${pct(infl.value)}.`;
+
+const faq = [
+  { q: 'Is Chile a high-income country?', a: `Yes, the World Bank puts Chile in its high-income group. Chileans produced ${usdWhole(perHead)} each in ${L}, ${ord(B.pcRank!)} worldwide and above Brazil, Mexico, Argentina, Colombia and Peru.` },
+  { q: 'Where does Chile\'s GDP rank in the region?', a: `${ord(lPos + 1)}, behind Brazil, Mexico, Argentina and Colombia. Chile\'s ${L} GDP, ${usd(gdp)}, beat every earlier year and ranked ${ord(B.gdpRank!)} on the world list.` },
+  { q: 'What was Chile\'s highest inflation?', a: `${pct(iMax[1])} in 1974. Inflation data for Chile begin in 1971. More recently 2022 brought ${pct(i(2022))}, Chile\'s steepest since 1993, and the rate then eased to ${pct(infl.value)} by ${L}.` },
+  { q: 'How did Chile bounce back after 2020?', a: `GDP shrank ${pct(Math.abs(g(2020)))} in 2020 and then grew ${pct(g(2021))} in 2021; only 1966 and 1992, both at ${pct(best[1])}, saw faster growth.` },
+  { q: 'Is Chilean joblessness rising?', a: `Slightly. The ILO\'s modelled figure for ${L} is ${pct(unemp!)}, compared with ${pct(u(L - 1))} in ${L - 1}; 2009 holds the series high of ${pct(uMax[1])}.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Chile's economy in ${L}: high income, record output and slower price rises`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Chilean economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Chile', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Chile's economy: high income, record GDP</h1>
+        <p class="answer">
+          Never larger, Chile's {L} GDP came to <strong>{usd(gdp)}</strong>, or <strong>{usdWhole(perHead)}</strong> per person, as growth reached {pct(growth)} and inflation slowed to {pct(infl.value)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Chile economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Chile" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Half a century after 1974's price explosion, Chile is a high-income economy whose inflation is back near 4%.</p>
+
+        <div class="story-block prose">
+          <h2>How rich is Chile compared with its neighbours?</h2>
+          <p>At {usdWhole(perHead)} a head in {L} — the highest yet — Chilean output per person tops that of Brazil, Mexico, Argentina, Colombia and Peru; the World Bank lists Chile among its high-income countries. Adjusted for price levels, the figure is {intDollars(ppp!)}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How much does Chile produce in a year?</h2>
+          <p>Chile turned out goods and services worth {usd(gdp)} in {L}, its biggest total so far, which places it {ord(lPos + 1)} in the Latin American and Caribbean region and {ord(B.gdpRank!)} on the global table. Growth after inflation came to a modest {pct(growth)}, following {pct(g(L - 1))} in {L - 1}.</p>
+        </div>
+        <LineChart
+          title={`Chile's yearly growth in real GDP, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="% change in constant-price GDP versus the previous year."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>What were Chile's worst economic years?</h2>
+          <p>Two stand out: 1975, when output fell {pct(Math.abs(g(1975)))}, and 1982, a {pct(Math.abs(g(1982)))} drop. In 1974 consumer prices rose {pct(iMax[1])}, the highest point in inflation data that begin in 1971. After the pandemic slump of {pct(Math.abs(g(2020)))} in 2020 came {pct(g(2021))} growth in 2021.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Is inflation in Chile back under control?</h2>
+          <p>Largely. The 2022 rate of {pct(i(2022))} was Chile's fastest since 1993; it slowed to {pct(i(2023))} in 2023 and {pct(infl.value)} by {L}. Modelled ILO unemployment was {pct(unemp!)}, and with {pct(net!.value)} of residents online in {net!.year} Chile ranks {ord(netRank)} for internet use.</p>
+        </div>
+        <LineChart
+          title={`Inflation in Chile, 1990–${L}`}
+          subtitle="Consumer price index, annual % change."
+          points={s.inflationPct.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <nav class="related" aria-label="Related pages">
+          <h2>Chile and its neighbours: related pages</h2>
+          <ul>
+            <li><a href={path('/country/chile/population/')}>Chile's population</a></li>
+            <li><a href={path('/country/argentina/economy/')}>Argentina's economy</a></li>
+            <li><a href={path('/country/peru/economy/')}>Peru's economy</a></li>
+            <li><a href={path('/country/brazil/economy/')}>Brazil's economy</a></li>
+            <li><a href={path('/rankings/gdp-per-capita-by-country/')}>GDP per person league table</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Chilean output, prices and growth: key years`}
+          subtitle="Decades from 1960, the 1974–75 and 1982 extremes, 1992, then yearly from 2015. The CSV holds every year."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/chile-economy.csv')} csvName="chile-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Chile's economy in five answers</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">"Latin America and the Caribbean" is the World Bank region. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Chilean economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Chile" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

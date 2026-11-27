@@ -34,7 +34,7 @@ def text_of(path):
     ld = [json.loads(x) for x in re.findall(r'<script type="application/ld\+json">(.*?)</script>', page, re.S)]
     return page, t, json.dumps(ld, ensure_ascii=False)
 
-page, text, ld = text_of('dist/economy/bangladesh/index.html')
+page, text, ld = text_of('dist/country/bangladesh/economy/index.html')
 B = 'BGD'; L = max(G[B]); assert L == 2025, L
 avg = sum(GR[B][y] for y in range(2010, 2020)) / 10
 exp = {

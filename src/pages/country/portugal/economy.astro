@@ -1,0 +1,163 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/portugal.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/portugal/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const loGrowSince = Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < L && x < growth).map(([y]) => y));
+const lowInflSince = Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y));
+const hi22Since = Math.max(...s.inflationPct.filter(([y, x]) => y < 2022 && x > i(2022)).map(([y]) => y));
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const uMax = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const remUp = [2021, 2022, 2023, 2024, L].every((y) => v('remittances', y)! > v('remittances', y - 1)!);
+const remX = Math.round(rem!.value / v('remittances', 2015)!);
+const avg = s.gdpGrowthPct.filter(([y]) => y >= 2000).reduce((a, [, x], _, arr) => a + x / arr.length, 0);
+const esp = valueIn(econData('ESP').series.gdpPerCapita, L)!;
+
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita) && B.gdpRank === 45 && B.pcRank === 41 && perHead < esp, 'record GDP and per head; 45th and 41st; below Spain per head');
+assertClaim(loGrowSince === 2020 && [2023, 2024, L].every((y) => g(y) < g(y - 1)) && g(2022) > 6.9, 'slowest since 2020; slowing since 2022 peak 7.0');
+assertClaim(lowInflSince === 2021 && hi22Since === 1992 && iMax[0] === 1977 && iMax[1] > 31, 'inflation lowest since 2021; 2022 highest since 1992; peak 1977');
+assertClaim(uMax[0] === 2013 && uMax[1] > 16.2 && [2011, 2012, 2013].every((y) => g(y) < 0) && worst[0] === 2020, 'unemployment peak 2013; contraction 2011-13; worst 2020');
+assertClaim(remUp && remX === 5 && avg > 1.1 && avg < 1.2, 'remittances up every year since 2020, about 5x 2015; average growth 1.1% since 2000');
+
+const title = `Portugal Economy ${L}: Growth Eases to ${pct(growth)} | AtlasFigures`;
+const description = `Portuguese output reached ${usd(gdp)} for ${L} (${usdWhole(perHead)} per person), a record, but real growth eased to ${pct(growth)}, the slowest since 2020. Inflation was ${pct(infl.value)}.`;
+
+const faq = [
+  { q: 'Is Portuguese growth losing pace?', a: `Year after year since 2022\'s ${pct(g(2022))}: ${L} managed ${pct(growth)}, the weakest since 2020. Across 2000–${L} the average was a modest ${pct(avg)}.` },
+  { q: 'Is Portugal poorer than Spain?', a: `Per person, yes: ${usdWhole(perHead)} against Spain\'s ${usdWhole(esp)} in ${L}. Its global position on that measure: ${ord(B.pcRank!)}.` },
+  { q: 'How deep was Portugal\'s 2011–2013 slump?', a: `Output contracted three years running, 2011–2013, and modelled joblessness topped out at ${pct(uMax[1])} in 2013, against ${pct(unemp!)} now.` },
+  { q: 'Is inflation back down in Portugal?', a: `Largely: ${L} came in at ${pct(infl.value)}, Portugal\'s mildest since 2021, after 2022\'s ${pct(i(2022))}, which was the worst since 1992. 1977 still holds the record, ${pct(iMax[1])}.` },
+  { q: 'Are remittance inflows to Portugal growing?', a: `Yes — up every year since 2020; the ${L} figure, ${usd(rem!.value)}, is roughly fivefold that of 2015.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Portugal's economy in ${L}: record output, easing growth`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Portuguese economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Portugal', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Portugal's economy: record size, slowing growth</h1>
+        <p class="answer">
+          At <strong>{usd(gdp)}</strong>, Portuguese output reached a new peak in {L}, while real growth eased to <strong>{pct(growth)}</strong> and inflation to {pct(infl.value)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Portugal economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Portugal" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Three years of easing growth after the 2022 rebound leave Portugal expanding at under 2%.</p>
+
+        <div class="story-block prose">
+          <h2>Is the Portuguese economy cooling?</h2>
+          <p>Gradually. After the {pct(g(2022))} jump of 2022, each year has been a little weaker, ending at {pct(growth)} in {L} — Portugal's softest since 2020. Dollar GDP nonetheless rose to {usd(gdp)}, placing Portugal {ord(B.gdpRank!)}.</p>
+        </div>
+        <LineChart
+          title={`Portuguese economic growth, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="Annual change in real GDP, %."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How did the 2011–2013 downturn show up in the data?</h2>
+          <p>As three straight years of shrinking output, with modelled ILO unemployment climbing to {pct(uMax[1])} by 2013. By {L} it was {pct(unemp!)}. The single worst year on record is 2020, {signedPct(worst[1])}.</p>
+        </div>
+        <LineChart
+          title={`Portugal's unemployment, ${s.unemploymentPct[0][0]}–${L}`}
+          subtitle="Jobless share of the workforce (ILO model), %."
+          points={s.unemploymentPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How did Portugal's inflation spike compare with the past?</h2>
+          <p>It was the sharpest in thirty years: {pct(i(2022))} in 2022, the most since 1992. Three calmer years followed — {pct(i(2023))}, {pct(i(L - 1))}, {pct(infl.value)}. The 1977 rate, {pct(iMax[1])}, is the highest in the series.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How well off are the Portuguese?</h2>
+          <p>Per resident, GDP was {usdWhole(perHead)} in {L} — Portugal's best, {ord(B.pcRank!)} globally, yet behind Spain; in PPP dollars {intDollars(ppp!)}. Inflows of money from abroad have grown in each year after 2020, totalling {usd(rem!.value)} in {L}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Portugal and Southern Europe: related pages</h2>
+          <ul>
+            <li><a href={path('/country/portugal/population/')}>Portugal's population</a></li>
+            <li><a href={path('/country/spain/economy/')}>Spain's economy</a></li>
+            <li><a href={path('/country/italy/economy/')}>Italy's economy</a></li>
+            <li><a href={path('/country/france/economy/')}>France's economy</a></li>
+            <li><a href={path('/rankings/gdp-per-capita-by-country/')}>GDP per person league table</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Portugal's economy, key years`}
+          subtitle="Every decade from 1960, 1977, 2011–2013, then each year from 2015; download for everything else."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/portugal-economy.csv')} csvName="portugal-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Portugal's economy: questions and short answers</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Unemployment is the ILO's modelled estimate as published by the World Bank. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Portuguese economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Portugal" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

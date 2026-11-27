@@ -1,0 +1,161 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/mexico.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/mexico/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const remRank = rankBy('remittances', rem!.year).find((r) => r.iso3 === c.iso3)!.rank;
+const lac = rankBy('gdp', L).filter((r) => r.region === 'Latin America & Caribbean');
+const remPeak = s.remittances.reduce((a, b) => (b[1] > a[1] ? b : a));
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+
+assertClaim(B.gdpRank === 14 && lac[0].iso3 === 'BRA' && lac[1].iso3 === c.iso3, 'fourteenth, second in Latin America after Brazil');
+assertClaim(s.gdp.every(([y, x]) => y === L || x < gdp), 'dollar GDP at a record');
+assertClaim(remRank === 2 && rem!.year === L && remPeak[0] === 2024 && rem!.value < remPeak[1], 'second-largest remittance receiver, below the 2024 record');
+assertClaim(growth > 0 && growth < 1 && s.gdpGrowthPct.filter(([y]) => y > 2020 && y < L).every(([, x]) => x > growth) && g(2020) < growth, 'growth under 1%, weakest since 2020');
+assertClaim([2022, 2023, 2024, L].every((y) => g(y) < g(y - 1)), 'growth slower each year since 2021');
+assertClaim(worst[0] === 2020 && s.gdpGrowthPct[0][0] === 1961, '2020 the worst year since 1961');
+assertClaim(unemp! < 3 && Math.max(...s.unemploymentPct.filter(([y, x]) => y < L && x < unemp!).map(([y]) => y)) === 2001, 'unemployment lowest since 2001');
+assertClaim(infl.year === L && Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y)) === 2020, 'inflation lowest since 2020');
+
+assertClaim(rem!.value > 2 * v('remittances', 2015)! && infl.value / i(2022) > 0.45 && infl.value / i(2022) < 0.55, 'remittances more than double 2015; inflation about half of 2022');
+
+const title = `Mexican Economy ${L}: Output, Remittances, Slowing Growth | AtlasFigures`;
+const description = `Second in Latin America, the Mexican economy totalled ${usd(gdp)} in ${L}, while real growth weakened to ${pct(growth)}, and Mexicans abroad sent home ${usd(rem!.value)}, more than any country but India receives.`;
+
+const faq = [
+  { q: 'How much money do Mexicans in other countries send home?', a: `${usd(rem!.value)} in ${L}, second only to India's inflow, though a little below the ${usd(remPeak[1])} of 2024. It equals ${pct(remPct!.value)} of Mexico's GDP.` },
+  { q: 'Is Mexico\'s economy slowing?', a: `Yes. Real growth has eased every year since 2021, from ${pct(g(2021))} to ${pct(growth)} in ${L}, the weakest figure since 2020.` },
+  { q: 'Is Mexico bigger than Brazil economically?', a: `No. Brazil's GDP (${usd(lac[0].value)}) was ahead of Mexico's ${usd(gdp)} in ${L}; globally Mexico sits in ${ord(B.gdpRank!)} place.` },
+  { q: 'How did 2020 compare with earlier Mexican recessions?', a: `Output fell ${pct(Math.abs(worst[1]))} in 2020, the worst Mexican result in World Bank data since 1961, worse even than 1995 (${signedPct(g(1995))}) and 2009 (${signedPct(g(2009))}).` },
+  { q: 'What is income per head in Mexico?', a: `${usdWhole(perHead)} in ${L} (${ord(B.pcRank!)}); ${intDollars(ppp!)} when measured in purchasing power.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Mexico's economy ${L}: Latin America's second-largest, with the world's second-largest remittance inflow`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Mexico's economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Mexico', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Mexico's economy: record remittances, slowing growth</h1>
+        <p class="answer">
+          In {L} Mexico's GDP amounted to <strong>{usd(gdp)}</strong>: {ord(B.gdpRank!)} globally, and behind only Brazil in Latin America. Growth slowed to <strong>{pct(growth)}</strong>, while money sent home from abroad totalled {usd(rem!.value)}, the world's second-largest inflow.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Mexico economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Mexico" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Mexico combines one of the largest flows of money from workers abroad with growth that has weakened four years in a row.</p>
+
+        <div class="story-block prose">
+          <h2>Where does Mexico's economy rank?</h2>
+          <p>Mexico holds {ord(B.gdpRank!)} place worldwide; Brazil is the only bigger Latin American economy. At {usd(gdp)} in {L}, Mexican output set a new high in current dollars. Per head that is {usdWhole(perHead)}, or {intDollars(ppp!)} adjusted for local prices.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How much do remittances bring into Mexico?</h2>
+          <p>{usd(rem!.value)} in {L}. Only India received more. The total eased from the record {usd(remPeak[1])} set in 2024 but remains over twice 2015's {usd(v('remittances', 2015)!)}, and works out at {pct(remPct!.value)} of GDP.</p>
+        </div>
+        <LineChart
+          title={`Personal remittances to Mexico, 1979–${L}`}
+          subtitle="Money received from abroad in current US dollars; 2024 is the high point."
+          points={s.remittances.filter(([y]) => y % 5 === 0 || y >= 2019).map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Why is Mexico's growth slowing?</h2>
+          <p>The World Bank series shows the slowdown, not its causes. After a {pct(g(2021))} rebound in 2021, growth fell back each year: {pct(g(2022))}, {pct(g(2023))}, {pct(g(2024))} and {pct(growth)} in {L}. The 2020 contraction of {pct(Math.abs(worst[1]))} remains the deepest since 1961.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Are jobs and prices stable in Mexico?</h2>
+          <p>Unemployment, as modelled by the ILO, stood at {pct(unemp!)} in {L}, its lowest level since 2001. Inflation came in at {pct(infl.value)}, the mildest annual increase in Mexico's price index since 2020 and about half the {pct(i(2022))} of 2022.</p>
+        </div>
+        <LineChart
+          title={`Mexico's jobless rate, 1991–${L}`}
+          subtitle="ILO modelled estimates of Mexican unemployment, per cent."
+          points={s.unemploymentPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <nav class="related" aria-label="Related pages">
+          <h2>Mexico and the Americas: more pages</h2>
+          <ul>
+            <li><a href={path('/country/mexico/population/')}>Mexico's population</a></li>
+            <li><a href={path('/country/brazil/economy/')}>Brazil's economy</a></li>
+            <li><a href={path('/country/united-states/economy/')}>The US economy</a></li>
+            <li><a href={path('/country/canada/economy/')}>Canada's economy</a></li>
+            <li><a href={path('/rankings/remittances-by-country/')}>Remittance inflows by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Mexican economic indicators, 1960–${L}`}
+          subtitle="Key years 1995, 2009 and 2020 plus the recent run; the CSV holds the complete series."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/mexico-economy.csv')} csvName="mexico-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Mexico's economy: what people ask</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">"Latin America" means the World Bank's Latin America &amp; Caribbean region. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Mexico's economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Mexico" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

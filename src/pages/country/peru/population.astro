@@ -1,0 +1,223 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import pe from '../../../data/countries/peru.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: fertility under 2.1 since 2019; migration that
+// switched from net departures (to 2014) to net arrivals (2015–2027); the 2020–2021 drop in life expectancy and its
+// recovery; a peak in 2066 and a slide down the world ranking. The UN data give counts, not causes.
+const PAGE = '/country/peru/population/';
+const un = countryData(pe.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (pe.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const sam = wpp.filter((d: any) => d.subregion === 'South America').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(sam.indexOf('PER') === 3 && sam.slice(0, 3).join() === 'BRA,COL,ARG', 'fourth in South America after Brazil, Colombia and Argentina');
+const under = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(under === 2019 && un.years.filter((r) => r.year >= under).every((r) => r.fertility < 2.1), 'fertility under 2.1 from 2019 onward');
+const tfrTop = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(tfrTop.year === 1956, 'fertility high in 1956');
+assertClaim(un.years.filter((r) => r.year >= 1951 && r.year <= 2014).every((r) => r.netMigrants < 0) && un.years.filter((r) => r.year >= 2015 && r.year <= 2027).every((r) => r.netMigrants > 0) && un.years.filter((r) => r.year >= 2028).every((r) => r.netMigrants < 0), 'net departures 1951–2014, net arrivals 2015–2027, small net departures from 2028');
+const outTop = un.years.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+const inTop = un.years.reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+assertClaim(outTop.year === 2007 && inTop.year === 2018, 'largest net outflow 2007, largest net inflow 2018');
+assertClaim(y[2021].lifeExpectancy < y[2020].lifeExpectancy && y[2020].lifeExpectancy < y[2019].lifeExpectancy && y[2022].lifeExpectancy > y[2019].lifeExpectancy, 'life expectancy fell in 2020 and 2021, then passed its 2019 level in 2022');
+const leSince = [...un.years].reverse().find((r) => r.year < 2021 && r.lifeExpectancy < y[2021].lifeExpectancy)!.year;
+assertClaim(un.years.filter((r) => r.year > leSince && r.year < 2021).every((r) => r.lifeExpectancy > y[2021].lifeExpectancy) && tfrTop.fertility > 6.9 && c.fertility < 2, 'lowest since leSince; almost seven to under two');
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+const natNeg = un.years.find((r) => r.naturalChange < 0)!.year;
+assertClaim(peak.year === 2066 && natNeg === 2067, 'peak 2066; deaths exceed births from 2067');
+assertClaim(y[2000].worldRank === 38 && c.worldRank === 48 && y[2100].worldRank === 56, 'rank 38 in 2000, 48 now, 56 in 2100');
+
+const title = `Peru Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)}M, Migration Turnaround and a ${peak.year} Peak | AtlasFigures`;
+const description = `UN data put Peru at ${millions(c.population)} in ${CURRENT_YEAR}, with ${dec(c.fertility, 2)} births per woman. Net arrivals replaced net departures in 2015; the medium variant's high comes in ${peak.year} at ${millions(peak.population)}.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: pe.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: `Peak, ${peak.year}`, value: millionsShort(peak.population) },
+];
+
+const rows = displayRows(un.years, pe.tableYears);
+
+const faq = [
+  { q: 'What is the population of Peru?', a: `${millions(c.population)} for mid-${CURRENT_YEAR} in UN estimates: ${ord(c.worldRank!)} in the world, fourth in South America after Brazil, Colombia and Argentina.` },
+  { q: 'Do Peruvian women have fewer than two children?', a: `On average, yes: ${dec(c.fertility, 2)} in ${CURRENT_YEAR}. The rate slipped beneath 2.1 in ${under} and has stayed there. The projection never brings it back up.` },
+  { q: 'Does Peru receive more migrants than it sends?', a: `It did from 2015 onward, with a net inflow near ${int(Math.round(inTop.netMigrants / 1000))} thousand at the ${inTop.year} high, after decades of net departures. The surplus is down to about ${int(Math.round(c.netMigrants / 1000))} thousand this year, and the projection turns slightly negative from 2028.` },
+  { q: 'When is Peru\'s population expected to peak?', a: `${peak.year}, at ${millions(peak.population)} in the medium projection; deaths overtake births the year after, and ${millions(y[2100].population)} remain in 2100.` },
+  { q: 'Why did Peru slip in the world population ranking?', a: `Others grew faster. Peru ranked ${ord(y[2000].worldRank!)} in 2000 and ranks ${ord(c.worldRank!)} today; the 2100 projection puts it ${ord(y[2100].worldRank!)} even though its own total keeps rising until ${peak.year}.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: pe.slug, name: pe.name, wikipedia: pe.wikipedia,
+  headline: `Peru's ${millions(c.population)}: fertility under 2.1, a migration turnaround and a ${peak.year} peak`,
+  description,
+  datasetName: 'Peru population, migration, fertility and life expectancy, 1950–2100',
+  datasetDescription: `Mid-year population of Peru for selected years from 1950 to ${CURRENT_YEAR} (each year 2018–2022 included), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: pe.published, updated: pe.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Peru"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Peru', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Peru: from sending migrants to receiving them, and a peak ahead</h1>
+        <LiveCounter
+          label="Peru: projected headcount at this moment"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} base, adding around ${int(c.change / 365)} people daily`}
+        />
+        <p class="answer">
+          Peru's population is put at <strong>{millions(c.population)}</strong> by the UN for mid-{CURRENT_YEAR}, the fourth-largest population in South America. Fertility has been under the 2.1 replacement level since {under} and is <strong>{dec(c.fertility, 2)}</strong> now; the medium projection's high point is {millions(peak.population)}, reached in {peak.year}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={pe.updated}>{longDate(pe.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Peru" code="pe" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Did Peru switch from losing migrants to gaining them?</h2>
+          <p>Yes, in 2015. Before that the UN series shows net departures in every year from 1951, heaviest in {outTop.year} at about {int(Math.round(-outTop.netMigrants / 1000))} thousand. From 2015 to 2027 the balance is positive, with {inTop.year} the biggest year at roughly {int(Math.round(inTop.netMigrants / 1000))} thousand; it has been shrinking since and is about {int(Math.round(c.netMigrants / 1000))} thousand in {CURRENT_YEAR}. From 2028 the projection returns to a small net outflow. The figures show the direction of movement, not who moved or why.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Net migration in Peru, UN estimates">
+          <div><span class="y">{outTop.year}</span><div class="v">−{int(Math.round(-outTop.netMigrants / 1000))}k</div><span class="d">Net departures</span></div>
+          <div><span class="y">{inTop.year}</span><div class="v">+{int(Math.round(inTop.netMigrants / 1000))}k</div><span class="d">Net arrivals</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">+{int(Math.round(c.netMigrants / 1000))}k</div><span class="d">Net arrivals</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How far did Peruvian life expectancy drop in 2020–2021?</h2>
+          <p>By {dec(y[2019].lifeExpectancy - y[2021].lifeExpectancy, 1)} years over two years. The UN estimate drops from {dec(y[2019].lifeExpectancy, 1)} years in 2019 to {dec(y[2020].lifeExpectancy, 1)} in 2020 and {dec(y[2021].lifeExpectancy, 1)} in 2021, lower than any year since {leSince}, before bouncing to {dec(y[2022].lifeExpectancy, 1)} in 2022. Deaths in 2021, about {int(Math.round(y[2021].deaths / 1000))} thousand, compare with {int(Math.round(y[2019].deaths / 1000))} thousand in 2019. The {CURRENT_YEAR} figure is {dec(c.lifeExpectancy, 1)} years.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How far has fertility fallen in Peru?</h2>
+          <p>From almost seven children per woman to fewer than two. The rate was {dec(tfrTop.fertility, 2)} at its {tfrTop.year} high, crossed under 2.1 in {under} and is {dec(c.fertility, 2)} today. The median Peruvian is now {dec(c.medianAge, 1)}, against {dec(y[1980].medianAge, 1)} in 1980.</p>
+        </div>
+        <LineChart
+          title="Peruvian fertility: estimates from 1950 and projection to 2050"
+          subtitle="UN figures for children per woman, projection shown dashed; the horizontal line marks 2.1."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: '2.1 per woman' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>When does Peru's population start to fall?</h2>
+          <p>After {peak.year}, when the UN medium variant reaches its high of {millions(peak.population)}. Deaths exceed births from {natNeg}, and in 2100 the total is back to {millions(y[2100].population)}. In world terms Peru has been sliding for a while: {ord(y[2000].worldRank!)} in 2000, {ord(c.worldRank!)} today and {ord(y[2100].worldRank!)} in 2100. Urban living is already the norm: {pct(c.urbanPct!)} of Peruvians, using Peru's own definition of urban.</p>
+        </div>
+        <LineChart
+          title={`Peru's population curve, 1950–2100, with the ${peak.year} high`}
+          subtitle="Each 1 July total as estimated or projected by the UN; projection dashed."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+        <RelatedPages iso3={pe.iso3} name={pe.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Peru by year, 1950–2100"
+          subtitle="Every year from 2018 to 2022 is listed, covering the migration high and the life-expectancy dip."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${pe.slug}-population.csv`)}
+          csvName={`${pe.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Peru's people: frequently asked</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{pe.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={pe.published}>{longDate(pe.published)}</time> · Updated <time datetime={pe.updated}>{longDate(pe.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Peru population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Peru" code="pe" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

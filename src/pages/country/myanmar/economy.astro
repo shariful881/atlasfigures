@@ -1,0 +1,151 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/myanmar.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/myanmar/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const pcPeak = s.gdpPerCapita.reduce((a, b) => (b[1] > a[1] ? b : a));
+const negRecent = [2020, 2021, 2022, 2023, 2024, L].filter((y) => g(y) < 0);
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+
+assertClaim(worst[0] === 2021 && g(2020) < -8, '2021 the worst year on record; 2020 also deep');
+assertClaim(negRecent.join() === '2020,2021,2024,' + L, 'output fell in four of the last six years');
+assertClaim(isMax(s.gdp) && pcPeak[0] === 2020 && perHead > 0.99 * pcPeak[1], 'dollar GDP record; per person just below 2020');
+assertClaim(infl.year === 2019 && rem!.year === 2019 && net!.year === 2020 && iMax[0] === 2002, 'inflation and remittances end 2019; internet 2020; inflation peak 2002');
+assertClaim((1 + g(2020) / 100) * (1 + g(2021) / 100) * (1 + g(2022) / 100) * (1 + g(2023) / 100) < 1, '2022-23 growth did not offset 2020-21');
+assertClaim(B.gdpRank === 84 && unemp! < 4, '84th; unemployment 3%');
+
+const title = `Myanmar Economy ${L}: Output Falls Again | AtlasFigures`;
+const description = `A ${pct(Math.abs(growth))} drop in ${L} gave Myanmar its fourth year of falling output in six, after a ${pct(Math.abs(g(2021)))} slump in 2021. Several World Bank series for Myanmar stop in 2019 or 2020.`;
+
+const faq = [
+  { q: 'Is Myanmar\'s economy shrinking?', a: `Yes. Output contracted ${pct(Math.abs(g(2024)))} in 2024 and ${pct(Math.abs(growth))} in ${L}; 2020 and 2021 were also years of decline.` },
+  { q: 'What was Myanmar\'s worst year economically?', a: `2021, when GDP dropped ${pct(Math.abs(worst[1]))} — the steepest fall in the World Bank record, which goes back to 1961.` },
+  { q: 'Why is Myanmar\'s dollar GDP a record if output is falling?', a: `The dollar figure (${usd(gdp)} in ${L}) reflects prices and the exchange rate as well as volume. Real GDP, which removes those effects, declined.` },
+  { q: 'Is there recent inflation data for Myanmar?', a: `Not in the World Bank files: the consumer price series ends in 2019, at ${pct(infl.value)}. Remittance figures also stop in 2019.` },
+  { q: 'Is Myanmar\'s GDP per person back to 2020 levels?', a: `${usdWhole(perHead)} in ${L}, about level with 2020, or ${intDollars(ppp!)} on a PPP basis.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Myanmar's economy ${L}: a fourth fall in output in six years, after the 2021 slump`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Myanmar economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Myanmar', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Myanmar's economy: four contractions in six years</h1>
+        <p class="answer">
+          Real output in Myanmar dropped <strong>{pct(Math.abs(growth))}</strong> in {L} — two falls back to back, and four since 2020 — while the dollar value of GDP stood at <strong>{usd(gdp)}</strong>.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Myanmar economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Myanmar" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Myanmar's output has fallen more often than it has grown since 2020, and several World Bank series for the country stop in 2019 or 2020.</p>
+
+        <div class="story-block prose">
+          <h2>Is Myanmar's economy still contracting?</h2>
+          <p>Yes. Output adjusted for prices slipped {pct(Math.abs(g(2024)))} in 2024 and {pct(Math.abs(growth))} in {L}, so output has dropped in four of the six years since 2020. Growth in 2022 and 2023 did not make up the 2020–21 losses.</p>
+        </div>
+        <LineChart
+          title={`Real growth in Myanmar, 1961–${L}`}
+          subtitle="Volume growth of output, % per year."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How bad was 2021 for Myanmar?</h2>
+          <p>The worst year on record: GDP fell {pct(Math.abs(worst[1]))}, following a {pct(Math.abs(g(2020)))} drop in 2020.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Why is dollar GDP at a high while output falls?</h2>
+          <p>Valued at current prices and exchange rates, Myanmar's {L} output amounted to {usd(gdp)} ({ord(B.gdpRank!)} on the world table), and income per person, {usdWhole(perHead)}, was close to its 2020 level. Those totals move with prices and the kyat exchange rate; the constant-price measure shows a decline.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>What data are missing for Myanmar?</h2>
+          <p>The World Bank's consumer price and remittance series end in 2019 (inflation {pct(infl.value)}, remittances {usd(rem!.value)}), and internet use is last reported for 2020, at {pct(net!.value)}. Unemployment, modelled by the ILO, was {pct(unemp!)} in {L}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Myanmar and Southeast Asia: related reading</h2>
+          <ul>
+            <li><a href={path('/country/myanmar/population/')}>Myanmar's population</a></li>
+            <li><a href={path('/country/thailand/economy/')}>Thailand's economy</a></li>
+            <li><a href={path('/country/bangladesh/economy/')}>Bangladesh's economy</a></li>
+            <li><a href={path('/country/vietnam/economy/')}>Vietnam's economy</a></li>
+            <li><a href={path('/rankings/gdp-by-country/')}>GDP ranking</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Myanmar's economy in chosen years, 1960–${L}`}
+          subtitle="Includes 1988 and 2002 with each year from 2019; inflation and remittance cells end in 2019."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/myanmar-economy.csv')} csvName="myanmar-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Myanmar's economy: questions</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">The World Bank notes Myanmar's national accounts use a fiscal year ending 30 September. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Myanmar economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Myanmar" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

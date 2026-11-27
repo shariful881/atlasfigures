@@ -1,0 +1,231 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import bf from '../../../data/countries/burkina-faso.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: the steepest five-year fertility fall of any
+// country (2015–2020) and the largest since 2000 among big Western African countries; births peaking in 2016; a 1950
+// population with far more men, women in the majority since 1967; net emigration in almost every year; urban majority
+// projected for 2047; growth almost zero by 2100. No causes claimed.
+const PAGE = '/country/burkina-faso/population/';
+const un = countryData(bf.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (bf.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const drop = (d: any) => at(d, 2015).fertility - at(d, 2020).fertility;
+const drops = [...wpp].sort((a: any, b: any) => drop(b) - drop(a)).map((d: any) => d.iso3);
+assertClaim(drops[0] === 'BFA', 'largest fertility fall of any country 2015–2020');
+const waf = wpp.filter((d: any) => d.subregion === 'Western Africa');
+const long = (d: any) => at(d, 2000).fertility - at(d).fertility;
+assertClaim([...waf].filter((d: any) => at(d).population >= 1e7).sort((a: any, b: any) => long(b) - long(a))[0].iso3 === 'BFA', 'largest fall since 2000 among big Western African countries');
+const tfrTop = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(tfrTop.year === 1981, 'fertility high in 1981');
+const bTop = un.years.filter((r) => r.year <= 2023).reduce((a, b) => (b.births > a.births ? b : a));
+assertClaim(bTop.year === 2016 && y[2020].births < y[2015].births, 'births peaked in 2016 among estimate years');
+assertClaim(un.years.filter((r) => r.year > 2016 && r.year <= CURRENT_YEAR).every((r) => r.births < bTop.births), 'births below the 2016 peak every year since');
+const men1950 = (y[1950].male / y[1950].female) * 100;
+const womenFrom = un.years.find((r) => r.male < r.female)!.year;
+assertClaim(men1950 > 110 && men1950 < 111 && womenFrom === 1967 && un.years.filter((r) => r.year >= womenFrom).every((r) => r.male < r.female), 'about 110 men per 100 women in 1950; women in the majority from 1967');
+const inflow = un.years.filter((r) => r.netMigrants >= 0).map((r) => r.year);
+assertClaim(inflow.join() === '2000,2001,2002,2003,2004,2005', 'net emigration in every year except 2000–2005');
+const urbanHalf = un.years.find((r) => r.urbanPct != null && r.urbanPct > 50)!.year;
+assertClaim(urbanHalf === 2047, 'urban majority projected for 2047');
+assertClaim(y[2100].growthRatePct > 0 && y[2100].growthRatePct < 0.05 && un.years.every((r, i, a) => i === 0 || r.population > a[i - 1].population), 'rises every year, almost flat by 2100');
+const under = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(under === 2080, 'fertility under 2.1 from 2080');
+const wafPop = [...waf].sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(wafPop.indexOf('BFA') === 5, 'sixth in Western Africa');
+
+const title = `Burkina Faso Population ${CURRENT_YEAR} (${(c.population / 1e6).toFixed(1)}M): A Record Drop in Fertility | AtlasFigures`;
+const description = `Burkina Faso (${millions(c.population)}, UN ${CURRENT_YEAR}) saw fertility fall faster from 2015 to 2020 than any other country. Births peaked in 2016; growth slows to almost zero by 2100.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: bf.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: '2015 rate', value: dec(y[2015].fertility, 2) },
+  { label: 'In 2100', value: millionsShort(y[2100].population) },
+];
+
+const rows = displayRows(un.years, bf.tableYears);
+
+const faq = [
+  { q: 'How many Burkinabè are there?', a: `Roughly ${millions(c.population)}, the UN reckons for mid-${CURRENT_YEAR}. Burkina Faso is ${ord(c.worldRank!)} globally and the sixth most populous nation in Western Africa.` },
+  { q: 'How much did fertility fall in Burkina Faso after 2015?', a: `By about one birth per woman in five years: the UN rate was ${dec(y[2015].fertility, 2)} for 2015 and ${dec(y[2020].fertility, 2)} for 2020, the largest five-year fall anywhere; the UN files do not explain it.` },
+  { q: 'Are births falling in Burkina Faso?', a: `Births peaked in 2016 among the UN's estimate years, at about ${int(Math.round(bTop.births / 1000))} thousand; ${CURRENT_YEAR} has about ${int(Math.round(c.births / 1000))} thousand.` },
+  { q: 'Is Burkina Faso a country of emigration?', a: `Mostly. Apart from 2000–2005, every UN year shows net departures; for ${CURRENT_YEAR} they come to about ${int(Math.round(-c.netMigrants / 1000))} thousand.` },
+  { q: "Will Burkina Faso's population keep growing?", a: `Yes, but ever more slowly. The projection passes through ${millions(y[2050].population)} at mid-century to ${millions(y[2100].population)} at its end, when the annual rate is close to zero.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: bf.slug, name: bf.name, wikipedia: bf.wikipedia,
+  headline: `Burkina Faso's ${millions(c.population)}: the fastest fertility fall of 2015–2020 and births past their peak`,
+  description,
+  datasetName: 'Burkina Faso population, fertility, births and sex ratio, 1950–2100',
+  datasetDescription: `Mid-year population of Burkina Faso for selected years from 1950 to ${CURRENT_YEAR} (2015, 2016 and 2020 included), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: bf.published, updated: bf.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Burkina Faso"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Burkina Faso", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Burkina Faso: the fastest fall in fertility of any country</h1>
+        <LiveCounter
+          label="Burkina Faso: current population, estimated"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: begins at the mid-${CURRENT_YEAR} total and grows by about ${int(c.change / 365)} daily`}
+        />
+        <p class="answer">
+          UN estimates for mid-{CURRENT_YEAR} count roughly <strong>{millions(c.population)}</strong> Burkinabè. Between 2015 and 2020 its fertility rate fell from {dec(y[2015].fertility, 2)} to <strong>{dec(y[2020].fertility, 2)}</strong>, a bigger five-year drop than any other country's; births have been lower than their 2016 peak ever since.
+        </p>
+        <div class="dates"><span>Updated <time datetime={bf.updated}>{longDate(bf.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Burkina Faso" code="bf" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>How fast did fertility fall in Burkina Faso?</h2>
+          <p>Faster than anywhere else between 2015 and 2020: in five years the UN rate slid from {dec(y[2015].fertility, 2)} to {dec(y[2020].fertility, 2)}. Today it is {dec(c.fertility, 2)}, against a high of {dec(tfrTop.fertility, 2)} in {tfrTop.year}. Since 2000 no Western African nation above ten million has seen a bigger decline. The annual number of births reached its high in {bTop.year}, about {int(Math.round(bTop.births / 1000))} thousand. The UN figures show the change without giving its causes.</p>
+        </div>
+        <LineChart
+          title="Births per Burkinabè woman, 1950 to 2050"
+          subtitle="UN births per woman, the steep drop of 2015–2020 included; projection dashed, 2.1 marked."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'two-point-one' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Were men once clearly in the majority in Burkina Faso?</h2>
+          <p>Yes. The 1950 estimate gives a ratio of {dec(men1950, 1)} men per 100 women; the UN files offer no reason. Females have outnumbered males each year from {womenFrom}, and the figure today is {dec((c.male / c.female) * 100, 1)}. Departures exceed arrivals in all UN years except 2000–2005; this year's net loss is near {int(Math.round(-c.netMigrants / 1000))} thousand.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Men per 100 women in Burkina Faso, UN estimates">
+          <div><span class="y">1950</span><div class="v">{dec(men1950, 1)}</div><span class="d">Men per 100 women</span></div>
+          <div><span class="y">{womenFrom}</span><div class="v">{dec((y[womenFrom].male / y[womenFrom].female) * 100, 1)}</div><span class="d">Women first in the majority</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{dec((c.male / c.female) * 100, 1)}</div><span class="d">Men per 100 women</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>When will most Burkinabè live in towns?</h2>
+          <p>In {urbanHalf}, on World Urbanization Prospects' projection. By the national yardstick, {pct(y[1950].urbanPct!)} of people were urban in 1950 against {pct(c.urbanPct!)} today; the projection gives {pct(y[2050].urbanPct!)} for 2050.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Will Burkina Faso's growth stop?</h2>
+          <p>Very nearly, by 2100. Growth is {pct(c.growthRatePct)} this year. By 2050 it is {millions(y[2050].population)}; the last projected year, {millions(y[2100].population)}, by which time annual growth is almost nil. Fertility drops below 2.1 in {under}. Burkina Faso is sixth in Western Africa by population today.</p>
+        </div>
+        <LineChart
+          title="Burkina Faso's population curve, 1950 to 2100"
+          subtitle="UN mid-year totals, flattening towards 2100; projected years dashed."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+        <RelatedPages iso3={bf.iso3} name={bf.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Burkina Faso: rows for 2015, 2016 and 2020 alongside the long run"
+          subtitle="Compare the 2015 and 2020 rows for the record fertility drop; projections come after the estimate years."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${bf.slug}-population.csv`)}
+          csvName={`${bf.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Burkina Faso: questions and answers on population</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{bf.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, men and women, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={bf.published}>{longDate(bf.published)}</time> · Updated <time datetime={bf.updated}>{longDate(bf.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Burkina Faso population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Burkina Faso" code="bf" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

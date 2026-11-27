@@ -1,0 +1,215 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import nic from '../../../data/countries/nicaragua.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story, counts only: life-expectancy dips in 1972
+// (the Managua earthquake, USGS cited for date and magnitude) and 1978–1979 (no cause given); net departures in every
+// year 1950–2100; a near tie with Paraguay, the lead changing hands in 1969, 1998, 2011, 2014, 2026 and (projected) 2069; fertility under 2.1 in 2029.
+const PAGE = '/country/nicaragua/population/';
+const un = countryData(nic.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (nic.verification as any).checkedOn as string | undefined;
+const USGS_URL = 'https://earthquake.usgs.gov/earthquakes/eventpage/iscgem766571';
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+assertClaim(y[1972].lifeExpectancy < y[1971].lifeExpectancy - 5 && y[1973].lifeExpectancy > y[1971].lifeExpectancy, '1972 dip of over 5 years, recovered 1973');
+assertClaim(y[1979].lifeExpectancy < y[1977].lifeExpectancy - 5 && y[1980].lifeExpectancy > y[1977].lifeExpectancy, '1978–1979 dip, recovered 1980');
+assertClaim(un.years.every((r) => r.netMigrants < 0), 'net departures every year 1950–2100');
+const outTop = un.years.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+assertClaim(outTop.year === 2003, 'largest outflow 2003');
+const pry = wpp.find((d: any) => d.iso3 === 'PRY');
+const lead = (n: number) => y[n].population > at(pry, n).population;
+const swaps = un.years.filter((r) => r.year > 1950 && lead(r.year) !== lead(r.year - 1)).map((r) => r.year);
+assertClaim(swaps.join() === '1969,1998,2011,2014,2026,2069', 'lead changes 1969, 1998, 2011, 2014, 2026, 2069');
+assertClaim(Math.abs(c.population - at(pry).population) < 1e5, 'within 100,000 of Paraguay now');
+const cam = wpp.filter((d: any) => d.subregion === 'Central America').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(cam.indexOf('NIC') === 3, 'fourth in Central America');
+const tfrTop = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+const repl = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(tfrTop.year === 1959 && repl === 2029, 'fertility high 1959, under 2.1 in 2029');
+const birthTop = un.years.reduce((a, b) => (b.births > a.births ? b : a));
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+assertClaim(birthTop.year === 1991 && peak.year === 2071, 'births peak 1991, population peak 2071');
+const urbanHalf = un.years.find((r) => r.urbanPct != null && r.urbanPct > 50)!.year;
+assertClaim(urbanHalf === 1977, 'urban majority 1977');
+const since = c.population / y[1950].population;
+assertClaim(since > 5.2 && since < 5.4, 'about 5.3 times 1950');
+
+const title = `Nicaragua Population ${CURRENT_YEAR} (${(c.population / 1e6).toFixed(1)}M): Neck and Neck With Paraguay, Emigration Every Year | AtlasFigures`;
+const description = `Nicaragua's ${CURRENT_YEAR} total on UN figures, ${millions(c.population)}, almost exactly matches Paraguay's. Departures beat arrivals from 1950 right through 2100; lifespans dropped steeply in 1972 and again in 1978–1979.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: nic.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+  { label: 'Urban', value: pct(c.urbanPct!) },
+];
+
+const rows = displayRows(un.years, nic.tableYears);
+
+const faq = [
+  { q: 'Is Nicaragua bigger than Paraguay?', a: `Barely, and only again since 2026: the two are within 100,000 of each other. Paraguay led from 2014 to 2025; the UN projection hands it the lead once more in 2069.` },
+  { q: 'Has net migration ever been positive for Nicaragua?', a: `Not once between 1950 and 2100. The heaviest year was ${outTop.year}, with ${int(-outTop.netMigrants)} more leaving than arriving.` },
+  { q: "Which event lines up with Nicaragua's 1972 lifespan low?", a: `A magnitude 6.3 earthquake struck near Managua on 23 December 1972, according to the USGS. In the UN series, life expectancy drops to ${dec(y[1972].lifeExpectancy, 1)} years in 1972 from ${dec(y[1971].lifeExpectancy, 1)} in 1971.` },
+  { q: 'When does Nicaraguan fertility go under replacement?', a: `The medium projection says ${repl}. The rate is currently ${dec(c.fertility, 2)}, down from a ${tfrTop.year} peak of ${dec(tfrTop.fertility, 2)}.` },
+  { q: "Where does Nicaragua's population top out?", a: `At ${millions(peak.population)} in ${peak.year}.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: nic.slug, name: nic.name, wikipedia: nic.wikipedia,
+  headline: `Nicaragua's ${millions(c.population)}: a near tie with Paraguay, emigration in every year, and a lifespan trough in 1972`,
+  description,
+  datasetName: 'Nicaragua population, life expectancy and net migration, 1950–2100',
+  datasetDescription: `Mid-year population of Nicaragua for selected years from 1950 to ${CURRENT_YEAR}, including 1972, 1979, 1998 and 2003, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: nic.published, updated: nic.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  extraCitations: [{ name: 'M 6.3 - 6 km NNE of Managua, Nicaragua (1972-12-23)', url: USGS_URL, publisher: 'U.S. Geological Survey' }],
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Nicaragua"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Nicaragua", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Nicaragua: Central America's steady exporter of people</h1>
+        <LiveCounter
+          label="Nicaragua: population estimate, live"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`Built on the UN World Population Prospects 2024 mid-${CURRENT_YEAR} number, plus about ${int(c.change / 365)} each day`}
+        />
+        <p class="answer">
+          Nicaraguans number <strong>{millions(c.population)}</strong> by mid-{CURRENT_YEAR} in UN estimates, over five times the 1950 number and within 100,000 of Paraguay. Year in, year out, more people leave the country than arrive, from 1950 to the end of the projection.
+        </p>
+        <div class="dates"><span>Updated <time datetime={nic.updated}>{longDate(nic.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Nicaragua" code="ni" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Is the 1972 Managua earthquake visible in Nicaraguan lifespan data?</h2>
+          <p>Yes. The USGS records a magnitude 6.3 earthquake near Managua on 23 December 1972. In the UN series, life expectancy is {dec(y[1971].lifeExpectancy, 1)} years in 1971, {dec(y[1972].lifeExpectancy, 1)} in 1972 and {dec(y[1973].lifeExpectancy, 1)} in 1973. A second trough follows in 1978–1979 ({dec(y[1978].lifeExpectancy, 1)}, then {dec(y[1979].lifeExpectancy, 1)}); for that one the UN files give no cause. Today the figure is {dec(c.lifeExpectancy, 1)}.</p>
+        </div>
+        <LineChart
+          title="Nicaraguan life expectancy, 1950–2050, with 1972 and 1979"
+          subtitle="Two sharp troughs in the 1970s; dashing marks projected values."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: Math.round(y[r.year].lifeExpectancy * 10) / 10, projection: r.projection }))}
+          unit="years"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Does Nicaragua ever gain people through migration?</h2>
+          <p>Never, on balance: from 1950 through the 2100 projection, departures exceed arrivals every single year. The biggest net loss came in {outTop.year}, at {int(-outTop.netMigrants)}; for {CURRENT_YEAR} the figure is {int(-c.netMigrants)}. Counts only; the source is silent on why.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Nicaragua or Paraguay: which has more people?</h2>
+          <p>Nicaragua, by a whisker, and only since 2026. The two have swapped places five times since 1969: Nicaragua went ahead that year, Paraguay in 1998, Nicaragua in 2011, Paraguay in 2014 and Nicaragua again in {CURRENT_YEAR}, when both sit at {millions(c.population)}. The projection hands Paraguay the lead for good in 2069. In Central America only Mexico, Guatemala and Honduras are larger.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How soon does Nicaragua stop growing?</h2>
+          <p>Around {peak.year}, at {millions(peak.population)}; by 2100 the projection eases to {millions(y[2100].population)}. Births are below their {birthTop.year} peak of {int(birthTop.births)}, with {int(c.births)} expected this year, and fertility, {dec(tfrTop.fertility, 2)} in {tfrTop.year}, drops under 2.1 in {repl}. Most Nicaraguans have been townspeople since {urbanHalf}.</p>
+        </div>
+        <RelatedPages iso3={nic.iso3} name={nic.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Nicaraguan figures for selected years, 1972 and 1979 among them"
+          subtitle="The net migration column is negative on every row."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${nic.slug}-population.csv`)}
+          csvName={`${nic.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Nicaragua, quickly answered</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{nic.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+            <li><a href={USGS_URL}>U.S. Geological Survey, event page "M 6.3 - 6 km NNE of Managua, Nicaragua"</a>: magnitude 6.3, 23 December 1972.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={nic.published}>{longDate(nic.published)}</time> · Updated <time datetime={nic.updated}>{longDate(nic.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Nicaragua population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Nicaragua" code="ni" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

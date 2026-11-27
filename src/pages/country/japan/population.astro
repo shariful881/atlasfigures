@@ -1,0 +1,230 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import jp from '../../../data/countries/japan.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: the oldest large population, shrinking since 2009.
+const PAGE = '/country/japan/population/';
+const un = countryData(jp.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (jp.verification as any).checkedOn as string | undefined;
+
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+assertClaim(peak.year === 2009 && un.years.filter((r) => r.year > peak.year).every((r) => r.change < 0), 'peak in 2009, smaller every year since');
+const lost = peak.population - c.population;
+const deathsPerBirth = c.deaths / c.births;
+assertClaim(deathsPerBirth > 2 && deathsPerBirth < 2.2, 'about two deaths for every birth');
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const now = (d: any) => d.years.find((r: any) => r.year === CURRENT_YEAR);
+const oldest = wpp.filter((d: any) => now(d).population > 1e6).sort((a: any, b: any) => now(b).medianAge - now(a).medianAge);
+assertClaim(oldest[0].iso3 === 'JPN', 'highest median age of any country with more than a million people');
+const longest = wpp.filter((d: any) => now(d).population > 10e6).sort((a: any, b: any) => now(b).lifeExpectancy - now(a).lifeExpectancy);
+assertClaim(longest[0].iso3 === 'JPN', 'longest life expectancy of any country over 10 million');
+const migCover = (c.netMigrants / -c.naturalChange) * 100;
+assertClaim(c.netMigrants > 0 && migCover > 10 && migCover < 20, 'net migration positive but replaces only a small part of the natural loss');
+const natLossFrom = un.years.find((r) => r.year > 2000 && r.naturalChange < 0)!.year;
+assertClaim(un.years.filter((r) => r.year >= natLossFrom).every((r) => r.naturalChange < 0), 'deaths above births every year since');
+assertClaim(Math.abs(y[2100].medianAge - y[2050].medianAge) < 1 && y[2100].lifeExpectancy > c.lifeExpectancy, 'median levels off after 2050; life expectancy still rising');
+const under100 = un.years.find((r) => r.year > peak.year && r.population < 100e6)!.year;
+assertClaim(y[2100].population < y[1950].population, 'fewer people in 2100 than in 1950');
+assertClaim(y[1973].births > 2.5 * c.births, '1973 births more than two and a half times today\'s');
+
+const title = `Japan Population ${CURRENT_YEAR}: Why It Is Shrinking by ${(Math.abs(c.change) / 1e6).toFixed(1)} Million a Year | AtlasFigures`;
+const description = `Japan has been shrinking since ${peak.year} and stands at ${millions(c.population)} people in ${CURRENT_YEAR}. Two deaths for every birth, a median age of ${dec(c.medianAge, 1)}, and a UN projection of ${millions(y[2100].population)} by 2100.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: pct(c.growthRatePct), note: `${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: jp.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+  { label: 'Deaths per birth', value: dec(deathsPerBirth, 1) },
+];
+
+const rows = displayRows(un.years, jp.tableYears);
+
+const faq = [
+  { q: "Why is Japan's population decreasing?", a: `Because deaths far outnumber births. The UN estimates ${millions(c.deaths)} deaths and ${millions(c.births)} births in ${CURRENT_YEAR}, while net migration adds only about ${int(Math.round(c.netMigrants / 1000))} thousand. The result is a fall of ${pct(Math.abs(c.growthRatePct))} this year.` },
+  { q: 'How many babies does Japan have a year?', a: `Roughly ${int(Math.round(c.births / 1000))} thousand in ${CURRENT_YEAR}, by the UN's figures. In 1973 the country had ${millions(y[1973].births)}, and in 1950 ${millions(y[1950].births)}.` },
+  { q: 'What is the average age in Japan?', a: `The median is ${dec(c.medianAge, 1)} years, meaning half of all residents are older than that, the highest of any country with more than a million people. In 1950 it was ${dec(y[1950].medianAge, 1)}.` },
+  { q: 'In what year will Japan drop under 100 million people?', a: `In ${under100}, according to the UN's medium-variant projection. For 2100 the projected total is ${millions(y[2100].population)}, fewer than in 1950.` },
+  { q: 'What is life expectancy in Japan?', a: `${dec(c.lifeExpectancy, 1)} years at birth in ${CURRENT_YEAR}, the longest of any country with over 10 million people. It was ${dec(y[1950].lifeExpectancy, 1)} in 1950.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: jp.slug, name: jp.name, wikipedia: jp.wikipedia,
+  headline: `Japan's population in ${CURRENT_YEAR}: ${millions(c.population)}, falling since ${peak.year} and the oldest of any large country`,
+  description,
+  datasetName: 'Japan population, density, fertility, median age and urban share, 1950–2100',
+  datasetDescription: `Mid-year population of Japan for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: jp.published, updated: jp.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Japan"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Japan', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Japan: an ageing, shrinking population</h1>
+        <LiveCounter
+          label="Japan's population now (estimate)"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} figure, minus about ${int(Math.abs(c.change) / 365)} people a day`}
+        />
+        <p class="answer">
+          Roughly <strong>{millions(c.population)} people</strong> live in Japan in {CURRENT_YEAR}, {ord(c.worldRank!)} in the world. The country passed its peak in {peak.year} and now <strong>shrinks by about {millions(Math.abs(c.change))} people each year</strong>, because there are about two deaths for every birth.
+        </p>
+        <div class="dates"><span>Updated <time datetime={jp.updated}>{longDate(jp.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Japan" code="jp" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>When did Japan's population start falling?</h2>
+          <p>After {peak.year}, when the UN puts it at {millions(peak.population)}. It has been lower in every year since, by about {millions(lost)} in total so far. In {CURRENT_YEAR} alone the drop is {millions(Math.abs(c.change))}, or {pct(Math.abs(c.growthRatePct))} of the population.</p>
+        </div>
+        <LineChart
+          title="Japan's population: growth to 2009, decline after"
+          subtitle="People living in Japan at mid-year, 1950–2100. The dashed portion is the UN's projected path."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How many people die in Japan for each baby born?</h2>
+          <p>About two. The UN expects {millions(c.deaths)} deaths in {CURRENT_YEAR} against {millions(c.births)} births, a ratio of {dec(deathsPerBirth, 1)} to one. Births were far higher a generation or two ago: {millions(y[1973].births)} in 1973; in 1950, {millions(y[1950].births)}. The fertility rate is {dec(c.fertility, 2)}, and deaths have exceeded births in every year since {natLossFrom}.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Is Japan the oldest country in the world?</h2>
+          <p>Among countries of more than a million people, yes. Japan's median age is {dec(c.medianAge, 1)} in {CURRENT_YEAR}; in other words, one person in two is older than that. In 1950 the figure was {dec(y[1950].medianAge, 1)}, and by 1980 it had reached {dec(y[1980].medianAge, 1)}. The UN expects {dec(y[2050].medianAge, 1)} in 2050, after which it levels off.</p>
+        </div>
+        <LineChart
+          title="Median age of Japan's population, 1950–2100"
+          subtitle="Half of Japanese are older than the value shown. Projected values (dashed) are from the UN."
+          points={rows.map((r) => ({ x: r.year, y: r.medianAge, projection: r.projection }))}
+          unit="years"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How long do people in Japan live?</h2>
+          <p>{dec(c.lifeExpectancy, 1)} years on average from birth, longer than in any nation with over 10 million inhabitants. In 1950 a newborn could expect {dec(y[1950].lifeExpectancy, 1)} years. Long lives are part of why the population is so old, alongside few births: only {dec(c.infantMortalityPer1000, 1)} babies in 1,000 die before their first birthday.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Life expectancy at birth in Japan">
+          <div><span class="y">1950</span><div class="v">{dec(y[1950].lifeExpectancy, 1)}</div><span class="d">Years a newborn could expect</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{dec(c.lifeExpectancy, 1)}</div><span class="d">Longest among large countries</span></div>
+          <div><span class="y">2100, UN projection</span><div class="v">{dec(y[2100].lifeExpectancy, 1)}</div><span class="d">Still rising</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Does immigration offset Japan's decline?</h2>
+          <p>Only a little. More people arrive than leave, about {int(Math.round(c.netMigrants / 1000))} thousand net in {CURRENT_YEAR}, but that makes up just {pct(migCover)} of the {int(Math.round(-c.naturalChange / 1000))} thousand lost to the gap between deaths and births.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How many people will Japan have in 2100?</h2>
+          <p>The UN's medium projection gives about {millions(y[2100].population)}, smaller than the {millions(y[1950].population)} of 1950. The total would slip under 100 million in {under100}. Japan ranked {ord(y[1950].worldRank!)} in the world in 1950; the projection has it {ord(y[2100].worldRank!)} by 2100.</p>
+        </div>
+        <RelatedPages iso3={jp.iso3} name={jp.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Japan's population over 150 years"
+          subtitle="1 July totals for 1950–2100, with crowding per km², fertility, median age, the urban percentage (Japan's own definition, until 2050) and world rank. Figures for 2030 and later are UN projections."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${jp.slug}-population.csv`)}
+          csvName={`${jp.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Japan's population: what people ask</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, infant mortality, world rank, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and subtracts the UN's projected decline for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={jp.published}>{longDate(jp.published)}</time> · Updated <time datetime={jp.updated}>{longDate(jp.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Japan population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Japan" code="jp" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

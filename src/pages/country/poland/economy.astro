@@ -1,0 +1,160 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/poland.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/poland/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const negs = s.gdpGrowthPct.filter(([, x]) => x < 0).map(([y]) => y);
+const uMax = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const uMin = s.unemploymentPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const remRank = rankBy('remittances', L).find((r) => r.iso3 === c.iso3)!.rank;
+const mult = Math.round(gdp / v('gdp', 2000)!);
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+
+assertClaim(isMax(s.gdp) && gdp >= 1e12 && s.gdp.filter(([, x]) => x >= 1e12).length === 1 && B.gdpRank === 21, 'first year above $1 trillion; 21st');
+assertClaim(isMax(s.gdpPerCapita) && mult === 6, 'record per person; about six times 2000');
+assertClaim(negs.join() === '1991,2020' && s.gdpGrowthPct[0][0] === 1991, 'declines only 1991 and 2020');
+assertClaim(uMax[0] === 2002 && uMin[0] === 2023 && unemp! < 3.5, 'unemployment peak 2002, low 2023');
+assertClaim(i(2022) > 14 && infl.year === L && infl.value < 4 && iMax[0] === 1990 && iMax[1] > 500, 'inflation 14% in 2022, under 4% now; 1990 peak');
+assertClaim(remRank === 26, 'remittances 26th');
+
+const title = `Poland Economy ${L}: First Year Above a Trillion Dollars | AtlasFigures`;
+const description = `Never before ${L} had Polish GDP exceeded a trillion dollars; it reached ${usd(gdp)} — roughly ${mult}-fold the 2000 figure. Unemployment was ${pct(unemp!)}, down from ${pct(uMax[1])} in 2002.`;
+
+const faq = [
+  { q: 'Is Poland\'s economy worth over a trillion dollars?', a: `It crossed that line in ${L}: ${usd(gdp)}, ${ord(B.gdpRank!)} on the world list.` },
+  { q: 'Has Poland ever been in recession?', a: `Twice on World Bank figures, which begin in 1991: in 1991 itself (${signedPct(g(1991))}) and in 2020 (${signedPct(g(2020))}).` },
+  { q: 'Is Polish unemployment near a record low?', a: `${pct(unemp!)} in ${L}, close to the ${pct(uMin[1])} low of 2023. In 2002 it was ${pct(uMax[1])}.` },
+  { q: 'How big was Poland\'s economy in 2000?', a: `GDP in current dollars rose from ${usd(v('gdp', 2000)!)} to ${usd(gdp)}, roughly ${mult}-fold; per person from ${usdWhole(v('gdpPerCapita', 2000)!)} to ${usdWhole(perHead)}.` },
+  { q: 'What is Polish inflation now?', a: `${pct(infl.value)} in ${L}, after ${pct(i(2022))} in 2022 and ${pct(i(2023))} in 2023.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Poland's economy ${L}: past a trillion dollars for the first time, with unemployment near a record low`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Polish economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Poland', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Poland's economy: a trillion-dollar milestone</h1>
+        <p class="answer">
+          Polish output rose to <strong>{usd(gdp)}</strong> in {L}, the first year above a trillion dollars. Unemployment stood at <strong>{pct(unemp!)}</strong>, close to its record low.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Poland economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Poland" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Apart from 1991, the only Polish contraction on record came in 2020, and its dollar output is now about six times the 2000 level.</p>
+
+        <div class="story-block prose">
+          <h2>Is Poland now a trillion-dollar economy?</h2>
+          <p>It crossed the line in {L}, producing {usd(gdp)}; Poland now ranks {ord(B.gdpRank!)} worldwide. In 2000 the economy was {usd(v('gdp', 2000)!)}, about one-sixth of today's size in current dollars.</p>
+        </div>
+        <LineChart
+          title={`Polish GDP since 1990`}
+          subtitle="In US dollars at current prices, from 1990."
+          points={s.gdp.map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How rarely does Poland's economy shrink?</h2>
+          <p>Only twice on record: in 1991, at the start of the series, and in 2020. In {L} output rose {pct(growth)}, a pace last beaten in 2022.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How far has unemployment fallen in Poland?</h2>
+          <p>From {pct(uMax[1])} in 2002 to {pct(unemp!)} in {L}, by ILO modelling; the lowest point was {pct(uMin[1])} in 2023.</p>
+        </div>
+        <LineChart
+          title={`Unemployment in Poland, 1991–${L}`}
+          subtitle="ILO-modelled jobless rate, % of the labour force."
+          points={s.unemploymentPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>What is a Pole's average share of output?</h2>
+          <p>{usdWhole(perHead)} in {L}, a new high, or {intDollars(ppp!)} once prices are compared. Inflation held at {pct(infl.value)}, well down from {pct(i(2022))} in 2022, and inflows of remittances, {usd(rem!.value)}, ranked {ord(remRank)}.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Poland and Central Europe: related pages</h2>
+          <ul>
+            <li><a href={path('/country/poland/population/')}>Poland's population</a></li>
+            <li><a href={path('/country/germany/economy/')}>Germany's economy</a></li>
+            <li><a href={path('/country/ukraine/economy/')}>Ukraine's economy</a></li>
+            <li><a href={path('/country/netherlands/economy/')}>Netherlands' economy</a></li>
+            <li><a href={path('/rankings/gdp-by-country/')}>Largest economies</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Poland's economic record in chosen years, 1990–${L}`}
+          subtitle="Picks 1991, 2002 and 2008, then each year since 2019; full series in the CSV."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/poland-economy.csv')} csvName="poland-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Polish economy: things people want to know</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">The World Bank's GDP series for Poland begins in 1990, its growth series in 1991 and its consumer price series in 1971. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Polish economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Poland" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

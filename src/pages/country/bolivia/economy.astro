@@ -1,0 +1,161 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/bolivia.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/bolivia/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const negYears = s.gdpGrowthPct.filter(([, x]) => x < 0).map(([y]) => y);
+const hiInflSince = Math.max(...s.inflationPct.filter(([y, x]) => y < L && x > infl.value).map(([y]) => y));
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const best = s.gdpGrowthPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const inflRank = rankBy('inflationPct', L).find((r) => r.iso3 === c.iso3)!.rank;
+const inflN = rankBy('inflationPct', L).length;
+const dollarUp = Math.round((gdp / v('gdp', L - 1)! - 1) * 100);
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+
+assertClaim(growth < 0 && g(L - 1) < 0 && negYears.join() === '1980,1982,1983,1984,1985,1986,2020,2024,2025', 'two straight contractions, first since 1982-86');
+assertClaim(hiInflSince === 1991 && infl.value > 19.5 && i(L - 1) > 5 && i(2023) < 3, 'inflation highest since 1991, jumped from 2.6% in 2023');
+assertClaim(iMax[0] === 1985 && iMax[1] > 11700 && i(1984) > 1000, 'hyperinflation 1984-85');
+assertClaim(worst[0] === 2020 && best[0] === 2021 && inflRank === 8 && inflN === 169, '2020 worst, 2021 best; 8th-highest inflation of 169');
+assertClaim(isMax(s.gdp) && dollarUp === 18, 'dollar GDP up 18% to a record');
+
+const title = `Bolivia Economy ${L}: Output Falls Again as Inflation Hits ${pct(infl.value)} | AtlasFigures`;
+const description = `Bolivian output shrank ${pct(Math.abs(growth))} in ${L} following ${pct(Math.abs(g(L - 1)))} in ${L - 1}, while inflation leapt to ${pct(infl.value)}, its highest since 1991.`;
+
+const faq = [
+  { q: 'Has Bolivia entered a recession?', a: `Two negative years say so: ${signedPct(g(L - 1))} in ${L - 1} and ${signedPct(growth)} in ${L}. Not since the 1982–1986 slide had Bolivian output dropped in consecutive years.` },
+  { q: 'Why did Bolivian inflation jump?', a: `The figures chart the climb without explaining it — from ${pct(i(2023))} in 2023 through ${pct(i(L - 1))} to ${pct(infl.value)} in ${L}, a level unmatched since 1991 and ${ord(inflRank)} of ${inflN} economies with a ${L} figure.` },
+  { q: 'How bad was Bolivia\'s hyperinflation in the 1980s?', a: `Extreme: annual price growth passed 1,000% in 1984 and reached ${pct(iMax[1])} the following year.` },
+  { q: 'How can dollar GDP rise when Bolivia\'s output falls?', a: `In ${L} the dollar total grew ${dollarUp}%, to ${usd(gdp)}, while real output shrank. The dollar figure also reflects higher prices and the exchange rate used for conversion, so it can move in a different direction from real growth.` },
+  { q: 'What were Bolivia\'s best and worst recent years?', a: `2020 was the worst on record, ${signedPct(worst[1])}; 2021 the best, ${signedPct(best[1])}.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Bolivia's economy in ${L}: two years of contraction and rising prices`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Bolivian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Bolivia', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Bolivia's economy: contraction and a price surge</h1>
+        <p class="answer">
+          Bolivian output contracted <strong>{pct(Math.abs(growth))}</strong> in {L}, its second fall in a row, as consumer prices jumped <strong>{pct(infl.value)}</strong>.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Bolivia economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Bolivia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Two years of falling output and the fastest price rises since 1991 mark a sharp turn for Bolivia.</p>
+
+        <div class="story-block prose">
+          <h2>Is the Bolivian economy contracting?</h2>
+          <p>Two years running now: {signedPct(g(L - 1))} in {L - 1}, then {signedPct(growth)} in {L}. Bolivia had not seen consecutive declines since 1982–1986. The deepest slump on record remains 2020's {signedPct(worst[1])}; the strongest year, 2021's {signedPct(best[1])}.</p>
+        </div>
+        <LineChart
+          title={`Bolivia's annual real GDP change, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="Percentage growth or contraction of output at constant prices."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Has inflation returned to Bolivia?</h2>
+          <p>Sharply. From 2023's {pct(i(2023))}, the annual rate rose to {pct(i(L - 1))} and then {pct(infl.value)}, Bolivia's steepest since 1991. Only {inflRank - 1} economies reported higher inflation for {L}. Four decades ago it was far worse: hyperinflation peaked at {pct(iMax[1])} in 1985.</p>
+        </div>
+        <LineChart
+          title={`Bolivian inflation, 2000–${L}`}
+          subtitle="Consumer price index, % change over the year."
+          points={s.inflationPct.filter(([y]) => y >= 2000).map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Why is Bolivia's dollar GDP at a record?</h2>
+          <p>Valued in dollars, the {L} economy was {dollarUp}% bigger than a year before — {usd(gdp)} — despite producing less. Price rises and the conversion rate explain the gap, not extra output. Per Bolivian the dollar figure was {usdWhole(perHead)}; in PPP terms, {intDollars(ppp!)}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Are Bolivians losing jobs?</h2>
+          <p>Not on the ILO's modelled measure, which put unemployment at {pct(unemp!)} for {L}. Bolivians abroad sent {usd(rem!.value)} home, {pct(remPct!.value)} of GDP.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Bolivia and South America: related pages</h2>
+          <ul>
+            <li><a href={path('/country/bolivia/population/')}>Bolivia's population</a></li>
+            <li><a href={path('/country/peru/economy/')}>Peru's economy</a></li>
+            <li><a href={path('/country/argentina/economy/')}>Argentina's economy</a></li>
+            <li><a href={path('/country/chile/economy/')}>Chile's economy</a></li>
+            <li><a href={path('/rankings/inflation-rate-by-country/')}>Inflation league table</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Bolivia's economic record, chosen years`}
+          subtitle="1960, 1970, 1980, the 1984–86 crisis, 1990–91, 2000 and 2010, followed by 2015–2025; other years are downloadable."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/bolivia-economy.csv')} csvName="bolivia-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Bolivia's economy: questions people ask</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Dollar GDP is converted at the World Bank's exchange rates; real growth is in constant local prices. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Bolivian economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Bolivia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

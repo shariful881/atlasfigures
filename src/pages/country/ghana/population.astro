@@ -1,0 +1,229 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import gh from '../../../data/countries/ghana.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: second in Western Africa after Nigeria, with
+// the lowest fertility of any Western African country above ten million; urban majority since 2009; growth slowing
+// toward 2100 without a peak; a 1950 population with clearly more men than women, now balanced. No causes claimed.
+const PAGE = '/country/ghana/population/';
+const un = countryData(gh.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (gh.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const waf = wpp.filter((d: any) => d.subregion === 'Western Africa');
+const wafPop = [...waf].sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(wafPop[0] === 'NGA' && wafPop[1] === 'GHA', 'second in Western Africa after Nigeria');
+const wafBigTfr = waf.filter((d: any) => at(d).population >= 1e7).sort((a: any, b: any) => at(a).fertility - at(b).fertility).map((d: any) => d.iso3);
+assertClaim(wafBigTfr[0] === 'GHA', 'lowest fertility among Western African countries above ten million');
+const tfrTop = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(tfrTop.year === 1969, 'fertility high in 1969');
+const underFour = un.years.find((r) => r.fertility < 4)!.year;
+assertClaim(underFour === 2015, 'fertility under four from 2015');
+const under = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(under === 2079, 'fertility under 2.1 in 2079');
+const urbanHalf = un.years.find((r) => r.urbanPct != null && r.urbanPct > 50)!.year;
+assertClaim(urbanHalf === 2009, 'urban majority since 2009');
+const gTop = un.years.reduce((a, b) => (b.growthRatePct > a.growthRatePct ? b : a));
+assertClaim(gTop.year === 1959, 'fastest growth in 1959');
+assertClaim(un.years.every((r, i, a) => i === 0 || r.population > a[i - 1].population) && y[2100].growthRatePct > 0 && y[2100].growthRatePct < 0.2, 'rises every year; growth almost zero by 2100');
+const men1950 = (y[1950].male / y[1950].female) * 100;
+const menNow = (c.male / c.female) * 100;
+const womenFrom = un.years.find((r) => r.male < r.female)!.year;
+assertClaim(un.years.filter((r) => r.year >= womenFrom).every((r) => r.male < r.female) && c.fertility < tfrTop.fertility / 2, 'women outnumber men every year from 1969; fertility less than half the peak');
+assertClaim(men1950 > 109 && men1950 < 110 && menNow < 100 && womenFrom === 1969, 'about 109 men per 100 women in 1950; women outnumber men from 1969');
+const dens = [...waf].filter((d: any) => at(d).population >= 1e7).sort((a: any, b: any) => at(b).densityPerKm2 - at(a).densityPerKm2).map((d: any) => d.iso3);
+assertClaim(dens[0] === 'NGA' && dens[1] === 'GHA', 'second-densest of the big Western African countries after Nigeria');
+
+const title = `Ghana Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)} Million, Smaller Families and an Urban Majority | AtlasFigures`;
+const description = `With ${millions(c.population)} inhabitants this year by UN estimate, Ghana is West Africa's second-largest nation. Fertility of ${dec(c.fertility, 2)} is the lowest among the region's big countries, and towns have held most Ghanaians since ${urbanHalf}.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: gh.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'Urban', value: pct(c.urbanPct!) },
+];
+
+const rows = displayRows(un.years, gh.tableYears);
+
+const faq = [
+  { q: 'How big is Ghana\'s population?', a: `The UN gives ${millions(c.population)} for 1 July ${CURRENT_YEAR}. Ghana ranks ${ord(c.worldRank!)} globally and second in Western Africa, after Nigeria.` },
+  { q: 'Has Ghana\'s fertility rate dropped?', a: `Yes, to ${dec(c.fertility, 2)} per woman in ${CURRENT_YEAR}, less than half the ${dec(tfrTop.fertility, 2)} of ${tfrTop.year} and the lowest of any Western African country with more than ten million people.` },
+  { q: 'Is Ghana more urban than rural?', a: `Yes, narrowly since ${urbanHalf} and clearly now: Ghana's urban share, ${pct(c.urbanPct!)} under the national definition, is projected to reach ${pct(y[2050].urbanPct!)} in 2050.` },
+  { q: "Will Ghana's population stop growing?", a: `Not this century in the UN medium variant. Growth slows to ${pct(y[2100].growthRatePct)} by 2100, when the total reaches ${millions(y[2100].population)}, but it never turns negative.` },
+  { q: 'Which is the capital of Ghana?', a: 'Accra, on the Gulf of Guinea coast.' },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: gh.slug, name: gh.name, wikipedia: gh.wikipedia,
+  headline: `Ghana's ${millions(c.population)}: West Africa's lowest big-country fertility and an urban majority since ${urbanHalf}`,
+  description,
+  datasetName: 'Ghana population, fertility, urban share and sex ratio, 1950–2100',
+  datasetDescription: `Mid-year population of Ghana for selected years from 1950 to ${CURRENT_YEAR} (2009 included), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: gh.published, updated: gh.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Ghana"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Ghana', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Ghana: smaller families and city living, ahead of its neighbours</h1>
+        <LiveCounter
+          label="Ghana: modelled population count"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: the ${CURRENT_YEAR} mid-year level, growing about ${int(c.change / 365)} each day`}
+        />
+        <p class="answer">
+          Ghana counts <strong>{millions(c.population)}</strong> residents in UN estimates for mid-{CURRENT_YEAR}, second in Western Africa behind Nigeria. Its fertility rate of <strong>{dec(c.fertility, 2)}</strong> is the lowest of any Western African country above ten million people, and a majority of Ghanaians have lived in urban areas since {urbanHalf}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={gh.updated}>{longDate(gh.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Ghana" code="gh" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Are Ghanaian families smaller than elsewhere in West Africa?</h2>
+          <p>Among the region's larger countries, yes. Ghanaian fertility now stands at {dec(c.fertility, 2)}, against {dec(tfrTop.fertility, 2)} at the {tfrTop.year} high; the rate has been below four since {underFour}. Every other Western African country of ten million or more has a higher figure, Nigeria's included. The UN medium variant keeps the decline going and reaches 2.1 only in {under}.</p>
+        </div>
+        <LineChart
+          title="Ghana's fertility rate since 1950, with the UN outlook to 2050"
+          subtitle="Average children per Ghanaian woman; the dashed stretch is projected, and 2.1 is marked for reference."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'replacement (2.1)' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>When did Ghana become majority urban?</h2>
+          <p>In {urbanHalf}. World Urbanization Prospects, which applies Ghana's national definition of an urban area, shows the share has risen from {pct(y[1950].urbanPct!)} in 1950 to {pct(c.urbanPct!)} today and reaches {pct(y[2050].urbanPct!)} in the 2050 projection. With {int(c.densityPerKm2)} people per square kilometre, Ghana is also the most crowded of the region's big countries after Nigeria.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Share of Ghanaians living in urban areas, national definition">
+          <div><span class="y">1950</span><div class="v">{pct(y[1950].urbanPct!)}</div><span class="d">Urban</span></div>
+          <div><span class="y">{urbanHalf}</span><div class="v">{pct(y[urbanHalf].urbanPct!)}</div><span class="d">Majority reached</span></div>
+          <div><span class="y">2050</span><div class="v">{pct(y[2050].urbanPct!)}</div><span class="d">Projected</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Is Ghana's growth slowing down?</h2>
+          <p>Steadily. The annual rate was highest in {gTop.year}, at {pct(gTop.growthRatePct)}; it is {pct(c.growthRatePct)} now, or about {int(Math.round(c.change / 1000))} thousand more people a year. The UN never shows an actual fall. Projected totals are {millions(y[2050].population)} for mid-century and {millions(y[2100].population)} for 2100, with growth by then just {pct(y[2100].growthRatePct)}.</p>
+        </div>
+        <LineChart
+          title="Ghana from 1950 to 2100: the curve flattens but never turns"
+          subtitle="UN mid-year population; projected years dashed."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Did Ghana once have more men than women?</h2>
+          <p>In the UN's earliest figures, yes: the 1950 ratio is about {dec(men1950, 1)} males per 100 females. The gap closed over the next two decades, and women have outnumbered men in every year since {womenFrom}; today's ratio is {dec(menNow, 1)}. The UN data describe the shift but do not explain it.</p>
+        </div>
+        <RelatedPages iso3={gh.iso3} name={gh.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Ghana: estimates and projections, 1950–2100"
+          subtitle="The 2009 row marks the first urban majority; rows in the UN projections band are projected."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${gh.slug}-population.csv`)}
+          csvName={`${gh.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Questions about Ghana's people</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{gh.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, men and women, world rank, regional grouping, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={gh.published}>{longDate(gh.published)}</time> · Updated <time datetime={gh.updated}>{longDate(gh.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Ghana population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Ghana" code="gh" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

@@ -1,0 +1,232 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import es from '../../../data/countries/spain.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: an immigration-driven boom, a dip in 2012–2015, a 2023 high and the turn to decline.
+const PAGE = '/country/spain/population/';
+const un = countryData(es.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (es.verification as any).checkedOn as string | undefined;
+
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+assertClaim(peak.year === 2023, 'high point in 2023');
+assertClaim(un.years.filter((r) => r.year > peak.year).every((r) => r.change < 0), 'every year after 2023 is smaller in the projection');
+const est = un.years.filter((r) => !r.projection);
+const boom = est.reduce((a, b) => (b.change > a.change ? b : a));
+assertClaim(boom.year === 2007 && boom.netMigrants > 750e3 && est.reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a)).year === 2007, '2007: biggest yearly gain and biggest net inflow, over 750 thousand');
+const dip = est.filter((r) => r.change < 0).map((r) => r.year);
+assertClaim(dip.join(',') === '2012,2013,2014,2015' && dip.every((yr) => y[yr].netMigrants < 0), 'only falls before 2024 were 2012–2015, each with net emigration');
+const outTop = y[2013];
+assertClaim(dip.every((yr) => y[yr].netMigrants >= outTop.netMigrants), '2013 had the largest net outflow of the dip');
+const natSince = un.years.find((r) => r.naturalChange < 0)!.year;
+assertClaim(natSince === 2015 && un.years.filter((r) => r.year >= 2015 && r.year <= 2100).every((r) => r.naturalChange < 0), 'natural loss every year from 2015');
+const birthTop = est.reduce((a, b) => (b.births > a.births ? b : a));
+assertClaim(birthTop.year === 1964 && c.births < birthTop.births / 2, 'births less than half the 1964 level');
+const tfrLow = est.reduce((a, b) => (b.fertility < a.fertility ? b : a));
+assertClaim(tfrLow.year === 1998, 'lowest fertility in 1998');
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const le = wpp.filter((d: any) => d.region === 'Europe' && at(d).population > 5e6).sort((a: any, b: any) => at(b).lifeExpectancy - at(a).lifeExpectancy).map((d: any) => d.iso3);
+assertClaim(le.indexOf('ESP') === 2 && le[0] === 'CHE' && le[1] === 'ITA', 'third-highest life expectancy in Europe among countries over 5 million, after Switzerland and Italy');
+const backTo = un.years.find((r) => r.population >= y[2100].population)!.year;
+const lowW = wpp.filter((d: any) => at(d).population > 5e6).sort((a: any, b: any) => at(a).fertility - at(b).fertility).map((d: any) => d.iso3);
+assertClaim(lowW.indexOf('ESP') < 15, 'among the 15 lowest fertility rates of countries over 5 million');
+assertClaim(un.years.filter((r) => r.year >= 2016 && r.year <= 2023).every((r) => r.netMigrants > 0), 'arrivals positive again from 2016');
+assertClaim(backTo === 1968, '2100 total about the size of 1968');
+
+const title = `Spain Population ${CURRENT_YEAR}: Past Its ${peak.year} Peak at ${(c.population / 1e6).toFixed(1)} Million | AtlasFigures`;
+const description = `Immigration pushed Spain to a record population in ${peak.year}. By mid-${CURRENT_YEAR} it had eased to ${millions(c.population)}, and UN projections trace a gradual slide to ${millions(y[2100].population)} by 2100.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: pct(c.growthRatePct), note: `${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: es.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'Life expectancy', value: dec(c.lifeExpectancy, 1) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+];
+
+const rows = displayRows(un.years, es.tableYears);
+
+const faq = [
+  { q: 'What does Spain\'s population add up to now?', a: `Roughly ${millions(c.population)} as of mid-year, so Spain ranks ${ord(c.worldRank!)} on the planet and second in Southern Europe after Italy.` },
+  { q: 'Is Spain past its population high?', a: `In the UN medium variant, yes: the record was ${millions(peak.population)} in ${peak.year}, and every later year is a little lower; ${CURRENT_YEAR} brings a fall of ${pct(Math.abs(c.growthRatePct))}.` },
+  { q: 'How many immigrants came to Spain during the boom?', a: `Net inflows hit ${int(Math.round(boom.netMigrants / 1000))} thousand in ${boom.year} alone by the UN's count, the highest on record, when the population grew by ${int(Math.round(boom.change / 1000))} thousand within twelve months.` },
+  { q: 'Did Spain lose people after the 2008 crisis?', a: `The UN figures show four years of decline, 2012 to 2015, all with more people leaving than arriving; the outflow was largest in 2013 at about ${int(Math.round(Math.abs(outTop.netMigrants) / 1000))} thousand.` },
+  { q: 'Are Spaniards among the longest-lived people in Europe?', a: `Yes. A Spanish newborn can expect ${dec(c.lifeExpectancy, 1)} years, a figure topped in Europe only by Switzerland and Italy once small states under 5 million are set aside. The 1950 value was ${dec(y[1950].lifeExpectancy, 1)}.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: es.slug, name: es.name, wikipedia: es.wikipedia,
+  headline: `Spain after its ${peak.year} peak: ${millions(c.population)} residents in ${CURRENT_YEAR}`,
+  description,
+  datasetName: 'Spain population, migration, fertility, life expectancy and urban share, 1950–2100',
+  datasetDescription: `Mid-year population of Spain for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: es.published, updated: es.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Spain"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Spain', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Spain's population after the migration boom</h1>
+        <LiveCounter
+          label="Spain: running population estimate"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} value, easing down by about ${int(Math.abs(c.change) / 365)} a day`}
+        />
+        <p class="answer">
+          Roughly <strong>{millions(c.population)}</strong> people make up Spain's population in mid-{CURRENT_YEAR}, placing it {ord(c.worldRank!)} worldwide. It reached a <strong>record in {peak.year}</strong>, mostly thanks to immigration, and is now edging down by {pct(Math.abs(c.growthRatePct))} a year.
+        </p>
+        <div class="dates"><span>Updated <time datetime={es.updated}>{longDate(es.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Spain" code="es" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>How much did immigration grow Spain's population?</h2>
+          <p>Enormously in the 2000s. In {boom.year}, the UN estimates, net arrivals reached {int(Math.round(boom.netMigrants / 1000))} thousand and the population rose by {int(Math.round(boom.change / 1000))} thousand, the largest one-year gain in the series. Over the decade from 2000 the total gained {millions(y[2010].population - y[2000].population)}. Mid-century Spain was the opposite case: in 1950 about {int(Math.round(Math.abs(y[1950].netMigrants) / 1000))} thousand more people left than arrived.</p>
+        </div>
+        <LineChart
+          title="Spain's population, 1950–2100: boom, dip, peak and decline"
+          subtitle="Mid-year totals. The dashed part is the UN projection, sloping to about 33 million."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Why did Spain's population fall between 2012 and 2015?</h2>
+          <p>Because migration reversed. In each of those four years more people left Spain than moved there; 2013 saw the biggest net loss, roughly {int(Math.round(Math.abs(outTop.netMigrants) / 1000))} thousand. Growth resumed when arrivals picked up again, and Spain set its record of {millions(peak.population)} in {peak.year}. Births have not covered deaths since 2015, and the projected decline begins once arrivals no longer make up that gap.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How low is Spain's birth rate?</h2>
+          <p>Among the lowest in the world: Spanish women average {dec(c.fertility, 2)} children today, after the all-time low of {dec(tfrLow.fertility, 2)} reached in {tfrLow.year}. This year's births, near {int(Math.round(c.births / 1000))} thousand, are fewer than half of the {int(Math.round(birthTop.births / 1000))} thousand recorded in {birthTop.year}; deaths run at about {int(Math.round(c.deaths / 1000))} thousand.</p>
+        </div>
+        <LineChart
+          title="Fertility in Spain, 1950 to 2050"
+          subtitle="UN total fertility rate, with the projected years dashed; 2.1 shown for reference."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: '2.1' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How does life expectancy in Spain compare with the rest of Europe?</h2>
+          <p>It stands at {dec(c.lifeExpectancy, 1)} years, the third-best in Europe once states below 5 million are excluded, after Switzerland and Italy. In 1950 it was {dec(y[1950].lifeExpectancy, 1)}. Longer lives and few births make Spain older: half its residents are past {dec(c.medianAge, 1)}, with {dec(y[2050].medianAge, 1)} projected for 2050.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Life expectancy in Spain">
+          <div><span class="y">1950</span><div class="v">{dec(y[1950].lifeExpectancy, 1)}</div><span class="d">Life expectancy</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{dec(c.lifeExpectancy, 1)}</div><span class="d">No. 3 of Europe's larger countries</span></div>
+          <div><span class="y">2100, UN projection</span><div class="v">{dec(y[2100].lifeExpectancy, 1)}</div><span class="d">Years at birth</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Where is Spain's population heading by 2100?</h2>
+          <p>Down to around {millions(y[2100].population)}, close to the size Spain had in {backTo}, according to the medium variant; its world rank would slip from {ord(c.worldRank!)} to {ord(y[2100].worldRank!)}. Density is a modest {int(c.densityPerKm2)} people per km², with {pct(c.urbanPct!)} in urban areas as Spain defines them.</p>
+        </div>
+        <RelatedPages iso3={es.iso3} name={es.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Spanish population by decade, with projections to 2100"
+          subtitle="Spain at each decade mark and today, with projected years from 2030 shaded."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${es.slug}-population.csv`)}
+          csvName={`${es.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Spain's population: common questions</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{es.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={es.published}>{longDate(es.published)}</time> · Updated <time datetime={es.updated}>{longDate(es.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Spain population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Spain" code="es" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

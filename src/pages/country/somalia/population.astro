@@ -1,0 +1,231 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import so from '../../../data/countries/somalia.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: the fastest growth and youngest median age
+// among countries of ten million or more; the highest fertility in the world 2019–2023; UN life-expectancy estimates
+// that collapse in 1991–1992 and 2011; mid-year totals falling 1989–1992; an urban majority since 2018.
+// Counts only, neutral wording; the UN files give no causes.
+const PAGE = '/country/somalia/population/';
+const un = countryData(so.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (so.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const fast = [...big].sort((a: any, b: any) => at(b).growthRatePct - at(a).growthRatePct).map((d: any) => d.iso3);
+const fastAll = [...wpp].sort((a: any, b: any) => at(b).growthRatePct - at(a).growthRatePct).map((d: any) => d.iso3);
+assertClaim(fast[0] === 'SOM' && fastAll.indexOf('SOM') === 1 && fastAll[0] === 'CAF', 'fastest growth among countries of ten million or more; second overall after the Central African Republic');
+assertClaim([...big].sort((a: any, b: any) => at(a).medianAge - at(b).medianAge)[0].iso3 === 'SOM', 'youngest median age among countries of ten million or more');
+const tfrLead = [2018, 2019, 2020, 2021, 2022, 2023, 2024].filter((n) => [...wpp].sort((a: any, b: any) => at(b, n).fertility - at(a, n).fertility)[0].iso3 === 'SOM');
+assertClaim(tfrLead.join() === '2019,2020,2021,2022,2023', 'highest fertility in the world 2019–2023');
+assertClaim([...wpp].sort((a: any, b: any) => at(b).fertility - at(a).fertility).slice(0, 2).map((d: any) => d.iso3).join() === 'TCD,SOM', 'second-highest fertility now, after Chad');
+const tfrTop = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(tfrTop.year === 1997 && un.years.every((r) => r.fertility > 2.1), 'fertility high 1997; above 2.1 throughout');
+assertClaim(y[1991].lifeExpectancy < 26 && y[1992].lifeExpectancy < 26 && y[1990].lifeExpectancy > 45 && y[1993].lifeExpectancy > 50 && y[2011].lifeExpectancy < 33 && y[2010].lifeExpectancy > 48 && y[2012].lifeExpectancy > 48, 'life-expectancy collapses in 1991–1992 and 2011');
+const leLow = un.years.reduce((a, b) => (b.lifeExpectancy < a.lifeExpectancy ? b : a));
+assertClaim(leLow.year === 1992, 'lowest life expectancy 1992');
+const drops = un.years.filter((r, i, a) => i > 0 && r.population < a[i - 1].population).map((r) => r.year);
+const back = un.years.find((r) => r.year > 1988 && r.population > y[1988].population)!.year;
+assertClaim(drops.join() === '1989,1990,1991,1992' && back === 1995, 'mid-year totals fell 1989–1992; above 1988 again in 1995');
+const outTop = un.years.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+const inTop = un.years.reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+assertClaim(outTop.year === 1991 && inTop.year === 1979, 'largest net departures 1991, largest net arrivals 1979');
+const urbanHalf = un.years.find((r) => r.urbanPct != null && r.urbanPct > 50)!.year;
+const eafBig = big.filter((d: any) => d.subregion === 'Eastern Africa');
+assertClaim(urbanHalf === 2018 && [...eafBig].sort((a: any, b: any) => at(b).urbanPct - at(a).urbanPct)[0].iso3 === 'SOM', 'urban majority since 2018; most urban large Eastern African country');
+const dblRow = un.years.find((r) => r.population > 2 * c.population)!;
+const dbl = dblRow.year;
+assertClaim(dbl === 2055, 'doubles by 2055');
+const eaf = (n: number) => wpp.filter((d: any) => d.subregion === 'Eastern Africa').sort((a: any, b: any) => at(b, n).population - at(a, n).population).map((d: any) => d.iso3).indexOf('SOM');
+assertClaim(eaf(CURRENT_YEAR) === 8 && eaf(2100) === 6, 'ninth in Eastern Africa now, seventh by 2100');
+const times = c.population / y[1950].population;
+assertClaim(times > 9.1 && times < 9.3, 'about nine times 1950');
+
+const title = `Somalia Population ${CURRENT_YEAR}: ${(c.population / 1e6).toFixed(1)}M, Growing ${pct(c.growthRatePct)} a Year | AtlasFigures`;
+const description = `Somalia (${millions(c.population)}, UN ${CURRENT_YEAR}) grows faster and is younger than any other nation above ten million; fertility is ${dec(c.fertility, 2)}. The population doubles by 2055.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: so.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Growth', value: pct(c.growthRatePct) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+  { label: 'Doubles by', value: String(dbl) },
+];
+
+const rows = displayRows(un.years, so.tableYears);
+
+const faq = [
+  { q: 'How quickly is the Somali population increasing?', a: `${pct(c.growthRatePct)} a year: the ${CURRENT_YEAR} gain is near ${int(Math.round(c.change / 1000))} thousand people; only the Central African Republic grows faster, and no nation above ten million does.` },
+  { q: 'Is Somalia the youngest large country?', a: `Yes. Half of Somalis are under ${dec(c.medianAge, 1)}, a median below every other nation with ten million-plus inhabitants.` },
+  { q: 'Is Somali fertility still among the highest?', a: `It is: ${dec(c.fertility, 2)} per woman in the UN's figures for ${CURRENT_YEAR}, second only to Chad; Somalia had the world's highest rate from 2019 to 2023, and its peak was ${dec(tfrTop.fertility, 2)} in ${tfrTop.year}.` },
+  { q: "Did Somalia's population decline in the early 1990s?", a: `Yes. Each 1 July total from 1989 to 1992 was below the year before, reaching ${millions(y[1992].population)}; the ${millions(y[1988].population)} of 1988 was exceeded again in ${back}.` },
+  { q: 'When will Somalia double its population?', a: `${dbl} is the first projected year above twice today's total, with ${millions(dblRow.population)}; growth continues to ${millions(y[2100].population)} in 2100.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: so.slug, name: so.name, wikipedia: so.wikipedia,
+  headline: `Somalia's ${millions(c.population)}: the fastest-growing, youngest large population, with UN estimates marked by 1991–92 and 2011`,
+  description,
+  datasetName: 'Somalia population, growth and life expectancy, 1950–2100',
+  datasetDescription: `Mid-year population of Somalia for selected years from 1950 to ${CURRENT_YEAR} (1988–1992 and 2011 included), with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: so.published, updated: so.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Somalia"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Somalia", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Somalia: the fastest-growing and youngest of the large populations</h1>
+        <LiveCounter
+          label="Somalia: approximate head count right now"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} total, increasing by some ${int(c.change / 365)} each day`}
+        />
+        <p class="answer">
+          At <strong>{pct(c.growthRatePct)}</strong> a year, Somalia's population grows faster than that of any other country with ten million or more people; with a median of <strong>{dec(c.medianAge, 1)}</strong> years it is also the youngest of them. For mid-{CURRENT_YEAR} the UN reckons there are {millions(c.population)} Somalis.
+        </p>
+        <div class="dates"><span>Updated <time datetime={so.updated}>{longDate(so.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Somalia" code="so" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Is Somalia the fastest-growing country?</h2>
+          <p>Of the large nations, yes; counting every country and area, the Central African Republic alone grows faster this year. About {int(Math.round(c.births / 1000))} thousand births and {int(Math.round(c.deaths / 1000))} thousand deaths are expected in {CURRENT_YEAR}. The total is {dec(times, 1)} times its 1950 size and, on the medium variant, doubles again by {dbl}. Somalia is ninth in Eastern Africa today and seventh by 2100, at {millions(y[2100].population)}.</p>
+        </div>
+        <LineChart
+          title="Somalia's population curve from 1950, with the UN outlook"
+          subtitle="1 July totals; the early-1990s dip shows before the dashed medium variant."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Has Somalia's birth rate started to come down?</h2>
+          <p>Yes, from a peak of {dec(tfrTop.fertility, 2)} in {tfrTop.year} to {dec(c.fertility, 2)} births per woman now, yet only Chad is higher. For five years, 2019 through 2023, Somalia led the world, and the projection stays above 2.1 to 2100. Infant mortality is {dec(c.infantMortalityPer1000!, 1)} per 1,000 live births, down from {dec(y[1950].infantMortalityPer1000!, 1)} in 1950.</p>
+        </div>
+        <LineChart
+          title="Fertility in Somalia, 1950–2050"
+          subtitle="Somali fertility: solid line for UN estimates, dashes for the projection, with 2.1 for scale."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'at 2.1' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>What do the UN figures show for 1991–1992 and 2011?</h2>
+          <p>Sharp breaks. Estimated life expectancy plunges from {dec(y[1990].lifeExpectancy, 1)} in 1990 to {dec(y[1991].lifeExpectancy, 1)} in 1991 and {dec(y[1992].lifeExpectancy, 1)} in 1992, then returns to {dec(y[1993].lifeExpectancy, 1)} in 1993; in 2011 it falls to {dec(y[2011].lifeExpectancy, 1)}, having been {dec(y[2010].lifeExpectancy, 1)} in 2010. The mid-year population slipped every year from 1989 to 1992, to {millions(y[1992].population)}, and net departures peaked in {outTop.year} at about {int(Math.round(-outTop.netMigrants / 1000))} thousand; by contrast {inTop.year} brought the biggest surplus of arrivals, close to {int(Math.round(inTop.netMigrants / 1000))} thousand. The UN files record these numbers without giving causes. Life expectancy now stands at {dec(c.lifeExpectancy, 1)}.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Do most Somalis now live in urban areas?</h2>
+          <p>Yes; by the national definition the urban majority dates from {urbanHalf}: {pct(c.urbanPct!)} today, against {pct(y[1950].urbanPct!)} in 1950, with {pct(y[2050].urbanPct!)} projected for 2050. No other large Eastern African nation is more urban. Density is {int(c.densityPerKm2)} per km² on {int(un.landAreaKm2)} km².</p>
+        </div>
+        <RelatedPages iso3={so.iso3} name={so.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Somalia, 1950–2100, with 1988 to 1992 and 2011 shown"
+          subtitle="Rows 1988 to 1992 hold the only run of falling totals; projections come last."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${so.slug}-population.csv`)}
+          csvName={`${so.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Somalia questions, answered from UN data</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{so.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={so.published}>{longDate(so.published)}</time> · Updated <time datetime={so.updated}>{longDate(so.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Somalia population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Somalia" code="so" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

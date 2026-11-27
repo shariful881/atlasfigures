@@ -32,9 +32,9 @@ const lastmod = (u) => (sitemap.match(new RegExp(`<loc>[^<]*${BASE}${u.replace(/
 const econ = existsSync('src/data/economy') ? readdirSync('src/data/economy').filter((f) => f.endsWith('.json')).map((f) => JSON.parse(readFileSync(join('src/data/economy', f), 'utf8'))) : [];
 
 for (const c of econ) {
-  const url = `/economy/${c.slug}/`;
+  const url = `/country/${c.slug}/economy/`;
   const where = `page ${url}`;
-  const file = join(DIST, 'economy', c.slug, 'index.html');
+  const file = join(DIST, 'country', c.slug, 'economy', 'index.html');
   if (!ok(existsSync(file), where, 'page not built')) continue;
   const html = readFileSync(file, 'utf8');
   const root = parse(html);
@@ -217,7 +217,7 @@ for (const [slug, R] of Object.entries(RANKINGS)) {
     const root = parse(readFileSync(file, 'utf8'));
     const links = root.querySelectorAll('#countries a.row').map((a) => a.getAttribute('href'));
     ok(links.length > 0, 'page /economy/', 'no #countries list');
-    for (const c of econ) ok(links.includes(`${BASE}/economy/${c.slug}/`), 'page /economy/', `hub does not list ${c.slug}`);
+    for (const c of econ) ok(links.includes(`${BASE}/country/${c.slug}/economy/`), 'page /economy/', `hub does not list ${c.slug}`);
     const list = nodes(root).find((x) => x['@type'] === 'CollectionPage')?.mainEntity?.itemListElement ?? [];
     ok(JSON.stringify(list.map((i) => i.url.replace(/^https?:\/\/[^/]+/, ''))) === JSON.stringify(links), 'page /economy/', 'ItemList ≠ list shown');
   }

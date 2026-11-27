@@ -175,7 +175,7 @@ const schema = [
 
       <div class="story-block prose">
         <h2>Where has forest been lost and gained since {B}?</h2>
-        <p><a href={path('/economy/brazil/')}>Brazil</a> lost {km(-lost[0].d)} of forest between {B} and {L}, {Math.abs((lost[0].d / lost[0].b) * 100).toFixed(1)}% of what it had — more than any other country, and more than <a href={path('/economy/china/')}>China</a> gained. <a href={path('/economy/dr-congo/')}>DR Congo</a> ({km(-lost[1].d)}) and <a href={path('/economy/angola/')}>Angola</a> ({km(-lost[2].d)}) follow. China added {km(gained[0].d)}, growing its forest by {((gained[0].d / gained[0].b) * 100).toFixed(1)}%; Russia and Canada had the next-largest gains.</p>
+        <p><a href={path('/country/brazil/economy/')}>Brazil</a> lost {km(-lost[0].d)} of forest between {B} and {L}, {Math.abs((lost[0].d / lost[0].b) * 100).toFixed(1)}% of what it had — more than any other country, and more than <a href={path('/country/china/economy/')}>China</a> gained. <a href={path('/country/dr-congo/economy/')}>DR Congo</a> ({km(-lost[1].d)}) and <a href={path('/country/angola/economy/')}>Angola</a> ({km(-lost[2].d)}) follow. China added {km(gained[0].d)}, growing its forest by {((gained[0].d / gained[0].b) * 100).toFixed(1)}%; Russia and Canada had the next-largest gains.</p>
       </div>
       <LineChart
         title={`Brazil's forest area, ${braYears[0][0]}–${L}`}
@@ -195,7 +195,7 @@ const schema = [
 
       <div class="story-block prose">
         <h2>What share of Bangladesh is forest?</h2>
-        <p>{p1(fp('BGD', L)!)} of <a href={path('/economy/bangladesh/')}>Bangladesh</a>'s land in {L}, down a little from {p1(fp('BGD', B)!)} in {B}. India's share rose over the same years, from {p1(fp('IND', B)!)} to {p1(fp('IND', L)!)}, and Bhutan, at {p1(fp('BTN', L)!)}, is the most heavily forested country in South Asia.</p>
+        <p>{p1(fp('BGD', L)!)} of <a href={path('/country/bangladesh/economy/')}>Bangladesh</a>'s land in {L}, down a little from {p1(fp('BGD', B)!)} in {B}. India's share rose over the same years, from {p1(fp('IND', B)!)} to {p1(fp('IND', L)!)}, and Bhutan, at {p1(fp('BTN', L)!)}, is the most heavily forested country in South Asia.</p>
       </div>
     </section>
 

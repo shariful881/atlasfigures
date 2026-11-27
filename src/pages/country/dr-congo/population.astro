@@ -1,0 +1,231 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import cd from '../../../data/countries/dr-congo.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: one of the fastest-growing and youngest large populations; the biggest projected gain of any country to 2100, passing Ethiopia and the US.
+const PAGE = '/country/dr-congo/population/';
+const un = countryData(cd.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (cd.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big10 = wpp.filter((d: any) => at(d).population > 10e6);
+const fast = big10.slice().sort((a: any, b: any) => at(b).growthRatePct - at(a).growthRatePct).map((d: any) => d.iso3);
+assertClaim(fast.indexOf('COD') < 3 && c.growthRatePct > 3, 'among the three fastest-growing countries over 10 million, above 3%');
+const young = big10.slice().sort((a: any, b: any) => at(a).medianAge - at(b).medianAge).map((d: any) => d.iso3);
+assertClaim(young.indexOf('COD') < 5 && c.medianAge < 16, 'one of the five youngest countries over 10 million, median under 16');
+const gain = wpp.slice().sort((a: any, b: any) => (at(b, 2100).population - at(b).population) - (at(a, 2100).population - at(a).population)).map((d: any) => d.iso3);
+const add = y[2100].population - c.population;
+assertClaim(gain[0] === 'COD' && add > 310e6, 'largest projected gain of any country to 2100, over 310 million');
+const eth = wpp.find((d: any) => d.iso3 === 'ETH');
+const usa = wpp.find((d: any) => d.iso3 === 'USA');
+const passEth = un.years.find((r) => r.year > CURRENT_YEAR && r.population > at(eth, r.year).population)!.year;
+const passUsa = un.years.find((r) => r.year > CURRENT_YEAR && r.population > at(usa, r.year).population)!.year;
+assertClaim(passEth === 2056 && passUsa === 2097 && y[2100].worldRank === 5 && y[2050].worldRank === 8, 'passes Ethiopia 2056, US 2097; 8th in 2050, 5th in 2100');
+const dbl = un.years.find((r) => r.population >= 2 * c.population)!.year;
+assertClaim(dbl === 2054, 'double by 2054');
+const adders = wpp.slice().sort((a: any, b: any) => at(b).change - at(a).change).map((d: any) => d.iso3);
+assertClaim(adders.indexOf('COD') === 3, 'fourth-largest yearly addition in the world');
+const tfrMax = un.years.reduce((a, b) => (b.fertility > a.fertility ? b : a));
+assertClaim(tfrMax.year === 2000 && un.years.every((r) => r.fertility >= 2.1), 'fertility peak 2000; never below 2.1 through 2100');
+const africa = wpp.filter((d: any) => d.region === 'Africa').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+const middle = wpp.filter((d: any) => d.subregion === 'Middle Africa').sort((a: any, b: any) => at(b).population - at(a).population).map((d: any) => d.iso3);
+assertClaim(africa.indexOf('COD') === 3 && middle[0] === 'COD', 'fourth in Africa, largest in Middle Africa');
+const times = c.population / y[1950].population;
+assertClaim(times > 9.4 && times < 9.5, 'about 9.5 times 1950');
+
+const pass400 = un.years.find((r) => r.population >= 400e6)!.year;
+assertClaim(pass400 >= 2090 && pass400 < 2100, 'passes 400 million in the 2090s');
+assertClaim(c.naturalChange > c.change && y[2050].fertility > 3 && y[2100].fertility > 2 && adders.slice(0, 3).join(',') === 'IND,NGA,PAK', 'growth from births; fertility above 3 in 2050, above 2 in 2100; only India, Nigeria, Pakistan add more');
+const title = `DR Congo's Population: ${(c.population / 1e6).toFixed(1)} Million (${CURRENT_YEAR}), Rising ${pct(c.growthRatePct)} Annually | AtlasFigures`;
+const description = `Mid-${CURRENT_YEAR} UN estimates put DR Congo at ${millions(c.population)}, half of its people below the age of ${dec(c.medianAge, 1)}. UN projections add over 300 million by 2100, more than any other country.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: cd.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Growth per year', value: `+${pct(c.growthRatePct)}` },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+];
+
+const rows = displayRows(un.years, cd.tableYears);
+
+const faq = [
+  { q: 'How large is the population of DR Congo?', a: `${millions(c.population)} at mid-${CURRENT_YEAR}, the UN estimates: ${ord(c.worldRank!)} worldwide, fourth in Africa and the largest in Middle Africa.` },
+  { q: 'Why is DR Congo one of the fastest-growing countries?', a: `The UN figures point to fertility: ${dec(c.fertility, 2)} children per woman, so about ${millions(c.births)} births this year against ${int(Math.round(c.deaths / 1000))} thousand deaths. Growth is ${pct(c.growthRatePct)}, a top-three rate for nations above ten million.` },
+  { q: 'How big will DR Congo be in 2050?', a: `Roughly ${millions(y[2050].population)}, as projected under the medium variant, ${ord(y[2050].worldRank!)} in the world. The total doubles from today's level by ${dbl}.` },
+  { q: 'Will DR Congo have more people than the United States?', a: `The UN projects that it will, from ${passUsa}. It overtakes Ethiopia earlier, in ${passEth}, and ends the century ${ord(y[2100].worldRank!)} in the world with ${millions(y[2100].population)}.` },
+  { q: 'How young is the Congolese population?', a: `Half are under ${dec(c.medianAge, 1)}; only a handful of nations above ten million have a lower median.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: cd.slug, name: cd.unName, wikipedia: cd.wikipedia,
+  headline: `DR Congo at ${millions(c.population)}, growing ${pct(c.growthRatePct)} a year in ${CURRENT_YEAR}`,
+  description,
+  datasetName: 'Democratic Republic of the Congo population, fertility, age and projections, 1950–2100',
+  datasetDescription: `Mid-year population of the Democratic Republic of the Congo for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: cd.published, updated: cd.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="DR Congo"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'DR Congo', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>DR Congo: a young population on course to pass 400 million</h1>
+        <LiveCounter
+          label="DR Congo: live population estimate"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} start, adding about ${int(c.change / 365)} people each day`}
+        />
+        <p class="answer">
+          DR Congo's population, around <strong>{millions(c.population)}</strong> at mid-{CURRENT_YEAR} and {ord(c.worldRank!)} globally, rises <strong>{pct(c.growthRatePct)} a year</strong>. Its median resident is only {dec(c.medianAge, 1)}, and the UN medium variant arrives at {millions(y[2100].population)} for 2100.
+        </p>
+        <div class="dates"><span>Updated <time datetime={cd.updated}>{longDate(cd.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="DR Congo" code="cd" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Which country will add the most people by 2100?</h2>
+          <p>DR Congo, on the UN's medium projection: roughly {millions(add)} more people between {CURRENT_YEAR} and 2100, a bigger increase than any other country, India and Nigeria included. That would lift it to {millions(y[2100].population)} from today's {millions(c.population)}, overtaking Ethiopia ({passEth}) and later the United States ({passUsa}).</p>
+        </div>
+        <LineChart
+          title="DR Congo's population, 1950–2100: a curve that keeps climbing"
+          subtitle="UN mid-year totals; the dashed medium projection passes 400 million in the 2090s."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Why is DR Congo growing so fast?</h2>
+          <p>Almost entirely through births: the {CURRENT_YEAR} fertility rate is {dec(c.fertility, 2)}, down only a little from the {dec(tfrMax.fertility, 2)} peak of {tfrMax.year}. Births, about {millions(c.births)} this year, far exceed deaths, and the population grows by {pct(c.growthRatePct)}, a top-three rate among nations above ten million. Only India, Nigeria and Pakistan add more people each year.</p>
+        </div>
+        <LineChart
+          title="Congolese fertility, 1950 to 2050: a late and gradual fall"
+          subtitle="Congolese births per woman; the projected values are dashed and never fall below 2.1."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: '2.1 benchmark' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How young are the people of DR Congo?</h2>
+          <p>Very young: {dec(c.medianAge, 1)} is the median age, one of the five lowest medians for nations over ten million. The UN expects it to reach only {dec(y[2050].medianAge, 1)} by 2050 and {dec(y[2100].medianAge, 1)} by 2100.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Median age in DR Congo">
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{dec(c.medianAge, 1)}</div><span class="d">Median age</span></div>
+          <div><span class="y">2050, UN projection</span><div class="v">{dec(y[2050].medianAge, 1)}</div><span class="d">Still about 20</span></div>
+          <div><span class="y">2100, UN projection</span><div class="v">{dec(y[2100].medianAge, 1)}</div><span class="d">Early thirties</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How large will DR Congo be in 2050?</h2>
+          <p>About {millions(y[2050].population)}, putting it {ord(y[2050].worldRank!)} worldwide, and double today's total by {dbl}. It is already the largest country in Middle Africa and fourth in Africa, with roughly 9.5 times as many people as it had in 1950 ({millions(y[1950].population)}). The national definition counts {pct(c.urbanPct!)} of Congolese as urban.</p>
+        </div>
+        <RelatedPages iso3={cd.iso3} name={cd.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="DR Congo population and indicators, 1950–2100"
+          subtitle="Look at the fertility column: still above 3 in 2050 and above 2 in 2100."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${cd.slug}-population.csv`)}
+          csvName={`${cd.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">DR Congo's population: your questions</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{cd.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={cd.published}>{longDate(cd.published)}</time> · Updated <time datetime={cd.updated}>{longDate(cd.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('DR Congo population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="DR Congo" code="cd" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

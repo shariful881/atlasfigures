@@ -5,7 +5,7 @@ import { abs, ORG_ID, WEBSITE_ID, PUBLISHER } from '../site';
 const UN_DESA = { '@type': 'Organization', name: 'United Nations, Department of Economic and Social Affairs, Population Division' };
 
 export interface SchemaInput {
-  page: string;                 // e.g. '/population/india/'
+  page: string;                 // e.g. '/country/india/population/'
   slug: string;
   name: string;                 // common English name
   wikipedia: string;

@@ -1,0 +1,157 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/malaysia.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/malaysia/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const netRank = rankBy('internetPct', net!.year).find((r) => r.iso3 === c.iso3)!.rank;
+const remRank = rankBy('remittances', rem!.year).find((r) => r.iso3 === c.iso3)!.rank;
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const times = gdp / v('gdp', 2000)!;
+
+assertClaim(B.gdpRank === 33 && s.gdp.every(([y, x]) => y === L || x < gdp), '33rd; record dollar GDP');
+assertClaim(growth > 5 && growth > g(L - 1) && Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < L && x > growth).map(([y]) => y)) === 2022, 'growth above 5%, fastest since 2022');
+assertClaim(infl.year === L && infl.value < 1.5 && Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y)) === 2020, 'inflation lowest since 2020');
+assertClaim(net!.value > 97.5 && netRank === 12, 'internet use 98%, 12th');
+assertClaim(worst[0] === 1998 && s.gdpGrowthPct.filter(([, x]) => x < 0).map(([y]) => y).join() === '1985,1998,2009,2020', 'four down years; 1998 the worst');
+assertClaim(times > 5 && times < 5.1 && remRank === 28, 'GDP about five times 2000; remittances 28th');
+
+const title = `Malaysia Economy ${L}: GDP Growth Above 5% | AtlasFigures`;
+const description = `Malaysian GDP was ${pct(growth)} higher in real terms in ${L}, the best gain since 2022, reaching ${usd(gdp)}. Inflation slowed to ${pct(infl.value)}, and ${pct(net!.value)} of Malaysians use the internet.`;
+
+const faq = [
+  { q: 'What was Malaysia\'s growth rate in ' + L + '?', a: `${pct(growth)} in ${L}, up from ${pct(g(L - 1))} and the best since 2022 (${pct(g(2022))}).` },
+  { q: 'What is Malaysia\'s GDP in dollars?', a: `${usd(gdp)} for ${L} (${ord(B.gdpRank!)} globally), roughly quintuple its 2000 level.` },
+  { q: 'What is GDP per capita in Malaysia?', a: `${usdWhole(perHead)} in ${L}, ranking ${ord(B.pcRank!)}; with prices equalised (PPP), ${intDollars(ppp!)}. This averages total output over the population and is not a household-income measure.` },
+  { q: 'Did the 1997–98 Asian crisis hit Malaysia?', a: `Yes: output fell ${pct(Math.abs(worst[1]))} in 1998, Malaysia's worst year in World Bank data. The other declines were 1985, 2009 and 2020.` },
+  { q: 'Does Malaysia receive remittances?', a: `${usd(rem!.value)} of personal remittances arrived in ${rem!.year} (${ord(remRank)} in the world), equal to ${pct(remPct!.value)} of GDP.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Malaysia's economy ${L}: ${pct(growth)} growth, the fastest since 2022`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Malaysian economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Malaysia', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Malaysia's economy: growth picks up</h1>
+        <p class="answer">
+          Malaysia's real growth reached <strong>{pct(growth)}</strong> in {L}, the best since 2022, taking GDP to <strong>{usd(gdp)}</strong>, while inflation eased to {pct(infl.value)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Malaysia economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Malaysia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Faster growth, slower inflation and near-universal internet use mark Malaysia's latest figures.</p>
+
+        <div class="story-block prose">
+          <h2>Is Malaysia's economy accelerating?</h2>
+          <p>Yes. Output was up {pct(growth)} in {L}, after {pct(g(L - 1))} in {L - 1} and {pct(g(2023))} in 2023, the quickest since 2022. Malaysia's output has fallen in just four years in the World Bank series: 1985, 1998 ({signedPct(g(1998))}), 2009 and 2020.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Has Malaysia's GDP reached a new high?</h2>
+          <p>Yes: {usd(gdp)} for {L}, placing Malaysia {ord(B.gdpRank!)} and roughly quintuple the 2000 total. Divided by population, {usdWhole(perHead)} each, or {intDollars(ppp!)} in PPP dollars.</p>
+        </div>
+        <LineChart
+          title={`Malaysian output in dollars since 1960`}
+          subtitle="Current US dollars; one point every five years until 2015, then annual."
+          points={s.gdp.filter(([y]) => y % 5 === 0 || y >= 2019).map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Are prices calm in Malaysia?</h2>
+          <p>Yes: {pct(infl.value)} in {L}, the smallest rise in Malaysian consumer prices since 2020, down from {pct(i(2022))} in 2022. The jobless rate, as the ILO models it, was {pct(unemp!)}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Is Malaysia one of the most connected countries?</h2>
+          <p>Yes. The ITU counts {pct(net!.value)} of Malaysians as internet users in {net!.year}, {ord(netRank)} highest among the economies with data for that year.</p>
+        </div>
+        <LineChart
+          title={`Internet users in Malaysia, 1995–${net!.year}`}
+          subtitle="Share of the population online, ITU via the World Bank, per cent."
+          points={s.internetPct.filter(([y]) => y >= 1995).map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <nav class="related" aria-label="Related pages">
+          <h2>Malaysia and its neighbours: more pages</h2>
+          <ul>
+            <li><a href={path('/country/malaysia/population/')}>Malaysia's population</a></li>
+            <li><a href={path('/country/singapore/economy/')}>Singapore's economy</a></li>
+            <li><a href={path('/country/thailand/economy/')}>Thailand's economy</a></li>
+            <li><a href={path('/country/indonesia/economy/')}>Indonesia's economy</a></li>
+            <li><a href={path('/country/bangladesh/economy/')}>Bangladesh's economy</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Malaysian economy, key years since 1960`}
+          subtitle="Includes 1998 and 2009 with the latest years; the full series is in the CSV."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/malaysia-economy.csv')} csvName="malaysia-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Quick facts about Malaysia's economy</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Internet figures are from the International Telecommunication Union, published by the World Bank. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Malaysian economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Malaysia" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

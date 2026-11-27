@@ -1,0 +1,202 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import fin from '../../../data/countries/finland.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story, counts only: a 2025 peak, so 2026 is the
+// first projected year of decline; deaths above births every year from 2016; the 1969–1970 dip with net departures
+// largest in 1969; 2022 net arrivals the largest; births in 2023 the fewest since 1950; fertility sixth-lowest in Europe.
+const PAGE = '/country/finland/population/';
+const un = countryData(fin.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (fin.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+assertClaim(peak.year === 2025 && c.population < peak.population, 'peak 2025, lower in 2026');
+assertClaim(un.years.filter((r) => r.year > 2025).every((r) => r.population < y[r.year - 1].population), 'lower every year after 2025');
+const natNeg = un.years.find((r) => r.naturalChange < 0)!.year;
+assertClaim(natNeg === 2016 && un.years.filter((r) => r.year >= 2016).every((r) => r.naturalChange < 0), 'deaths above births from 2016');
+const falls = un.years.filter((r) => r.year <= 2025 && y[r.year - 1] && r.population < y[r.year - 1].population).map((r) => r.year);
+assertClaim(falls.join() === '1969,1970', 'earlier falls 1969–1970');
+const outTop = un.years.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+const inTop = un.years.reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+assertClaim(outTop.year === 1969 && inTop.year === 2022, 'largest outflow 1969, inflow 2022');
+const bLow = un.years.filter((r) => r.year <= CURRENT_YEAR).reduce((a, b) => (b.births < a.births ? b : a));
+assertClaim(bLow.year === 2023, 'fewest births 2023');
+const e1 = wpp.filter((d: any) => d.region === 'Europe' && at(d).population >= 1e6);
+assertClaim([...e1].sort((a: any, b: any) => at(a).fertility - at(b).fertility).map((d: any) => d.iso3).indexOf('FIN') === 5, 'sixth-lowest fertility in Europe');
+const ratio = y[2100].population / c.population;
+assertClaim(ratio > 0.81 && ratio < 0.83, 'about 82% of today by 2100');
+
+const title = `Finland Population ${CURRENT_YEAR} (${(c.population / 1e6).toFixed(1)}M): Shrinking After 2025, Deaths Ahead of Births | AtlasFigures`;
+const description = `At ${millions(c.population)} for ${CURRENT_YEAR}, Finland is just below its 2025 high in UN figures: the first year of a projected decline. Since 2016 deaths have led births, and 2023 had the fewest births on record since 1950.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: fin.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+  { label: 'Life expectancy', value: dec(c.lifeExpectancy, 1) },
+];
+
+const rows = displayRows(un.years, fin.tableYears);
+
+const faq = [
+  { q: 'Is the Finnish total now falling?', a: `Yes, in the projection: the high point is 2025 at ${millions(peak.population)}, and ${CURRENT_YEAR} is the first lower year. Every year after that is lower too.` },
+  { q: 'When did Finnish deaths first outnumber births?', a: `In 2016, and in every year after; the ${CURRENT_YEAR} figures are ${int(c.deaths)} deaths and ${int(c.births)} births.` },
+  { q: 'When were Finnish births at their lowest?', a: `2023, with ${int(bLow.births)}; no year since 1950 (${int(y[1950].births)} births) had fewer.` },
+  { q: 'Did Finland shrink before?', a: `Yes, in 1969 and 1970; 1969 also had the most net departures, ${int(-outTop.netMigrants)}. Reasons are not recorded.` },
+  { q: 'What is the 2100 projection for Finland?', a: `${millions(y[2100].population)}, close to four fifths of the present count.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: fin.slug, name: fin.name, wikipedia: fin.wikipedia,
+  headline: `Finland's ${millions(c.population)}: past its 2025 peak; deaths above births since 2016; record-low births in 2023`,
+  description,
+  datasetName: 'Finland population, births and deaths, 1950–2100',
+  datasetDescription: `Mid-year population of Finland for selected years from 1950 to ${CURRENT_YEAR}, including 1968–1971, 2016, 2022, 2023 and 2025, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: fin.published, updated: fin.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Finland"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Finland", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Finland: a population that has just turned the corner</h1>
+        <LiveCounter
+          label="Finland: live population estimate (declining)"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`Starts from the UN World Population Prospects 2024 mid-${CURRENT_YEAR} level; about ${int(-c.change / 365)} fewer each day`}
+        />
+        <p class="answer">
+          Mid-{CURRENT_YEAR}, Finland stands at <strong>{millions(c.population)}</strong>, UN estimates say, just after the peak: 2025 is the high point and the projection falls from here. Since <strong>2016</strong> Finnish deaths have topped births year after year.
+        </p>
+        <div class="dates"><span>Updated <time datetime={fin.updated}>{longDate(fin.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Finland" code="fi" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>In which year does Finland hit its maximum?</h2>
+          <p>2025; that year's projected count, {millions(peak.population)}, is the high-water mark. This year's count is a little lower, and every later year is lower again. By 2050 the count is {millions(y[2050].population)}; 2100 ends at {millions(y[2100].population)}, which is 82% of today.</p>
+        </div>
+        <LineChart
+          title="Finland's population, 1950–2100, peaking in 2025"
+          subtitle="1 July totals; the UN projection is dashed."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>When did Finnish deaths overtake births?</h2>
+          <p>In 2016, and the gap has persisted each year since; {CURRENT_YEAR} brings {int(c.deaths)} deaths against {int(c.births)} births. Births bottomed out at {int(bLow.births)} in 2023; 1950 had {int(y[1950].births)}. Fertility, {dec(c.fertility, 2)}, ranks sixth-lowest in Europe (states topping one million).</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How has migration shaped Finland?</h2>
+          <p>Two extremes stand out. In 1969 net departures reached {int(-outTop.netMigrants)}, and the population fell in 1969 and 1970. In 2022 the net gain from migration hit {int(inTop.netMigrants)}, a series record; the {CURRENT_YEAR} figure is {int(c.netMigrants)}. The source does not give reasons.</p>
+        </div>
+        <RelatedPages iso3={fin.iso3} name={fin.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Finland: 1968–1971, 2016, 2022–2026 and decades"
+          subtitle="The 2025 row holds the peak; 2023 has the fewest births."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${fin.slug}-population.csv`)}
+          csvName={`${fin.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Finland: questions and figures</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{fin.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={fin.published}>{longDate(fin.published)}</time> · Updated <time datetime={fin.updated}>{longDate(fin.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Finland population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Finland" code="fi" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

@@ -1,0 +1,211 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import pse from '../../../data/countries/state-of-palestine.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/; listed as "State of Palestine"). Neutral, counts
+// only, no causes: the 2023 rise in estimated deaths and fall in life expectancy; the 1966–1969 falls with net
+// departures largest in 1967; fifth-highest density among countries and areas of 1 million+; second-youngest in Western
+// Asia; growth through 2100. UN status line cites the UN Secretary-General's report A/67/738.
+const PAGE = '/country/state-of-palestine/population/';
+const un = countryData(pse.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (pse.verification as any).checkedOn as string | undefined;
+const UN_URL = 'https://www.un.org/unispal/document/auto-insert-182149/';
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+assertClaim(y[2023].lifeExpectancy < y[2022].lifeExpectancy - 10 && y[2023].deaths > 2 * y[2022].deaths, '2023: life expectancy down over 10 years, deaths more than doubled');
+assertClaim(y[2024].lifeExpectancy > y[2023].lifeExpectancy && c.lifeExpectancy > y[2022].lifeExpectancy, 'projected recovery from 2024');
+const falls = un.years.filter((r) => y[r.year - 1] && r.population < y[r.year - 1].population).map((r) => r.year);
+assertClaim(falls.join() === '1966,1967,1968,1969', 'falls 1966–1969 only');
+const outTop = un.years.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+assertClaim(outTop.year === 1967, 'largest net outflow 1967');
+const m1 = wpp.filter((d: any) => at(d).population >= 1e6);
+assertClaim([...m1].sort((a: any, b: any) => at(b).densityPerKm2 - at(a).densityPerKm2).map((d: any) => d.iso3).indexOf('PSE') === 4, 'fifth-densest of 1M+ countries and areas');
+const wa1 = wpp.filter((d: any) => d.subregion === 'Western Asia' && at(d).population >= 1e6);
+assertClaim([...wa1].sort((a: any, b: any) => at(a).medianAge - at(b).medianAge).slice(0, 2).map((d: any) => d.iso3).join() === 'YEM,PSE', 'second-youngest in Western Asia after Yemen');
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+assertClaim(peak.year === 2100, 'still growing 2100');
+const repl = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(repl === 2064, 'under 2.1 in 2064');
+const since = c.population / y[1950].population;
+assertClaim(since > 5.9 && since < 6.1, 'about six times 1950');
+
+const title = `State of Palestine Population ${CURRENT_YEAR} (${(c.population / 1e6).toFixed(1)}M): Dense and Young, With a 2023 Mortality Break | AtlasFigures`;
+const description = `The UN's figure for the State of Palestine in ${CURRENT_YEAR} is ${millions(c.population)}. Its series shows estimated deaths more than doubling in 2023, with life expectancy down to ${dec(y[2023].lifeExpectancy, 1)} years; the files give no cause.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'UN status', value: pse.capital },
+    { label: 'UN listing', value: pse.unName },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'People per km²', value: int(c.densityPerKm2) },
+  { label: 'Median age', value: dec(c.medianAge, 1) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+];
+
+const rows = displayRows(un.years, pse.tableYears);
+
+const faq = [
+  { q: 'What name and status does the UN use for Palestine?', a: `UN documents use "State of Palestine". Under General Assembly resolution 67/19 (2012) it has non-member observer State status, according to the UN Secretary-General's report A/67/738.` },
+  { q: 'What changed in the UN mortality figures for 2023?', a: `Estimated deaths rise from ${int(y[2022].deaths)} in 2022 to ${int(y[2023].deaths)} in 2023, while life expectancy falls from ${dec(y[2022].lifeExpectancy, 1)} to ${dec(y[2023].lifeExpectancy, 1)} years. The files state no cause.` },
+  { q: 'Did the population of the State of Palestine fall in the 1960s?', a: `The UN series shows lower totals each year from 1966 to 1969, with net departures largest in 1967 at ${int(-outTop.netMigrants)}. No reasons are given.` },
+  { q: 'How many people share each km² in the State of Palestine?', a: `${int(c.densityPerKm2)}, a level surpassed by only four places that hold a million or more people.` },
+  { q: 'How many people are projected for 2100?', a: `${millions(y[2100].population)}, and the count is still rising then.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: pse.slug, name: pse.name, wikipedia: pse.wikipedia,
+  headline: `State of Palestine, ${millions(c.population)}: a 2023 mortality rise in UN estimates; dense, young and growing to 2100`,
+  description,
+  datasetName: 'State of Palestine population, deaths and life expectancy, 1950–2100',
+  datasetDescription: `Mid-year population of the State of Palestine (UN listing) for selected years from 1950 to ${CURRENT_YEAR}, including 1965–1970 and every year 2022–2026, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: pse.published, updated: pse.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  extraCitations: [{ name: 'Status of Palestine in the United Nations (A/67/738)', url: UN_URL, publisher: 'United Nations' }],
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="State of Palestine"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "State of Palestine", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>State of Palestine: population figures from the UN series</h1>
+        <LiveCounter
+          label="State of Palestine: estimated population, live"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024 for mid-${CURRENT_YEAR}, with close to ${int(c.change / 365)} added per day`}
+        />
+        <p class="answer">
+          The UN's {CURRENT_YEAR} estimate for the State of Palestine is <strong>{millions(c.population)}</strong>, six times the 1950 level, with <strong>{int(c.densityPerKm2)}</strong> residents per km². Its median age: {dec(c.medianAge, 1)} years.
+        </p>
+        <div class="dates"><span>Updated <time datetime={pse.updated}>{longDate(pse.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="State of Palestine" code="ps" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>What do the UN estimates show for 2023?</h2>
+          <p>A sharp break. Estimated deaths go from {int(y[2022].deaths)} in 2022 to {int(y[2023].deaths)} in 2023, more than double, and life expectancy from {dec(y[2022].lifeExpectancy, 1)} to {dec(y[2023].lifeExpectancy, 1)} years. The projection has it at {dec(y[2024].lifeExpectancy, 1)} for 2024 and {dec(c.lifeExpectancy, 1)} for {CURRENT_YEAR}. No cause accompanies these values in the source, and this page adds none.</p>
+        </div>
+        <LineChart
+          title="Lifespan estimates for the State of Palestine, 1950–2050"
+          subtitle="Each year 2022–2026 included; dashed points are UN projections."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: Math.round(y[r.year].lifeExpectancy * 10) / 10, projection: r.projection }))}
+          unit="years"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Was the population ever lower than the year before?</h2>
+          <p>Only from 1966 to 1969, when each mid-year count slipped; the largest net outflow, {int(-outTop.netMigrants)}, is recorded for 1967. There were {int(y[1965].population - y[1969].population)} fewer people in 1969 than in 1965. The data record movement, not reasons.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How young and how crowded is the State of Palestine?</h2>
+          <p>Median age {dec(c.medianAge, 1)}, second-lowest in Western Asia after Yemen; fertility {dec(c.fertility, 2)}. Density reaches {int(c.densityPerKm2)} per km², a level surpassed by only four places holding a million or more people, and {pct(c.urbanPct!)} of residents are counted as urban.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>What does the UN project for the State of Palestine?</h2>
+          <p>Continued growth, reaching {millions(y[2050].population)} in 2050; at the century's close the projection stands at {millions(y[2100].population)}, with births per woman staying above 2.1 until {repl}.</p>
+        </div>
+        <RelatedPages iso3={pse.iso3} name={pse.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="State of Palestine: 1965–1970, 2022–2026 and decade rows"
+          subtitle="The 2023 row carries the deaths and life-expectancy break; 1966–1969 the only falls."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${pse.slug}-population.csv`)}
+          csvName={`${pse.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">State of Palestine: answers from the data</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{pse.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+            <li><a href={UN_URL}>United Nations, "Status of Palestine in the United Nations", report of the Secretary-General (A/67/738)</a>: non-member observer State status under General Assembly resolution 67/19; the designation "State of Palestine" used in UN documents.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={pse.published}>{longDate(pse.published)}</time> · Updated <time datetime={pse.updated}>{longDate(pse.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("State of Palestine population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="State of Palestine" code="ps" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

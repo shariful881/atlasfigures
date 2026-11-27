@@ -21,10 +21,10 @@ export function GET() {
   const entries: Entry[] = [
     { t: 'World population', s: 'Live counter and UN projections', u: path('/population/world/'), f: null, k: 'world', a: ['Earth', 'global population', 'world'] },
     ...pop.sort((a, b) => a.name.localeCompare(b.name)).map((c) => ({
-      t: c.name, s: `Population · ${countryData(c.iso3).subregion}`, u: path(`/population/${c.slug}/`), f: flagUrl(c.code), k: 'population', a: aliases(c),
+      t: c.name, s: `Population · ${countryData(c.iso3).subregion}`, u: path(`/country/${c.slug}/population/`), f: flagUrl(c.code), k: 'population', a: aliases(c),
     })),
     ...eco.sort((a, b) => a.name.localeCompare(b.name)).map((c) => ({
-      t: c.name, s: `Economy · ${econData(c.iso3).region}`, u: path(`/economy/${c.slug}/`), f: flagUrl(c.code), k: 'economy', a: aliases(c),
+      t: c.name, s: `Economy · ${econData(c.iso3).region}`, u: path(`/country/${c.slug}/economy/`), f: flagUrl(c.code), k: 'economy', a: aliases(c),
     })),
     ...cities.sort((a, b) => a.name.localeCompare(b.name)).map((c) => ({
       t: `Time in ${c.name}`, s: `Time · ${c.country}`, u: path(`/time/${c.slug}/`), f: flagUrl(c.code), k: 'time', a: [c.name, c.country, c.tz, 'time', 'clock'],

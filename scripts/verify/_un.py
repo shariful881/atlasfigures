@@ -44,7 +44,7 @@ p1 = lambda v: f"{v:.1f}%"
 def ordn(n): return f"{n}{'th' if 11 <= n % 100 <= 13 else {1:'st',2:'nd',3:'rd'}.get(n % 10, 'th')}"
 
 def load_page(slug):
-    page = open(f'dist/population/{slug}/index.html').read()
+    page = open(f'dist/country/{slug}/population/index.html').read()
     text = html.unescape(re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', re.sub(r'<script.*?</script>|<style.*?</style>', '', page, flags=re.S))))
     ld = html.unescape(' '.join(re.findall(r'<script type="application/ld\+json">(.*?)</script>', page, re.S)))
     return page, text, ld

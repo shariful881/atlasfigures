@@ -33,7 +33,7 @@ last = lambda src, c: (max(src[c]), src[c][max(src[c])])
 ok = 0; bad = []
 
 def page(slug):
-    p = open(f'dist/economy/{slug}/index.html').read()
+    p = open(f'dist/country/{slug}/economy/index.html').read()
     t = html.unescape(re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', re.sub(r'<script.*?</script>|<style.*?</style>', '', p, flags=re.S))))
     return p, t
 def expect(t, slug, d):

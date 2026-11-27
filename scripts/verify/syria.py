@@ -1,5 +1,5 @@
 # Run after `npm run build`: python3 scripts/verify/syria.py
-# Independent check of every figure on /population/syria/ against the original UN files.
+# Independent check of every figure on /country/syria/population/ against the original UN files.
 import sys, json; sys.path.insert(0, "scripts/verify")
 from _un import *
 exp_base = lambda I, y, U: {"population (full)": c(P(I, y)), "population (millions)": m(P(I, y)), "rank": ordn(rank(I, y)), "share": p1(P(I, y) / P("WORLD", y) * 100), "growth": p1(f(I, y, "PopGrowthRate")), "change (full)": c(K(I, y, "PopChange")), "density": c(f(I, y, "PopDensity")), "land": c(land(I)) + " km²", "urban": p1(U[y]), "median": f"{f(I, y, 'MedianAgePop'):.1f}", "tfr": f"{f(I, y, 'TFR'):.2f}", "LE": f"{f(I, y, 'LEx'):.1f}"}

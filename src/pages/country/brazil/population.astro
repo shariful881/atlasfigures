@@ -1,0 +1,228 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LiveCounter from '../../../components/LiveCounter.astro';
+import LineChart from '../../../components/LineChart.astro';
+import DataTable from '../../../components/DataTable.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import RelatedPages from '../../../components/RelatedPages.astro';
+import br from '../../../data/countries/brazil.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../../lib/figures';
+import { countrySchema } from '../../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: from six children per woman to an early peak.
+const PAGE = '/country/brazil/population/';
+const un = countryData(br.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (br.verification as any).checkedOn as string | undefined;
+
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+const natLoss = un.years.find((r) => r.naturalChange < 0)!.year;
+assertClaim(peak.year === 2042 && natLoss === 2043 && un.years.filter((r) => r.year >= natLoss).every((r) => r.naturalChange < 0), 'peak 2042, deaths above births from 2043');
+const backTo = un.years.find((r) => r.population >= y[2100].population)!.year;
+const sub = un.years.find((r) => r.fertility < 2.1)!.year;
+assertClaim(un.years.filter((r) => r.year >= sub).every((r) => r.fertility < 2.1), 'below 2.1 ever since');
+const birthPeak = un.years.filter((r) => !r.projection).reduce((a, b) => (b.births > a.births ? b : a));
+const wpp = Object.values(import.meta.glob('../../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any) => d.years.find((r: any) => r.year === CURRENT_YEAR);
+const latam = wpp.filter((d: any) => d.region === 'Latin America and the Caribbean');
+const laShare = (c.population / latam.reduce((a: number, d: any) => a + at(d).population, 0)) * 100;
+assertClaim([...latam].sort((a: any, b: any) => at(b).population - at(a).population)[0].iso3 === 'BRA' && laShare > 30 && laShare < 33, 'largest in Latin America and the Caribbean, nearly a third of its people');
+const urbanRank = wpp.filter((d: any) => at(d).population > 100e6).sort((a: any, b: any) => at(b).urbanPct - at(a).urbanPct).map((d: any) => d.iso3);
+assertClaim(urbanRank[0] === 'JPN' && urbanRank[1] === 'BRA', 'second most urban country of over 100 million, after Japan');
+const laSorted = [...latam].sort((a: any, b: any) => at(b).population - at(a).population);
+assertClaim(laSorted[1].iso3 === 'MEX' && c.population > 1.4 * at(laSorted[1]).population, 'far ahead of Mexico');
+assertClaim(y[1950].medianAge < 18 && c.medianAge / y[1950].medianAge > 1.95 && y[2100].medianAge > 50, 'half under 18 in 1950; twice as old now; past 50 by 2100');
+const est = un.years.filter((r) => !r.projection);
+const outSince = est.map((r) => r.year).find((yr) => est.every((r) => r.year < yr || r.netMigrants < 0))!;
+assertClaim(c.netMigrants < 0, 'net emigration this year');
+assertClaim(y[2021].lifeExpectancy < y[2019].lifeExpectancy - 2 && c.lifeExpectancy > y[2019].lifeExpectancy, 'life expectancy fell by more than two years by 2021, now above 2019');
+
+const title = `Brazil Nears Its Population Peak: ${(c.population / 1e6).toFixed(1)} Million People in ${CURRENT_YEAR} | AtlasFigures`;
+const description = `Latin America's most populous country, Brazil, numbers ${millions(c.population)} in ${CURRENT_YEAR}. Fertility fell from ${dec(y[1950].fertility, 2)} to ${dec(c.fertility, 2)}, and the UN expects the population to peak in ${peak.year}.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `+${pct(c.growthRatePct)}`, note: `+${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: br.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'World rank', value: ord(c.worldRank!) },
+  { label: 'Births per woman', value: dec(c.fertility, 2) },
+  { label: 'Urban', value: pct(c.urbanPct!) },
+];
+
+const rows = displayRows(un.years, br.tableYears);
+
+const faq = [
+  { q: 'How many people does Brazil have today?', a: `UN estimates give ${millions(c.population)} for mid-${CURRENT_YEAR}: ${ord(c.worldRank!)} in the world and roughly ${pct(laShare)} of everyone in Latin America and the Caribbean.` },
+  { q: "Has Brazil's population started to fall?", a: `Not yet. Growth continues at ${pct(c.growthRatePct)} in ${CURRENT_YEAR}; the UN sees numbers reaching a maximum of ${millions(peak.population)} in ${peak.year} and shrinking after that.` },
+  { q: 'How many Brazilians are projected for 2050 and 2100?', a: `For 2050, ${millions(y[2050].population)}; for 2100, ${millions(y[2100].population)}, a size Brazil last had in ${backTo}. The country would drop to ${ord(y[2100].worldRank!)} place.` },
+  { q: 'How many children per woman in Brazil?', a: `${dec(c.fertility, 2)} in ${CURRENT_YEAR}. The figure has stayed below 2.1 since ${sub}; in 1950 it was ${dec(y[1950].fertility, 2)}.` },
+  { q: 'Do more people leave Brazil than arrive?', a: `Yes, in every year since ${outSince}, on the UN's estimates. In ${CURRENT_YEAR} the net outflow comes to roughly ${int(Math.round(Math.abs(c.netMigrants) / 1000))} thousand.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: br.slug, name: br.name, wikipedia: br.wikipedia,
+  headline: `Brazil's population in ${CURRENT_YEAR}: ${millions(c.population)}, ageing fast and nearing a ${peak.year} peak`,
+  description,
+  datasetName: 'Brazil population, density, fertility, median age and urban share, 1950–2100',
+  datasetDescription: `Mid-year population of Brazil for selected years from 1950 to ${CURRENT_YEAR}, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: br.published, updated: br.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Brazil"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: 'Brazil', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Brazil's population, nearing its peak</h1>
+        <LiveCounter
+          label="Brazil, estimated population this moment"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`UN World Population Prospects 2024: mid-${CURRENT_YEAR} total, plus about ${int(c.change / 365)} people per day`}
+        />
+        <p class="answer">
+          Around <strong>{millions(c.population)}</strong> Brazilians are counted in {CURRENT_YEAR}: the {ord(c.worldRank!)} largest population on Earth and the biggest in Latin America. Growth has slowed to {pct(c.growthRatePct)} a year, and the UN expects the total to <strong>peak in {peak.year}</strong>.
+        </p>
+        <div class="dates"><span>Updated <time datetime={br.updated}>{longDate(br.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Brazil" code="br" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>Is Brazil close to its population peak?</h2>
+          <p>Yes: within the next two decades, the UN projects. The total reaches {millions(peak.population)} in {peak.year}; from {natLoss} deaths outnumber births, and by 2100 Brazil would have {millions(y[2100].population)}, roughly the population it had in {backTo}. Its place in the world ranking would fall from {ord(c.worldRank!)} to {ord(y[2100].worldRank!)}.</p>
+        </div>
+        <LineChart
+          title="Brazil's population, 1950–2100: up, then down"
+          subtitle="Mid-year totals; the UN medium projection (dashed) peaks in the early 2040s."
+          points={rows.map((r) => ({ x: r.year, y: r.population, projection: r.projection }))}
+          format="millions"
+          highlight={CURRENT_YEAR}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How quickly did fertility fall in Brazil?</h2>
+          <p>Very quickly. In 1950 a Brazilian woman had {dec(y[1950].fertility, 2)} children on average; by 2000 the figure was {dec(y[2000].fertility, 2)}, and it has been under 2.1 since {sub}. It is {dec(c.fertility, 2)} in {CURRENT_YEAR}. Yearly births reached their highest in {birthPeak.year}, at {millions(birthPeak.births)}, and are now {millions(c.births)}.</p>
+        </div>
+        <LineChart
+          title="Brazil's total fertility rate since 1950"
+          subtitle="Births per woman. Below 2.1 from 2002 on; dashed points come from the UN projection."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.fertility, projection: r.projection }))}
+          unit="births per woman"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 2.1, label: 'Replacement (2.1)' }}
+          source={WPP}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>How fast is Brazil getting older?</h2>
+          <p>Fast. Half of Brazilians were younger than {dec(y[1950].medianAge, 1)} in 1950. The median is {dec(c.medianAge, 1)} in {CURRENT_YEAR} and is projected at {dec(y[2050].medianAge, 1)} in 2050 and {dec(y[2100].medianAge, 1)} by 2100. Life expectancy is {dec(c.lifeExpectancy, 1)} years, back above its 2019 level of {dec(y[2019].lifeExpectancy, 1)} after falling to {dec(y[2021].lifeExpectancy, 1)} in 2021.</p>
+        </div>
+        <div class="age-row" role="group" aria-label="Median age in Brazil">
+          <div><span class="y">1950</span><div class="v">{dec(y[1950].medianAge, 1)}</div><span class="d">Half were under 18</span></div>
+          <div><span class="y">{CURRENT_YEAR}</span><div class="v">{dec(c.medianAge, 1)}</div><span class="d">Twice as old</span></div>
+          <div><span class="y">2100, UN projection</span><div class="v">{dec(y[2100].medianAge, 1)}</div><span class="d">Past fifty</span></div>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Is Brazil the largest country in Latin America?</h2>
+          <p>Yes. Brazil holds about {pct(laShare)} of the population of Latin America and the Caribbean, far ahead of Mexico. It is also unusually urban for its size: Brazil's own definition counts {pct(c.urbanPct!)} of the population as urban, and among countries of over 100 million people only Japan is more urban. In 1950 the urban share was {pct(y[1950].urbanPct!)}.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>Do more people leave Brazil than move there?</h2>
+          <p>They do, and have every year since {outSince} in the UN's figures. In {CURRENT_YEAR} departures exceed arrivals by about {int(Math.round(Math.abs(c.netMigrants) / 1000))} thousand, which trims the natural growth of {int(Math.round(c.naturalChange / 1000))} thousand to an overall gain of {int(Math.round(c.change / 1000))} thousand.</p>
+        </div>
+        <RelatedPages iso3={br.iso3} name={br.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Brazil, 1950–2100: the yearly figures"
+          subtitle="From 1950 to the end of the century: Brazil's population and related measures, projected from 2030."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${br.slug}-population.csv`)}
+          csvName={`${br.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Brazil's population: things people ask</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, comparisons with other countries and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share and comparison with other large countries.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and adds the UN's projected growth for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={br.published}>{longDate(br.published)}</time> · Updated <time datetime={br.updated}>{longDate(br.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl('Brazil population', PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Brazil" code="br" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>

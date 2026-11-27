@@ -1,0 +1,159 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KeyFacts from '../../../components/KeyFacts.astro';
+import LineChart from '../../../components/LineChart.astro';
+import EconTable from '../../../components/EconTable.astro';
+import IndicatorCards from '../../../components/IndicatorCards.astro';
+import SourceBadge from '../../../components/SourceBadge.astro';
+import PageTabs from '../../../components/PageTabs.astro';
+import c from '../../../data/economy/singapore.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../../lib/econ';
+import { econBasics, econSchema } from '../../../lib/econPage';
+import { assertClaim, pct, ord } from '../../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../../site';
+import wpp from '../../../data/wpp/index.json';
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/country/singapore/economy/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const pppTop = rankBy('gdpPerCapitaPpp', L);
+const pcTop = rankBy('gdpPerCapita', L);
+const sea = (wpp as any).countries.filter((x: any) => x.subregion === 'South-Eastern Asia').map((x: any) => x.iso3);
+const seaR = rankBy('gdp', L).filter((r) => sea.includes(r.iso3));
+const times = gdp / v('gdp', 2000)!;
+
+assertClaim(pppTop[0].iso3 === c.iso3, 'highest GDP per person at PPP in the world');
+assertClaim(B.pcRank === 4 && pcTop.slice(0, 3).map((r) => r.iso3).join() === 'LUX,IRL,CHE', 'fourth in dollars after Luxembourg, Ireland and Switzerland');
+assertClaim(seaR[0].iso3 === 'IDN' && seaR[1].iso3 === c.iso3 && B.gdpRank === 27, 'second in South-eastern Asia; 27th');
+assertClaim(times > 6 && times < 6.5, 'GDP about six times its 2000 level');
+assertClaim(growth >= 5 && g(L - 1) > growth && g(2023) < 2, 'about 5% growth two years running after 2023');
+assertClaim(infl.year === L && infl.value < 1 && Math.max(...s.inflationPct.filter(([y, x]) => y < L && x < infl.value).map(([y]) => y)) === 2020, 'inflation under 1%, lowest since 2020');
+assertClaim(s.gdpGrowthPct.filter(([, x]) => x < 0).map(([y]) => y).join() === '1964,1985,1998,2001,2020', 'five down years since 1961');
+
+const title = `Singapore Economy ${L}: Income per Head, Growth, Prices | AtlasFigures`;
+const description = `In ${L} Singapore's GDP came to ${usd(gdp)}. At ${usdWhole(perHead)} per person it is fourth in the world in dollars and first at purchasing power parity, and the economy grew ${pct(growth)}.`;
+
+const faq = [
+  { q: 'Is Singapore the richest country in the world?', a: `At purchasing power parity, yes: ${intDollars(ppp!)} per person in ${L}, the highest of any economy. In plain dollars it is fourth (${usdWhole(perHead)}), after Luxembourg, Ireland and Switzerland.` },
+  { q: 'What was Singapore\'s growth in ' + L + '?', a: `${pct(growth)}, after ${pct(g(L - 1))} in ${L - 1} and ${pct(g(2023))} in 2023.` },
+  { q: 'How many times larger is Singapore\'s GDP than in 2000?', a: `About ${Math.floor(times)} times, in current dollars: ${usd(gdp)} for ${L} against ${usd(v('gdp', 2000)!)} at the turn of the century.` },
+  { q: 'Is inflation low in Singapore?', a: `Yes: ${pct(infl.value)} for ${L}, Singapore's mildest since 2020, compared with ${pct(i(2022))} in 2022.` },
+  { q: 'How often has Singapore\'s economy shrunk?', a: `Five years of falling output since 1961 on World Bank data: 1964, 1985, 1998, 2001 and 2020 (${signedPct(g(2020))}).` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Singapore's economy ${L}: first in the world at PPP, ${pct(growth)} growth`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Singapore's economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Singapore', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Singapore's economy: top of the world at PPP</h1>
+        <p class="answer">
+          Singapore's GDP was <strong>{usd(gdp)}</strong> for {L}. Output per person, <strong>{usdWhole(perHead)}</strong>, is fourth in the world in dollars and the highest anywhere at purchasing power parity; growth was {pct(growth)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Singapore economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Singapore" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Besides a top-five income per head, Singapore grew about 5% in each of the past two years.</p>
+
+        <div class="story-block prose">
+          <h2>Is Singapore the richest economy per person?</h2>
+          <p>On a purchasing-power basis, yes: {intDollars(ppp!)} per resident in {L}, the top figure of every economy in World Bank data. In current dollars it ranks fourth at {usdWhole(perHead)}, behind Luxembourg, Ireland and Switzerland.</p>
+        </div>
+        <LineChart
+          title={`Dollars of output per Singaporean, 1960–${L}`}
+          subtitle="GDP per resident in current dollars; points every five years to 2015, annual since 2019."
+          points={s.gdpPerCapita.filter(([y]) => y % 5 === 0 || y >= 2019).map(([x, y]) => ({ x, y }))}
+          format="usd" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Where does Singapore's GDP rank?</h2>
+          <p>{ord(B.gdpRank!)} in the world, with {usd(gdp)} in {L}; within South-eastern Asia only Indonesia's economy is larger. That is about {Math.floor(times)} times the {usd(v('gdp', 2000)!)} of 2000.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Is Singapore's growth strong?</h2>
+          <p>Yes, by its recent standards: {pct(growth)} in {L} after {pct(g(L - 1))} in {L - 1}, a big step up from {pct(g(2023))} in 2023. Only five years since 1961 have seen Singapore's output shrink, the latest being 2020 ({signedPct(g(2020))}).</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Has Singapore's inflation faded?</h2>
+          <p>Singaporean consumer prices climbed just {pct(infl.value)} in {L}, a smaller rise than any since 2020 and far below 2022's {pct(i(2022))}. Unemployment, on the ILO's model, was {pct(unemp!)}.</p>
+        </div>
+        <LineChart
+          title={`Singapore inflation, 1961–${L}`}
+          subtitle="Singapore's yearly price change in per cent; dips under zero are years of falling prices."
+          points={s.inflationPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <nav class="related" aria-label="Related pages">
+          <h2>Singapore and Southeast Asia: further pages</h2>
+          <ul>
+            <li><a href={path('/country/singapore/population/')}>Singapore's population</a></li>
+            <li><a href={path('/country/malaysia/economy/')}>Malaysia's economy</a></li>
+            <li><a href={path('/country/indonesia/economy/')}>Indonesia's economy</a></li>
+            <li><a href={path('/country/switzerland/economy/')}>Switzerland's economy</a></li>
+            <li><a href={path('/rankings/gdp-per-capita-by-country/')}>Ranking of GDP per person</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Singapore's economy at a glance by year, 1960–${L}`}
+          subtitle="With 1998 and recent years; the CSV gives every year."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/singapore-economy.csv')} csvName="singapore-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Singapore economy: frequently asked</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">"South-eastern Asia" is the UN subregion used in World Population Prospects 2024. The World Bank notes Singapore's fiscal year ends on 31 March; national accounts are calendar-year. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Singapore's economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Singapore" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>
