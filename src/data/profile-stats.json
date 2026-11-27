@@ -1,0 +1,837 @@
+{
+ "_about": "Which statistics a country profile holds, by section (task 158, from claude/atlasfigures-country-page-stats.md). Live stats name their generated data (src: wpp/wdi/energy/list); planned ones name the phase (A–F) and source that will add them. scripts/build-profiles.mjs reads this.",
+ "sections": [
+  {
+   "id": "facts",
+   "label": "Country facts",
+   "stats": [
+    {
+     "id": "unName",
+     "label": "Official name (UN)",
+     "src": "list",
+     "key": "unName"
+    },
+    {
+     "id": "capital",
+     "label": "Capital",
+     "src": "list",
+     "key": "capital"
+    },
+    {
+     "id": "region",
+     "label": "UN region",
+     "src": "list",
+     "key": "unSubregion"
+    },
+    {
+     "id": "wbRegion",
+     "label": "World Bank region",
+     "src": "list",
+     "key": "wbRegion"
+    },
+    {
+     "id": "income",
+     "label": "World Bank income group",
+     "src": "list",
+     "key": "incomeGroup"
+    },
+    {
+     "id": "iso",
+     "label": "ISO codes",
+     "src": "list",
+     "key": "iso"
+    },
+    {
+     "id": "landArea",
+     "label": "Land area",
+     "src": "wdi",
+     "key": "landArea",
+     "unit": "km²",
+     "fmt": "int",
+     "rank": "high"
+    },
+    {
+     "label": "Currency (name, code, symbol)",
+     "planned": "F",
+     "source": "ISO 4217 / Unicode CLDR"
+    },
+    {
+     "label": "Calling code, internet domain",
+     "planned": "F",
+     "source": "Wikidata (CC0)"
+    },
+    {
+     "label": "Official languages",
+     "planned": "F",
+     "source": "Wikidata"
+    },
+    {
+     "label": "Independence / national day",
+     "planned": "F",
+     "source": "Wikidata"
+    },
+    {
+     "label": "Government system",
+     "planned": "F",
+     "source": "Wikidata"
+    },
+    {
+     "label": "National symbols (animal, bird, flower)",
+     "planned": "F",
+     "source": "Wikidata"
+    },
+    {
+     "label": "Neighbouring countries, coastline",
+     "planned": "F",
+     "source": "Natural Earth"
+    },
+    {
+     "label": "Highest point, rivers, lakes",
+     "planned": "F",
+     "source": "Wikidata / Natural Earth"
+    },
+    {
+     "label": "Largest cities",
+     "planned": "F",
+     "source": "GeoNames"
+    },
+    {
+     "label": "Administrative divisions",
+     "planned": "F",
+     "source": "geoBoundaries"
+    },
+    {
+     "label": "Driving side, plugs, emergency numbers",
+     "planned": "F",
+     "source": "Wikidata"
+    },
+    {
+     "label": "Time zones",
+     "planned": "F",
+     "source": "IANA tz"
+    }
+   ]
+  },
+  {
+   "id": "population",
+   "label": "Population",
+   "stats": [
+    {
+     "id": "population",
+     "label": "Population",
+     "src": "wpp",
+     "key": "population",
+     "unit": "people",
+     "fmt": "int",
+     "rank": "high"
+    },
+    {
+     "id": "growth",
+     "label": "Population growth",
+     "src": "wpp",
+     "key": "growthRatePct",
+     "unit": "% a year",
+     "fmt": "pct",
+     "rank": null
+    },
+    {
+     "id": "density",
+     "label": "Population density",
+     "src": "wpp",
+     "key": "densityPerKm2",
+     "unit": "people per km²",
+     "fmt": "int",
+     "rank": "high"
+    },
+    {
+     "id": "medianAge",
+     "label": "Median age",
+     "src": "wpp",
+     "key": "medianAge",
+     "unit": "years",
+     "fmt": "dec1",
+     "rank": null
+    },
+    {
+     "id": "fertility",
+     "label": "Fertility rate",
+     "src": "wpp",
+     "key": "fertility",
+     "unit": "births per woman",
+     "fmt": "dec2",
+     "rank": null
+    },
+    {
+     "id": "lifeExp",
+     "label": "Life expectancy",
+     "src": "wpp",
+     "key": "lifeExpectancy",
+     "unit": "years",
+     "fmt": "dec1",
+     "rank": null
+    },
+    {
+     "id": "births",
+     "label": "Births",
+     "src": "wpp",
+     "key": "births",
+     "unit": "per year",
+     "fmt": "int",
+     "rank": null
+    },
+    {
+     "id": "deaths",
+     "label": "Deaths",
+     "src": "wpp",
+     "key": "deaths",
+     "unit": "per year",
+     "fmt": "int",
+     "rank": null
+    },
+    {
+     "id": "netMigrants",
+     "label": "Net migration",
+     "src": "wpp",
+     "key": "netMigrants",
+     "unit": "people a year",
+     "fmt": "int",
+     "rank": null
+    },
+    {
+     "id": "urban",
+     "label": "Urban population",
+     "src": "wpp",
+     "key": "urbanPct",
+     "unit": "% of people (UN WUP 2025)",
+     "fmt": "pct",
+     "rank": null
+    },
+    {
+     "id": "migrantStock",
+     "label": "Immigrants (born abroad)",
+     "src": "wdi",
+     "key": "migrantStock",
+     "unit": "people",
+     "fmt": "int",
+     "rank": "high"
+    },
+    {
+     "id": "migrantPct",
+     "label": "Immigrants, share",
+     "src": "wdi",
+     "key": "migrantPct",
+     "unit": "% of population",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "label": "Emigrants (born here, living abroad)",
+     "planned": "D",
+     "source": "UN DESA"
+    },
+    {
+     "label": "Refugees hosted / from here",
+     "planned": "D",
+     "source": "UNHCR"
+    },
+    {
+     "label": "Religion",
+     "planned": "E",
+     "source": "Pew (licence check)"
+    }
+   ]
+  },
+  {
+   "id": "economy",
+   "label": "Economy",
+   "stats": [
+    {
+     "id": "gdp",
+     "label": "GDP",
+     "src": "wdi",
+     "key": "gdp",
+     "unit": "current US$",
+     "fmt": "usd",
+     "rank": "high"
+    },
+    {
+     "id": "gdpPc",
+     "label": "GDP per person",
+     "src": "wdi",
+     "key": "gdpPerCapita",
+     "unit": "current US$",
+     "fmt": "usdWhole",
+     "rank": "high"
+    },
+    {
+     "id": "gdpPpp",
+     "label": "GDP per person, PPP",
+     "src": "wdi",
+     "key": "gdpPerCapitaPpp",
+     "unit": "international $",
+     "fmt": "intd",
+     "rank": "high"
+    },
+    {
+     "id": "growth",
+     "label": "GDP growth",
+     "src": "wdi",
+     "key": "gdpGrowthPct",
+     "unit": "% a year",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "inflation",
+     "label": "Inflation",
+     "src": "wdi",
+     "key": "inflationPct",
+     "unit": "% a year",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "label": "Gross national income",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Government debt",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "External debt",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Budget balance, revenue, spending",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Tax revenue",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Current account",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Foreign exchange reserves, exchange rate",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Foreign direct investment",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Poverty, extreme poverty, Gini",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Agriculture / industry / services share of GDP",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Household consumption, savings",
+     "planned": "A",
+     "source": "World Bank"
+    }
+   ]
+  },
+  {
+   "id": "trade",
+   "label": "Trade and money",
+   "stats": [
+    {
+     "id": "exports",
+     "label": "Exports",
+     "src": "wdi",
+     "key": "exports",
+     "unit": "current US$",
+     "fmt": "usd",
+     "rank": "high"
+    },
+    {
+     "id": "imports",
+     "label": "Imports",
+     "src": "wdi",
+     "key": "imports",
+     "unit": "current US$",
+     "fmt": "usd",
+     "rank": "high"
+    },
+    {
+     "id": "exportsPct",
+     "label": "Exports, share of GDP",
+     "src": "wdi",
+     "key": "exportsPctGdp",
+     "unit": "% of GDP",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "importsPct",
+     "label": "Imports, share of GDP",
+     "src": "wdi",
+     "key": "importsPctGdp",
+     "unit": "% of GDP",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "remit",
+     "label": "Remittances received",
+     "src": "wdi",
+     "key": "remittances",
+     "unit": "current US$",
+     "fmt": "usd",
+     "rank": "high"
+    },
+    {
+     "id": "remitPct",
+     "label": "Remittances, share of GDP",
+     "src": "wdi",
+     "key": "remittancesPctGdp",
+     "unit": "% of GDP",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "label": "Remittances sent",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Tariffs, high-tech exports",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Tourist arrivals, tourism income",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Top export/import products, trading partners",
+     "planned": "D",
+     "source": "CEPII BACI"
+    }
+   ]
+  },
+  {
+   "id": "jobs",
+   "label": "Jobs and wages",
+   "stats": [
+    {
+     "id": "unemp",
+     "label": "Unemployment",
+     "src": "wdi",
+     "key": "unemploymentPct",
+     "unit": "% of labour force",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "lfpF",
+     "label": "Women in the labour force",
+     "src": "wdi",
+     "key": "lfpFemale",
+     "unit": "% of women 15+",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "lfpM",
+     "label": "Men in the labour force",
+     "src": "wdi",
+     "key": "lfpMale",
+     "unit": "% of men 15+",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "empAgri",
+     "label": "Jobs in agriculture",
+     "src": "wdi",
+     "key": "empAgriPct",
+     "unit": "% of employment",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "empInd",
+     "label": "Jobs in industry",
+     "src": "wdi",
+     "key": "empIndPct",
+     "unit": "% of employment",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "empSrv",
+     "label": "Jobs in services",
+     "src": "wdi",
+     "key": "empSrvPct",
+     "unit": "% of employment",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "label": "Youth unemployment, labour force, child labour",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Average wage, minimum wage, hours, informal work",
+     "planned": "D",
+     "source": "ILOSTAT"
+    }
+   ]
+  },
+  {
+   "id": "health",
+   "label": "Health",
+   "stats": [
+    {
+     "id": "u5",
+     "label": "Child deaths before age 5",
+     "src": "wdi",
+     "key": "under5Mortality",
+     "unit": "per 1,000 live births",
+     "fmt": "dec1",
+     "rank": "low"
+    },
+    {
+     "id": "infant",
+     "label": "Infant deaths",
+     "src": "wdi",
+     "key": "infantMortality",
+     "unit": "per 1,000 live births",
+     "fmt": "dec1",
+     "rank": "low"
+    },
+    {
+     "id": "maternal",
+     "label": "Maternal deaths",
+     "src": "wdi",
+     "key": "maternalMortality",
+     "unit": "per 100,000 live births",
+     "fmt": "int",
+     "rank": "low"
+    },
+    {
+     "label": "Doctors, nurses, hospital beds",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Health spending, UHC index",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Vaccination",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Diabetes, HIV, TB, malaria",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Smoking, alcohol, undernourishment",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Road deaths",
+     "planned": "A",
+     "source": "World Bank"
+    }
+   ]
+  },
+  {
+   "id": "education",
+   "label": "Education and research",
+   "stats": [
+    {
+     "id": "literacy",
+     "label": "Adult literacy",
+     "src": "wdi",
+     "key": "literacyPct",
+     "unit": "% of adults",
+     "fmt": "pct",
+     "rank": "high",
+     "since": 2015
+    },
+    {
+     "id": "eduSpend",
+     "label": "Education spending",
+     "src": "wdi",
+     "key": "eduSpendPctGdp",
+     "unit": "% of GDP",
+     "fmt": "pct",
+     "rank": "high",
+     "since": 2020
+    },
+    {
+     "label": "School and university enrolment",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Pupils per teacher, children out of school",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Research spending, researchers, publications, patents",
+     "planned": "A",
+     "source": "World Bank"
+    }
+   ]
+  },
+  {
+   "id": "internet",
+   "label": "Internet and infrastructure",
+   "stats": [
+    {
+     "id": "internet",
+     "label": "Internet users",
+     "src": "wdi",
+     "key": "internetPct",
+     "unit": "% of people",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "mobile",
+     "label": "Mobile subscriptions per 100 people",
+     "src": "wdi",
+     "key": "mobilePer100",
+     "unit": "per 100 people",
+     "fmt": "dec1",
+     "rank": "high"
+    },
+    {
+     "id": "mobileSubs",
+     "label": "Mobile subscriptions",
+     "src": "wdi",
+     "key": "mobileSubs",
+     "unit": "subscriptions",
+     "fmt": "int",
+     "rank": "high"
+    },
+    {
+     "id": "broadband",
+     "label": "Fixed broadband per 100 people",
+     "src": "wdi",
+     "key": "broadbandPer100",
+     "unit": "per 100 people",
+     "fmt": "dec1",
+     "rank": "high"
+    },
+    {
+     "label": "Electricity access",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Bank / mobile-money accounts, digital payments",
+     "planned": "A",
+     "source": "World Bank Findex"
+    },
+    {
+     "label": "Rail, ports, air passengers, logistics",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Airports",
+     "planned": "D",
+     "source": "OurAirports"
+    }
+   ]
+  },
+  {
+   "id": "energy",
+   "label": "Energy and minerals",
+   "stats": [
+    {
+     "id": "gen",
+     "label": "Electricity generated",
+     "src": "energy",
+     "key": "gen",
+     "unit": "TWh",
+     "fmt": "dec1",
+     "rank": "high"
+    },
+    {
+     "id": "renShare",
+     "label": "Renewable share of electricity",
+     "src": "energy",
+     "key": "renShare",
+     "unit": "% of generation",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "fossilShare",
+     "label": "Fossil share of electricity",
+     "src": "energy",
+     "key": "fossilShare",
+     "unit": "% of generation",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "hydroShare",
+     "label": "Hydropower share",
+     "src": "energy",
+     "key": "hydroShare",
+     "unit": "% of generation",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "wsShare",
+     "label": "Wind and solar share",
+     "src": "energy",
+     "key": "wsShare",
+     "unit": "% of generation",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "label": "Each source (solar, wind, nuclear, coal, gas)",
+     "planned": "C",
+     "source": "Ember"
+    },
+    {
+     "label": "Oil, gas, coal production and reserves",
+     "planned": "C",
+     "source": "EIA"
+    },
+    {
+     "label": "Gold, copper, lithium and other mining",
+     "planned": "C",
+     "source": "USGS"
+    }
+   ]
+  },
+  {
+   "id": "environment",
+   "label": "Environment and climate",
+   "stats": [
+    {
+     "id": "co2",
+     "label": "CO₂ emissions (fossil)",
+     "src": "energy",
+     "key": "co2",
+     "unit": "million tonnes",
+     "fmt": "dec1",
+     "rank": "high"
+    },
+    {
+     "id": "co2pc",
+     "label": "CO₂ per person",
+     "src": "energy",
+     "key": "co2pc",
+     "unit": "tonnes",
+     "fmt": "dec2",
+     "rank": "high"
+    },
+    {
+     "id": "forestPct",
+     "label": "Forest cover",
+     "src": "wdi",
+     "key": "forestPct",
+     "unit": "% of land",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "forestArea",
+     "label": "Forest area",
+     "src": "wdi",
+     "key": "forestArea",
+     "unit": "km²",
+     "fmt": "int",
+     "rank": "high"
+    },
+    {
+     "label": "Air pollution, water, sanitation, protected areas",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "All greenhouse gases",
+     "planned": "D",
+     "source": "Climate Watch / EDGAR"
+    },
+    {
+     "label": "Tree cover loss",
+     "planned": "D",
+     "source": "Global Forest Watch"
+    },
+    {
+     "label": "Temperature, rainfall",
+     "planned": "D",
+     "source": "Climate Knowledge Portal"
+    }
+   ]
+  },
+  {
+   "id": "farming",
+   "label": "Farming and food",
+   "stats": [
+    {
+     "label": "Agricultural and arable land, fertiliser",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "Rice, wheat, maize, potatoes, tea, coffee, sugar, cotton, jute",
+     "planned": "B",
+     "source": "FAOSTAT"
+    },
+    {
+     "label": "Milk, meat, eggs, livestock, fish",
+     "planned": "B",
+     "source": "FAOSTAT"
+    },
+    {
+     "label": "Food supply, calories, protein, food prices",
+     "planned": "B",
+     "source": "FAOSTAT"
+    }
+   ]
+  },
+  {
+   "id": "governance",
+   "label": "Government and indices",
+   "stats": [
+    {
+     "label": "Governance indicators, homicide rate, military spending",
+     "planned": "A",
+     "source": "World Bank"
+    },
+    {
+     "label": "HDI, corruption, democracy, peace indices",
+     "planned": "E",
+     "source": "licence check"
+    }
+   ]
+  }
+ ]
+}
