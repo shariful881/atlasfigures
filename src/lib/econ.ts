@@ -14,7 +14,22 @@ export type IndicatorKey =
   | 'landArea' | 'forestPct' | 'forestArea'
   | 'literacyPct' | 'eduSpendPctGdp'
   | 'lfpFemale' | 'lfpMale' | 'empAgriPct' | 'empIndPct' | 'empSrvPct'
-  | 'migrantStock' | 'migrantPct';
+  | 'migrantStock' | 'migrantPct'
+  // task 150: country-profile indicators
+  | 'gni' | 'gniPerCapita' | 'gniPerCapitaPpp' | 'externalDebt' | 'externalDebtPctGni' | 'budgetBalancePctGdp'
+  | 'govRevenuePctGdp' | 'govExpensePctGdp' | 'taxRevenuePctGdp' | 'currentAccountPctGdp' | 'reserves' | 'exchangeRate'
+  | 'fdiInflows' | 'fdiPctGdp' | 'povertyExtremePct' | 'poverty420Pct' | 'poverty830Pct' | 'povertyNationalPct'
+  | 'gini' | 'agriPctGdp' | 'industryPctGdp' | 'manufPctGdp' | 'servicesPctGdp' | 'householdConsPctGdp'
+  | 'savingsPctGdp' | 'remittancesPaid' | 'tariffPct' | 'hiTechExportsPct' | 'touristArrivals' | 'tourismReceipts'
+  | 'youthUnemploymentPct' | 'labourForce' | 'doctorsPer1000' | 'nursesPer1000' | 'hospitalBedsPer1000' | 'healthSpendPctGdp'
+  | 'healthSpendPerCapita' | 'outOfPocketPct' | 'measlesVaccPct' | 'dptVaccPct' | 'diabetesPct'
+  | 'tbIncidence' | 'malariaIncidence' | 'tobaccoPct' | 'undernourishedPct' | 'stuntingPct' | 'neonatalMortality'
+  | 'roadDeathsPer100k' | 'primaryEnrolPct' | 'secondaryEnrolPct' | 'tertiaryEnrolPct' | 'primaryCompletionPct' | 'pupilTeacherPrimary'
+  | 'outOfSchoolPrimary' | 'rdSpendPctGdp' | 'journalArticles' | 'patentsResident' | 'patentsNonresident' | 'electricityAccessPct'
+  | 'cleanCookingPct' | 'accountPct' | 'accountFemalePct' | 'accountMalePct' | 'airPassengers' | 'containerTeu'
+  | 'logisticsIndex' | 'pm25' | 'basicWaterPct' | 'safeWaterPct' | 'basicSanitationPct' | 'safeSanitationPct'
+  | 'protectedPct' | 'protectedLandPct' | 'protectedMarinePct' | 'freshwaterWithdrawPct' | 'agriLandPct' | 'arableLandPct'
+  | 'arableHaPerPerson' | 'fertiliserKgHa' | 'cerealYield' | 'homicideRate' | 'armedForces' | 'womenParliamentPct';
 /** [year, value] pairs, years ascending, only years the World Bank publishes a value for. */
 export type Series = [number, number][];
 export type EconData = {
