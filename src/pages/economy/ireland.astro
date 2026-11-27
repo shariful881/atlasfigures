@@ -1,0 +1,150 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/ireland.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/ireland/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const isMax = (arr: [number, number][]) => arr.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+const pcList = rankBy('gdpPerCapita', L); const pcRank = pcList.findIndex((r) => r.iso3 === c.iso3) + 1;
+const gRank = rankBy('gdpGrowthPct', L).find((r) => r.iso3 === c.iso3)!.rank;
+const hiSince = Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < L && x >= growth).map(([y]) => y));
+const gMax = s.gdpGrowthPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const ex = valueIn(s.exports, L)!; const exPct = Math.round((ex / gdp) * 100);
+const exRank = rankBy('exports', L).find((r) => r.iso3 === c.iso3)!.rank;
+const x2000 = (gdp / v('gdp', 2000)!).toFixed(1);
+const uMax = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+
+assertClaim(isMax(s.gdp) && isMax(s.gdpPerCapita) && pcRank === 2 && pcList[0].iso3 === 'LUX', 'records; per head 2nd after Luxembourg');
+assertClaim(gRank === 3 && hiSince === 2021 && gMax[0] === 2015 && g(2023) < 0, '12.3% 3rd, best since 2021; record 2015; fall in 2023');
+assertClaim(exRank === 7 && exPct === 140 && x2000 === '7.2', 'exports 7th, 140% of GDP; GDP 7.2x 2000');
+assertClaim(uMax[0] === 1991 && u(2012) > 15 && iMax[0] === 1975 && i(2022) > 7.7, 'unemployment peak 1991, 15.5% in 2012; inflation peak 1975; 7.8% in 2022');
+
+const title = `Ireland Economy ${L}: ${usdWhole(perHead)} per Person, Second Only to Luxembourg | AtlasFigures`;
+const description = `Ireland's ${L} GDP: ${usd(gdp)}, after a ${pct(growth)} real expansion. Per resident, ${usdWhole(perHead)}, trails only Luxembourg, and exports of ${usd(ex)} equal ${exPct}% of GDP.`;
+
+const faq = [
+  { q: 'Is Ireland the second-richest country per person?', a: `By World Bank GDP per capita in ${L}, yes: ${usdWhole(perHead)}, behind Luxembourg alone. At PPP the figure is ${intDollars(ppp!)}.` },
+  { q: 'How can Irish exports be bigger than GDP?', a: `Exports are counted at their full sales value, while GDP adds up only value created at home, so a country that imports parts and re-exports finished goods can sell abroad more than it produces. Ireland's exports were ${usd(ex)} in ${L}, ${exPct}% of GDP (our calculation), ${ord(exRank)} largest in the world.` },
+  { q: 'Was there an Irish recession in 2023?', a: `Output dipped ${pct(Math.abs(g(2023)))} that year, before growth of ${pct(g(2024))} in 2024 and ${pct(growth)} in ${L}.` },
+  { q: 'What was Ireland\'s fastest growth year?', a: `2015, at ${pct(gMax[1])} — the highest in a series beginning in 1961. ${L}'s ${pct(growth)} topped every year after 2021.` },
+  { q: 'How low is Irish unemployment now?', a: `${pct(unemp!)} for ${L} by ILO modelling — a far cry from ${pct(uMax[1])} in 1991 or ${pct(u(2012))} in 2012.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Ireland's economy in ${L}: double-digit growth and the world's second-highest output per person`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Irish economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Ireland', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Ireland's economy: second-highest GDP per person in the world</h1>
+        <p class="answer">
+          Measured per resident, Irish GDP stood at <strong>{usdWhole(perHead)}</strong> in {L}, behind only Luxembourg, after real GDP grew <strong>{pct(growth)}</strong>.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Ireland economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Ireland" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Exports worth more than the whole economy, and growth rates that swing widely from one year to the next.</p>
+
+        <div class="story-block prose">
+          <h2>How rich is Ireland measured by GDP per person?</h2>
+          <p>Exceptionally, on this yardstick: {usdWhole(perHead)} in {L}, {ord(pcRank)} of 186 economies and behind only Luxembourg ({intDollars(ppp!)} at PPP). In current dollars the economy ({usd(gdp)}) has grown {x2000} times over since 2000.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>How volatile is Irish growth?</h2>
+          <p>Very, judging by the swings: {pct(gMax[1])} in 2015, {pct(g(2016))} in 2016, {pct(g(2021))} in 2021, a {pct(Math.abs(g(2023)))} fall in 2023 and {pct(growth)} in {L}, {ord(gRank)} fastest anywhere.</p>
+        </div>
+        <LineChart
+          title={`Ireland: yearly change in output, ${s.gdpGrowthPct[0][0]}–${L}`}
+          subtitle="Annual % change at constant prices."
+          points={s.gdpGrowthPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How does Ireland's job market compare with the early 1990s?</h2>
+          <p>Unemployment, on the ILO model, ran at {pct(uMax[1])} in 1991 and {pct(u(2012))} in 2012; for {L} it was {pct(unemp!)}. Consumer prices climbed {pct(infl.value)}, compared with {pct(i(2022))} in 2022 and a record {pct(iMax[1])} in 1975.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Ireland and Western Europe: related pages</h2>
+          <ul>
+            <li><a href={path('/population/ireland/')}>Ireland's population</a></li>
+            <li><a href={path('/economy/united-kingdom/')}>United Kingdom's economy</a></li>
+            <li><a href={path('/economy/netherlands/')}>Netherlands' economy</a></li>
+            <li><a href={path('/economy/switzerland/')}>Switzerland's economy</a></li>
+            <li><a href={path('/rankings/exports-by-country/')}>Exports by country</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Irish figures, 1960 to 2025`}
+          subtitle="Each decade plus 1975, 1991 and 2009, then 2015 onward; the downloadable CSV is complete."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/ireland-economy.csv')} csvName="ireland-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Ireland's economy: points people ask about</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Exports: NE.EXP.GNFS.CD (World Bank national accounts); exports as a share of GDP is our calculation. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Irish economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Ireland" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

@@ -1,0 +1,149 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/greece.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/greece/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const gdpPeak = s.gdp.reduce((a, b) => (b[1] > a[1] ? b : a)); const pcPeak = s.gdpPerCapita.reduce((a, b) => (b[1] > a[1] ? b : a));
+const gdpGap = Math.round((1 - gdp / gdpPeak[1]) * 100), pcGap = Math.round((1 - perHead / pcPeak[1]) * 100);
+const slump = [2009, 2010, 2011, 2012, 2013].every((y) => g(y) < 0);
+const worst = s.gdpGrowthPct.reduce((a, b) => (b[1] < a[1] ? b : a));
+const uMax = s.unemploymentPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const iLow = s.inflationPct.reduce((a, b) => (b[1] < a[1] ? b : a)); const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const three = [2023, 2024, 2025].every((y) => g(y).toFixed(1) === '2.1');
+const pppMax = s.gdpPerCapitaPpp!.reduce((a, b) => (b[1] > a[1] ? b : a))[0] === L;
+
+assertClaim(gdpPeak[0] === 2008 && pcPeak[0] === 2008 && gdpGap === 20 && pcGap === 15 && pppMax, 'dollar GDP 20% and per head 15% below 2008; PPP at a record');
+assertClaim(g(2015) < 0 && g(2016) < 0 && slump && worst[0] === 2011 && g(2008) > 0, 'five contractions 2009-13; worst 2011');
+assertClaim(uMax[0] === 2013 && u(2013) > 25 && u(2013) > 27.6 && unemp! < 8.6, 'unemployment 27.7% in 2013, 8.5% now');
+assertClaim(three && g(2020) < -9 && g(2021) > 8.6, '2.1% three years running; 2020 -9.2%, 2021 +8.7%');
+assertClaim(iLow[0] === 2015 && iMax[0] === 1974 && i(2022) > 9.5, 'deflation low 2015; peak 1974; 9.6% in 2022');
+
+const title = `Greece Economy ${L}: GDP ${gdpGap}% Below 2008 in Dollars, Jobless Rate ${pct(unemp!)} | AtlasFigures`;
+const description = `Greek output was ${usd(gdp)} in ${L}, still ${gdpGap}% under its 2008 dollar high. Growth held at ${pct(growth)} for a third year, and unemployment has fallen from ${pct(uMax[1])} in 2013 to ${pct(unemp!)}.`;
+
+const faq = [
+  { q: 'Has Greece recovered from its 2009–13 slump?', a: `Partly. In dollar terms GDP (${usd(gdp)}) and per-head output (${usdWhole(perHead)}) are still ${gdpGap}% and ${pcGap}% below 2008; at purchasing-power parity, though, ${intDollars(ppp!)} per head is a record.` },
+  { q: 'How long did the Greek recession last?', a: `Five years running, 2009 through 2013, with the sharpest fall in 2011 (${pct(Math.abs(worst[1]))}). Smaller declines followed in 2015 and 2016.` },
+  { q: 'Is Greek unemployment still high?', a: `Much lower than it was: ${pct(unemp!)} for ${L} (ILO model), compared with ${pct(uMax[1])} at the 2013 peak.` },
+  { q: 'Did Greece have deflation?', a: `Yes; prices fell in several years, most of all in 2015 (${pct(iLow[1])}). The highest inflation in the series was ${pct(iMax[1])} in 1974; in 2022 it reached ${pct(i(2022))}.` },
+  { q: 'How did Greece fare during the pandemic?', a: `Output dropped ${pct(Math.abs(g(2020)))} in 2020 and rebounded ${pct(g(2021))} in 2021; growth has been ${pct(growth)} in each of 2023, 2024 and ${L}.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Greece's economy in ${L}: steady growth, but dollar output still short of 2008`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Greek economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Greece', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Greece's economy: steady recovery, still below its 2008 peak</h1>
+        <p class="answer">
+          At <strong>{usd(gdp)}</strong> in {L}, Greek GDP sits roughly {gdpGap}% under the 2008 figure in dollars, even with real growth steady at <strong>{pct(growth)}</strong> and joblessness down to {pct(unemp!)}.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Greece economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Greece" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">Jobs have largely come back since the 2009–13 slump, but dollar output has not.</p>
+
+        <div class="story-block prose">
+          <h2>Is the Greek economy bigger than before the crisis?</h2>
+          <p>Not in dollars. Nothing has yet topped the 2008 peak of {usd(gdpPeak[1])}; {L} came to {usd(gdp)}, roughly {gdpGap}% lower, and per person the shortfall is {pcGap}% ({usdWhole(perHead)} against {usdWhole(pcPeak[1])}). Adjusted for price levels, though, income per head ({intDollars(ppp!)}) has never been higher.</p>
+        </div>
+        <LineChart
+          title={`Greece: nominal output in US dollars, ${s.gdp[0][0]}–${L}`}
+          subtitle="US$ billions, nominal."
+          points={s.gdp.map(([x, y]) => ({ x, y }))}
+          format="usdBillions" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>How deep was the Greek slump?</h2>
+          <p>Real output contracted for five straight years (2009–2013), with the worst — {pct(worst[1])} — in 2011, and further dips in 2015 and 2016. The pandemic brought {pct(g(2020))} in 2020 and a rebound of {pct(g(2021))}; since 2023 growth has run at a steady {pct(growth)} a year.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>Are Greeks finding work again?</h2>
+          <p>In 2013 more than a quarter of the Greek workforce was jobless ({pct(uMax[1])}); the ILO model puts {L} at {pct(unemp!)}, still {ord(rankBy('unemploymentPct', L).find((r) => r.iso3 === c.iso3)!.rank)} highest of 182. Inflation is {pct(infl.value)}, after {pct(i(2022))} in 2022 and outright deflation in 2015 ({pct(iLow[1])}).</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Greece and Southern Europe: related pages</h2>
+          <ul>
+            <li><a href={path('/population/greece/')}>Greece's population</a></li>
+            <li><a href={path('/economy/italy/')}>Italy's economy</a></li>
+            <li><a href={path('/economy/turkey/')}>Turkey's economy</a></li>
+            <li><a href={path('/economy/portugal/')}>Portugal's economy</a></li>
+            <li><a href={path('/economy/spain/')}>Spain's economy</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Greece: GDP and prices by year`}
+          subtitle="1960, 1970, 1974, 1980, 1990, 2000, the crisis years 2008–13 and 2015–2025; the CSV adds the rest."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/greece-economy.csv')} csvName="greece-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Greek economy — reader FAQ</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note"> Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Greek economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Greece" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

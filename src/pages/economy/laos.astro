@@ -1,0 +1,148 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LineChart from '../../components/LineChart.astro';
+import EconTable from '../../components/EconTable.astro';
+import IndicatorCards from '../../components/IndicatorCards.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import c from '../../data/economy/laos.json';
+import { econData, econMeta, valueIn, rankBy, usd, usdWhole, intDollars, signedPct } from '../../lib/econ';
+import { econBasics, econSchema } from '../../lib/econPage';
+import { assertClaim, pct, ord } from '../../lib/figures';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+import { latest } from '../../lib/econ';
+// Every figure comes from the original World Bank files (via src/data/wdi/).
+const PAGE = '/economy/laos/';
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = c.verification?.checkedOn;
+const B = econBasics(c.iso3, c.tableYears);
+const { s, L, v, gdp, perHead, growth, ppp, infl, unemp, rem, remPct, net, share } = B;
+const g = (y: number) => v('gdpGrowthPct', y)!;
+const i = (y: number) => v('inflationPct', y)!;
+const u = (y: number) => v('unemploymentPct', y)!;
+const gdpPeak = s.gdp.reduce((a, b) => (b[1] > a[1] ? b : a)); const pcPeak = s.gdpPerCapita.reduce((a, b) => (b[1] > a[1] ? b : a));
+const i23since = Math.max(...s.inflationPct.filter(([y, x]) => y < 2023 && x >= i(2023)).map(([y]) => y));
+const iMax = s.inflationPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const i23Rank = rankBy('inflationPct', 2023).find((r) => r.iso3 === c.iso3)!.rank;
+const hiSince = Math.max(...s.gdpGrowthPct.filter(([y, x]) => y < L && x >= growth).map(([y]) => y));
+const rising = [2021, 2022, 2023, 2024, 2025].every((y) => g(y) > g(y - 1));
+const agri = valueIn(s.empAgriPct, L)!; const agriRank = rankBy('empAgriPct', L).find((r) => r.iso3 === c.iso3)!.rank;
+const lit = latest(s.literacyPct)!;
+
+assertClaim(gdpPeak[0] === 2020 && pcPeak[0] === 2019 && gdp < gdpPeak[1] && isFinite(ppp!), 'dollar GDP below 2020, per head below 2019');
+assertClaim(i23since === 1999 && iMax[0] === 1999 && i23Rank === 10 && i(2022) > 22.9 && i(2024) > 23 && infl.value < 7.8, '31.2% in 2023 highest since 1999 (10th in world); 23.0% 2022, 23.1% 2024; 7.7% in 2025');
+assertClaim(hiSince === 2019 && rising && g(2020) < 0.6, '4.5% best since 2019; faster every year since 2020');
+assertClaim(agriRank === 6 && Math.round(agri) === 69 && lit.year === 2023, 'agriculture 68.6%, 6th; literacy 2023');
+
+const title = `Laos Economy ${L}: Inflation Cools to ${pct(infl.value)} After 2023 Peak | AtlasFigures`;
+const description = `Consumer prices in Laos rose ${pct(infl.value)} in ${L}, against ${pct(i(2023))} two years before, and real growth quickened to ${pct(growth)}, though dollar GDP of ${usd(gdp)} has yet to regain 2020's level.`;
+
+const faq = [
+  { q: 'Has Lao inflation calmed down?', a: `Largely: ${pct(infl.value)} in ${L}, compared with ${pct(i(2022))} in 2022, ${pct(i(2023))} in 2023 (${ord(i23Rank)} worldwide) and ${pct(i(2024))} in 2024.` },
+  { q: 'When was Lao inflation last this high?', a: `Not since 1999, the series record at ${pct(iMax[1])}, had prices climbed as fast as 2023's ${pct(i(2023))}.` },
+  { q: 'Is the Lao economy growing faster?', a: `Each year has beaten the last since 2020 (${pct(g(2020))}); ${L} came in at ${pct(growth)}, a rate unmatched since 2019.` },
+  { q: 'Is Laos\'s dollar GDP back to its 2020 level?', a: `Not yet — ${usd(gdp)} for ${L}, compared with ${usd(gdpPeak[1])} in 2020, despite five years of real growth.` },
+  { q: 'How many Lao workers are in agriculture?', a: `Roughly two in three: ILO models put farming at ${pct(agri)} of jobs for ${L}, ${ord(agriRank)} among all countries.` },
+];
+const schema = econSchema({
+  page: PAGE, slug: c.slug, name: c.name, wikipedia: c.wikipedia, L, published: c.published, updated: c.updated, description, faq,
+  headline: `Laos's economy in ${L}: inflation falls back as growth gathers pace`,
+});
+---
+<Base
+  title={title} description={description} section="economy" appTitle="Lao economy" back="/economy/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Economy', href: '/economy/' }, { name: 'Laos', href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Laos's economy: prices calmer, growth stronger</h1>
+        <p class="answer">
+          Inflation in Laos fell to <strong>{pct(infl.value)}</strong> in {L} down from {pct(i(2023))} in 2023, and real growth rose to <strong>{pct(growth)}</strong>.
+        </p>
+        <div class="dates"><span>Updated <time datetime={c.updated}>{longDate(c.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`Laos economy, ${L}`} cards={B.cards} />
+        <KeyFacts variant="mobile" country="Laos" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <p class="answer lead">After three years of steep price rises, the economy is steadier, though dollar GDP remains below 2020.</p>
+
+        <div class="story-block prose">
+          <h2>How bad was inflation in Laos?</h2>
+          <p>Severe for three years running: {pct(i(2022))} in 2022, {pct(i(2023))} in 2023 (Laos's worst since 1999, with only nine countries higher) and {pct(i(2024))} in 2024. In {L} it dropped to {pct(infl.value)}.</p>
+        </div>
+        <LineChart
+          title={`Inflation in Laos, ${s.inflationPct[0][0]}–${L}`}
+          subtitle="Consumer prices, yearly % change."
+          points={s.inflationPct.map(([x, y]) => ({ x, y }))}
+          format="percent" highlight={L} estimateLabel="World Bank data"
+          source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+        />
+        <div class="story-block prose">
+          <h2>Is the Lao economy speeding up?</h2>
+          <p>Steadily. Each year since 2020 has outpaced the one before, lifting real growth from {pct(g(2020))} to {pct(growth)} — Laos's quickest since 2019. In current dollars, however, GDP of {usd(gdp)} still trails 2020 ({usd(gdpPeak[1])}), and income per head ({usdWhole(perHead)}) is under its 2019 level; at PPP it is {intDollars(ppp!)}.</p>
+        </div>
+        <div class="story-block prose">
+          <h2>What do Lao people do for a living?</h2>
+          <p>Mostly farm: agriculture employs {pct(agri)} of the Lao workforce (ILO, {L}), {ord(agriRank)} in the world. UNESCO puts adult literacy at {pct(lit.value)} for {lit.year}. Remittances reached a record {usd(rem!.value)}, {pct(remPct!.value)} of GDP.</p>
+        </div>
+        <nav class="related" aria-label="Related pages">
+          <h2>Laos and mainland Southeast Asia: related pages</h2>
+          <ul>
+            <li><a href={path('/population/laos/')}>Laos's population</a></li>
+            <li><a href={path('/economy/thailand/')}>Thailand's economy</a></li>
+            <li><a href={path('/economy/vietnam/')}>Vietnam's economy</a></li>
+            <li><a href={path('/economy/cambodia/')}>Cambodia's economy</a></li>
+            <li><a href={path('/economy/china/')}>China's economy</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <EconTable
+          id="data-h" title={`Laos year-by-year table`}
+          subtitle="Starts in 1984, when dollar GDP data begin, with 1985, 1989, 1990, 1999–2000 and 2010, then each year from 2015 — every year in the CSV."
+          rows={B.rows} latest={L} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path('/data/laos-economy.csv')} csvName="laos-economy.csv"
+          licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Laos's economy: brief answers</h2>
+        <div class="faq">{faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}</div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.gdp.wdiLastUpdated)}): GDP and GDP per person (current US$), GDP per person at PPP, GDP growth, inflation (IMF International Financial Statistics), unemployment (modelled ILO estimate), personal remittances received, internet users (ITU). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+          </ul>
+          <p class="note">Employment in agriculture: SL.AGR.EMPL.ZS (ILO modelled estimates); literacy: SE.ADT.LITR.ZS (UNESCO), via the World Bank. Lao GDP data start in 1984 and inflation in 1989. Dollar figures are in current prices; growth is in constant prices. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={c.published}>{longDate(c.published)}</time> · Updated <time datetime={c.updated}>{longDate(c.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Lao economy", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country="Laos" code={c.code} year={L} groups={B.factGroups} highlights={B.highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>
