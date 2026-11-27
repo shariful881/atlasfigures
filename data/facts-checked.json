@@ -1,0 +1,19 @@
+{
+  "_about": "Country facts checked by hand where the two sources differ (task 156). build-facts.mjs applies each entry: `set` replaces the fact, and the fact counts as checked (live in profiles) only while the sources still show the same disagreement (`whenDiffer`) — if a source changes, the entry no longer applies and the fact goes back to 'to check'.",
+  "checks": [
+    {
+      "iso3": "BGR", "fact": "currency", "set": { "currencies": [{ "code": "EUR" }] },
+      "whenDiffer": { "cldr": ["EUR"], "geonames": ["BGN"] },
+      "checkedOn": "2026-11-27", "checkedBy": "Claude (task 156)",
+      "against": "European Central Bank: Bulgaria joined the euro area on 1 January 2026; the lev stopped being legal tender on 1 February 2026 (CLDR is right, GeoNames still lists BGN)",
+      "url": "https://www.ecb.europa.eu/euro/changeover/bulgaria/html/index.en.html"
+    },
+    {
+      "iso3": "SXM", "fact": "callingCode", "set": { "callingCode": ["+1-721"] },
+      "whenDiffer": { "geonames": ["+599"], "wikidata": ["+1721"] },
+      "checkedOn": "2026-11-27", "checkedBy": "Claude (task 156)",
+      "against": "Bureau Telecommunications and Post Sint Maarten (numbering): Sint Maarten is in the North American Numbering Plan, dialled as +1 721 (GeoNames still lists the old +599)",
+      "url": "https://sxmregulator.sx/numbering.html"
+    }
+  ]
+}

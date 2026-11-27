@@ -3,6 +3,7 @@
 //   - country-list.json holds every UN WPP country or area once; slugs unique; pages exist where the list says so
 //   - one profile per country; every live figure = the generated series it came from; ranks recomputed
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { factText } from './build-facts.mjs';
 
 let checks = 0; const problems = [];
 const ok = (c, where, msg) => { checks++; if (!c) problems.push(`${where}: ${msg}`); return c; };
@@ -11,6 +12,9 @@ const wppIdx = JSON.parse(readFileSync('src/data/wpp/index.json', 'utf8'));
 const catalog = JSON.parse(readFileSync('src/data/profile-stats.json', 'utf8')).sections;
 const wdi = Object.fromEntries(readdirSync('src/data/wdi/countries').map((f) => { const d = JSON.parse(readFileSync(`src/data/wdi/countries/${f}`, 'utf8')); return [d.iso3, d]; }));
 const energy = JSON.parse(readFileSync('src/data/energy/index.json', 'utf8'));
+const facts = JSON.parse(readFileSync('src/data/facts/index.json', 'utf8')).facts;
+const names = Object.fromEntries(list.map((c) => [c.iso3, c.name]));
+const CHECKED = { currency: 'currency', languages: 'languages', callingCode: 'callingCode', tld: 'tld', neighbours: 'neighbours', highestPoint: 'highestPoint', drivingSide: 'drivingSide' };
 
 const isos = new Set(list.map((c) => c.iso3));
 for (const c of wppIdx.countries) ok(isos.has(c.iso3), c.iso3, 'missing from country-list.json');
@@ -40,8 +44,13 @@ for (const c of list) {
     else if (st.src === 'wdi') { const s = wdi[c.iso3]?.series[st.key] ?? []; if (s.length) [year, want] = s.at(-1); }
     else if (st.src === 'energy') { const s = energy.countries[c.iso3]?.series[st.key] ?? []; if (s.length) [year, want] = s.at(-1); }
     else if (st.src === 'list') want = st.key === 'iso' ? `${c.iso3} / ${c.iso2}` : c[st.key];
+    else if (st.src === 'facts') {
+      want = facts[c.iso3] ? factText(facts[c.iso3], st.key, names) : null;
+      const chk = facts[c.iso3]?.checks[CHECKED[st.key]];
+      if (want != null && chk && chk !== 'agree' && !chk.checked) { ok(got.status === 'to-check' && got.value === want, c.iso3, `${st.id}: sources differ, so it must be "to-check", not ${got.status}`); continue; }
+    }
     if (want == null || want === '') { ok(got.status === 'no-data', c.iso3, `${st.id} should be no-data`); continue; }
-    ok(got.status === 'live' && got.value === want && (st.src === 'list' || got.year === year), c.iso3, `${st.id} = ${got.value} (${got.year}), data has ${want} (${year})`);
+    ok(got.status === 'live' && got.value === want && (st.src === 'list' || st.src === 'facts' || got.year === year), c.iso3, `${st.id} = ${got.value} (${got.year}), data has ${want} (${year})`);
   }
 }
 console.log(`\n${problems.length ? '✗' : '✓'} Country list and profiles: ${checks} checks on ${list.length} countries or areas.`);

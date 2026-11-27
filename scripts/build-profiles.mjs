@@ -5,6 +5,7 @@
 // Output (generated, git-ignored): src/data/profiles/<ISO3>.json and src/data/profiles/index.json.
 // Runs in `npm run data` and before every build. Pages read profiles; nothing here is typed by hand.
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
+import { factText } from './build-facts.mjs';
 
 const OUT = 'src/data/profiles';
 const list = JSON.parse(readFileSync('src/data/country-list.json', 'utf8')).countries;
@@ -15,6 +16,8 @@ const wpp = Object.fromEntries(list.map((c) => [c.iso3, JSON.parse(readFileSync(
 const wdiMeta = JSON.parse(readFileSync('src/data/wdi/meta.json', 'utf8'));
 const wdi = Object.fromEntries(readdirSync('src/data/wdi/countries').map((f) => { const d = JSON.parse(readFileSync(`src/data/wdi/countries/${f}`, 'utf8')); return [d.iso3, d]; }));
 const energy = JSON.parse(readFileSync('src/data/energy/index.json', 'utf8'));
+const facts = JSON.parse(readFileSync('src/data/facts/index.json', 'utf8')); // task 156
+const names = Object.fromEntries(list.map((c) => [c.iso3, c.name]));
 
 const SRC = {
   wpp: 'UN World Population Prospects 2024',
@@ -22,7 +25,10 @@ const SRC = {
   wdi: 'World Bank, World Development Indicators',
   energy: { co2: 'Global Carbon Project', co2pc: 'Global Carbon Project' },
   list: 'UN WPP / World Bank classification',
+  facts: { currency: 'Unicode CLDR; checked against GeoNames', languages: 'Unicode CLDR (national official status); checked against Wikidata', callingCode: 'GeoNames; checked against Wikidata', tld: 'GeoNames; checked against Wikidata', timeZones: 'IANA time zone database', neighbours: 'GeoNames (land borders); checked against Wikidata', landlocked: 'Wikidata', highestPoint: 'Wikidata', drivingSide: 'Wikidata', plugs: 'Wikidata (IEC plug types)', emergency: 'Wikidata' },
 };
+// which fact a second source checks (a differing check → "to-check", not live)
+const CHECKED = { currency: 'currency', languages: 'languages', callingCode: 'callingCode', tld: 'tld', neighbours: 'neighbours', highestPoint: 'highestPoint', drivingSide: 'drivingSide' };
 const fmtv = {
   int: (v) => Math.round(v).toLocaleString('en-US'), pct: (v) => `${v.toFixed(1)}%`, dec1: (v) => v.toFixed(1), dec2: (v) => v.toFixed(2),
   usd: (v) => (Math.abs(v) >= 1e12 ? `$${(v / 1e12).toFixed(2)} trillion` : Math.abs(v) >= 1e9 ? `$${(v / 1e9).toFixed(1)} billion` : Math.abs(v) >= 1e6 ? `$${(v / 1e6).toFixed(1)} million` : `$${Math.round(v).toLocaleString('en-US')}`),
@@ -62,6 +68,13 @@ for (const c of list) {
           if (st.rank) rank = rankOf(wdiLatest(st.key, st.since ?? year - 5), c.iso3, st.rank === 'low');
           source = `${SRC.wdi} (${wdiMeta.indicators[st.key]?.code})`;
         }
+      } else if (st.src === 'facts') {
+        const f = facts.facts[c.iso3];
+        source = SRC.facts[st.key];
+        value = f ? factText(f, st.key, names) : null;
+        text = value;
+        const chk = f?.checks[CHECKED[st.key]];
+        if (value != null && chk && chk !== 'agree' && !chk.checked) return { id: st.id, label: st.label, status: 'to-check', value, text, source, differ: chk.differ };
       } else if (st.src === 'energy') {
         const s = energy.countries[c.iso3]?.series[st.key] ?? [];
         if (s.length) { [year, value] = s.at(-1); if (st.rank) rank = rankOf(enLatest(st.key, year), c.iso3, st.rank === 'low'); }
@@ -73,7 +86,7 @@ for (const c of list) {
     }),
   }));
   const all = sections.flatMap((s) => s.stats);
-  const coverage = { live: all.filter((s) => s.status === 'live').length, noData: all.filter((s) => s.status === 'no-data').length, planned: all.filter((s) => s.status === 'planned').length };
+  const coverage = { live: all.filter((s) => s.status === 'live').length, toCheck: all.filter((s) => s.status === 'to-check').length, noData: all.filter((s) => s.status === 'no-data').length, planned: all.filter((s) => s.status === 'planned').length };
   const profile = { iso3: c.iso3, iso2: c.iso2, slug: c.slug, name: c.name, unName: c.unName, unRegion: c.unRegion, unSubregion: c.unSubregion, pages: c.pages, year: YEAR, coverage, sections };
   writeFileSync(`${OUT}/${c.iso3}.json`, JSON.stringify(profile));
   index.push({ iso3: c.iso3, slug: c.slug, name: c.name, unSubregion: c.unSubregion, pages: c.pages, ...coverage });

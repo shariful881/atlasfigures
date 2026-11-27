@@ -51,64 +51,100 @@
      "rank": "high"
     },
     {
-     "label": "Currency (name, code, symbol)",
-     "planned": "F",
-     "source": "ISO 4217 / Unicode CLDR"
+     "id": "currency",
+     "label": "Currency",
+     "src": "facts",
+     "key": "currency"
     },
     {
-     "label": "Calling code, internet domain",
-     "planned": "F",
-     "source": "Wikidata (CC0)"
-    },
-    {
+     "id": "languages",
      "label": "Official languages",
-     "planned": "F",
-     "source": "Wikidata"
+     "src": "facts",
+     "key": "languages"
+    },
+    {
+     "id": "calling",
+     "label": "Calling code",
+     "src": "facts",
+     "key": "callingCode"
+    },
+    {
+     "id": "tld",
+     "label": "Internet domain",
+     "src": "facts",
+     "key": "tld"
+    },
+    {
+     "id": "tz",
+     "label": "Time zones (UTC offset in 2026; winter/summer)",
+     "src": "facts",
+     "key": "timeZones"
+    },
+    {
+     "id": "neighbours",
+     "label": "Land neighbours",
+     "src": "facts",
+     "key": "neighbours"
+    },
+    {
+     "id": "landlocked",
+     "label": "Landlocked",
+     "src": "facts",
+     "key": "landlocked"
+    },
+    {
+     "id": "highest",
+     "label": "Highest point",
+     "src": "facts",
+     "key": "highestPoint"
+    },
+    {
+     "id": "driving",
+     "label": "Driving side",
+     "src": "facts",
+     "key": "drivingSide"
+    },
+    {
+     "id": "plugs",
+     "label": "Plug types",
+     "src": "facts",
+     "key": "plugs"
+    },
+    {
+     "id": "emergency",
+     "label": "Emergency numbers",
+     "src": "facts",
+     "key": "emergency"
     },
     {
      "label": "Independence / national day",
      "planned": "F",
-     "source": "Wikidata"
+     "source": "Hand-checked list (Wikidata dates are not consistent enough)"
     },
     {
      "label": "Government system",
      "planned": "F",
-     "source": "Wikidata"
+     "source": "Hand-written, neutral wording (Wikidata labels mix systems and judgements)"
     },
     {
      "label": "National symbols (animal, bird, flower)",
      "planned": "F",
-     "source": "Wikidata"
+     "source": "Hand-checked (no reliable open dataset)"
     },
     {
-     "label": "Neighbouring countries, coastline",
+     "label": "Longest rivers, largest lakes",
      "planned": "F",
-     "source": "Natural Earth"
-    },
-    {
-     "label": "Highest point, rivers, lakes",
-     "planned": "F",
-     "source": "Wikidata / Natural Earth"
+     "source": "Natural Earth / HydroSHEDS"
     },
     {
      "label": "Largest cities",
      "planned": "F",
-     "source": "GeoNames"
+     "source": "UN World Urbanization Prospects 2025 (urban agglomerations)"
     },
     {
      "label": "Administrative divisions",
      "planned": "F",
-     "source": "geoBoundaries"
-    },
-    {
-     "label": "Driving side, plugs, emergency numbers",
-     "planned": "F",
-     "source": "Wikidata"
-    },
-    {
-     "label": "Time zones",
-     "planned": "F",
-     "source": "IANA tz"
+     "source": "geoBoundaries (licence per country)"
     }
    ]
   },
