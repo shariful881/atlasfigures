@@ -6,6 +6,7 @@ import { rankingCards } from '../lib/catalog';
 import { countryData } from '../lib/figures';
 import { econData } from '../lib/econ';
 import { unName } from '../lib/names';
+import countryList from '../data/country-list.json';
 
 const flags = import.meta.glob('/node_modules/flag-icons/flags/4x3/*.svg', { eager: true, query: '?url&no-inline', import: 'default' }) as Record<string, string>;
 const flagUrl = (code?: string | null) => (code ? Object.entries(flags).find(([p]) => p.endsWith(`/${code}.svg`))?.[1] ?? null : null);
@@ -30,6 +31,7 @@ export function GET() {
       t: `Time in ${c.name}`, s: `Time · ${c.country}`, u: path(`/time/${c.slug}/`), f: flagUrl(c.code), k: 'time', a: [c.name, c.country, c.tz, 'time', 'clock'],
     })),
     ...rankingCards().map((r) => ({ t: r.title, s: `Ranking · ${r.count} ranked · ${r.year}`, u: path(r.href), f: null, k: 'ranking', a: [r.blurb] })),
+    { t: 'All countries and areas, A–Z', s: `Section · all ${countryList.count} in the UN list`, u: path('/country/'), f: null, k: 'section', a: ['countries', 'country list', 'all countries', 'list of countries', 'territories'] },
     { t: 'Population by country', s: 'Section · every country page', u: path('/population/'), f: null, k: 'section' },
     { t: 'Economy by country', s: 'Section · every country page', u: path('/economy/'), f: null, k: 'section' },
     ...(Object.values(import.meta.glob('../data/pairs/*.json', { eager: true, import: 'default' })) as any[]).map((pr) => {

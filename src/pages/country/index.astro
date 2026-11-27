@@ -1,0 +1,203 @@
+---
+// /country/ — every country or area in UN WPP 2024, A–Z (site tab, 27 Nov 2026).
+// The list itself comes from src/data/country-list.json (data tab, task 158); figures from UN WPP 2024.
+import Base from '../../layouts/Base.astro';
+import Flag from '../../components/Flag.astro';
+import Icon from '../../components/Icon.astro';
+import { abs, path, WEBSITE_ID, reportErrorUrl } from '../../site';
+import { countryData, byYear, int, CURRENT_YEAR, assertClaim } from '../../lib/figures';
+import list from '../../data/country-list.json';
+
+const PAGE = '/country/';
+const CONT: Record<string, string> = { Africa: 'Africa', Asia: 'Asia', Europe: 'Europe', Oceania: 'Oceania', 'Latin America and the Caribbean': 'Americas', 'Northern America': 'Americas' };
+const CONTS = ['Africa', 'Americas', 'Asia', 'Europe', 'Oceania'];
+const letterOf = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').charAt(0).toUpperCase();
+
+const all = (list.countries as any[]).map((c) => {
+  const now = byYear(countryData(c.iso3).years)[CURRENT_YEAR];
+  const pages: string[] = c.pages ?? [];
+  const main = pages.includes('population') ? 'population' : pages[0];
+  return { ...c, cont: CONT[c.unRegion], pop: now.population, rank: now.worldRank, pages, href: main ? `/country/${c.slug}/${main}/` : null, letter: letterOf(c.name) };
+}).sort((a, b) => a.name.localeCompare(b.name, 'en'));
+
+assertClaim(all.length === list.count, 'country list count matches its entries');
+assertClaim(all.every((c) => c.cont), 'every country or area maps to a continent');
+assertClaim(['GRL', 'HKG'].every((iso) => all.some((c) => c.iso3 === iso)), 'Greenland and Hong Kong are in the UN list');
+const withPage = all.filter((c) => c.href);
+const letters = [...new Set(all.map((c) => c.letter))];
+const byLetter = letters.map((l) => ({ l, items: all.filter((c) => c.letter === l) }));
+const contCount = (r: string) => all.filter((c) => c.cont === r).length;
+
+const schema = [
+  {
+    '@type': 'CollectionPage',
+    '@id': abs(`${PAGE}#page`),
+    name: 'Countries and areas of the world',
+    url: abs(PAGE),
+    isPartOf: { '@id': WEBSITE_ID },
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListOrder: 'https://schema.org/ItemListOrderAscending',
+      numberOfItems: withPage.length,
+      itemListElement: withPage.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.name, url: abs(c.href) })),
+    },
+  },
+];
+---
+<Base
+  title={`All ${all.length} Countries and Areas of the World, A–Z | AtlasFigures`}
+  description={`An A–Z list of the ${all.length} countries and areas the UN counts, with each one's ${CURRENT_YEAR} population, world rank and links to its population and economy pages.`}
+  section="population"
+  appTitle="Countries"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Countries', href: PAGE }]}
+  schema={schema}
+>
+  <header class="hub-hero">
+    <span class="hub-ico"><Icon name="population" /></span>
+    <div>
+      <h1>Countries and areas of the world</h1>
+      <p class="answer">The UN's World Population Prospects 2024 counts <strong>{all.length} countries and areas</strong>, from independent states to territories such as Greenland and Hong Kong. {withPage.length} of them already have their own pages here; every one is listed below with its {CURRENT_YEAR} population.</p>
+      <ul class="hub-stats">
+        <li><b class="num">{all.length}</b><span>countries and areas</span></li>
+        <li><b class="num">{withPage.length}</b><span>with their own page</span></li>
+        {CONTS.map((r) => <li><b class="num">{contCount(r)}</b><span>in {r}</span></li>)}
+      </ul>
+    </div>
+  </header>
+
+  <div class="ct-tools">
+    <label class="ct-find"><Icon name="search" /><span class="visually-hidden">Find a country</span>
+      <input id="ct-q" type="search" placeholder="Find a country or area" autocomplete="off" />
+    </label>
+    <div class="filters" role="group" aria-label="Filter by continent">
+      {['All', ...CONTS].map((r, i) => (
+        <button type="button" class={i === 0 ? 'on' : ''} aria-pressed={i === 0 ? 'true' : 'false'} data-region={r} id={`f-${r.toLowerCase()}`}>{r}</button>
+      ))}
+    </div>
+    <label class="ct-only"><input type="checkbox" id="ct-pages" /> Only places with a page</label>
+  </div>
+  <nav class="az" aria-label="Jump to letter">
+    {letters.map((l) => <a href={`#l-${l}`}>{l}</a>)}
+  </nav>
+  <p class="note ct-count" aria-live="polite"><span id="ct-n">{all.length}</span> shown</p>
+
+  <div class="ct-list">
+    {byLetter.map((g) => (
+      <section class="ct-group" id={`l-${g.l}`} aria-label={`Letter ${g.l}`}>
+        <h2 class="ct-letter">{g.l}</h2>
+        <ul>
+          {g.items.map((c) => (
+            <li class="ct-row" data-continent={c.cont} data-name={`${c.name} ${c.unName}`.toLowerCase()} data-page={c.href ? '1' : '0'}>
+              <Flag code={c.iso2.toLowerCase()} class="flag" />
+              <span class="ct-name">
+                {c.href ? <a href={path(c.href)}>{c.name}</a> : <span>{c.name}</span>}
+                <span class="meta">{c.unSubregion}</span>
+              </span>
+              <span class="ct-pop"><span class="pv">{int(c.pop)}</span><span class="meta">#{c.rank}</span></span>
+              <span class="ct-pages">
+                {c.pages.includes('population') && <a class="chip" href={path(`/country/${c.slug}/population/`)}>Population</a>}
+                {c.pages.includes('economy') && <a class="chip" href={path(`/country/${c.slug}/economy/`)}>Economy</a>}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+    <p class="empty note" hidden>Nothing matches. Try another spelling, or the UN name (for example "Türkiye" or "Czechia").</p>
+  </div>
+
+  <p class="note ct-more">Compare them all side by side: <a href={path('/rankings/population-by-country/')}>population by country</a> · <a href={path('/rankings/gdp-by-country/')}>GDP by country</a> · <a href={path('/rankings/')}>all rankings</a></p>
+
+  <details class="sources">
+    <summary>Sources and methodology</summary>
+    <ul>
+      <li>List of countries and areas, regions and {CURRENT_YEAR} population: United Nations, Department of Economic and Social Affairs, Population Division (2024). World Population Prospects 2024. Licence: CC BY 3.0 IGO.</li>
+      <li>Population figures for {CURRENT_YEAR} are UN projections (medium variant); ranks are among all {all.length} countries and areas.</li>
+    </ul>
+    <p><a href={path('/methodology/')}>How we work with the data</a> · <a href={reportErrorUrl('Countries and areas (A–Z)', PAGE)}>Report an error</a></p>
+  </details>
+
+  <script is:inline>
+    (function () {
+      var rows = Array.prototype.slice.call(document.querySelectorAll('.ct-row'));
+      var groups = Array.prototype.slice.call(document.querySelectorAll('.ct-group'));
+      var btns = document.querySelectorAll('.filters button'), q = document.getElementById('ct-q'), only = document.getElementById('ct-pages');
+      var n = document.getElementById('ct-n'), empty = document.querySelector('.ct-list .empty'), region = 'All';
+      function apply() {
+        var t = q.value.trim().toLowerCase(), k = 0;
+        rows.forEach(function (r) {
+          var ok = (region === 'All' || r.dataset.continent === region) && (!t || r.dataset.name.indexOf(t) !== -1) && (!only.checked || r.dataset.page === '1');
+          r.hidden = !ok; if (ok) k++;
+        });
+        groups.forEach(function (g) { g.hidden = !g.querySelector('.ct-row:not([hidden])'); });
+        n.textContent = k; empty.hidden = k > 0;
+      }
+      btns.forEach(function (b) { b.addEventListener('click', function () {
+        btns.forEach(function (x) { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        region = b.dataset.region; apply();
+      }); });
+      q.addEventListener('input', apply); only.addEventListener('change', apply);
+      // /country/#f-asia (home page continent tiles) opens with that continent selected
+      var start = location.hash && document.getElementById(location.hash.slice(1));
+      if (start && start.dataset && start.dataset.region) { start.click(); }
+    })();
+  </script>
+  <style>
+    .hub-hero { display: flex; gap: 20px; align-items: flex-start; padding: 28px 30px; margin: 4px 0 18px; border-radius: 24px; background: linear-gradient(135deg, var(--water-2), #fff 70%); border: 1px solid var(--line); }
+    .hub-ico { flex: 0 0 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; background: var(--ocean); color: #fff; }
+    .hub-ico :global(svg) { width: 28px; height: 28px; }
+    .hub-hero > div { min-width: 0; }
+    .hub-hero h1 { margin: 0; }
+    .hub-hero .answer { margin: 10px 0 0; max-width: 72ch; }
+    .hub-stats { list-style: none; padding: 0; margin: 18px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+    .hub-stats li { background: #fff; border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px 14px; display: flex; flex-direction: column; min-width: 92px; }
+    .hub-stats b { font-size: 1.2rem; font-weight: 800; color: var(--ocean); line-height: 1.2; }
+    .hub-stats span { font-size: .74rem; color: var(--text-3); }
+    .ct-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+    .ct-tools .filters { margin: 0; }
+    .ct-find { display: flex; align-items: center; gap: 8px; flex: 1 1 260px; max-width: 360px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 0 14px; min-height: 42px; color: var(--text-3); }
+    .ct-find :global(svg) { width: 18px; height: 18px; flex: none; }
+    .ct-find input { border: 0; outline: 0; background: none; font: inherit; color: var(--text); width: 100%; min-height: 40px; }
+    .ct-only { display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; font-weight: 600; color: var(--text-2); }
+    .ct-only input { width: 18px; height: 18px; accent-color: var(--ocean); }
+    .az { display: flex; flex-wrap: wrap; gap: 4px; margin: 14px 0 4px; }
+    .az a { min-width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); font-weight: 700; font-size: .85rem; color: var(--ocean); text-decoration: none; }
+    .az a:hover { background: var(--water-2); }
+    .ct-count { margin: 8px 2px; }
+    .ct-group { margin: 0 0 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; scroll-margin-top: 80px; }
+    .ct-group[hidden] { display: none; }
+    .ct-letter { margin: 0; padding: 10px 18px; font-size: 1rem; background: var(--water-2); color: var(--ocean); }
+    .ct-group ul { list-style: none; margin: 0; padding: 0; }
+    .ct-row { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto minmax(0, 190px); align-items: center; gap: 12px; padding: 10px 18px; border-top: 1px solid var(--line); }
+    .ct-row[hidden] { display: none; }
+    .ct-row:first-child { border-top: 0; }
+    .ct-row .flag { width: 30px; height: 20px; border-radius: 3px; overflow: hidden; box-shadow: 0 0 0 1px var(--line); }
+    .ct-name { display: flex; flex-direction: column; min-width: 0; }
+    .ct-name > a, .ct-name > span:first-child { font-weight: 700; color: var(--text); }
+    .ct-name > a { color: var(--ocean); text-decoration: none; }
+    .ct-name > a:hover { text-decoration: underline; }
+    .meta { font-size: .8rem; color: var(--text-3); font-weight: 500; }
+    .ct-pop { display: flex; flex-direction: column; align-items: flex-end; }
+    .ct-pop .pv { font-weight: 700; }
+    .ct-pages { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+    .chip { font-size: .78rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--water-2); color: var(--ocean); text-decoration: none; }
+    .chip:hover { background: var(--ocean); color: #fff; }
+    .empty { padding: 16px 4px; }
+    .ct-more { margin: 18px 2px; }
+    @media (max-width: 767px) {
+      .hub-hero { padding: 16px; gap: 12px; margin: 12px 0 8px; border: 0; background: var(--surface); border-radius: var(--r-lg); }
+      .hub-ico { display: none; }
+      .hub-hero h1 { font-size: 1.5rem; }
+      .hub-hero .answer { font-size: .92rem; margin: 6px 0 0; background: none; padding: 0; }
+      .hub-stats { flex-wrap: nowrap; overflow-x: auto; margin: 12px 0 0; scrollbar-width: none; }
+      .hub-stats li { flex: none; min-width: 78px; padding: 6px 10px; background: var(--water-2); border: 0; }
+      .ct-find { max-width: none; flex-basis: 100%; }
+      .ct-tools .filters { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+      .az { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+      .ct-group { border: 0; }
+      .ct-row { grid-template-columns: 30px minmax(0, 1fr) auto; padding: 10px 14px; gap: 10px; }
+      .ct-pages { grid-column: 2 / -1; justify-content: flex-start; }
+      .ct-pages:empty { display: none; }
+    }
+  </style>
+</Base>

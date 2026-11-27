@@ -12,6 +12,7 @@ import { byPopulation } from '../lib/popRankings';
 import { rankingCards, TOPICS, CONTINENT } from '../lib/catalog';
 import { commonName, iso2, pagesOf } from '../lib/names';
 import { path } from '../site';
+import countryList from '../data/country-list.json';
 
 const w = byYear(worldData.years)[CURRENT_YEAR];
 const bdNow = byYear(countryData(bd.iso3).years)[CURRENT_YEAR];
@@ -31,6 +32,14 @@ const nPlaces = countryIndex.countries.length;
 const topPop = byPopulation().slice(0, 8).map((e) => ({ iso3: e.iso3, value: e.now.population, label: people(e.now.population), href: pagesOf(e.iso3).population ?? '/rankings/population-by-country/' }));
 const gdpYear = rankingYear('gdp');
 const topGdp = rankBy('gdp', gdpYear).slice(0, 8).map((r) => ({ iso3: r.iso3, value: r.value, label: usd(r.value), href: pagesOf(r.iso3).economy ?? '/rankings/gdp-by-country/' }));
+
+// Every country or area (task 158 list) for the A–Z strip and the continent tiles
+const clist = (countryList.countries as any[]);
+const nAll = clist.length;
+const nWithPage = clist.filter((c) => (c.pages ?? []).length > 0).length;
+const azLetters = [...new Set(clist.map((c) => c.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').charAt(0).toUpperCase()))].sort();
+const quick = byPopulation().slice(0, 12).map((e) => clist.find((c) => c.iso3 === e.iso3)).filter(Boolean)
+  .map((c: any) => ({ name: c.name, code: c.iso2.toLowerCase(), href: (c.pages ?? []).length ? `/country/${c.slug}/${(c.pages.includes('population') ? 'population' : c.pages[0])}/` : `/country/#l-${c.name.charAt(0).toUpperCase()}` }));
 
 // Country pages by continent (UN regions)
 const continents = ['Asia', 'Africa', 'Europe', 'Americas', 'Oceania'].map((c) => ({
@@ -171,12 +180,22 @@ const sources = [
   </div>
 
   <div class="sec-head">
-    <h2>Countries by continent</h2>
-    <a class="more" href={path('/population/')}>All country pages <Icon name="chevron" /></a>
+    <h2>All countries and areas</h2>
+    <a class="more" href={path('/country/')}>A–Z list <Icon name="chevron" /></a>
+  </div>
+  <div class="all-c">
+    <p class="all-c-lead"><b class="num">{nAll}</b> countries and areas in the UN's list, <b class="num">{nWithPage}</b> with their own page so far. Pick a letter or a continent:</p>
+    <nav class="all-az" aria-label="Countries by first letter">
+      {azLetters.map((l) => <a href={path(`/country/#l-${l}`)}>{l}</a>)}
+    </nav>
+    <div class="all-quick">
+      {quick.map((c) => <a class="qc" href={path(c.href)}><Flag code={c.code} class="qf" /><span>{c.name}</span></a>)}
+      <a class="qc qc-all" href={path('/country/')}>All {nAll} <Icon name="chevron" /></a>
+    </div>
   </div>
   <div class="cont-grid">
     {continents.map((c) => (
-      <a class="cont" href={path(`/population/#${c.id}`)}>
+      <a class="cont" href={path(`/country/#${c.id}`)}>
         <span class="cont-name">{c.name}</span>
         <span class="cont-n num">{c.n}</span>
         <span class="cont-sub">pages · {c.places} places in the UN data</span>
@@ -346,5 +365,24 @@ const sources = [
     .cont-n { font-size: 1.6rem; }
     .trust { border: 0; padding: 18px 16px; margin-top: 26px; gap: 12px; }
     .trust ul { grid-template-columns: 1fr; }
+  }
+  .all-c { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px 20px; margin: 0 0 14px; }
+  .all-c-lead { margin: 0 0 12px; color: var(--text-2); }
+  .all-c-lead b { color: var(--ocean); font-weight: 800; }
+  .all-az { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 14px; }
+  .all-az a { min-width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; background: var(--water-2); font-weight: 700; font-size: .85rem; color: var(--ocean); text-decoration: none; }
+  .all-az a:hover { background: var(--ocean); color: #fff; }
+  .all-quick { display: flex; flex-wrap: wrap; gap: 8px; }
+  .qc { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 8px; border: 1px solid var(--line); border-radius: 999px; text-decoration: none; color: var(--text); font-weight: 600; font-size: .88rem; background: #fff; }
+  .qc:hover { border-color: var(--ocean); color: var(--ocean); }
+  .qc :global(.qf) { width: 22px; height: 15px; border-radius: 2px; overflow: hidden; }
+  .qc-all { background: var(--ocean); color: #fff; border-color: var(--ocean); padding-left: 14px; }
+  .qc-all:hover { color: #fff; opacity: .9; }
+  .qc-all :global(svg) { width: 14px; height: 14px; }
+  @media (max-width: 767px) {
+    .all-c { border: 0; padding: 14px; }
+    .all-az { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .all-quick { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+    .qc { flex: none; }
   }
 </style>
