@@ -1,0 +1,203 @@
+---
+import Base from '../../layouts/Base.astro';
+import KeyFacts from '../../components/KeyFacts.astro';
+import LiveCounter from '../../components/LiveCounter.astro';
+import LineChart from '../../components/LineChart.astro';
+import DataTable from '../../components/DataTable.astro';
+import SourceBadge from '../../components/SourceBadge.astro';
+import PageTabs from '../../components/PageTabs.astro';
+import RelatedPages from '../../components/RelatedPages.astro';
+import bwa from '../../data/countries/botswana.json';
+import { countryData, byYear, displayRows, assertClaim, int, dec, millions, millionsShort, pct, ord, CURRENT_YEAR } from '../../lib/figures';
+import { countrySchema } from '../../lib/countrySchema';
+import { path, longDate, PUBLISHER, reportErrorUrl } from '../../site';
+
+// Every figure comes from the original UN files (src/data/wpp/). Story: urban share from 2.7% (1950) to 68.5%, a
+// majority since 1996; third-lowest density of Africa's 1M+ countries (after Namibia and Libya); life expectancy from
+// 62.8 (1987) to a 2001 low of 52.2, now 69.6; growth every year to a 2088 peak, then decline; net departures
+// 1950–1971 (most in 1970), the largest inflow in 1978, departures every year from 2011 to 2100; most births in 2022.
+const PAGE = '/population/botswana/';
+const un = countryData(bwa.iso3);
+const y = byYear(un.years);
+const c = y[CURRENT_YEAR];
+const WPP = 'UN World Population Prospects 2024';
+const WPP_URL = un.meta.sourceUrl;
+const WUP_URL = un.meta.urban.sourceUrl;
+const BOTH = `${WPP}; urban share: UN World Urbanization Prospects 2025`;
+const checkedOn = (bwa.verification as any).checkedOn as string | undefined;
+
+const wpp = Object.values(import.meta.glob('../../data/wpp/countries/*.json', { eager: true }) as Record<string, any>).map((m) => m.default ?? m);
+const at = (d: any, n = CURRENT_YEAR) => d.years.find((r: any) => r.year === n);
+const big = wpp.filter((d: any) => at(d).population >= 1e7);
+assertClaim(y[1950].urbanPct! < 3 && un.years.find((r) => r.urbanPct != null && r.urbanPct > 50)!.year === 1996, 'urban from under 3%, majority 1996');
+const b1 = wpp.filter((d: any) => at(d).population >= 1e6 && d.region === 'Africa');
+assertClaim([...b1].sort((a: any, b: any) => at(a).densityPerKm2 - at(b).densityPerKm2).slice(0, 3).map((d: any) => d.iso3).join() === 'NAM,LBY,BWA', 'third-lowest density in Africa');
+const leLow = un.years.filter((r) => r.year >= 1980 && r.year <= CURRENT_YEAR).reduce((a, b) => (b.lifeExpectancy < a.lifeExpectancy ? b : a));
+assertClaim(leLow.year === 2001 && y[1987].lifeExpectancy > 62, 'lifespan low 2001');
+const peak = un.years.reduce((a, b) => (b.population > a.population ? b : a));
+assertClaim(peak.year === 2088 && un.years.filter((r) => r.year > 1950 && r.year <= 2088).every((r) => r.population > y[r.year - 1].population) && un.years.filter((r) => r.year > 2088).every((r) => r.population < y[r.year - 1].population), 'growth to 2088, then decline');
+assertClaim(un.years.filter((r) => r.year <= 1971).every((r) => r.netMigrants < 0) && un.years.filter((r) => r.year >= 2011).every((r) => r.netMigrants < 0) && y[2010].netMigrants > 0, 'migration phases');
+const outTop = un.years.reduce((a, b) => (b.netMigrants < a.netMigrants ? b : a));
+const inTop = un.years.reduce((a, b) => (b.netMigrants > a.netMigrants ? b : a));
+assertClaim(outTop.year === 1970 && inTop.year === 1978, 'outflow 1970, inflow 1978');
+const bTop = un.years.reduce((a, b) => (b.births > a.births ? b : a));
+assertClaim(bTop.year === 2022, 'most births 2022');
+const since = c.population / y[1950].population;
+assertClaim(since > 6.2 && since < 6.4, 'about 6.3 times 1950');
+
+const title = `Botswana Population ${CURRENT_YEAR} (${(c.population / 1e6).toFixed(1)}M): Almost No Towns in 1950, a Two-Thirds Urban Majority Now | AtlasFigures`;
+const description = `UN estimates for ${CURRENT_YEAR}: Botswana, ${millions(c.population)}. Barely 3% of residents were urban in 1950; ${pct(c.urbanPct!)} are now. Lifespans sank to ${dec(leLow.lifeExpectancy, 1)} years in 2001 and have since climbed to ${dec(c.lifeExpectancy, 1)}.`;
+
+const factGroups = [
+  { title: 'People', facts: [
+    { label: 'Population', value: int(c.population), note: `mid-${CURRENT_YEAR} estimate` },
+    { label: 'World rank', value: ord(c.worldRank!) },
+    { label: 'Share of world', value: pct(c.worldSharePct) },
+    { label: 'Growth per year', value: `${c.growthRatePct >= 0 ? '+' : ''}${pct(c.growthRatePct)}`, note: `${c.change >= 0 ? '+' : ''}${int(c.change)} people` },
+  ] },
+  { title: 'Land', facts: [
+    { label: 'Land area', value: `${int(un.landAreaKm2)} km²` },
+    { label: 'People per km²', value: int(c.densityPerKm2) },
+    { label: 'Capital', value: bwa.capital },
+  ] },
+  { title: 'Society', facts: [
+    { label: 'Median age', value: `${dec(c.medianAge, 1)} years` },
+    { label: 'Births per woman', value: dec(c.fertility, 2) },
+    { label: 'Life expectancy', value: `${dec(c.lifeExpectancy, 1)} years` },
+    { label: 'Living in urban areas', value: pct(c.urbanPct!), note: 'national definition' },
+  ] },
+];
+const highlights = [
+  { label: 'Population', value: millionsShort(c.population) },
+  { label: 'Urban', value: pct(c.urbanPct!) },
+  { label: 'Life expectancy', value: dec(c.lifeExpectancy, 1) },
+  { label: 'People per km²', value: int(c.densityPerKm2) },
+];
+
+const rows = displayRows(un.years, bwa.tableYears);
+
+const faq = [
+  { q: 'What share of Batswana live in urban areas?', a: `${pct(c.urbanPct!)} today, up from ${pct(y[1950].urbanPct!)} in 1950; the urban side tipped past half in 1996.` },
+  { q: 'Does Botswana have a lot of land per person?', a: `Yes: ${int(c.densityPerKm2)} people per km², thinner than any million-plus African nation except Namibia and Libya.` },
+  { q: 'Did Batswana lifespans shorten around the year 2000?', a: `Yes, ${dec(y[1987].lifeExpectancy, 1)} years in 1987 became ${dec(leLow.lifeExpectancy, 1)} by 2001, before a recovery to ${dec(c.lifeExpectancy, 1)}. No cause is given in the source.` },
+  { q: 'In which year does Botswana top out?', a: `2088, at ${millions(peak.population)} (UN medium projection); 2100 brings ${millions(y[2100].population)}.` },
+  { q: 'Do people move to or from Botswana?', a: `It has varied: outflows through 1971, mostly inflows in the 1970s–2000s (the peak year 1978, ${int(inTop.netMigrants)}), and outflows annually from 2011.` },
+];
+
+const schema = countrySchema({
+  page: PAGE, slug: bwa.slug, name: bwa.name, wikipedia: bwa.wikipedia,
+  headline: `Botswana's ${millions(c.population)}: from under 3% urban to two-thirds; a 2001 lifespan low; growth until a 2088 peak`,
+  description,
+  datasetName: 'Botswana population, urban share and life expectancy, 1950–2100',
+  datasetDescription: `Mid-year population of Botswana for selected years from 1950 to ${CURRENT_YEAR}, including 1970–1972, 1978, 1987, 1995–1996, 2001, 2010–2011 and 2022, with UN medium-variant projections to 2100, plus density, total fertility rate, median age, urban share (national definition, to 2050), net migration and world rank.`,
+  temporalCoverage: '1950/2100',
+  published: bwa.published, updated: bwa.updated,
+  wppUrl: WPP_URL, wupUrl: WUP_URL,
+  faq,
+});
+---
+<Base
+  title={title}
+  description={description}
+  section="population"
+  appTitle="Botswana"
+  back="/population/"
+  miniCounter
+  ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Population', href: '/population/' }, { name: "Botswana", href: PAGE }]}
+  schema={schema}
+>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>Botswana: from village country to town majority</h1>
+        <LiveCounter
+          label="Botswana: population estimate as of now"
+          anchorValue={c.population}
+          anchorDate={`${CURRENT_YEAR}-07-01`}
+          perYear={c.change}
+          note={`Grows out of the UN World Population Prospects 2024 mid-${CURRENT_YEAR} value, plus about ${int(c.change / 365)} per day`}
+        />
+        <p class="answer">
+          In {CURRENT_YEAR} Botswana's population is <strong>{millions(c.population)}</strong> by UN reckoning, and <strong>{pct(c.urbanPct!)}</strong> of it lives in towns, against barely 3% in 1950.
+        </p>
+        <div class="dates"><span>Updated <time datetime={bwa.updated}>{longDate(bwa.updated)}</time></span><SourceBadge source={WPP} url={WPP_URL} checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country="Botswana" code="bw" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+      </header>
+
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+
+      <section class="panel" data-panel="story" aria-label="The story">
+        <div class="story-block prose">
+          <h2>From what level did Botswana's urban share start?</h2>
+          <p>From almost nowhere: a mere {pct(y[1950].urbanPct!)} of residents counted as urban in 1950. The share crossed one half in 1996, reads {pct(c.urbanPct!)} now and should be {pct(y[2050].urbanPct!)} by 2050. Nationally there are only {int(c.densityPerKm2)} people per km², the third-thinnest settlement among Africa's million-plus nations (Namibia and Libya are emptier).</p>
+        </div>
+        <LineChart
+          title="Botswana's urban percentage, 1950–2050"
+          subtitle="National definition of urban; projections dashed."
+          points={rows.filter((r) => r.year <= 2050).map((r) => ({ x: r.year, y: r.urbanPct!, projection: r.projection }))}
+          format="percent"
+          highlight={CURRENT_YEAR}
+          refLine={{ y: 50, label: 'one half' }}
+          source="UN World Urbanization Prospects 2025"
+          sourceUrl={WUP_URL}
+          checkedOn={checkedOn}
+        />
+
+        <div class="story-block prose">
+          <h2>Why did Botswana's life expectancy drop around 2000?</h2>
+          <p>The estimates chart the dip and leave the cause unstated: {dec(y[1987].lifeExpectancy, 1)} years in 1987, {dec(leLow.lifeExpectancy, 1)} in 2001, then a rebound to {dec(c.lifeExpectancy, 1)}. Even through that trough the headcount rose annually.</p>
+        </div>
+
+        <div class="story-block prose">
+          <h2>How long does Botswana's growth last?</h2>
+          <p>Until 2088, the projected summit at {millions(peak.population)}; by 2100 the line eases back to {millions(y[2100].population)}. The present figure is some 6.3 times 1950's {int(y[1950].population)}, and births hit their record in 2022. Migration has swung: outflows each year through 1971 (deepest in 1970, {int(-outTop.netMigrants)}), the largest inflow in 1978 ({int(inTop.netMigrants)}), and outflows again annually from 2011.</p>
+        </div>
+        <RelatedPages iso3={bwa.iso3} name={bwa.name} />
+      </section>
+
+      <section class="panel" data-panel="data" aria-label="Data">
+        <DataTable
+          id="data-h"
+          title="Botswana rows: 1970–1972, 1978, 1987, 1995–1996, 2001"
+          subtitle="Urban share passes half in 1996; life expectancy bottoms out in 2001."
+          rows={rows as any}
+          current={CURRENT_YEAR}
+          source={BOTH}
+          sourceUrl={WPP_URL}
+          checkedOn={checkedOn}
+          csv={path(`/data/${bwa.slug}-population.csv`)}
+          csvName={`${bwa.slug}-population.csv`}
+          licence={{ name: 'CC BY 3.0 IGO (UN data)', url: 'https://creativecommons.org/licenses/by/3.0/igo/' }}
+        />
+      </section>
+
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Botswana: the numbers behind the questions</h2>
+        <div class="faq">
+          {faq.map((f) => (<details><summary><h3>{f.q}</h3></summary><p>{f.a}</p></details>))}
+        </div>
+      </section>
+
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WPP_URL}>UN DESA Population Division, World Population Prospects 2024</a> (medium variant, original data files; listed as "{bwa.unName}"): population, births, deaths, net migration, growth, density, fertility, median age, life expectancy, world rank, regional grouping, comparisons with other countries and areas, and projections. Land area is the UN's population divided by its density.</li>
+            <li><a href={WUP_URL}>UN DESA Population Division, World Urbanization Prospects 2025</a> (percentage urban by national definition): urban share.</li>
+          </ul>
+          <p class="note">The live counter starts from the UN's mid-{CURRENT_YEAR} estimate and applies the UN's projected change for {CURRENT_YEAR} evenly through the year. It is an estimate, not a real-time count. See our <a href={path('/methodology/')}>methodology</a>.</p>
+          <p class="note">Published <time datetime={bwa.published}>{longDate(bwa.published)}</time> · Updated <time datetime={bwa.updated}>{longDate(bwa.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl("Botswana population", PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+
+    <KeyFacts variant="box" country="Botswana" code="bw" year={CURRENT_YEAR} groups={factGroups} highlights={highlights} source={BOTH} sourceUrl={WPP_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
