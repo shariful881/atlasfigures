@@ -699,6 +699,8 @@
    "demonym": "Colombian",
    "pages": [
     "economy",
+    "health",
+    "hub",
     "population"
    ]
   },
@@ -1123,6 +1125,8 @@
    "demonym": "French",
    "pages": [
     "economy",
+    "health",
+    "hub",
     "population"
    ]
   },
@@ -1618,6 +1622,8 @@
    "demonym": "Italian",
    "pages": [
     "economy",
+    "health",
+    "hub",
     "population"
    ]
   },
@@ -1718,6 +1724,8 @@
    "demonym": "Kenyan",
    "pages": [
     "economy",
+    "health",
+    "hub",
     "population"
    ]
   },
@@ -2262,6 +2270,8 @@
    "demonym": "Myanmar",
    "pages": [
     "economy",
+    "health",
+    "hub",
     "population"
    ]
   },
@@ -3101,6 +3111,8 @@
    "demonym": "South African",
    "pages": [
     "economy",
+    "health",
+    "hub",
     "population"
    ]
   },
@@ -3118,6 +3130,8 @@
    "demonym": "South Korean",
    "pages": [
     "economy",
+    "health",
+    "hub",
     "population"
    ]
   },
@@ -3200,6 +3214,8 @@
    "capital": "Khartoum",
    "demonym": "Sudanese",
    "pages": [
+    "health",
+    "hub",
     "population"
    ]
   },
@@ -3314,6 +3330,8 @@
    "demonym": "Tanzanian",
    "pages": [
     "economy",
+    "health",
+    "hub",
     "population"
    ]
   },
@@ -3505,6 +3523,8 @@
    "demonym": "Ugandan",
    "pages": [
     "economy",
+    "health",
+    "hub",
     "population"
    ]
   },
