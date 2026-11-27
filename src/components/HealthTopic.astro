@@ -1,0 +1,135 @@
+---
+// Frame of a country health page (/country/<slug>/health/), task 160/170: indicator cards, Key facts, the
+// Story/Data/FAQ tabs, all health figures (StatList), the yearly table (TopicTable) with its CSV, Sources and
+// JSON-LD — all from the World Bank WDI files and the country profile. The page file supplies what is written for
+// that country: title, description, H1, the direct answer (slot "answer"), the story with its charts (default
+// slot), the table title and subtitle, the FAQ and the related links.
+import Base from '../layouts/Base.astro';
+import KeyFacts from './KeyFacts.astro';
+import IndicatorCards from './IndicatorCards.astro';
+import SourceBadge from './SourceBadge.astro';
+import StatList from './StatList.astro';
+import TopicTable from './TopicTable.astro';
+import PageTabs from './PageTabs.astro';
+import { econData, econMeta, valueIn } from '../lib/econ';
+import { profile, liveStats, type ProfileStat } from '../lib/profile';
+import { HEALTH_COLS, HEALTH_CSV_EXTRA } from '../lib/topics';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../site';
+
+interface Props {
+  pg: any; title: string; description: string; h1: string; headline: string; tableTitle: string; tableSubtitle: string;
+  faq: { q: string; a: string }[]; faqTitle: string; related: { href: string; label: string }[];
+}
+const { pg, title, description, h1, headline, tableTitle, tableSubtitle, faq, faqTitle, related } = Astro.props;
+const PAGE = `/country/${pg.slug}/health/`;
+const meta = pg.pages.health;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = meta.verification?.checkedOn;
+const p = profile(pg.iso3);
+const code = p.iso2.toLowerCase();
+const h = (id: string) => p.sections.find((s) => s.id === 'health')!.stats.find((s) => s.id === id && s.status === 'live') as (ProfileStat & { text: string }) | undefined;
+const s = econData(pg.iso3).series;
+const u5 = h('u5');
+const Y = meta.tableYears.at(-1);
+
+const card = (st: ProfileStat | undefined, label: string, note: string) => (st ? [{ label, value: st.text!, year: st.year!, note }] : []);
+const cards = [
+  ...card(u5, 'Deaths before age 5', 'per 1,000 live births'), ...card(h('maternal'), 'Maternal deaths', 'per 100,000 live births'),
+  ...card(h('healthGdp'), 'Health spending', 'of GDP'), ...card(h('measles'), 'Measles vaccination', 'children 12–23 months'),
+];
+const kf = (st: ProfileStat | undefined, label: string, unit: string, withYear = false) => (st ? [{ label, value: `${st.text}${unit}`, ...(withYear ? { note: `${st.year}` } : {}) }] : []);
+const factGroups = [
+  { title: 'Survival', facts: [...kf(u5, 'Deaths before age 5', ' per 1,000', true), ...kf(h('neonatal'), 'Newborn deaths (first 28 days)', ' per 1,000'), ...kf(h('maternal'), 'Maternal deaths', ' per 100,000', true)] },
+  { title: 'Care', facts: [...kf(h('doctors'), 'Doctors', ' per 1,000 people', true), ...kf(h('nurses'), 'Nurses and midwives', ' per 1,000 people'), ...kf(h('beds'), 'Hospital beds', ' per 1,000 people')] },
+  { title: 'Money', facts: [...(h('healthPc') ? [{ label: 'Health spending per person', value: h('healthPc')!.text, note: `${h('healthPc')!.year}, current US$` }] : []), ...(h('oop') ? [{ label: 'Paid out of pocket', value: h('oop')!.text, note: 'share of health spending' }] : [])] },
+].filter((g) => g.facts.length);
+const highlights = [
+  ...(h('neonatal') ? [{ label: 'Newborn deaths', value: `${h('neonatal')!.text}/1,000` }] : []),
+  ...(h('doctors') ? [{ label: 'Doctors', value: `${h('doctors')!.text}/1,000` }] : []),
+  ...(h('healthPc') ? [{ label: 'Per person', value: h('healthPc')!.text }] : []),
+  ...(h('oop') ? [{ label: 'Out of pocket', value: h('oop')!.text }] : []),
+];
+// first year in the CSV (same rule as /data/<slug>-health.csv: every year with at least one value)
+const csvFirst = Math.min(...[...HEALTH_COLS, ...HEALTH_CSV_EXTRA].flatMap((k) => (s as any)[k.wdi].map(([y]: [number, number]) => y)));
+const rows = meta.tableYears.map((y: number) => ({ year: y, ...Object.fromEntries(HEALTH_COLS.map((c) => [c.key, valueIn(s[c.wdi], y)])) }));
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`), headline, description,
+    datePublished: iso(meta.published), dateModified: iso(meta.updated),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    about: { '@type': 'Country', name: pg.name, ...(pg.wikipedia ? { sameAs: pg.wikipedia } : {}) },
+    citation: [{ '@type': 'CreativeWork', name: 'World Development Indicators', url: WDI_URL, publisher: { '@type': 'Organization', name: 'The World Bank' } }],
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `${pg.name} health indicators by year, ${csvFirst}–${Y}`,
+    description: `Yearly World Bank World Development Indicators for ${pg.name}, as published: deaths before age five, before age one and in the first 28 days (UN IGME), maternal deaths (UN MMEIG), doctors, nurses and hospital beds, health spending and the share paid out of pocket (WHO), vaccination against measles and DPT (WHO/UNICEF), stunting, undernourishment, diabetes, tuberculosis, malaria, tobacco use and road deaths.`,
+    url: abs(PAGE), creator: { '@id': ORG_ID }, isBasedOn: [WDI_URL], temporalCoverage: `${csvFirst}/${Y}`,
+    spatialCoverage: { '@type': 'Place', name: pg.name }, dateModified: iso(meta.updated), license: econMeta.licenceUrl,
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs(`/data/${pg.slug}-health.csv`) }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((x) => ({ '@type': 'Question', name: x.q, acceptedAnswer: { '@type': 'Answer', text: x.a } })) },
+];
+---
+<Base title={title} description={description} section="population" appTitle={`${pg.name} health`} back={`/country/${pg.slug}/`} ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Countries', href: '/country/' }, { name: pg.name, href: `/country/${pg.slug}/` }, { name: 'Health', href: PAGE }]} schema={schema}>
+  <div class="country">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>{h1}</h1>
+        <p class="answer"><slot name="answer" /></p>
+        <div class="dates"><span>Updated <time datetime={meta.updated}>{longDate(meta.updated)}</time></span><SourceBadge source={WDI} url={WDI_URL} checkedOn={checkedOn} /></div>
+        <IndicatorCards label={`${pg.name} health, latest years`} cards={cards} />
+        <KeyFacts variant="mobile" country={pg.name} code={code} year={u5?.year ?? Y} groups={factGroups} highlights={highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+      </header>
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+      <section class="panel" data-panel="story" aria-label="The story">
+        <slot />
+        <nav class="related" aria-label="Related pages">
+          <h2>More about {pg.name}</h2>
+          <ul>{related.map((r) => <li><a href={path(r.href)}>{r.label}</a></li>)}</ul>
+        </nav>
+      </section>
+      <section class="panel" data-panel="data" aria-label="Data">
+        <StatList id="s-health" title="Health figures, latest year" section="health" stats={liveStats(p, 'health')} caption={`${pg.name} health figures`} />
+        <TopicTable id="data-h" title={tableTitle} subtitle={tableSubtitle} cols={HEALTH_COLS} rows={rows} latest={Y} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn}
+          csv={path(`/data/${pg.slug}-health.csv`)} csvName={`${pg.slug}-health.csv`} licence={{ name: 'CC BY 4.0 (World Bank data)', url: econMeta.licenceUrl }} />
+        <p class="data-note">The CSV covers every year from {csvFirst} to {Y} with at least one value.</p>
+      </section>
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">{faqTitle}</h2>
+        <div class="faq">{faq.map((x) => (<details><summary><h3>{x.q}</h3></summary><p>{x.a}</p></details>))}</div>
+      </section>
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href={WDI_URL}>World Bank, World Development Indicators</a> (original bulk files, WDI update of {longDate(econMeta.indicators.under5Mortality.wdiLastUpdated)}): child, infant and newborn deaths (UN Inter-agency Group for Child Mortality Estimation), maternal deaths (UN Maternal Mortality Estimation Inter-Agency Group), doctors, nurses and hospital beds (WHO), health spending and out-of-pocket share (WHO Global Health Expenditure Database), vaccination (WHO and UNICEF), stunting (UNICEF, WHO, World Bank joint estimates), undernourishment (FAO), diabetes (International Diabetes Federation), tobacco use (WHO). Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+            <li>World ranks, shares and ratios in the text are our calculation from the same files.</li>
+          </ul>
+          <p class="note">See our <a href={path('/methodology/')}>methodology</a> for how figures are collected and checked.</p>
+          <p class="note">Published <time datetime={meta.published}>{longDate(meta.published)}</time> · Updated <time datetime={meta.updated}>{longDate(meta.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl(`${pg.name} health`, PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country={pg.name} code={code} year={u5?.year ?? Y} groups={factGroups} highlights={highlights} source={WDI} sourceUrl={WDI_URL} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+</Base>
+<style>
+  .data-note { color: var(--muted, #5b6b7b); font-size: .9rem; margin: 4px 0 8px; }
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .related { border: 0; padding: 16px 18px; } }
+</style>

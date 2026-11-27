@@ -15,14 +15,18 @@
       "value": "999",
       "checkedOn": "2026-11-27",
       "against": "Dhaka Tribune (police headquarters figures): National Emergency Service 999, launched 12 December 2017, for police, fire service and ambulance across the country",
-      "url": "https://www.dhakatribune.com/bangladesh/412748/national-emergency-service-999-receives-over-72.36"
+      "url": "https://www.dhakatribune.com/bangladesh/412748/national-emergency-service-999-receives-over-72.36",
+      "label": "emergency number 999",
+      "sourceName": "Dhaka Tribune"
     },
     {
       "fact": "driving",
       "value": "Left",
       "checkedOn": "2026-11-27",
       "against": "CIA World Factbook, Bangladesh travel facts: road driving side left",
-      "url": "https://www.cia.gov/the-world-factbook/about/archives/2021/static/9831dc17e72f3a7c441d10b95dc27d03/BG-travel-facts.pdf"
+      "url": "https://www.cia.gov/the-world-factbook/about/archives/2021/static/9831dc17e72f3a7c441d10b95dc27d03/BG-travel-facts.pdf",
+      "label": "driving on the left",
+      "sourceName": "CIA World Factbook"
     }
   ],
   "pages": {
@@ -74,5 +78,6 @@
         "against": "Original World Bank WDI files read by scripts/verify/bangladesh-160.py; check-country-pages compares table cells and CSV with the World Bank values"
       }
     }
-  }
+  },
+  "wikipedia": "https://en.wikipedia.org/wiki/Bangladesh"
 }

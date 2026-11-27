@@ -1,0 +1,74 @@
+---
+// Russia country hub (task 170). Every figure comes from the country profile (src/data/profiles/RUS.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/russia.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), dens = st('population', 'density'), births = st('population', 'births'), deaths = st('population', 'deaths');
+const netMig = st('population', 'netMigrants'), mig = st('population', 'migrantStock'), tfr = st('population', 'fertility');
+const land = st('facts', 'landArea'), forestA = st('environment', 'forestArea'), forest = st('environment', 'forestPct');
+const gen = st('energy', 'gen'), ws = st('energy', 'wsShare'), co2 = st('environment', 'co2'), co2pc = st('environment', 'co2pc');
+const unemp = st('jobs', 'unemp'), budget = st('economy', 'budget'), infl = st('economy', 'inflation'), gdp = st('economy', 'gdp');
+const lit = st('education', 'literacy'), fx = st('economy', 'fx'), mobile = st('internet', 'mobile');
+
+assertClaim(fromTop(land) === 1 && fromTop(forestA) === 1 && Number(forest.value) > 50, 'largest land area and forest, over half forested');
+assertClaim(fromTop(pop) === 9 && Number(births.value) < Number(deaths.value) && Number(netMig.value) > 0 && fromTop(mig) === 10, 'ninth by population, deaths exceed births, net migration positive, tenth-largest migrant stock');
+assertClaim(fromTop(gen) === 4 && fromTop(co2) === 4 && fromTop(co2pc) === 17 && fromBottom(ws) === 5, 'fourth for power and CO2, 17th per person, fifth-lowest wind and solar share');
+assertClaim(fromBottom(unemp) === 18 && Number(budget.value) > 0, 'eighteenth-lowest unemployment, budget surplus');
+assertClaim(fromTop(lit) === 3 && fromTop(gdp) === 8, 'third-highest literacy, eighth-largest GDP');
+
+const title = `Russia Statistics ${Y}: Vast Land, Falling Population, Energy | AtlasFigures`;
+const description = `Russia in ${Y}: the largest country by land and forest, ${people(Number(pop.value))} people and shrinking (UN projection), and the fourth-largest emitter of fossil CO₂.`;
+
+const faq = [
+  { q: 'How thinly is Russia populated?', a: `Roughly ${dens.text} residents for each km² (${Y}), since ${people(Number(pop.value))} Russians share the planet's biggest national territory.` },
+  { q: 'How many rubles is one US dollar?', a: `The ${fx.year} official rate averaged ${fx.text} rubles to the dollar, per World Bank data.` },
+  { q: 'What was inflation in Russia?', a: `Russian consumer prices went up ${infl.text} over ${infl.year}; ${fromTop(infl) - 1} of ${infl.of} countries had faster inflation.` },
+  { q: 'Do Russians have more than one phone line?', a: `On average, yes: there were ${mobile.text} mobile subscriptions per 100 people in ${mobile.year}, ${ordinal(fromTop(mobile))} highest in the world.` },
+];
+const headline = `Russia facts and figures ${Y}: the largest land area, a shrinking population, energy and jobs`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Russia in figures: the largest country on Earth"
+  headline={headline}
+  faq={faq}
+  faqTitle="Russia facts: common questions"
+  related={[
+    { href: '/country/russia/population/', label: 'Russia population: live count and decline' },
+    { href: '/country/russia/economy/', label: 'Russia economy: GDP, inflation and the ruble' },
+    { href: '/country/russia/health/', label: 'Russia health: doctors, beds and smoking' },
+    { href: '/country/ukraine/population/', label: "Ukraine's population" },
+    { href: '/country/kazakhstan/population/', label: "Kazakhstan's population" },
+    { href: '/country/china/', label: 'China by the numbers' },
+    { href: '/rankings/land-area-by-country/', label: 'Land area by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">No nation is bigger than Russia, with <strong>{land.text} km²</strong> of land, yet its projected population for {Y} is only {people(Number(pop.value))}, and falling. Russia's economy is {ordinal(fromTop(gdp))} largest, at <strong>{gdp.text}</strong> for {gdp.year}.</Fragment>
+  <div class="story-block prose">
+    <h2>How big is Russia?</h2>
+    <p>No country is larger. With {land.text} km² of land and {people(Number(pop.value))} inhabitants, Russia averages about {dens.text} people per km². Its woods, {forestA.text} km² in {forestA.year}, exceed those of every other country and cover {forest.text} of its land.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Why does Russia have fewer people each year?</h2>
+    <p>Deaths outnumber births: {people(Number(deaths.value))} Russian deaths are projected by the UN this year, against {people(Number(births.value))} births ({Y}), with fertility at {tfr.text}. Migration narrows the gap: {people(Number(netMig.value))} more people are expected to arrive than leave, and {people(Number(mig.value))} people living in Russia were born elsewhere; only {fromTop(mig) - 1} countries host more. The <a href={path('/country/russia/population/')}>population page</a> has the long-run projection.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much energy and CO₂ does Russia produce?</h2>
+    <p>Russian power plants produced {gen.text} TWh in {gen.year}, {ordinal(fromTop(gen))} worldwide, with wind and solar providing just {ws.text}, fifth lowest among {ws.of} countries tracked. Fossil CO₂ emissions reached {co2.text} million tonnes, again {ordinal(fromTop(co2))}, or {co2pc.text} tonnes per Russian.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is unemployment unusually low in Russia?</h2>
+    <p>Yes. ILO modelling puts Russian unemployment at {unemp.text} for {unemp.year}, {ordinal(fromBottom(unemp))} lowest of {unemp.of}. The government ran a budget surplus of {budget.text} of GDP in {budget.year}, while literacy stood at {lit.text} at the {lit.year} count.</p>
+  </div>
+</CountryHub>

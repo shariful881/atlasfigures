@@ -1,0 +1,114 @@
+---
+// China health (task 170). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/china.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), neo = st('neonatal'), mat = st('maternal'), doc = st('doctors'), nurse = st('nurses'), beds = st('beds');
+const hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop'), measles = st('measles'), stunt = st('stunting');
+const tob = st('tobacco'), diab = st('diabetes');
+const U = u5.year!;
+
+const u5_90 = v('under5Mortality', 1990), neo90 = v('neonatalMortality', 1990), mat90 = v('maternalMortality', 1990);
+const ratio = u5_90 / Number(u5.value);
+assertClaim(ratio > 9 && ratio < 10 && U === 2024, 'under-five rate a ninth to a tenth of 1990');
+assertClaim(neo90 / Number(neo.value) > 11 && mat90 / Number(mat.value) > 6, 'newborn deaths down more than elevenfold, maternal more than sixfold');
+const doc90 = v('doctorsPer1000', 1990), nur90 = v('nursesPer1000', 1990);
+assertClaim(doc.year === 2022 && nurse.year === 2022 && Number(nurse.value) / nur90 > 4 && Number(doc.value) / doc90 > 2.7, 'nurses more than four times, doctors more than 2.7 times the 1990 level');
+assertClaim(fromTop(beds) === 20, '20th most hospital beds per person');
+const oop00 = v('outOfPocketPct', 2000), hg00 = v('healthSpendPctGdp', 2000);
+assertClaim(oop00 > 60 && Number(oop.value) < 33 && Number(hGdp.value) > hg00 + 1.4, 'patients pay about a third, down from three fifths, while spending rose');
+assertClaim(s.measlesVaccPct.filter(([y]) => y >= 2010 && y <= 2022).every(([, x]) => x === 99) && v('measlesVaccPct', 2023) === 95 && Number(measles.value) === 95, 'measles coverage slipped from 99% to 95%');
+const st90 = v('stuntingPct', 1990);
+assertClaim(stunt.year === 2017 && st90 > 32 && Number(stunt.value) < 5, 'stunting from about a third to under 5%');
+const tob00 = v('tobaccoPct', 2000);
+assertClaim(Number(tob.value) > 20 && Number(diab.value) > 10.5 && Number(diab.value) < 12.5, 'more than a fifth use tobacco; about one in nine with diabetes');
+assertClaim(tob00 - Number(tob.value) < 5, 'tobacco use down by less than five points since 2000');
+
+const title = `Health in China ${U}: Child Survival, Nurses, Hospital Beds | AtlasFigures`;
+const description = `Chinese under-five mortality fell to ${u5.text} per 1,000 by ${U}, roughly one ninth of 1990's ${u5_90.toFixed(1)}. Out-of-pocket payments fell to ${oop.text} of health spending, from ${pct(oop00)} in 2000.`;
+
+const faq = [
+  { q: 'Does China have enough hospital beds?', a: `It has more per person than most countries: ${beds.text} beds per 1,000 people in ${beds.year}, ${ordinal(fromTop(beds))} of the ${beds.of} countries with recent figures.` },
+  { q: 'Do many people smoke in China?', a: `More than a fifth of adults: ${tob.text} in ${tob.year}, little changed from ${pct(tob00)} in 2000 (WHO tobacco estimate, smokeless included).` },
+  { q: 'What share of China\'s GDP goes on health?', a: `${hGdp.text} in ${hGdp.year}, worth ${hPc.text} per resident, up from ${pct(hg00)} of GDP in 2000.` },
+  { q: 'How many Chinese adults have diabetes?', a: `About one in nine: ${diab.text} in ${diab.year}, according to IDF figures republished by the World Bank.` },
+];
+const headline = `China health ${U}: child deaths, doctors and nurses, hospital beds and who pays`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="China's health: fewer child deaths, more nurses, lower bills"
+  headline={headline}
+  tableTitle={`Chinese health indicators year by year, 1990–${U}`}
+  tableSubtitle="Twelve reference years in the table; every year from 1960 onwards is in the CSV."
+  faq={faq}
+  faqTitle="China health questions"
+  related={[
+    { href: '/country/china/', label: 'China by the numbers' },
+    { href: '/country/china/population/', label: 'China population and ageing' },
+    { href: '/country/india/health/', label: 'India health' },
+    { href: '/country/russia/health/', label: 'Russia health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal mortality by country' },
+  ]}
+>
+  <Fragment slot="answer">Chinese child survival has soared: <strong>{u5.text}</strong> of each thousand babies were lost before age five in {U}, roughly a ninth of the 1990 rate. Patients now cover <strong>{oop.text}</strong> of health spending directly ({oop.year}), compared with {pct(oop00)} in 2000.</Fragment>
+  <div class="story-block prose">
+    <h2>How far has child mortality dropped in China?</h2>
+    <p>The rate shrank about {Math.floor(ratio)}-fold (our calculation): {u5_90.toFixed(1)} for each thousand births in 1990, and {u5.text} by {U}. Newborn deaths fell even faster, from {neo90} to {neo.text}, and maternal deaths from {mat90} to {mat.text} per 100,000 births ({mat.year}).</p>
+  </div>
+  <LineChart
+    title={`Under-five deaths in China, 1990–${U}`}
+    subtitle="Chinese children lost before their fifth birthday, per thousand live births, as modelled by the UN child mortality group."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 live births"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How many doctors, nurses and beds does China have?</h2>
+    <p>Far more than a generation ago. In {doc.year} China counted {doc.text} physicians and {nurse.text} nurses or midwives for every thousand inhabitants, against {doc90} and {nur90} in 1990. Hospitals offered {beds.text} beds per thousand ({beds.year}), placing China {ordinal(fromTop(beds))} out of {beds.of}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Has health care become cheaper for Chinese patients?</h2>
+    <p>Their share of the bill has nearly halved. Chinese patients covered {pct(oop00)} of all health costs out of pocket in 2000 and {oop.text} by {oop.year}, while total health spending rose from {pct(hg00)} to {hGdp.text} of GDP, or {hPc.text} per person.</p>
+  </div>
+  <LineChart
+    title={`Chinese households' direct share of health spending, 2000–${oop.year}`}
+    subtitle="Fees and co-payments paid by patients themselves, in percent of China's current health expenditure (WHO)."
+    points={s.outOfPocketPct.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="percent"
+    highlight={oop.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Has measles vaccination slipped in China?</h2>
+    <p>Slightly. Coverage for Chinese toddlers stood at {pct(v('measlesVaccPct', 2010))} in every year from 2010 to 2022, then {pct(v('measlesVaccPct', 2023))} in 2023 and {measles.text} in {measles.year} (WHO and UNICEF estimates). Stunting is now rare: {stunt.text} of small children in {stunt.year}, from {pct(st90)} in 1990.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is tobacco use falling in China?</h2>
+    <p>Only slowly. Chinese tobacco use stood at {tob.text} of adults in {tob.year}, only a few points below the {pct(tob00)} of 2000. Diabetes is also widespread, at {diab.text} of adults in {diab.year}. Ageing and births are covered on the <a href={path('/country/china/population/')}>China population page</a>.</p>
+  </div>
+</HealthTopic>

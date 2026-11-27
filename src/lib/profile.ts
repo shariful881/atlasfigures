@@ -42,6 +42,9 @@ export const ordinal = (n: number) => {
   const s = ['th', 'st', 'nd', 'rd'], v = n % 100;
   return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`;
 };
+/** Place counted from the highest value (1 = highest in the world) / from the lowest (1 = lowest), whatever rankBy is. */
+export const fromTop = (s: ProfileStat) => (s.rankBy === 'low' ? s.of! - s.rank! + 1 : s.rank!);
+export const fromBottom = (s: ProfileStat) => s.of! - fromTop(s) + 1;
 export const rankText = (s: ProfileStat) => (s.rank ? `${ordinal(s.rank)} ${s.rankBy === 'low' ? 'lowest' : 'highest'} of ${s.of}` : '');
 
 // Ranking pages that exist for a profile statistic (section.id → /rankings/<slug>/)

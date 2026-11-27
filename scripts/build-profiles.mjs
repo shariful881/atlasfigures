@@ -12,6 +12,7 @@ const list = JSON.parse(readFileSync('src/data/country-list.json', 'utf8')).coun
 const catalog = JSON.parse(readFileSync('src/data/profile-stats.json', 'utf8')).sections;
 const wppIdx = JSON.parse(readFileSync('src/data/wpp/index.json', 'utf8'));
 const YEAR = wppIdx.year; // the site's current year (UN projection for years after the last estimate)
+const OLDEST = 2000; // World Bank figures from before this year are treated as missing (status no-data)
 const wpp = Object.fromEntries(list.map((c) => [c.iso3, JSON.parse(readFileSync(`src/data/wpp/countries/${c.iso3}.json`, 'utf8'))]));
 const wdiMeta = JSON.parse(readFileSync('src/data/wdi/meta.json', 'utf8'));
 const wdi = Object.fromEntries(readdirSync('src/data/wdi/countries').map((f) => { const d = JSON.parse(readFileSync(`src/data/wdi/countries/${f}`, 'utf8')); return [d.iso3, d]; }));
@@ -63,7 +64,8 @@ for (const c of list) {
         if (value != null && st.rank) rank = rankOf(wppAll(st.key), c.iso3, st.rank === 'low');
       } else if (st.src === 'wdi') {
         const s = wdi[c.iso3]?.series[st.key] ?? [];
-        if (s.length) {
+        // a latest figure older than OLDEST is not shown as the country's figure (e.g. Nigeria's exports stop in 1960)
+        if (s.length && s.at(-1)[0] >= OLDEST) {
           [year, value] = s.at(-1);
           if (st.rank) rank = rankOf(wdiLatest(st.key, st.since ?? year - 5), c.iso3, st.rank === 'low');
           source = `${SRC.wdi} (${wdiMeta.indicators[st.key]?.code})`;

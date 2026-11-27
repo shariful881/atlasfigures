@@ -1,0 +1,76 @@
+---
+// Ethiopia country hub (task 170). Every figure comes from the country profile (src/data/profiles/ETH.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/ethiopia.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), grow = st('population', 'growth'), urban = st('population', 'urban'), age = st('population', 'medianAge');
+const ren = st('energy', 'renShare'), hydro = st('energy', 'hydroShare'), elec = st('internet', 'electricity'), cook = st('internet', 'cleanCook');
+const growth = st('economy', 'growth'), gdp = st('economy', 'gdp'), gdpPc = st('economy', 'gdpPc'), infl = st('economy', 'inflation'), fx = st('economy', 'fx');
+const rev = st('economy', 'revenue'), tax = st('economy', 'tax'), expn = st('economy', 'expense');
+const san = st('environment', 'sanBasic'), water = st('environment', 'waterBasic'), agri = st('jobs', 'empAgri'), co2pc = st('environment', 'co2pc');
+const out = st('education', 'outSchool');
+
+assertClaim(fromTop(pop) === 10 && Number(grow.value) > 2.4, 'tenth by population, growing over 2.4% a year');
+assertClaim(fromTop(ren) === 2 && fromTop(hydro) === 2 && ren.text === '100.0%' && Number(st('energy', 'fossilShare').value) === 0, 'all electricity renewable, second-highest hydro share');
+assertClaim(Number(elec.value) < 60 && Number(cook.value) < 10, 'under 60% with electricity, under 10% clean cooking');
+assertClaim(fromTop(growth) === 6 && fromBottom(gdpPc) === 13, 'sixth-fastest growth, thirteenth-lowest GDP per person');
+assertClaim(fromBottom(rev) === 3 && fromBottom(tax) === 5 && fromBottom(expn) === 2, 'third-lowest revenue, fifth-lowest tax, second-lowest spending');
+assertClaim(fromBottom(san) === 1 && Number(san.value) < 11, 'lowest basic sanitation of any country');
+assertClaim(Number(urban.value) < 25 && Number(agri.value) > 60 && fromTop(out) === 3, 'under a quarter urban, over 60% of jobs in farming, third-most children out of school');
+
+const title = `Ethiopia Explained in Data ${Y}: Growth, Hydropower, Toilets | AtlasFigures`;
+const description = `Growth of ${growth.text} (${growth.year}) and a grid running entirely on renewables mark out Ethiopia, yet basic toilets reach fewer people than anywhere. Population: ${people(Number(pop.value))} (UN, ${Y}).`;
+
+const faq = [
+  { q: 'How many birr is one US dollar?', a: `In ${fx.year} the official rate averaged ${fx.text} Ethiopian birr per dollar, according to the World Bank.` },
+  { q: 'How poor is Ethiopia per head?', a: `Average output per Ethiopian was ${gdpPc.text} in ${gdpPc.year}, thirteenth lowest among ${gdpPc.of} countries, from a total GDP of ${gdp.text}.` },
+  { q: 'How quickly are Ethiopian prices rising?', a: `Yes: consumer price inflation reached ${infl.text} for ${infl.year}, outpaced in only ${fromTop(infl) - 1} countries.` },
+  { q: 'Are many Ethiopian children missing school?', a: `UNESCO counted ${people(Number(out.value))} out-of-school children of primary age in ${out.year}; just two countries had more.` },
+];
+const headline = `Ethiopia facts and figures ${Y}: population, fast growth, hydropower, public finances and sanitation`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Ethiopia by the numbers: growth, power and daily life"
+  headline={headline}
+  faq={faq}
+  faqTitle="Questions about Ethiopia"
+  related={[
+    { href: '/country/ethiopia/population/', label: 'Ethiopia population: live count and growth' },
+    { href: '/country/ethiopia/economy/', label: 'Ethiopia economy: GDP, growth and the birr' },
+    { href: '/country/ethiopia/health/', label: 'Ethiopia health: child deaths and doctors' },
+    { href: '/country/kenya/population/', label: "Kenya's population" },
+    { href: '/country/somalia/population/', label: "Somalia's population" },
+    { href: '/country/nigeria/', label: 'Nigeria in numbers' },
+    { href: '/rankings/renewable-electricity-by-country/', label: 'Renewable electricity by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Tenth in the world by population, Ethiopia's headcount of <strong>{people(Number(pop.value))}</strong> ({Y}, UN projection) is climbing {grow.text} a year. Its economy expanded by <strong>{growth.text}</strong> in {growth.year}, one of the fastest rates anywhere, and all of its electricity comes from renewable sources.</Fragment>
+  <div class="story-block prose">
+    <h2>Is all of Ethiopia's electricity renewable?</h2>
+    <p>Yes. Ember's {ren.year} data show every unit of Ethiopian power coming from renewable sources, with dams supplying {hydro.text}, the second-highest hydro share of the {hydro.of} countries tracked. Yet only {elec.text} of Ethiopians had electricity at home in {elec.year}, and {cook.text} cooked with clean fuels. Emissions are tiny: {co2pc.text} tonnes of fossil CO₂ per person.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Does Ethiopia have one of the world's fastest growth rates?</h2>
+    <p>It does. Adjusted for inflation, Ethiopian output expanded {growth.text} over {growth.year}, {ordinal(fromTop(growth))} fastest of {growth.of}, to {gdp.text}. Incomes start from a low base: {gdpPc.text} per person. The <a href={path('/country/ethiopia/economy/')}>economy page</a> has growth and prices year by year.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How small is the Ethiopian state's budget?</h2>
+    <p>Among the smallest relative to the economy. Ethiopia's government collected revenue worth {rev.text} of GDP in {rev.year}, third lowest of {rev.of}, tax revenue alone to {tax.text}, and spending to {expn.text} in {expn.year}, lower than in any country but one.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many Ethiopians have a toilet?</h2>
+    <p>Very few. Just {san.text} of Ethiopians used at least basic sanitation in {san.year}, the bottom of {san.of} countries in the WHO/UNICEF JMP data; {water.text} had at least basic drinking water. Ethiopia is mostly rural, with a quarter or less of people in towns ({urban.text}) and {agri.text} of jobs in farming.</p>
+  </div>
+</CountryHub>

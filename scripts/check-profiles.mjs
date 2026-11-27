@@ -41,7 +41,7 @@ for (const c of list) {
     const got = p.sections.find((s) => s.id === sec.id).stats.find((s) => s.id === st.id);
     let want = null, year = null;
     if (st.src === 'wpp') { want = row?.[st.key] ?? null; year = wppIdx.year; }
-    else if (st.src === 'wdi') { const s = wdi[c.iso3]?.series[st.key] ?? []; if (s.length) [year, want] = s.at(-1); }
+    else if (st.src === 'wdi') { const s = wdi[c.iso3]?.series[st.key] ?? []; if (s.length && s.at(-1)[0] >= 2000) [year, want] = s.at(-1); } // same 2000 cut-off as build-profiles
     else if (st.src === 'energy') { const s = energy.countries[c.iso3]?.series[st.key] ?? []; if (s.length) [year, want] = s.at(-1); }
     else if (st.src === 'list') want = st.key === 'iso' ? `${c.iso3} / ${c.iso2}` : c[st.key];
     else if (st.src === 'facts') {

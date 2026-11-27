@@ -1,0 +1,74 @@
+---
+// United States country hub (task 170). Every figure comes from the country profile (src/data/profiles/USA.json),
+// built from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/united-states.json';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, people, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), mig = st('population', 'migrantStock'), migPct = st('population', 'migrantPct');
+const net = st('population', 'netMigrants'), tfr = st('population', 'fertility'), life = st('population', 'lifeExp');
+const gdp = st('economy', 'gdp'), gdpPc = st('economy', 'gdpPc'), fdi = st('economy', 'fdi'), gini = st('economy', 'gini');
+const hPc = st('health', 'healthPc'), hGdp = st('health', 'healthGdp'), paid = st('trade', 'remitPaid');
+const rd = st('education', 'rd'), air = st('internet', 'air'), tour = st('trade', 'tourismInc'), patN = st('education', 'patNres');
+
+assertClaim(fromTop(pop) === 3, 'third most populous');
+assertClaim(fromTop(mig) === 1 && Number(migPct.value) > 15 && Number(net.value) > 1e6, 'most immigrants of any country, over 15% of residents, net migration above a million');
+assertClaim(fromTop(gdp) === 1 && fromTop(gdpPc) === 11 && fromTop(fdi) === 1, 'largest GDP, 11th per person, top FDI destination');
+assertClaim(fromTop(hPc) === 1 && fromTop(hGdp) === 3, 'highest health spending per person, third as a share of GDP');
+assertClaim(fromTop(gini) === 20, '20th-highest Gini index');
+assertClaim(fromTop(paid) === 1 && fromTop(air) === 1 && fromTop(tour) === 1 && fromTop(patN) === 1 && fromTop(rd) === 5, 'first for remittances paid, air passengers, tourism receipts and foreign patent filings; fifth for R&D');
+
+const title = `United States Facts and Figures ${Y}: Immigrants, GDP, Health Costs | AtlasFigures`;
+const description = `America's ${people(Number(pop.value))} residents (UN projection, ${Y}) include ${people(Number(mig.value))} born abroad. Its ${gdp.text} GDP leads the world, and so does its health spending per person.`;
+
+const faq = [
+  { q: 'What is the US fertility rate?', a: `${tfr.text} births per woman (UN projection, ${Y}). Population still grows because of immigration: the UN counts ${people(Number(net.value))} more people arriving than leaving this year.` },
+  { q: 'Which country sends the most remittances abroad?', a: `The United States: ${paid.text} in ${paid.year}, the personal transfers its balance of payments records as paid to other countries.` },
+  { q: 'Is income unequal in America?', a: `More than in most rich countries. The US Gini index was ${gini.text} in ${gini.year}, placing America ${ordinal(fromTop(gini))} out of ${gini.of} with a recent estimate.` },
+  { q: 'How long are Americans expected to live?', a: `${life.text} years for American babies born in ${Y}, per the UN projection.` },
+];
+const headline = `United States facts and figures ${Y}: population, immigration, economy and health spending`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="The United States in figures: people, immigrants, money and medicine"
+  headline={headline}
+  faq={faq}
+  faqTitle="What people ask about the USA"
+  related={[
+    { href: '/country/united-states/population/', label: 'US population: live count and immigration' },
+    { href: '/country/united-states/economy/', label: 'US economy: GDP, inflation and trade' },
+    { href: '/country/united-states/health/', label: 'US health: spending, mothers and babies' },
+    { href: '/country/mexico/', label: 'Mexico in figures' },
+    { href: '/country/canada/population/', label: "Canada's population" },
+    { href: '/rankings/immigrant-population-by-country/', label: 'Immigrant population by country' },
+    { href: '/rankings/gdp-by-country/', label: 'GDP by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Third after India and China, the United States numbers <strong>{people(Number(pop.value))}</strong> by the UN's {Y} projection; it also has the largest economy, <strong>{gdp.text}</strong> in {gdp.year}. It is home to more immigrants than any other nation and spends more on health per person than anywhere else.</Fragment>
+  <div class="story-block prose">
+    <h2>How many immigrants live in the US?</h2>
+    <p>{people(Number(mig.value))} in {mig.year}, by the UN count of residents born in another country: the most anywhere, and {migPct.text} of the population. Arrivals keep adding to that: the UN projects a net gain of {people(Number(net.value))} migrants in {Y}, at a time when American women have {tfr.text} children each.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Does America spend more on health than other countries?</h2>
+    <p>Per person, more than any. Health spending averaged {hPc.text} for every American in {hPc.year}, top of {hPc.of}, and absorbed {hGdp.text} of national output; only {fromTop(hGdp) - 1} countries devote a bigger slice. A newborn American's life expectancy is {life.text} years (UN projection, {Y}).</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How rich is the United States?</h2>
+    <p>Its economy is the world's largest at {gdp.text} ({gdp.year}), though per resident it ranks {ordinal(fromTop(gdpPc))} at {gdpPc.text}. No other destination drew as much foreign direct investment that year: {fdi.text} net. The <a href={path('/country/united-states/economy/')}>economy page</a> covers growth, prices and jobs.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Where else does the US come first?</h2>
+    <p>In air travel and tourism earnings among others. US airlines carried {people(Number(air.value))} passengers in {air.year}, foreign visitors spent {tour.text} in {tour.year}, and inventors from abroad lodged {people(Number(patN.value))} US patent applications in {patN.year}; on each count America leads. Research and development took {rd.text}% of GDP, {ordinal(fromTop(rd))} worldwide.</p>
+  </div>
+</CountryHub>

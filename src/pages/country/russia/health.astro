@@ -1,0 +1,111 @@
+---
+// Russia health (task 170). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/russia.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), neo = st('neonatal'), mat = st('maternal'), doc = st('doctors'), nurse = st('nurses'), beds = st('beds');
+const hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop'), measles = st('measles'), tb = st('tb'), tob = st('tobacco'), diab = st('diabetes');
+const U = u5.year!;
+const usU5 = stat(profile('USA'), 'health', 'u5');
+
+assertClaim(fromTop(doc) === 8 && fromTop(beds) === 9, 'eighth for doctors, ninth for hospital beds per person');
+const tb00 = v('tbIncidence', 2000);
+assertClaim(Number(tb.value) < tb00 * 0.37 && tb.year === 2024, 'TB incidence down by about two thirds since 2000');
+const tob00 = v('tobaccoPct', 2000);
+assertClaim(fromTop(tob) === 40 && tob00 > 39, 'tobacco 40th highest, from nearly 40% in 2000');
+const u5_90 = v('under5Mortality', 1990), mat90 = v('maternalMortality', 1990);
+assertClaim(Number(u5.value) < Number(usU5.value) && Number(u5.value) < u5_90 / 4 && Number(mat.value) < mat90 / 6, 'below the US rate; under-five a quarter of 1990, maternal a sixth');
+const [oopPeakY, oop15] = s.outOfPocketPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+assertClaim(Number(oop.value) < oop15 - 10, 'out-of-pocket share now over ten points below its peak');
+assertClaim(Number(tob.value) > 25 && Number(tob.value) < 28, 'just over a quarter use tobacco');
+assertClaim(Number(diab.value) < 6 && fromTop(diab) > 160, 'diabetes under 6%, low by world standards');
+
+const title = `Russia Health Statistics ${U}: Doctors, Beds, TB, Smoking | AtlasFigures`;
+const description = `Russia had ${doc.text} doctors and ${beds.text} hospital beds per 1,000 people in the latest data, among the ten highest ratios, while tuberculosis fell to ${tb.text} cases per 100,000 in ${tb.year}.`;
+
+const faq = [
+  { q: 'How many Russians smoke?', a: `Just over a quarter of adults: ${tob.text} in ${tob.year}, against ${pct(tob00)} at the start of the century; ${fromTop(tob) - 1} countries have higher rates.` },
+  { q: 'Is child mortality in Russia lower than in the US?', a: `Yes, on UN figures for ${U}: Russia's under-five rate of ${u5.text} beats America's ${usU5.text}.` },
+  { q: 'What share of GDP goes on Russian health care?', a: `${hGdp.text} in ${hGdp.year}, which means about ${hPc.text} for every Russian; ${oop.text} came directly from patients.` },
+  { q: 'What share of Russian adults have diabetes?', a: `Fewer than one in sixteen (${diab.text}, ${diab.year}), low by world standards on the IDF estimate.` },
+];
+const headline = `Russia health ${U}: doctors, hospital beds, tuberculosis, smoking and spending`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Russia's health: many doctors, falling TB, heavy smoking"
+  headline={headline}
+  tableTitle={`Russian health indicators, 1990–${U}`}
+  tableSubtitle="Key years only; every annual value since 1960, where it exists, comes in the CSV."
+  faq={faq}
+  faqTitle="Health in Russia: fast facts"
+  related={[
+    { href: '/country/russia/', label: 'Russia in figures' },
+    { href: '/country/russia/population/', label: 'Russia population and life expectancy' },
+    { href: '/country/china/health/', label: 'China health' },
+    { href: '/country/united-states/health/', label: 'US health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality, every country ranked' },
+  ]}
+>
+  <Fragment slot="answer">Only {fromTop(doc) - 1} countries have more doctors per head than Russia, with <strong>{doc.text} per 1,000</strong> in {doc.year}, and it keeps {beds.text} hospital beds per thousand. Its TB rate has fallen to <strong>{tb.text} per 100,000</strong> ({tb.year}), about a third of the 2000 level.</Fragment>
+  <div class="story-block prose">
+    <h2>How many doctors and hospital beds does Russia have?</h2>
+    <p>Among the most anywhere. Russia counted {doc.text} physicians per 1,000 Russians in {doc.year}, {ordinal(fromTop(doc))} of {doc.of}, along with {nurse.text} nurses and midwives. Its hospitals held {beds.text} beds per thousand in {beds.year}, {ordinal(fromTop(beds))} highest.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is tuberculosis declining in Russia?</h2>
+    <p>Steadily. WHO estimates of Russian TB incidence slid from {tb00} (2000) to {tb.text} ({tb.year}) per 100,000, now {ordinal(fromTop(tb))} of {tb.of}.</p>
+  </div>
+  <LineChart
+    title={`New tuberculosis cases in Russia, 2000–${tb.year}`}
+    subtitle="Estimated TB incidence in Russia per 100,000 people a year, World Health Organization."
+    points={s.tbIncidence.map(([x, y]) => ({ x, y }))}
+    format="plain"
+    unit="per 100,000 people"
+    highlight={tb.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Do most Russian adults still use tobacco?</h2>
+    <p>No, but a large minority does: {tob.text} in {tob.year}, {ordinal(fromTop(tob))} of {tob.of}, against {pct(tob00)} in 2000. Diabetes is rarer in Russia than in most countries ({diab.text}, {diab.year}).</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are Russian children and mothers safer than before?</h2>
+    <p>Much safer. Russia's under-five rate shrank from {u5_90.toFixed(1)} in 1990 to {u5.text} in {U}, now below the United States' {usU5.text}; newborn mortality fell to {neo.text}. The maternal ratio, {mat90} in 1990, was {mat.text} by {mat.year}. Measles coverage was {measles.text}.</p>
+  </div>
+  <LineChart
+    title={`Russia: deaths before age five, 1990–${U}`}
+    subtitle="How many Russian children per thousand born died before turning five, UN IGME."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 live births"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Did Russian patients' share of health costs fall?</h2>
+    <p>Yes. Direct payments by patients peaked at {pct(oop15)} of health spending in {oopPeakY} and stood at {oop.text} in {oop.year}, out of total spending of {hGdp.text} of GDP ({hPc.text} per person). Life expectancy and deaths by year: <a href={path('/country/russia/population/')}>Russia population</a>.</p>
+  </div>
+</HealthTopic>

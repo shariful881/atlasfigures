@@ -1,0 +1,76 @@
+---
+// Pakistan country hub (task 170). Every figure comes from the country profile (src/data/profiles/PAK.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/pakistan.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), tfr = st('population', 'fertility'), grow = st('population', 'growth');
+const netMig = st('population', 'netMigrants'), births = st('population', 'births');
+const out = st('education', 'outSchool'), lit = st('education', 'literacy'), enr = st('education', 'enrPri');
+const accF = st('internet', 'accountF'), accM = st('internet', 'accountM'), lfpF = st('jobs', 'lfpF');
+const water = st('environment', 'water'), pm = st('environment', 'pm25'), remit = st('trade', 'remit'), remitPct = st('trade', 'remitPct');
+const gdp = st('economy', 'gdp'), gdpPc = st('economy', 'gdpPc'), fx = st('economy', 'fx'), diab = st('health', 'diabetes');
+
+assertClaim(fromTop(pop) === 5 && Number(age.value) < 21 && Number(tfr.value) > 3.4, 'fifth by population, median age under 21, fertility above 3.4');
+assertClaim(Number(netMig.value) < -1e6, 'more than a million more people leaving than arriving');
+assertClaim(fromTop(out) === 2 && Number(lit.value) < 60, 'second-most children out of primary school, literacy under 60%');
+assertClaim(Number(accF.value) > 11 && Number(accF.value) < 13 && Number(diab.value) < 33.4, 'about one woman in eight with an account; diabetes under a third');
+assertClaim(fromBottom(accF) === 2 && Number(accM.value) > 3 * Number(accF.value), 'second-lowest account ownership for women, men over three times as likely');
+assertClaim(fromTop(water) === 10 && Number(water.value) > 300, 'withdrawals above three times internal resources, tenth highest');
+assertClaim(fromTop(pm) === 7 && fromTop(remit) === 6 && fromTop(diab) === 1, '7th-worst PM2.5, 6th-largest remittances, highest diabetes rate');
+
+const title = `Pakistan Facts and Figures ${Y}: Young Population, Schools, Water | AtlasFigures`;
+const description = `Pakistan's ${Y} population (UN projection) is ${people(Number(pop.value))}, its median resident aged ${age.text}. ${people(Number(out.value))} primary-age children are out of school, and emigrants remit ${remit.text} a year.`;
+
+const faq = [
+  { q: 'What are Pakistan\'s remittance inflows worth?', a: `${remit.text} arrived in ${remit.year}, a sum near ${remitPct.text} of GDP; only ${fromTop(remit) - 1} countries receive more.` },
+  { q: 'Is diabetes more common in Pakistan than anywhere else?', a: `Yes, on International Diabetes Federation figures: ${diab.text} of adults in ${diab.year}, top of ${diab.of}.` },
+  { q: 'How many Pakistani rupees to the dollar?', a: `${fx.text} Pakistani rupees per dollar, the official ${fx.year} average carried in World Bank data.` },
+  { q: 'What is the size of Pakistan\'s economy?', a: `${gdp.text} in ${gdp.year}, which works out to ${gdpPc.text} per resident, ${ordinal(fromTop(gdpPc))} of ${gdpPc.of}.` },
+];
+const headline = `Pakistan facts and figures ${Y}: a young population, schooling, women's finance and water`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1={`Pakistan by numbers: a young nation of ${people(Number(pop.value))}`}
+  headline={headline}
+  faq={faq}
+  faqTitle="Pakistan in brief: reader questions"
+  related={[
+    { href: '/country/pakistan/population/', label: 'Pakistan population: live count and growth' },
+    { href: '/country/pakistan/economy/', label: 'Pakistan economy: GDP, inflation and remittances' },
+    { href: '/country/pakistan/health/', label: 'Pakistan health: newborns and diabetes' },
+    { href: '/country/india/', label: 'India in numbers' },
+    { href: '/country/afghanistan/population/', label: "Afghanistan's population" },
+    { href: '/country/iran/population/', label: "Iran's population" },
+    { href: '/rankings/remittances-by-country/', label: 'Remittances received, country by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Fifth-largest by population, Pakistan reaches <strong>{people(Number(pop.value))}</strong> on the UN's {Y} projection, with half its people younger than {age.text}. GDP amounted to <strong>{gdp.text}</strong> in {gdp.year}; Pakistanis employed abroad remitted {remit.text}.</Fragment>
+  <div class="story-block prose">
+    <h2>What keeps Pakistan's median age so low?</h2>
+    <p>Because births stay high. A Pakistani woman has {tfr.text} children over her life on current UN estimates, which means {people(Number(births.value))} babies expected in {Y} and annual growth of {grow.text}, despite emigration exceeding immigration by {people(-Number(netMig.value))}. Details are on the <a href={path('/country/pakistan/population/')}>population page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many Pakistani children are not in school?</h2>
+    <p>{people(Number(out.value))} children of primary-school age were out of school in {out.year} (UNESCO), more than in any country except one. Gross primary enrolment stood at {enr.text}; adult literacy, at the {lit.year} count, at {lit.text}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many Pakistani women own a bank or mobile-money account?</h2>
+    <p>About one in eight: {accF.text} of Pakistani women had any such account in {accF.year}, whereas {accM.text} of Pakistani men did (Global Findex); only one of the {accF.of} countries surveyed had a lower figure for women. Women's labour force participation was {lfpF.text}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Pakistan running short of water?</h2>
+    <p>Its withdrawals far exceed what falls within its borders. Freshwater taken for farms, industry and homes equalled {water.text} of Pakistan's internal renewable resources in {water.year}, {ordinal(fromTop(water))} highest of {water.of}. A figure above 100% means more is used than local rain and rivers renew, the rest coming from rivers that rise abroad or from stored groundwater. The air is also among the most polluted: PM2.5 averaged {pm.text} µg/m³ in {pm.year}, {ordinal(fromTop(pm))} highest.</p>
+  </div>
+</CountryHub>
