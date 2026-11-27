@@ -291,59 +291,233 @@
      "rank": "high"
     },
     {
+     "id": "gni",
      "label": "Gross national income",
-     "planned": "A",
-     "source": "World Bank"
+     "src": "wdi",
+     "key": "gni",
+     "unit": "current US$",
+     "fmt": "usd",
+     "rank": "high"
+    },
+    {
+     "id": "gniPc",
+     "label": "GNI per person (Atlas method)",
+     "src": "wdi",
+     "key": "gniPerCapita",
+     "unit": "current US$",
+     "fmt": "usdWhole",
+     "rank": "high"
+    },
+    {
+     "id": "gniPpp",
+     "label": "GNI per person, PPP",
+     "src": "wdi",
+     "key": "gniPerCapitaPpp",
+     "unit": "international $",
+     "fmt": "intd",
+     "rank": "high"
+    },
+    {
+     "id": "extDebt",
+     "label": "External debt",
+     "src": "wdi",
+     "key": "externalDebt",
+     "unit": "current US$",
+     "fmt": "usd",
+     "rank": "high"
+    },
+    {
+     "id": "extDebtPct",
+     "label": "External debt, share of GNI",
+     "src": "wdi",
+     "key": "externalDebtPctGni",
+     "unit": "% of GNI",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "budget",
+     "label": "Government budget balance",
+     "src": "wdi",
+     "key": "budgetBalancePctGdp",
+     "unit": "% of GDP",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "revenue",
+     "label": "Government revenue (excl. grants)",
+     "src": "wdi",
+     "key": "govRevenuePctGdp",
+     "unit": "% of GDP",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "expense",
+     "label": "Government spending (expense)",
+     "src": "wdi",
+     "key": "govExpensePctGdp",
+     "unit": "% of GDP",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "tax",
+     "label": "Tax revenue",
+     "src": "wdi",
+     "key": "taxRevenuePctGdp",
+     "unit": "% of GDP",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "currAcct",
+     "label": "Current account balance",
+     "src": "wdi",
+     "key": "currentAccountPctGdp",
+     "unit": "% of GDP",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "reserves",
+     "label": "Foreign exchange reserves (incl. gold)",
+     "src": "wdi",
+     "key": "reserves",
+     "unit": "current US$",
+     "fmt": "usd",
+     "rank": "high"
+    },
+    {
+     "id": "fx",
+     "label": "Official exchange rate",
+     "src": "wdi",
+     "key": "exchangeRate",
+     "unit": "local currency per US$",
+     "fmt": "dec2"
+    },
+    {
+     "id": "fdi",
+     "label": "Foreign direct investment, net inflows",
+     "src": "wdi",
+     "key": "fdiInflows",
+     "unit": "current US$",
+     "fmt": "usd",
+     "rank": "high"
+    },
+    {
+     "id": "fdiPct",
+     "label": "Foreign direct investment, share of GDP",
+     "src": "wdi",
+     "key": "fdiPctGdp",
+     "unit": "% of GDP",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "pov300",
+     "label": "Extreme poverty ($3.00 a day)",
+     "src": "wdi",
+     "key": "povertyExtremePct",
+     "unit": "% of population",
+     "fmt": "pct",
+     "rank": "low"
+    },
+    {
+     "id": "pov420",
+     "label": "Poverty at $4.20 a day",
+     "src": "wdi",
+     "key": "poverty420Pct",
+     "unit": "% of population",
+     "fmt": "pct",
+     "rank": "low"
+    },
+    {
+     "id": "pov830",
+     "label": "Poverty at $8.30 a day",
+     "src": "wdi",
+     "key": "poverty830Pct",
+     "unit": "% of population",
+     "fmt": "pct",
+     "rank": "low"
+    },
+    {
+     "id": "povNat",
+     "label": "Poverty (national poverty line)",
+     "src": "wdi",
+     "key": "povertyNationalPct",
+     "unit": "% of population",
+     "fmt": "pct",
+     "rank": "low"
+    },
+    {
+     "id": "gini",
+     "label": "Income inequality (Gini index)",
+     "src": "wdi",
+     "key": "gini",
+     "unit": "0–100",
+     "fmt": "dec1",
+     "rank": "low"
+    },
+    {
+     "id": "agriGdp",
+     "label": "Agriculture, share of GDP",
+     "src": "wdi",
+     "key": "agriPctGdp",
+     "unit": "% of GDP",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "indGdp",
+     "label": "Industry, share of GDP",
+     "src": "wdi",
+     "key": "industryPctGdp",
+     "unit": "% of GDP",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "manufGdp",
+     "label": "Manufacturing, share of GDP",
+     "src": "wdi",
+     "key": "manufPctGdp",
+     "unit": "% of GDP",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "srvGdp",
+     "label": "Services, share of GDP",
+     "src": "wdi",
+     "key": "servicesPctGdp",
+     "unit": "% of GDP",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "hhCons",
+     "label": "Household consumption",
+     "src": "wdi",
+     "key": "householdConsPctGdp",
+     "unit": "% of GDP",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "savings",
+     "label": "Gross savings",
+     "src": "wdi",
+     "key": "savingsPctGdp",
+     "unit": "% of GDP",
+     "fmt": "pct",
+     "rank": "high"
     },
     {
      "label": "Government debt",
-     "planned": "A",
-     "source": "World Bank"
-    },
-    {
-     "label": "External debt",
-     "planned": "A",
-     "source": "World Bank"
-    },
-    {
-     "label": "Budget balance, revenue, spending",
-     "planned": "A",
-     "source": "World Bank"
-    },
-    {
-     "label": "Tax revenue",
-     "planned": "A",
-     "source": "World Bank"
-    },
-    {
-     "label": "Current account",
-     "planned": "A",
-     "source": "World Bank"
-    },
-    {
-     "label": "Foreign exchange reserves, exchange rate",
-     "planned": "A",
-     "source": "World Bank"
-    },
-    {
-     "label": "Foreign direct investment",
-     "planned": "A",
-     "source": "World Bank"
-    },
-    {
-     "label": "Poverty, extreme poverty, Gini",
-     "planned": "A",
-     "source": "World Bank"
-    },
-    {
-     "label": "Agriculture / industry / services share of GDP",
-     "planned": "A",
-     "source": "World Bank"
-    },
-    {
-     "label": "Household consumption, savings",
-     "planned": "A",
-     "source": "World Bank"
+     "planned": "D",
+     "source": "World Bank WDI covers too few countries (65 since 2015) — IMF is NC; another open source needed"
     }
    ]
   },
@@ -406,19 +580,49 @@
      "rank": "high"
     },
     {
-     "label": "Remittances sent",
-     "planned": "A",
-     "source": "World Bank"
+     "id": "remitPaid",
+     "label": "Remittances sent abroad",
+     "src": "wdi",
+     "key": "remittancesPaid",
+     "unit": "current US$",
+     "fmt": "usd",
+     "rank": "high"
     },
     {
-     "label": "Tariffs, high-tech exports",
-     "planned": "A",
-     "source": "World Bank"
+     "id": "tariff",
+     "label": "Average tariff (applied, trade-weighted)",
+     "src": "wdi",
+     "key": "tariffPct",
+     "unit": "%",
+     "fmt": "pct",
+     "rank": "high"
     },
     {
-     "label": "Tourist arrivals, tourism income",
-     "planned": "A",
-     "source": "World Bank"
+     "id": "hitech",
+     "label": "High-tech exports",
+     "src": "wdi",
+     "key": "hiTechExportsPct",
+     "unit": "% of manufactured exports",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "tourists",
+     "label": "International tourist arrivals",
+     "src": "wdi",
+     "key": "touristArrivals",
+     "unit": "arrivals",
+     "fmt": "int",
+     "rank": "high"
+    },
+    {
+     "id": "tourismInc",
+     "label": "International tourism receipts",
+     "src": "wdi",
+     "key": "tourismReceipts",
+     "unit": "current US$",
+     "fmt": "usd",
+     "rank": "high"
     },
     {
      "label": "Top export/import products, trading partners",
@@ -486,9 +690,27 @@
      "rank": "high"
     },
     {
-     "label": "Youth unemployment, labour force, child labour",
-     "planned": "A",
-     "source": "World Bank"
+     "id": "youthUnemp",
+     "label": "Youth unemployment (ages 15–24)",
+     "src": "wdi",
+     "key": "youthUnemploymentPct",
+     "unit": "% of labour force 15–24",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "labourForce",
+     "label": "Labour force",
+     "src": "wdi",
+     "key": "labourForce",
+     "unit": "people",
+     "fmt": "int",
+     "rank": "high"
+    },
+    {
+     "label": "Child labour",
+     "planned": "D",
+     "source": "ILOSTAT (WDI has 12 countries since 2015)"
     },
     {
      "label": "Average wage, minimum wage, hours, informal work",
@@ -529,34 +751,163 @@
      "rank": "low"
     },
     {
-     "label": "Doctors, nurses, hospital beds",
-     "planned": "A",
-     "source": "World Bank"
+     "id": "doctors",
+     "label": "Doctors",
+     "src": "wdi",
+     "key": "doctorsPer1000",
+     "unit": "per 1,000 people",
+     "fmt": "dec2",
+     "rank": "high"
     },
     {
-     "label": "Health spending, UHC index",
-     "planned": "A",
-     "source": "World Bank"
+     "id": "nurses",
+     "label": "Nurses and midwives",
+     "src": "wdi",
+     "key": "nursesPer1000",
+     "unit": "per 1,000 people",
+     "fmt": "dec2",
+     "rank": "high"
     },
     {
-     "label": "Vaccination",
-     "planned": "A",
-     "source": "World Bank"
+     "id": "beds",
+     "label": "Hospital beds",
+     "src": "wdi",
+     "key": "hospitalBedsPer1000",
+     "unit": "per 1,000 people",
+     "fmt": "dec1",
+     "rank": "high"
     },
     {
-     "label": "Diabetes, HIV, TB, malaria",
-     "planned": "A",
-     "source": "World Bank"
+     "id": "healthGdp",
+     "label": "Health spending, share of GDP",
+     "src": "wdi",
+     "key": "healthSpendPctGdp",
+     "unit": "% of GDP",
+     "fmt": "pct",
+     "rank": "high"
     },
     {
-     "label": "Smoking, alcohol, undernourishment",
-     "planned": "A",
-     "source": "World Bank"
+     "id": "healthPc",
+     "label": "Health spending per person",
+     "src": "wdi",
+     "key": "healthSpendPerCapita",
+     "unit": "current US$",
+     "fmt": "usdWhole",
+     "rank": "high"
     },
     {
-     "label": "Road deaths",
-     "planned": "A",
-     "source": "World Bank"
+     "id": "oop",
+     "label": "Paid out of pocket",
+     "src": "wdi",
+     "key": "outOfPocketPct",
+     "unit": "% of health spending",
+     "fmt": "pct",
+     "rank": "low"
+    },
+    {
+     "id": "measles",
+     "label": "Measles vaccination",
+     "src": "wdi",
+     "key": "measlesVaccPct",
+     "unit": "% of children 12–23 months",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "dpt",
+     "label": "DPT vaccination",
+     "src": "wdi",
+     "key": "dptVaccPct",
+     "unit": "% of children 12–23 months",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "diabetes",
+     "label": "Diabetes",
+     "src": "wdi",
+     "key": "diabetesPct",
+     "unit": "% of people 20–79",
+     "fmt": "pct",
+     "rank": "low"
+    },
+    {
+     "id": "tb",
+     "label": "New tuberculosis cases",
+     "src": "wdi",
+     "key": "tbIncidence",
+     "unit": "per 100,000 people",
+     "fmt": "int",
+     "rank": "low"
+    },
+    {
+     "id": "malaria",
+     "label": "New malaria cases",
+     "src": "wdi",
+     "key": "malariaIncidence",
+     "unit": "per 1,000 people at risk",
+     "fmt": "dec1",
+     "rank": "low"
+    },
+    {
+     "id": "tobacco",
+     "label": "Tobacco use",
+     "src": "wdi",
+     "key": "tobaccoPct",
+     "unit": "% of adults",
+     "fmt": "pct",
+     "rank": "low"
+    },
+    {
+     "id": "undernour",
+     "label": "Undernourishment",
+     "src": "wdi",
+     "key": "undernourishedPct",
+     "unit": "% of population",
+     "fmt": "pct",
+     "rank": "low"
+    },
+    {
+     "id": "stunting",
+     "label": "Stunting (children under 5)",
+     "src": "wdi",
+     "key": "stuntingPct",
+     "unit": "% of children under 5",
+     "fmt": "pct",
+     "rank": "low"
+    },
+    {
+     "id": "neonatal",
+     "label": "Newborn deaths (first 28 days)",
+     "src": "wdi",
+     "key": "neonatalMortality",
+     "unit": "per 1,000 live births",
+     "fmt": "dec1",
+     "rank": "low"
+    },
+    {
+     "id": "road",
+     "label": "Road traffic deaths",
+     "src": "wdi",
+     "key": "roadDeathsPer100k",
+     "unit": "per 100,000 people",
+     "fmt": "dec1",
+     "rank": "low"
+    },
+    {
+     "label": "Universal health coverage index",
+     "planned": "D",
+     "source": "WHO Global Health Observatory (the WDI file SH.UHC.SRVS.CV.XD has impossible values — task 150)"
+    },
+    {
+     "label": "HIV prevalence",
+     "planned": "D",
+     "source": "UNAIDS (not in the WDI bulk files under CC BY 4.0)"
+    },
+    {
+     "label": "Alcohol consumption",
+     "planned": "D",
+     "source": "WHO (licence to check)"
     }
    ]
   },
@@ -585,19 +936,99 @@
      "since": 2020
     },
     {
-     "label": "School and university enrolment",
-     "planned": "A",
-     "source": "World Bank"
+     "id": "enrPri",
+     "label": "Primary school enrolment (gross)",
+     "src": "wdi",
+     "key": "primaryEnrolPct",
+     "unit": "% gross",
+     "fmt": "pct",
+     "rank": "high"
     },
     {
-     "label": "Pupils per teacher, children out of school",
-     "planned": "A",
-     "source": "World Bank"
+     "id": "enrSec",
+     "label": "Secondary school enrolment (gross)",
+     "src": "wdi",
+     "key": "secondaryEnrolPct",
+     "unit": "% gross",
+     "fmt": "pct",
+     "rank": "high"
     },
     {
-     "label": "Research spending, researchers, publications, patents",
-     "planned": "A",
-     "source": "World Bank"
+     "id": "enrTer",
+     "label": "University and college enrolment (gross)",
+     "src": "wdi",
+     "key": "tertiaryEnrolPct",
+     "unit": "% gross",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "priComp",
+     "label": "Primary school completion",
+     "src": "wdi",
+     "key": "primaryCompletionPct",
+     "unit": "% of age group",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "ptr",
+     "label": "Pupils per teacher (primary)",
+     "src": "wdi",
+     "key": "pupilTeacherPrimary",
+     "unit": "pupils per teacher",
+     "fmt": "dec1",
+     "rank": "low"
+    },
+    {
+     "id": "outSchool",
+     "label": "Children out of primary school",
+     "src": "wdi",
+     "key": "outOfSchoolPrimary",
+     "unit": "children",
+     "fmt": "int",
+     "rank": "low"
+    },
+    {
+     "id": "rd",
+     "label": "Research and development spending",
+     "src": "wdi",
+     "key": "rdSpendPctGdp",
+     "unit": "% of GDP",
+     "fmt": "dec2",
+     "rank": "high"
+    },
+    {
+     "id": "articles",
+     "label": "Scientific and technical articles",
+     "src": "wdi",
+     "key": "journalArticles",
+     "unit": "articles",
+     "fmt": "int",
+     "rank": "high"
+    },
+    {
+     "id": "patRes",
+     "label": "Patent applications by residents",
+     "src": "wdi",
+     "key": "patentsResident",
+     "unit": "applications",
+     "fmt": "int",
+     "rank": "high"
+    },
+    {
+     "id": "patNres",
+     "label": "Patent applications by non-residents",
+     "src": "wdi",
+     "key": "patentsNonresident",
+     "unit": "applications",
+     "fmt": "int",
+     "rank": "high"
+    },
+    {
+     "label": "Researchers per million people",
+     "planned": "D",
+     "source": "UNESCO UIS (not in the WDI files)"
     }
    ]
   },
@@ -642,19 +1073,86 @@
      "rank": "high"
     },
     {
-     "label": "Electricity access",
-     "planned": "A",
-     "source": "World Bank"
+     "id": "electricity",
+     "label": "Access to electricity",
+     "src": "wdi",
+     "key": "electricityAccessPct",
+     "unit": "% of population",
+     "fmt": "pct",
+     "rank": "high"
     },
     {
-     "label": "Bank / mobile-money accounts, digital payments",
-     "planned": "A",
-     "source": "World Bank Findex"
+     "id": "cleanCook",
+     "label": "Clean cooking fuels",
+     "src": "wdi",
+     "key": "cleanCookingPct",
+     "unit": "% of population",
+     "fmt": "pct",
+     "rank": "high"
     },
     {
-     "label": "Rail, ports, air passengers, logistics",
-     "planned": "A",
-     "source": "World Bank"
+     "id": "account",
+     "label": "Bank or mobile-money account",
+     "src": "wdi",
+     "key": "accountPct",
+     "unit": "% of people 15+",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "accountF",
+     "label": "Account ownership, women",
+     "src": "wdi",
+     "key": "accountFemalePct",
+     "unit": "% of women 15+",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "accountM",
+     "label": "Account ownership, men",
+     "src": "wdi",
+     "key": "accountMalePct",
+     "unit": "% of men 15+",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "air",
+     "label": "Air passengers carried",
+     "src": "wdi",
+     "key": "airPassengers",
+     "unit": "passengers",
+     "fmt": "int",
+     "rank": "high"
+    },
+    {
+     "id": "ports",
+     "label": "Container port traffic",
+     "src": "wdi",
+     "key": "containerTeu",
+     "unit": "TEU",
+     "fmt": "int",
+     "rank": "high"
+    },
+    {
+     "id": "lpi",
+     "label": "Logistics performance index",
+     "src": "wdi",
+     "key": "logisticsIndex",
+     "unit": "1–5",
+     "fmt": "dec2",
+     "rank": "high"
+    },
+    {
+     "label": "Digital payments",
+     "planned": "D",
+     "source": "World Bank Global Findex database"
+    },
+    {
+     "label": "Rail network length",
+     "planned": "D",
+     "source": "WDI has 85 countries since 2015 — UIC / national sources"
     },
     {
      "label": "Airports",
@@ -770,9 +1268,85 @@
      "rank": "high"
     },
     {
-     "label": "Air pollution, water, sanitation, protected areas",
-     "planned": "A",
-     "source": "World Bank"
+     "id": "pm25",
+     "label": "PM2.5 air pollution",
+     "src": "wdi",
+     "key": "pm25",
+     "unit": "µg/m³",
+     "fmt": "dec1",
+     "rank": "low"
+    },
+    {
+     "id": "waterBasic",
+     "label": "Basic drinking water",
+     "src": "wdi",
+     "key": "basicWaterPct",
+     "unit": "% of population",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "waterSafe",
+     "label": "Safely managed drinking water",
+     "src": "wdi",
+     "key": "safeWaterPct",
+     "unit": "% of population",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "sanBasic",
+     "label": "Basic sanitation",
+     "src": "wdi",
+     "key": "basicSanitationPct",
+     "unit": "% of population",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "sanSafe",
+     "label": "Safely managed sanitation",
+     "src": "wdi",
+     "key": "safeSanitationPct",
+     "unit": "% of population",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "protected",
+     "label": "Protected areas (land and sea)",
+     "src": "wdi",
+     "key": "protectedPct",
+     "unit": "% of territory",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "protLand",
+     "label": "Protected land",
+     "src": "wdi",
+     "key": "protectedLandPct",
+     "unit": "% of land area",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "protSea",
+     "label": "Protected sea",
+     "src": "wdi",
+     "key": "protectedMarinePct",
+     "unit": "% of territorial waters",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "water",
+     "label": "Freshwater withdrawals",
+     "src": "wdi",
+     "key": "freshwaterWithdrawPct",
+     "unit": "% of internal resources",
+     "fmt": "pct",
+     "rank": "low"
     },
     {
      "label": "All greenhouse gases",
@@ -796,9 +1370,49 @@
    "label": "Farming and food",
    "stats": [
     {
-     "label": "Agricultural and arable land, fertiliser",
-     "planned": "A",
-     "source": "World Bank"
+     "id": "agriLand",
+     "label": "Agricultural land",
+     "src": "wdi",
+     "key": "agriLandPct",
+     "unit": "% of land area",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "arable",
+     "label": "Arable land",
+     "src": "wdi",
+     "key": "arableLandPct",
+     "unit": "% of land area",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "id": "arablePc",
+     "label": "Arable land per person",
+     "src": "wdi",
+     "key": "arableHaPerPerson",
+     "unit": "hectares",
+     "fmt": "dec2",
+     "rank": "high"
+    },
+    {
+     "id": "fert",
+     "label": "Fertiliser use",
+     "src": "wdi",
+     "key": "fertiliserKgHa",
+     "unit": "kg per hectare",
+     "fmt": "int",
+     "rank": "high"
+    },
+    {
+     "id": "cereal",
+     "label": "Cereal yield",
+     "src": "wdi",
+     "key": "cerealYield",
+     "unit": "kg per hectare",
+     "fmt": "int",
+     "rank": "high"
     },
     {
      "label": "Rice, wheat, maize, potatoes, tea, coffee, sugar, cotton, jute",
@@ -822,9 +1436,36 @@
    "label": "Government and indices",
    "stats": [
     {
-     "label": "Governance indicators, homicide rate, military spending",
-     "planned": "A",
-     "source": "World Bank"
+     "id": "homicide",
+     "label": "Homicide rate",
+     "src": "wdi",
+     "key": "homicideRate",
+     "unit": "per 100,000 people",
+     "fmt": "dec1",
+     "rank": "low"
+    },
+    {
+     "id": "armed",
+     "label": "Armed forces personnel",
+     "src": "wdi",
+     "key": "armedForces",
+     "unit": "people",
+     "fmt": "int",
+     "rank": "high"
+    },
+    {
+     "id": "womenParl",
+     "label": "Women in parliament",
+     "src": "wdi",
+     "key": "womenParliamentPct",
+     "unit": "% of seats",
+     "fmt": "pct",
+     "rank": "high"
+    },
+    {
+     "label": "Governance indicators, military spending",
+     "planned": "E",
+     "source": "Worldwide Governance Indicators; SIPRI (WDI military spending is under SIPRI terms, not CC BY 4.0)"
     },
     {
      "label": "HDI, corruption, democracy, peace indices",

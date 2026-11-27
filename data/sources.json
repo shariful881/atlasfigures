@@ -12,7 +12,7 @@
       "frequency": "several times a year",
       "check": { "type": "wdi", "api": "https://api.worldbank.org/v2/sources/2?format=json" },
       "backups": [],
-      "feeds": "economy pages, World Bank rankings, literacy, migration, telecom, health"
+      "feeds": "economy pages, World Bank rankings, literacy, migration, telecom, health, country profiles (115 indicators since task 150)"
     },
     {
       "id": "ember",
