@@ -26,6 +26,7 @@ const pages: { path: string; lastmod: string }[] = [
   { path: '/time/london-to-new-delhi/', lastmod: '2026-11-26' },
   { path: '/time/los-angeles-to-new-york/', lastmod: '2026-11-26' },
   { path: '/population/', lastmod: '2026-11-25' },
+  { path: '/country/', lastmod: '2026-11-27' },
   { path: '/country/bangladesh/population/', lastmod: '2026-11-25' },
   { path: '/country/united-states/population/', lastmod: '2026-11-25' },
   { path: '/country/india/population/', lastmod: '2026-11-25' },

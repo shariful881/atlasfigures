@@ -21,7 +21,7 @@ for (const c of list) {
   for (const t of c.pages) ok(existsSync(`src/pages/country/${c.slug}/${t}.astro`), c.iso3, `list says a ${t} page exists at /country/${c.slug}/${t}/ but there is none`);
   for (const t of ['population', 'economy']) if (existsSync(`src/pages/country/${c.slug}/${t}.astro`)) ok(c.pages.includes(t), c.iso3, `${t} page exists but is not in the list`);
 }
-for (const d of existsSync('src/pages/country') ? readdirSync('src/pages/country') : []) ok(list.some((c) => c.slug === d), `src/pages/country/${d}`, 'folder has no country in country-list.json');
+for (const d of existsSync('src/pages/country') ? readdirSync('src/pages/country').filter((d) => d !== 'index.astro') : []) ok(list.some((c) => c.slug === d), `src/pages/country/${d}`, 'folder has no country in country-list.json');
 
 const liveInCatalog = catalog.flatMap((s) => s.stats).filter((s) => !s.planned).length;
 for (const c of list) {
