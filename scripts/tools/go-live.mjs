@@ -1,5 +1,7 @@
 // go-live (task 149): the owner's go-live steps in one command — ONLY after the owner has explicitly said to
 // make this piece of work live ("live koro"). One approval covers one piece of work (CLAUDE.md).
+// Exception (owner's rule, 27 Nov 2026): a weekly data update on a data-update-YYYYMMDD branch goes live with
+// --data-update after the checks and the re-verification; afterwards send the owner the changed live links.
 //
 //   node scripts/tools/go-live.mjs --task 149 --approved "১৪৯ live কর" --title "Tools: find-facts, …" \
 //        --body-file /tmp/pr.md [--verify scripts/verify/econ-batch20.py --verify …]
@@ -15,10 +17,11 @@ const args = process.argv.slice(2);
 const all = (k) => { const v = []; let i; while ((i = args.indexOf(k)) >= 0) v.push(args.splice(i, 2)[1]); return v; };
 const one = (k) => all(k)[0];
 const REPO = 'shariful881/atlasfigures';
-const task = one('--task'), approved = one('--approved'), title = one('--title'), bodyFile = one('--body-file'), verify = all('--verify');
+const dataUpdate = args.includes('--data-update'); if (dataUpdate) args.splice(args.indexOf('--data-update'), 1);
+const task = one('--task') ?? (dataUpdate ? 'data update' : null), approved = one('--approved') ?? (dataUpdate ? "owner's rule of 27 Nov 2026: data updates go live after the checks" : null), title = one('--title'), bodyFile = one('--body-file'), verify = all('--verify');
 const die = (m) => { console.error(`✗ ${m}`); process.exit(1); };
 if (!task || !approved || !title || !bodyFile) die('need --task, --approved "<owner\'s words>", --title and --body-file');
-if (!/live/i.test(approved)) die(`--approved must be the owner's go-live words (e.g. "${task} live কর"), got "${approved}"`);
+if (!dataUpdate && !/live/i.test(approved)) die(`--approved must be the owner's go-live words (e.g. "${task} live কর"), got "${approved}"`);
 
 const sh = (c, o = {}) => execSync(c, { stdio: ['ignore', 'pipe', 'inherit'], encoding: 'utf8', ...o }).trim();
 const run = (c) => { console.log(`$ ${c}`); const r = spawnSync(c, { shell: true, stdio: 'inherit' }); if (r.status !== 0) die(`failed: ${c}`); };
@@ -26,7 +29,8 @@ const api = (path, flags = '') => JSON.parse(sh(`gh api ${flags} repos/${REPO}/$
 const sleep = (s) => new Promise((r) => setTimeout(r, s * 1000));
 
 const branch = sh('git rev-parse --abbrev-ref HEAD');
-if (!['dev', 'dev-data', 'dev-site'].includes(branch)) die(`on "${branch}" — go live only from dev, dev-data or dev-site`);
+if (dataUpdate ? !/^data-update-\d{8}$/.test(branch) : !['dev', 'dev-data', 'dev-site'].includes(branch)) die(`on "${branch}" — go live only from dev, dev-data or dev-site (or a data-update-YYYYMMDD branch with --data-update)`);
+if (dataUpdate && !verify.length) die('a data update needs --verify scripts for the changed figures');
 if (sh('git status --porcelain')) die('working tree not clean — commit first');
 
 console.log(`\n== Task ${task}: going live from ${branch} (owner said: "${approved}")`);
@@ -64,7 +68,5 @@ for (let i = 0; ; i++) {
   if (i > 90) die('deploy did not finish in 15 minutes');
   await sleep(10);
 }
-run('git fetch origin');
-run('git merge --ff-only origin/main');
-run(`git push origin ${branch}`);
-console.log(`\n✓ Task ${task} is live (PR #${pr.number}). Mark it ✅ in the work list with today's date.`);
+if (!dataUpdate) { run('git fetch origin'); run('git merge --ff-only origin/main'); run(`git push origin ${branch}`); }
+console.log(dataUpdate ? `\n✓ Data update live (PR #${pr.number}). Now send the owner the list of changed live page links, and merge main into dev, dev-data and dev-site.` : `\n✓ Task ${task} is live (PR #${pr.number}). Mark it ✅ in the work list with today's date.`);

@@ -16,12 +16,13 @@ independent verify script, screenshots, and the owner's approval.
 
 ## Data updates (weekly)
 1. `watch-sources.yml` (Mondays) runs `check-sources.mjs`.
-2. New version of a source with `"autoFetch": true` → new branch `data-update-YYYYMMDD` from dev-data, the source's
-   fetch workflow runs there, starts the Check job, and opens a pull request into dev-data (or an issue if Actions
+2. New version of a source with `"autoFetch": true` → new branch `data-update-YYYYMMDD` from main, the source's
+   fetch workflow runs there, starts the Check job, and opens a pull request into main (or an issue if Actions
    may not open pull requests).
 3. Anything needing a hand step (e.g. a new Global Carbon Project record, a new UN revision) or an unreachable
    source → one issue, "Data sources need attention".
 4. Pages whose sentences no longer hold are fixed and re-verified; dates and changelog change only for real data
-   changes; going live needs the owner's approval as always.
+   changes. Then it goes live without waiting (owner's rule, 27 Nov 2026) and the owner gets the list of every
+   changed live link to check.
 5. A source that keeps failing keeps its current data. A backup address is added to `data/sources.json` only after
    a hand check that it serves the identical file; a different dataset is a new source and needs the owner's OK.

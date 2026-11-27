@@ -6,6 +6,15 @@
 - Merge `dev` → `main` (go live) ONLY after the owner explicitly says to make it live. One approval covers only that piece of work.
 - `main` is protected by a GitHub ruleset ("Protect main (live site)"): no direct pushes, no force push, no deletion;
   changes reach `main` only through a pull request from `dev`, and the `check` job must pass first.
+- **Data updates (owner's decision, 27 Nov 2026):** a new source version found by the weekly watch
+  (`watch-sources.yml` → branch `data-update-YYYYMMDD` → pull request into `main`) may go live WITHOUT waiting
+  for approval, but only after `npm run check` passes, the changed figures are re-verified against the original
+  files (verify scripts + reading the changed sentences), and Updated/dateModified/sitemap/changelog are set for
+  the real changes. Right after it is live, send the owner a list of every changed live page link; the owner
+  reports any change wanted later. Everything else (new pages, design, tools) still needs explicit approval.
+- **URLs before launch (owner, 27 Nov 2026):** the site is not in Google yet, so URLs may still change. Country
+  pages move to `/country/<slug>/` (hub) and `/country/<slug>/<topic>/` (task 148). From launch on, URLs never change.
+- **Launch pacing (owner, 27 Nov 2026):** the 3–5 countries a day rule starts at launch; until then, finish the project.
 
 ## Second work tab: economy and other data (owner's decision, 25 Nov 2026)
 - Population work continues on `dev` (work list `claude/atlasfigures-worklist.md`, tasks 1–30). Economy and other

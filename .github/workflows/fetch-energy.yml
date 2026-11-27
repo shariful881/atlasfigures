@@ -82,15 +82,15 @@ jobs:
           git commit -m 'Data: Ember and Global Carbon Project files (energy and CO2)'
           git pull --rebase origin ${{ github.ref_name }}   # another fetch may have pushed meanwhile (never a force push)
           git push origin HEAD:${{ github.ref_name }}
-      - name: Open a pull request into dev-data (data-update branches only)
+      - name: Open a pull request into main (data-update branches only)
         if: startsWith(github.ref, 'refs/heads/data-update-')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          git fetch origin dev-data
-          if git diff --quiet origin/dev-data HEAD; then echo 'No change against dev-data'; exit 0; fi
-          gh pr list --head "${{ github.ref_name }}" --base dev-data --json number --jq '.[0].number // empty' | grep -q . && exit 0
+          git fetch origin main
+          if git diff --quiet origin/main HEAD; then echo 'No change against main'; exit 0; fi
+          gh pr list --head "${{ github.ref_name }}" --base main --json number --jq '.[0].number // empty' | grep -q . && exit 0
           gh workflow run check.yml --ref "${{ github.ref_name }}"   # pushes made with the workflow token do not start Check by themselves
-          MSG="Fetched by ${{ github.workflow }} after the weekly source check (watch-sources.yml) into branch ${{ github.ref_name }}. The Check run on that branch shows which page sentences no longer hold. Fix the pages, re-run the verify scripts, then merge into dev-data; going live still needs the owner's approval."
-          gh pr create --base dev-data --head "${{ github.ref_name }}" --title "Data update: new source version (${{ github.ref_name }})" --body "$MSG" \
+          MSG="Fetched by ${{ github.workflow }} after the weekly source check (watch-sources.yml) into branch ${{ github.ref_name }}. The Check run on that branch shows which page sentences no longer hold. Fix the pages, re-verify the figures, set Updated/changelog for real changes, then merge into main (owner's rule of 27 Nov 2026: data updates go live after the checks, then the owner gets the list of changed links)."
+          gh pr create --base main --head "${{ github.ref_name }}" --title "Data update: new source version (${{ github.ref_name }})" --body "$MSG" \
             || gh issue create --title "Data update ready: ${{ github.ref_name }}" --body "$MSG (A pull request could not be opened automatically — allow GitHub Actions to create pull requests in the repository settings, or open it by hand.)"

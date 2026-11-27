@@ -6,7 +6,7 @@
 //
 // Statuses: same · new (a newer version exists) · unreachable (every address failed) · error.
 // It never changes data itself. The workflow decides: autoFetch sources are re-fetched into a new
-// `data-update-YYYYMMDD` branch and opened as a pull request into dev-data; everything else becomes a GitHub issue.
+// `data-update-YYYYMMDD` branch (from main) and opened as a pull request into main; everything else becomes a GitHub issue.
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
@@ -66,7 +66,7 @@ const report = [
   `# Data sources check — ${new Date().toISOString().slice(0, 10)}`, '',
   '| Source | Status | Held | Found | Note |', '|---|---|---|---|---|',
   ...results.map((r) => `| ${r.name} | ${r.status === 'same' ? '✅ same' : r.status === 'new' ? '🆕 new version' : '⚠️ ' + r.status} | ${r.held || '–'} | ${r.found || '–'} | ${r.note.replace(/\|/g, '/')} |`), '',
-  dispatch.length ? `Re-fetching automatically into a new \`data-update-YYYYMMDD\` branch: ${dispatch.join(', ')}. A pull request into dev-data follows, with the check results. Nothing goes live without a hand check and the owner's approval.` : '',
+  dispatch.length ? `Re-fetching automatically into a new \`data-update-YYYYMMDD\` branch: ${dispatch.join(', ')}. A pull request into main follows, with the check results. It goes live after the checks and a re-verification of the changed figures; the owner then gets the list of changed links.` : '',
   attention.some((r) => r.status === 'new' && !r.autoFetch) ? 'Sources marked new without automatic fetching need a hand update (see notes).' : '',
   attention.some((r) => ['unreachable', 'error'].includes(r.status)) ? 'Unreachable sources keep their current data. If an address keeps failing, find the same file elsewhere, check it by hand, and add it under "backups" in data/sources.json.' : '',
   '', `Planned sources (not yet fetched): ${planned.map((p) => `${p.name} (task ${p.task})`).join('; ')}.`,

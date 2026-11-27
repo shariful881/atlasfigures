@@ -1,8 +1,8 @@
 # Weekly data-source watch (task 149). Runs scripts/tools/check-sources.mjs against data/sources.json.
-#  - A new version of an autoFetch source → a new branch `data-update-YYYYMMDD` is made from dev-data and that
-#    source's fetch workflow runs on it; the fetch opens a pull request data-update-… → dev-data, and the Check job shows which
-#    page sentences (assertClaim) no longer hold. Pages are then fixed and hand-verified; nothing goes live
-#    without the owner's approval (PR dev-data → main, as always).
+#  - A new version of an autoFetch source → a new branch `data-update-YYYYMMDD` is made from main and that
+#    source's fetch workflow runs on it; the fetch opens a pull request data-update-… → main, and the Check job shows
+#    which page sentences (assertClaim) no longer hold. Pages are fixed and the figures re-verified; then it goes live
+#    and the owner gets the list of changed links (owner's rule, CLAUDE.md, 27 Nov 2026).
 #  - Anything else (new version needing a hand update, unreachable source, error) → one GitHub issue, updated
 #    each week while it lasts.
 name: Watch data sources (weekly)
@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: dev-data
+          ref: main          # update branches start from the live site, so the PR holds only the new data
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
