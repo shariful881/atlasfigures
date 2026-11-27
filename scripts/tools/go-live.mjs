@@ -63,7 +63,7 @@ if (!m.merged) die(`merge refused: ${m.message}`);
 console.log(`merged PR #${pr.number} → ${m.sha}`);
 
 for (let i = 0; ; i++) {
-  const r = api(`actions/runs?branch=main&head_sha=${m.sha}`).workflow_runs.find((w) => /deploy/i.test(w.name));
+  const r = api(`actions/runs?branch=main&per_page=20`).workflow_runs.find((w) => /deploy/i.test(w.name) && w.head_sha === m.sha); // the API ignores head_sha with branch, so match it here
   if (r?.status === 'completed') { if (r.conclusion !== 'success') die(`deploy ${r.conclusion}: ${r.html_url}`); console.log(`deployed: ${r.html_url}`); break; }
   if (i > 90) die('deploy did not finish in 15 minutes');
   await sleep(10);
