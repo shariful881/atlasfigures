@@ -1,0 +1,61 @@
+{
+  "_about": "Editorial data for the Egypt country hub (/country/egypt/) and its health page, written in task 171. Figures are never stored here: pages take them from src/data/profiles/EGY.json and the generated series.",
+  "slug": "egypt",
+  "name": "Egypt",
+  "demonym": "Egyptian",
+  "capital": "Cairo",
+  "iso3": "EGY",
+  "wikipedia": "https://en.wikipedia.org/wiki/Egypt",
+  "checkedFacts": [],
+  "factChecks": [],
+  "pages": {
+    "hub": {
+      "published": "2026-11-27",
+      "updated": "2026-11-27",
+      "changelog": [
+        {
+          "date": "2026-11-27",
+          "type": "new",
+          "note": "Page published (task 171)."
+        }
+      ],
+      "verification": {
+        "checkedOn": "2026-11-27",
+        "checkedBy": "Claude (task 171)",
+        "what": "Every statistic row (value, year, world rank) on the page, every number in the text, title, description and JSON-LD, and every claim in the story and FAQ (ranks, comparisons, trends, our counts); the build also asserts each claim (assertClaim)",
+        "against": "Original UN WPP 2024, UN WUP 2025 and World Bank WDI files read by scripts/verify/batch-171.py (independent of the site code); energy rows by check-energy and country facts by check-facts against their original files"
+      }
+    },
+    "health": {
+      "published": "2026-11-27",
+      "updated": "2026-11-27",
+      "tableYears": [
+        1990,
+        1995,
+        2000,
+        2005,
+        2010,
+        2015,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024
+      ],
+      "changelog": [
+        {
+          "date": "2026-11-27",
+          "type": "new",
+          "note": "Page published (task 171)."
+        }
+      ],
+      "verification": {
+        "checkedOn": "2026-11-27",
+        "checkedBy": "Claude (task 171)",
+        "what": "Every figure in the text, cards, Key facts, title, description, JSON-LD, statistic rows and every cell of the yearly table; every claim in the story, chart captions and FAQ (ranks, comparisons, trends, our counts)",
+        "against": "Original World Bank WDI files read by scripts/verify/batch-171.py; check-country-pages compares the table and CSV with the World Bank values"
+      }
+    }
+  }
+}

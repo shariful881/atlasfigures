@@ -1,0 +1,96 @@
+---
+// Philippines health (task 171). Figures from the World Bank WDI files (src/data/wdi/, checked against the original
+// zips by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/philippines.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), mat = st('maternal'), doc = st('doctors'), nurse = st('nurses'), hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop');
+const measles = st('measles'), dpt = st('dpt'), stunt = st('stunting'), tb = st('tb'), tob = st('tobacco'), diab = st('diabetes');
+const U = u5.year!;
+
+const [tbMinY, tbMin] = s.tbIncidence.reduce((a, b) => (b[1] < a[1] ? b : a));
+assertClaim(fromTop(tb) === 3 && Number(tb.value) > v('tbIncidence', 2000) && tb.year === 2024, 'third-highest TB incidence, above the 2000 level');
+const m20 = v('maternalMortality', 2020), m21 = v('maternalMortality', 2021);
+assertClaim(mat.year === 2023 && m21 > 1.7 * m20 && Number(mat.value) < m20, 'maternal ratio up over 70% in 2021, now below 2020');
+const mLow = v('measlesVaccPct', 2021);
+assertClaim(mLow === Math.min(...s.measlesVaccPct.filter(([y]) => y >= 1990).map(([, x]) => x)) && Number(measles.value) === 80 && fromBottom(dpt) === 27, 'measles 64% in 2021, lowest since 1990; 80% now; 27th-lowest DPT');
+const ratio = Number(nurse.value) / Number(doc.value);
+assertClaim(nurse.year === doc.year && ratio > 6 && ratio < 6.1, 'about six nurses per doctor');
+const st90 = v('stuntingPct', 1990);
+assertClaim(Number(stunt.value) > 25, 'more than a quarter stunted');
+assertClaim(stunt.year === 2021 && st90 - Number(stunt.value) > 16 && fromTop(stunt) === 27, 'stunting down more than 16 points since 1990; 27th');
+const u10 = v('under5Mortality', 2010);
+assertClaim(U === 2024 && u10 - Number(u5.value) < 3.5, 'under-five rate down less than 3.5 points since 2010');
+
+const title = `Philippines Health ${U}: Tuberculosis, Vaccination, Mothers | AtlasFigures`;
+const description = `Tuberculosis hits the Philippines harder than all but two countries (${tb.text} new cases per 100,000 in ${tb.year}). Measles cover fell to ${pct(mLow)} in 2021, and maternal deaths spiked the same year.`;
+
+const faq = [
+  { q: 'Is child mortality falling in the Philippines?', a: `Slowly: ${u5.text} deaths under five for each thousand Filipino births (${U}, UN IGME), compared with ${v('under5Mortality', 1990)} in 1990 but only a little below the ${u10} of 2010.` },
+  { q: 'Do Filipinos pay for health care themselves?', a: `For a large part of it: ${oop.text} of Philippine health spending came directly from households in ${oop.year}. Spending reached ${hPc.text} per person, ${hGdp.text} of GDP.` },
+  { q: 'Are there more nurses than doctors in the Philippines?', a: `About six times as many: ${nurse.text} nursing and midwifery staff against ${doc.text} physicians per thousand Filipinos (${doc.year}).` },
+  { q: 'How common are smoking and diabetes in the Philippines?', a: `${tob.text} of adults used tobacco in ${tob.year}; diabetes affected ${diab.text} of adults, on IDF estimates.` },
+];
+const headline = `Philippines health ${U}: tuberculosis, measles vaccination, maternal deaths and nurses`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Health in the Philippines: TB, vaccines and mothers"
+  headline={headline}
+  tableTitle={`Philippine health indicators, 1990–${U}`}
+  tableSubtitle="Twelve years for quick reading; the CSV gives the Philippines' full yearly record."
+  faq={faq}
+  faqTitle="Filipino health: common questions"
+  related={[
+    { href: '/country/philippines/', label: 'The Philippines in data' },
+    { href: '/country/philippines/population/', label: 'Philippines population' },
+    { href: '/country/indonesia/health/', label: 'Indonesia health' },
+    { href: '/country/vietnam/health/', label: 'Vietnam health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal mortality by country' },
+  ]}
+>
+  <Fragment slot="answer">Tuberculosis is rife in the Philippines: <strong>{tb.text} new infections per 100,000</strong> in {tb.year}, a rate only two countries exceed. Measles vaccination dropped to <strong>{pct(mLow)}</strong> of toddlers in 2021 and was back to {measles.text} in {measles.year}.</Fragment>
+  <div class="story-block prose">
+    <h2>Is tuberculosis getting worse in the Philippines?</h2>
+    <p>Since {tbMinY}, yes. On WHO estimates Philippine TB incidence was {v('tbIncidence', 2000)} per 100,000 in 2000, fell to {tbMin} in {tbMinY}, and has since climbed to {tb.text} ({tb.year}), {ordinal(fromTop(tb))} highest of {tb.of}.</p>
+  </div>
+  <LineChart
+    title={`Tuberculosis in the Philippines, 2000–${tb.year}`}
+    subtitle="WHO estimate of new TB cases each year per hundred thousand people in the Philippines."
+    points={s.tbIncidence.map(([x, y]) => ({ x, y }))}
+    format="plain"
+    unit="per 100,000 people"
+    highlight={tb.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>What happened to Philippine vaccination after 2020?</h2>
+    <p>It slumped and partly recovered. Measles cover among one-year-olds fell from {pct(v('measlesVaccPct', 2020))} in 2020 to {pct(mLow)} in 2021, a record low for any year from 1990 on, then rose to {measles.text} by {measles.year}. DPT3 coverage of {dpt.text} is {ordinal(fromBottom(dpt))} lowest of {dpt.of}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Did maternal deaths jump in the Philippines in 2021?</h2>
+    <p>Yes. Philippine maternal mortality went up from {m20} in 2020 to {m21} in 2021 (per 100,000 births, UN model) and was {mat.text} in {mat.year}, slightly below its pre-2021 level. Child deaths have improved more slowly: the under-five rate of {u5.text} ({U}) is little changed since 2010.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many young Filipino children are stunted?</h2>
+    <p>More than a quarter: {stunt.text} at the {stunt.year} survey, {ordinal(fromTop(stunt))} of {stunt.of}, down from {pct(st90)} in 1990. For how long Filipinos live, open the <a href={path('/country/philippines/population/')}>population numbers</a>.</p>
+  </div>
+</HealthTopic>

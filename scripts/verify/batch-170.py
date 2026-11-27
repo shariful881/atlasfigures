@@ -35,7 +35,7 @@ def S(key, iso): return W(key)[iso]
 
 from decimal import Decimal, ROUND_HALF_UP
 def hu(v, d):  # round half up, like JavaScript's toFixed / Math.round on these values
-    return Decimal(repr(v)).quantize(Decimal(1).scaleb(-d), rounding=ROUND_HALF_UP)
+    return Decimal(v).quantize(Decimal(1).scaleb(-d), rounding=ROUND_HALF_UP)  # exact binary value, ties up (JS toFixed)
 fmt = {
     'int': lambda v: f"{hu(v, 0):,}", 'pct': lambda v: f"{hu(v, 1)}%".replace('-0.0%', '0.0%'), 'dec1': lambda v: f"{hu(v, 1)}", 'dec2': lambda v: f"{hu(v, 2)}",
     'usd': _wdi.usd, 'usdWhole': lambda v: f"${round(v):,}", 'intd': lambda v: f"Int${round(v):,}",
@@ -44,6 +44,7 @@ def rank_wdi(key, iso, year, low, since=None):
     src = W(key); s0 = since or year - 5
     vals = {k: v[max(y for y in v if y >= s0)] for k, v in src.items() if k in ECON and any(y >= s0 for y in v)}
     order = sorted(vals.items(), key=lambda kv: ((kv[1] if low else -kv[1]), kv[0]))
+    if iso not in vals: return None, len(order)   # latest value older than the ranking window: no rank shown
     return [k for k, _ in order].index(iso) + 1, len(order)
 
 UNCOL = {'growthRatePct': ('PopGrowthRate', 1), 'densityPerKm2': ('PopDensity', 1), 'medianAge': ('MedianAgePop', 1),
@@ -80,7 +81,7 @@ def rows_check(slug, iso, p):
             claim(slug, f'{sid} value {val} = {fmt[st["fmt"]](s[y])}', val == fmt[st['fmt']](s[y]))
             if st.get('rank'):
                 r, n = rank_wdi(st['key'], iso, y, st['rank'] == 'low', st.get('since'))
-                want = f"{ordn(r)} {'lowest' if st['rank'] == 'low' else 'highest'} of {n}"
+                want = f"{ordn(r)} {'lowest' if st['rank'] == 'low' else 'highest'} of {n}" if r else ''
                 claim(slug, f'{sid} rank {rk!r} = {want!r}', rk == want)
             counts['wdi rows'] += 1
         elif st and st['src'] == 'wpp':

@@ -1,0 +1,108 @@
+---
+// United Kingdom health (task 171). Figures from the World Bank WDI files (src/data/wdi/, checked against the
+// original zips by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/united-kingdom.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), neo = st('neonatal'), mat = st('maternal'), doc = st('doctors'), nurse = st('nurses');
+const hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop'), measles = st('measles'), tob = st('tobacco'), diab = st('diabetes');
+const U = u5.year!;
+
+const u21 = v('under5Mortality', 2021), n15 = v('neonatalMortality', 2015);
+const rise = s.under5Mortality.filter(([y]) => y >= 2021);
+assertClaim(U === 2024 && rise.every(([, x], i) => i === 0 || x > rise[i - 1][1]) && Number(neo.value) > n15, 'under-five rate up every year since 2021; newborn rate above 2015');
+const mPeak = v('measlesVaccPct', 2015);
+const peakYs = s.measlesVaccPct.filter(([, x]) => x === mPeak).map(([y]) => y);
+assertClaim(peakYs.join() === '2013,2014,2015', 'measles peak years 2013–2015');
+assertClaim(mPeak === Math.max(...s.measlesVaccPct.filter(([y]) => y >= 1990).map(([, x]) => x)) && Number(measles.value) < mPeak - 3, 'measles cover peaked around 2015, now over 3 points lower');
+const tob00 = v('tobaccoPct', 2000);
+const third = Number(tob.value) / tob00;
+assertClaim(third > 0.32 && third < 0.35, 'tobacco about a third of its 2000 level');
+const doc90 = v('doctorsPer1000', 1990);
+assertClaim(doc.year === 2023 && Number(doc.value) > 2 * doc90 && fromTop(nurse) === 23, 'doctors more than doubled since 1990; nurses 23rd');
+const hg20 = v('healthSpendPctGdp', 2020);
+assertClaim(hGdp.year === 2024 && hg20 === Math.max(...s.healthSpendPctGdp.map(([, x]) => x)) && fromTop(hGdp) === 16, 'health share peaked in 2020; 16th');
+
+const title = `UK Health Statistics ${U}: Child Deaths Rising, Vaccines, Spending | AtlasFigures`;
+const description = `Deaths of young British children have edged up every year since 2021 (${u5.text} per 1,000 in ${U}) and measles cover has slipped to ${measles.text}, while smoking has fallen by two thirds since 2000.`;
+
+const faq = [
+  { q: 'How much does the UK spend on health care?', a: `${hGdp.text} of GDP in ${hGdp.year}, ${ordinal(fromTop(hGdp))} of ${hGdp.of}, or ${hPc.text} per person; British households covered ${oop.text} themselves.` },
+  { q: 'Does the UK have enough doctors and nurses?', a: `The data show levels, not shortages: the WHO counts ${doc.text} UK doctors per 1,000 residents for ${doc.year}, and a nursing and midwifery workforce of ${nurse.text} per thousand.` },
+  { q: 'How safe is childbirth in the UK?', a: `Very safe by world standards: the UN inter-agency model gives the UK a maternal ratio of ${mat.text} for ${mat.year}.` },
+  { q: 'How many Britons have diabetes?', a: `${diab.text} of adults in ${diab.year}, by the International Diabetes Federation's estimate.` },
+];
+const headline = `UK health ${U}: rising child mortality, measles vaccination, smoking and health spending`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="UK health: child deaths creeping up, smoking way down"
+  headline={headline}
+  tableTitle={`UK health figures across the decades, 1990–${U}`}
+  tableSubtitle="Selected years in the grid; the full British series is downloadable as CSV."
+  faq={faq}
+  faqTitle="UK health: the basics"
+  related={[
+    { href: '/country/united-kingdom/', label: 'The United Kingdom in figures' },
+    { href: '/country/united-kingdom/population/', label: 'UK population and life expectancy' },
+    { href: '/country/germany/health/', label: 'Germany health' },
+    { href: '/country/united-states/health/', label: 'US health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality, every country ranked' },
+  ]}
+>
+  <Fragment slot="answer">Child mortality in the UK is edging up: the under-five rate reached <strong>{u5.text}</strong> per 1,000 in {U}, up from {u21} in 2021. Coverage of the measles jab has slipped to {measles.text}, while tobacco use is down to <strong>{tob.text}</strong> of adults, two thirds lower than in 2000.</Fragment>
+  <div class="story-block prose">
+    <h2>Is child mortality rising in the UK?</h2>
+    <p>Slightly, on UN estimates: having stood at {u21} in 2021, the British under-five rate has risen in each later year and was {u5.text} in {U}. Neonatal deaths rose from {n15} in 2015 to {neo.text}. The estimates do not give the reasons.</p>
+  </div>
+  <LineChart
+    title={`UK under-five mortality, 1990–${U}`}
+    subtitle="British children dying before age five, per thousand live births; UN IGME estimates."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 live births"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Has UK measles coverage slipped?</h2>
+    <p>Gradually. WHO/UNICEF estimates for British one-year-olds peaked at {pct(mPeak)} in {peakYs[0]}–{peakYs.at(-1)} and stood at {measles.text} in {measles.year}, {ordinal(fromTop(measles))} of {measles.of} countries.</p>
+  </div>
+  <LineChart
+    title={`Measles vaccination in the United Kingdom, 1990–${measles.year}`}
+    subtitle="UK measles immunisation, % of children aged one (WHO and UNICEF)."
+    points={s.measlesVaccPct.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={measles.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How much has British tobacco use dropped?</h2>
+    <p>By roughly two thirds: {pct(tob00)} of British adults used tobacco in 2000, {tob.text} in {tob.year} (WHO, all forms).</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Has the UK added doctors?</h2>
+    <p>Yes, more than doubling them per person since 1990, when there were {doc90} per thousand; by {doc.year} the figure was {doc.text}; nurses and midwives number {nurse.text}, {ordinal(fromTop(nurse))} highest. Health spending hit its high of {pct(hg20)} of GDP in 2020 and was {hGdp.text} in {hGdp.year}. British life expectancy is covered with <a href={path('/country/united-kingdom/population/')}>the UK's population data</a>.</p>
+  </div>
+</HealthTopic>

@@ -1,0 +1,104 @@
+---
+// Thailand health (task 171). Figures from the World Bank WDI files (src/data/wdi/, checked against the original
+// zips by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/thailand.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), mat = st('maternal'), doc = st('doctors'), nurse = st('nurses'), hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop');
+const road = st('road'), tb = st('tb'), diab = st('diabetes'), tob = st('tobacco'), measles = st('measles'), stunt = st('stunting');
+const U = u5.year!;
+
+assertClaim(fromTop(road) === 17 && Number(road.value) > 32, 'road deaths above 32 per 100,000, 17th');
+const oop00 = v('outOfPocketPct', 2000);
+assertClaim(oop00 > 34 && Number(oop.value) < 10 && fromBottom(oop) === 24, 'out-of-pocket from over a third to under a tenth; 24th lowest');
+const m21 = v('maternalMortality', 2021), m22 = v('maternalMortality', 2022);
+assertClaim(mat.year === 2023 && m22 < 3 * m21 && m22 > 2.9 * m21 && Number(mat.value) < m21, 'maternal ratio nearly tripled in 2022, back below 2021 in 2023');
+const ratio = Number(nurse.value) / Number(v('doctorsPer1000', 2021));
+assertClaim(doc.year === 2021 && nurse.year === 2023 && ratio > 6.5, 'over six nurses per doctor (2023 nurses vs 2021 doctors)');
+const u5_90 = v('under5Mortality', 1990);
+assertClaim(U === 2024 && u5_90 / Number(u5.value) > 4, 'under-five rate below a quarter of 1990');
+
+const title = `Thailand Health ${U}: Road Deaths, Low Patient Costs, Mothers | AtlasFigures`;
+const description = `Thai roads kill ${road.text} people per 100,000 each year, 17th worst. Patients now pay only ${oop.text} of health costs directly, down from ${pct(oop00)} in 2000; mothers' deaths surged briefly in 2022.`;
+
+const faq = [
+  { q: 'Has Thailand cut child deaths?', a: `By three quarters or more: Thai under-five mortality is ${u5.text} per thousand (${U}), against ${u5_90} in 1990 (UN IGME).` },
+  { q: 'Are doctors scarce in Thailand?', a: `${doc.text} per 1,000 people in ${doc.year}, while nursing and midwifery staff numbered ${nurse.text} per 1,000 in ${nurse.year}.` },
+  { q: 'Is tuberculosis a problem in Thailand?', a: `Incidence was ${tb.text} per 100,000 in ${tb.year}, by the WHO estimate, ${ordinal(fromTop(tb))} of ${tb.of}.` },
+  { q: 'Is diabetes common among Thais?', a: `About one adult in ten: ${diab.text} in ${diab.year} (IDF).` },
+];
+assertClaim(Number(diab.value) > 9.5 && Number(diab.value) < 10.8, 'about one in ten with diabetes');
+const headline = `Thailand health ${U}: road deaths, out-of-pocket costs, maternal deaths and nurses`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Thailand's health: risky roads, cheap care for patients"
+  headline={headline}
+  tableTitle={`Thai health statistics, 1990–${U}`}
+  tableSubtitle="Twelve years in the table; all of Thailand's yearly values are in the CSV."
+  faq={faq}
+  faqTitle="Thai health: quick facts"
+  related={[
+    { href: '/country/thailand/', label: 'Thailand in data' },
+    { href: '/country/thailand/population/', label: 'Thailand population and ageing' },
+    { href: '/country/vietnam/health/', label: 'Vietnam health' },
+    { href: '/country/philippines/health/', label: 'Philippines health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal mortality by country' },
+  ]}
+>
+  <Fragment slot="answer">Traffic accidents kill <strong>{road.text} Thais per 100,000</strong> each year (WHO, {road.year}), one of the highest rates measured. Yet care has become cheap at the point of use: patients paid just <strong>{oop.text}</strong> of health spending directly in {oop.year}.</Fragment>
+  <div class="story-block prose">
+    <h2>How dangerous are Thai roads?</h2>
+    <p>Very: the WHO estimate of {road.text} deaths per 100,000 people in {road.year} ranks Thailand {ordinal(fromTop(road))} of {road.of}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much do Thai patients pay for care?</h2>
+    <p>Little, by international standards. Thai patients' direct share shrank from {pct(oop00)} in 2000 to {oop.text} in {oop.year}; only {fromBottom(oop) - 1} countries have a smaller one. Thailand's total health spending equalled {hGdp.text} of GDP, about {hPc.text} for each person.</p>
+  </div>
+  <LineChart
+    title={`What Thai patients pay directly, 2000–${oop.year}`}
+    subtitle="Household payments at the point of care, in percent of all Thai health spending (WHO)."
+    points={s.outOfPocketPct.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="percent"
+    highlight={oop.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Did maternal mortality surge in Thailand in 2022?</h2>
+    <p>For a single year. Thailand's ratio nearly tripled in the UN model, {m21} (2021) to {m22} (2022) per 100,000 births, and returned to {mat.text} in {mat.year}.</p>
+  </div>
+  <LineChart
+    title={`Maternal mortality in Thailand, 1990–${mat.year}`}
+    subtitle="Thai women dying of maternal causes, per 100,000 births, according to the UN inter-agency model."
+    points={s.maternalMortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    unit="per 100,000 live births"
+    highlight={mat.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Does Thailand rely on nurses more than doctors?</h2>
+    <p>Heavily: {nurse.text} nurses and midwives per thousand people ({nurse.year}) against {doc.text} doctors ({doc.year}). At the {stunt.year} survey {stunt.text} of Thai under-fives were stunted; tobacco use stood at {tob.text} and measles cover at {measles.text}. Thai lifespans appear on the <a href={path('/country/thailand/population/')}>population page for Thailand</a>.</p>
+  </div>
+</HealthTopic>

@@ -1,0 +1,75 @@
+---
+// Egypt country hub (task 171). Every figure comes from the country profile (src/data/profiles/EGY.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/egypt.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), tfr = st('population', 'fertility'), grow = st('population', 'growth'), urban = st('population', 'urban');
+const water = st('environment', 'water'), forest = st('environment', 'forestPct'), agri = st('farming', 'agriLand'), arable = st('farming', 'arable');
+const fert = st('farming', 'fert'), cereal = st('farming', 'cereal'), remit = st('trade', 'remit'), remitPct = st('trade', 'remitPct');
+const lfpF = st('jobs', 'lfpF'), lfpM = st('jobs', 'lfpM'), infl = st('economy', 'inflation'), fx = st('economy', 'fx'), gdp = st('economy', 'gdp');
+const tour = st('trade', 'tourists');
+
+assertClaim(fromTop(pop) === 13 && Number(tfr.value) > 2.5, '13th by population, fertility above 2.5');
+assertClaim(fromTop(water) === 1 && Number(water.value) > 7000, 'highest freshwater withdrawals relative to internal resources, over 70 times');
+assertClaim(Number(agri.value) < 5 && fromBottom(forest) === 5 && fromTop(fert) === 8 && fromTop(cereal) === 11, 'under 5% farmland, fifth-lowest forest share, eighth fertiliser use, 11th cereal yield');
+assertClaim(fromTop(remit) === 5 && Number(remitPct.value) > 11, 'fifth-largest remittances, over 11% of GDP');
+assertClaim(fromBottom(lfpF) === 9 && Number(lfpF.value) < 20, "ninth-lowest women's participation, under a fifth");
+assertClaim(fromTop(infl) === 15, '15th-highest inflation');
+const times = Math.floor(Number(water.value) / 100);
+
+const title = `Egypt by the Numbers ${Y}: Nile Water, Farmland, Remittances | AtlasFigures`;
+const description = `Egypt withdraws about ${times} times the freshwater that falls and forms within its own borders, farms under ${agri.text} of its land, and draws ${remit.text} from emigrants. Population ${people(Number(pop.value))} (UN, ${Y}).`;
+
+const faq = [
+  { q: 'How many Egyptian pounds equal one dollar?', a: `${fx.text} pounds, the official ${fx.year} average shown in World Bank figures.` },
+  { q: 'Are prices rising quickly in Egypt?', a: `Yes: inflation in Egypt averaged ${infl.text} across ${infl.year}, ${ordinal(fromTop(infl))} fastest of ${infl.of}.` },
+  { q: 'Is tourism big in Egypt?', a: `${people(Number(tour.value))} foreign visitors arrived in ${tour.year}, ${ordinal(fromTop(tour))} of ${tour.of} (UN Tourism).` },
+  { q: 'How does Egypt\'s economy compare in size?', a: `${ordinal(fromTop(gdp))} of ${gdp.of}, with a ${gdp.year} GDP of ${gdp.text}.` },
+];
+const headline = `Egypt by the numbers ${Y}: water, farmland, remittances, work and prices`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Egypt in numbers: a desert nation living off the Nile"
+  headline={headline}
+  faq={faq}
+  faqTitle="Egypt, briefly answered"
+  related={[
+    { href: '/country/egypt/population/', label: 'Egypt population: live count and growth' },
+    { href: '/country/egypt/economy/', label: 'Egypt economy: GDP, inflation and the pound' },
+    { href: '/country/egypt/health/', label: 'Egypt health: diabetes and costs' },
+    { href: '/country/sudan/population/', label: "Sudan's population" },
+    { href: '/country/ethiopia/', label: 'Ethiopia by the numbers' },
+    { href: '/country/iran/', label: 'Iran in figures' },
+    { href: '/rankings/remittances-by-country/', label: 'Remittances received, country by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Egypt's population is growing {grow.text} a year and stands at <strong>{people(Number(pop.value))}</strong> on UN projections for {Y}. Almost no land is farmed or forested, yet the country withdraws <strong>{water.text}</strong> of its internal renewable freshwater, the highest ratio in the world, while Egyptians living abroad sent back {remit.text} during {remit.year}.</Fragment>
+  <div class="story-block prose">
+    <h2>How does Egypt use more water than it has?</h2>
+    <p>By drawing on water that originates outside the country. FAO's AQUASTAT puts Egyptian freshwater withdrawals at {water.text} of internal renewable resources ({water.year}), about {times} times what rain and rivers rising inside Egypt supply, the top ratio of {water.of} countries. The Nile, which enters from Sudan, is not counted as internal.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much of Egypt can be farmed?</h2>
+    <p>Very little. Agricultural land covered {agri.text} of Egypt in {agri.year} and arable land {arable.text}; forest rounds to {forest.text}. What is farmed is farmed hard: fertiliser goes on at {fert.text} kg a hectare ({ordinal(fromTop(fert))} highest), and each hectare of grain yields {cereal.text} kg ({ordinal(fromTop(cereal))}).</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Do Egyptians abroad send home a lot of money?</h2>
+    <p>Yes: {remit.text} in {remit.year}; only {fromTop(remit) - 1} of {remit.of} recipient countries took in more, worth {remitPct.text} of Egyptian GDP. The <a href={path('/country/egypt/economy/')}>economy of Egypt</a> page follows it over time.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Do many Egyptian women have paid jobs?</h2>
+    <p>Fewer than one in five: {lfpF.text} in {lfpF.year} on ILO modelling, beside {lfpM.text} among Egyptian men, which leaves only {fromBottom(lfpF) - 1} countries below Egypt. Egypt remains majority rural, with {urban.text} counted as urban nationally.</p>
+  </div>
+</CountryHub>

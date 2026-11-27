@@ -1,0 +1,107 @@
+---
+// Turkey health (task 171). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/turkey.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), neo = st('neonatal'), mat = st('maternal'), doc = st('doctors'), nurse = st('nurses'), beds = st('beds');
+const hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop'), dpt = st('dpt'), tob = st('tobacco'), diab = st('diabetes');
+const U = u5.year!;
+
+const y22 = v('under5Mortality', 2022), y23 = v('under5Mortality', 2023), u5_90 = v('under5Mortality', 1990);
+const fell = s.under5Mortality.filter(([y]) => y >= 1990 && y <= 2022);
+assertClaim(fell.every(([, x], i) => i === 0 || x < fell[i - 1][1]), 'under-five rate fell every year 1990–2022');
+assertClaim(Number(doc.value) / v('doctorsPer1000', 1990) < 2.6, 'doctors about two and a half times 1990');
+assertClaim(U === 2024 && y23 > y22 * 1.3 && Number(u5.value) < y22, 'under-five rate up over 30% in 2023, below the 2022 level in 2024');
+assertClaim(v('neonatalMortality', 2023) < v('neonatalMortality', 2022) && Number(neo.value) < v('neonatalMortality', 2023), 'newborn rate kept falling through 2023 and 2024');
+const tob00 = v('tobaccoPct', 2000);
+assertClaim(fromTop(tob) === 25 && tob00 - Number(tob.value) < 2 && Number(tob.value) > 30, 'tobacco above 30%, down under 2 points since 2000, 25th');
+assertClaim(fromTop(diab) === 29 && Number(diab.value) > 16, 'diabetes above 16%, 29th');
+const doc90 = v('doctorsPer1000', 1990), oop00 = v('outOfPocketPct', 2000);
+assertClaim(doc.year === 2022 && Number(doc.value) / doc90 > 2.4 && Number(oop.value) < oop00 - 9, 'doctors 2.4+ times 1990; out-of-pocket over 9 points below 2000');
+assertClaim(fromTop(dpt) === 18 && fromTop(hGdp) > 140, '18th DPT coverage; health share outside the top 140');
+
+const title = `Turkey Health ${U}: Child Mortality, Smoking, Diabetes, Doctors | AtlasFigures`;
+const description = `A one-year jump in Turkish child deaths, ${y22} to ${y23} per 1,000 in 2023, has reversed (${u5.text} now). Almost a third of adults use tobacco, as in 2000; ${diab.text} have diabetes.`;
+
+const faq = [
+  { q: 'What happened to child deaths in Turkey in 2023?', a: `UN IGME's under-five figure for Turkey jumped from ${y22} (2022) to ${y23} (2023), then dropped to ${u5.text} in ${U}; no cause is stated in the estimates.` },
+  { q: 'Does Turkey have a high diabetes rate?', a: `Fairly high: ${diab.text} of adults in ${diab.year}, about one in six, which ranks Turkey ${ordinal(fromTop(diab))} of ${diab.of} in IDF data.` },
+  { q: 'What does Turkey spend on health per person?', a: `${hGdp.text} of GDP in ${hGdp.year}, ${ordinal(fromTop(hGdp))} of ${hGdp.of}, or ${hPc.text} per person; ${oop.text} came straight from patients.` },
+  { q: 'How many hospital beds are there in Turkey?', a: `${beds.text} per thousand people in ${beds.year}; Turkey also counted ${doc.text} physicians and ${nurse.text} nursing staff per thousand in ${doc.year}.` },
+];
+assertClaim(Number(diab.value) > 15.5 && Number(diab.value) < 17.5, 'about one adult in six');
+const headline = `Turkey health ${U}: the 2023 child mortality jump, tobacco, diabetes and doctors`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Turkey's health: a one-year spike, steady smoking"
+  headline={headline}
+  tableTitle={`Turkey's health over three decades, 1990–${U}`}
+  tableSubtitle="Sample years shown; the CSV holds Turkey's whole annual series."
+  faq={faq}
+  faqTitle="Turkey health: key questions"
+  related={[
+    { href: '/country/turkey/', label: 'Turkey in data' },
+    { href: '/country/turkey/population/', label: 'Turkey population and life expectancy' },
+    { href: '/country/iran/health/', label: 'Iran health' },
+    { href: '/country/germany/health/', label: 'Germany health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality, every country ranked' },
+  ]}
+>
+  <Fragment slot="answer">Turkish under-five mortality rose sharply to <strong>{y23} per thousand</strong> in 2023 (from {y22}) and was down at {u5.text} in {U}. Tobacco use has hardly moved in a quarter-century: <strong>{tob.text} of adults</strong> in {tob.year}.</Fragment>
+  <div class="story-block prose">
+    <h2>Was there a spike in Turkish child deaths in 2023?</h2>
+    <p>For one year, yes; the UN estimates do not name a cause. Starting at {u5_90} in 1990, Turkey's rate fell every single year until 2022 ({y22}), climbed to {y23} in 2023 and was down to {u5.text} in {U}. Neonatal mortality, by contrast, carried on declining to {neo.text}.</p>
+  </div>
+  <LineChart
+    title={`Turkey: under-five mortality, 1990–${U}`}
+    subtitle="Turkey's under-five mortality per thousand live births; note the single-year rise in the UN IGME series."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 live births"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is tobacco use stuck in Turkey?</h2>
+    <p>Nearly. WHO estimates put Turkish tobacco use at {pct(tob00)} in 2000 and {tob.text} in {tob.year}, {ordinal(fromTop(tob))} highest of {tob.of}.</p>
+  </div>
+  <LineChart
+    title={`Tobacco use among Turkish adults, 2000–${tob.year}`}
+    subtitle="Percentage of Turkey's adults who use tobacco in any form (WHO estimates)."
+    points={s.tobaccoPct.map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={tob.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is diabetes widespread in Turkey?</h2>
+    <p>About one adult in six: {diab.text} in {diab.year}, a rate topped in only {fromTop(diab) - 1} countries (IDF). Mothers are far safer than a generation ago, with {mat.text} deaths per 100,000 births ({mat.year}).</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Does Turkey have more doctors than before?</h2>
+    <p>About two and a half times as many per person as in 1990: {doc.text} per thousand in {doc.year}, against {doc90}. Turkish patients' direct share of costs has dropped to {oop.text} ({oop.year}) from {pct(oop00)} in 2000. DPT3 coverage reaches {dpt.text}. See the <a href={path('/country/turkey/population/')}>Turkey population page</a> for lifespans.</p>
+  </div>
+</HealthTopic>

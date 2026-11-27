@@ -1,0 +1,107 @@
+---
+// Vietnam health (task 171). Figures from the World Bank WDI files (src/data/wdi/, checked against the original
+// zips by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/vietnam.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), mat = st('maternal'), doc = st('doctors'), hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop');
+const measles = st('measles'), stunt = st('stunting'), road = st('road'), tob = st('tobacco'), diab = st('diabetes'), tb = st('tb');
+const U = u5.year!;
+
+assertClaim(fromBottom(diab) === 10 && Number(diab.value) < 4, 'tenth-lowest diabetes, under 4%');
+assertClaim(fromTop(road) === 22 && Number(road.value) > 30, 'road deaths above 30 per 100,000, 22nd');
+const m20 = v('measlesVaccPct', 2020), m23 = v('measlesVaccPct', 2023);
+assertClaim(m20 === 97 && m23 === 82 && Number(measles.value) === 98 && fromTop(measles) === 30, 'measles 97% → 82% (2023) → 98%');
+const st00 = v('stuntingPct', 2000);
+assertClaim(stunt.year === 2023 && Number(stunt.value) < st00 / 2, 'stunting less than half the 2000 level');
+const [peakY, peak] = s.outOfPocketPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+assertClaim(peakY === 2019 && Number(oop.value) < peak - 5, 'out-of-pocket peaked in 2019, now over 5 points lower');
+const u5_90 = v('under5Mortality', 1990);
+assertClaim(U === 2024 && u5_90 / Number(u5.value) > 2.8 && u5_90 / Number(u5.value) < 3.2, 'under-five rate about a third of 1990');
+
+const title = `Vietnam Health ${U}: Low Diabetes, Road Deaths, Vaccines | AtlasFigures`;
+const description = `Vietnam's adult diabetes rate, ${diab.text} in ${diab.year}, is tenth lowest anywhere, but roads kill ${road.text} per 100,000. Measles cover dipped to ${pct(m23)} in 2023 and rebounded to ${measles.text}.`;
+
+const faq = [
+  { q: 'Has Vietnam reduced child deaths?', a: `Yes, to about a third of the ${u5_90} of 1990: ${u5.text} deaths under five per thousand births for ${U} (UN IGME).` },
+  { q: 'Do Vietnamese patients pay for their own care?', a: `They cover ${oop.text} of total health spending (${oop.year}), down from a ${peakY} peak of ${pct(peak)}; health outlays average ${hPc.text} a head.` },
+  { q: 'Is Vietnam short of doctors?', a: `It had ${doc.text} per thousand Vietnamese in ${doc.year}, according to WHO workforce data, ${ordinal(fromTop(doc))} of ${doc.of}.` },
+  { q: 'Is tuberculosis common in Vietnam?', a: `WHO puts incidence at ${tb.text} per 100,000 for ${tb.year}, ${ordinal(fromTop(tb))} of ${tb.of}.` },
+];
+const headline = `Vietnam health ${U}: diabetes, road deaths, measles vaccination, stunting and costs`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Vietnam's health: few diabetics, dangerous roads"
+  headline={headline}
+  tableTitle={`Vietnam's health statistics through the years, 1990–${U}`}
+  tableSubtitle="Twelve sampled years; for Vietnam's year-by-year values open the CSV."
+  faq={faq}
+  faqTitle="Vietnam health at a glance"
+  related={[
+    { href: '/country/vietnam/', label: 'Vietnam in numbers' },
+    { href: '/country/vietnam/population/', label: 'Vietnam population' },
+    { href: '/country/thailand/health/', label: 'Thailand health' },
+    { href: '/country/philippines/health/', label: 'Philippines health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality, every country ranked' },
+  ]}
+>
+  <Fragment slot="answer">Diabetes is rare in Vietnam: <strong>{diab.text} of adults</strong> in {diab.year}, tenth lowest of {diab.of}. Traffic is the bigger danger, with <strong>{road.text} road deaths per 100,000 people</strong>, and measles vaccination bounced back to {measles.text} in {measles.year}.</Fragment>
+  <div class="story-block prose">
+    <h2>Is diabetes uncommon in Vietnam?</h2>
+    <p>Very uncommon: {diab.text} of adults in {diab.year}, lower than everywhere except nine places on the IDF's list of {diab.of}. Tobacco use, at {tob.text}, has eased from {pct(v('tobaccoPct', 2000))} in 2000.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How dangerous are Vietnam's roads?</h2>
+    <p>Among the deadlier in the world: WHO estimated {road.text} traffic deaths per 100,000 Vietnamese in {road.year}, {ordinal(fromTop(road))} of {road.of}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Did measles vaccination drop in Vietnam?</h2>
+    <p>For three years. Coverage of one-year-olds slipped from {pct(m20)} in 2020 to {pct(m23)} in 2023, then jumped to {measles.text} in {measles.year}, {ordinal(fromTop(measles))} highest of {measles.of} (WHO/UNICEF).</p>
+  </div>
+  <LineChart
+    title={`Measles vaccine coverage in Vietnam, 1990–${measles.year}`}
+    subtitle="Vietnam's measles vaccination rate among toddlers, % (WHO/UNICEF)."
+    points={s.measlesVaccPct.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={measles.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Are Vietnamese children growing better?</h2>
+    <p>Much better. Stunting fell from {pct(st00)} of under-fives in 2000 to {stunt.text} in {stunt.year}, and Vietnam's under-five death rate from {u5_90} in 1990 to {u5.text} in {U}. The maternal ratio is {mat.text} per 100,000 births ({mat.year}).</p>
+  </div>
+  <LineChart
+    title={`Stunting among Vietnamese children, ${s.stuntingPct[0][0]}–${stunt.year}`}
+    subtitle="Vietnamese under-fives with low height for age, % (UNICEF, WHO and World Bank joint estimates)."
+    points={s.stuntingPct.map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={stunt.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>What does Vietnam spend on medical care?</h2>
+    <p>{hGdp.text} of GDP in {hGdp.year}, about {hPc.text} per person; households' direct share was {oop.text}, down from a peak of {pct(peak)} in {peakY}. Vietnam's lifespans sit with its <a href={path('/country/vietnam/population/')}>population statistics</a>.</p>
+  </div>
+</HealthTopic>

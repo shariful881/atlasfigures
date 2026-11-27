@@ -1,0 +1,101 @@
+---
+// DR Congo health (task 171). Figures from the World Bank WDI files (src/data/wdi/, checked against the original
+// zips by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/dr-congo.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), mat = st('maternal'), doc = st('doctors'), hPc = st('healthPc'), hGdp = st('healthGdp'), oop = st('oop');
+const measles = st('measles'), stunt = st('stunting'), hunger = st('undernour'), mal = st('malaria'), road = st('road'), tb = st('tb');
+const U = u5.year!;
+
+const u90 = v('under5Mortality', 1990), u00 = v('under5Mortality', 2000), u15 = v('under5Mortality', 2015);
+assertClaim(fromTop(u5) === 8 && u00 > u90 && Number(u5.value) > u15 - 3 && U === 2024, 'eighth-highest under-five rate; 2000 above 1990; less than 3 points below 2015');
+assertClaim(fromTop(hunger) === 6 && fromTop(stunt) === 6 && Number(stunt.value) > v('stuntingPct', 2010), 'sixth-highest undernourishment and stunting; stunting above 2010');
+assertClaim(fromTop(mal) === 5 && fromBottom(hPc) === 4 && fromBottom(measles) === 10, 'fifth-highest malaria, fourth-lowest spending per person, tenth-lowest measles cover');
+assertClaim(fromTop(road) === 10 && fromTop(mat) === 13, 'tenth-highest road deaths, 13th maternal');
+const perDoc = Math.round(1000 / Number(doc.value));
+assertClaim(perDoc > 4700 && perDoc < 4900 && Number(hunger.value) > 39, 'about one doctor per 4,700–4,900; undernourishment above 39%');
+
+const title = `DR Congo Health ${U}: Child Deaths, Hunger, Malaria, Spending | AtlasFigures`;
+const description = `DR Congo spends ${hPc.text} per person on health, fourth least of any country. ${hunger.text} of its people are undernourished, ${stunt.text} of small children stunted, and ${u5.text} per 1,000 die before age five.`;
+
+const faq = [
+  { q: 'Is DR Congo among the countries worst hit by malaria?', a: `${mal.text} cases per 1,000 people at risk in ${mal.year}, by WHO estimates, ${ordinal(fromTop(mal))} highest of ${mal.of}.` },
+  { q: 'Is childbirth dangerous for Congolese women?', a: `Very: the UN-modelled maternal ratio was ${mat.text} for ${mat.year}, ${ordinal(fromTop(mat))} highest, against ${v('maternalMortality', 1990)} in 1990.` },
+  { q: 'Are roads dangerous in DR Congo?', a: `Its estimated road death rate, ${road.text} per 100,000 people in ${road.year}, is ${ordinal(fromTop(road))} highest of ${road.of} (WHO).` },
+  { q: 'How scarce are doctors in DR Congo?', a: `Very scarce: ${doc.text} per 1,000 inhabitants in ${doc.year}, one for roughly ${perDoc.toLocaleString('en-US')} Congolese.` },
+];
+const headline = `DR Congo health ${U}: child deaths, hunger, malaria and health spending`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="DR Congo's health: hunger, malaria and the children lost"
+  headline={headline}
+  tableTitle={`DR Congo's health indicators across the years, 1990–${U}`}
+  tableSubtitle="Benchmark years in view; the CSV lists every Congolese value the World Bank holds."
+  faq={faq}
+  faqTitle="Congolese health, briefly"
+  related={[
+    { href: '/country/dr-congo/', label: 'DR Congo by the numbers' },
+    { href: '/country/dr-congo/population/', label: 'DR Congo population' },
+    { href: '/country/nigeria/health/', label: 'Nigeria health' },
+    { href: '/country/ethiopia/health/', label: 'Ethiopia health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality, every country ranked' },
+  ]}
+>
+  <Fragment slot="answer">Health spending in DR Congo came to just <strong>{hPc.text} a person</strong> in {hPc.year}, fourth lowest in the world. Hunger is widespread, with <strong>{hunger.text} undernourished</strong> in {hunger.year}, and {u5.text} of every thousand children die before turning five.</Fragment>
+  <div class="story-block prose">
+    <h2>Has child mortality in DR Congo stopped falling?</h2>
+    <p>Largely. Congolese under-five mortality actually climbed during the 1990s ({u90} in 1990, {u00} in 2000), then dropped steeply to {u15} by 2015. Since then it has barely moved, standing at {u5.text} in {U}, {ordinal(fromTop(u5))} highest of {u5.of}.</p>
+  </div>
+  <LineChart
+    title={`DR Congo: under-five deaths, 1990–${U}`}
+    subtitle="Deaths under five per 1,000 births in DR Congo; the UN IGME line rises through the 1990s."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 live births"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How many Congolese go hungry?</h2>
+    <p>About two in every five: {hunger.text} of Congolese could not meet their food-energy needs in {hunger.year} (FAO), {ordinal(fromTop(hunger))} highest share. Stunting among under-fives reached {stunt.text} at the {stunt.year} survey, slightly above the {pct(v('stuntingPct', 2010))} of 2010.</p>
+  </div>
+  <LineChart
+    title={`Hunger in DR Congo, ${s.undernourishedPct[0][0]}–${hunger.year}`}
+    subtitle="Prevalence of undernourishment in DR Congo, % of all people (FAO)."
+    points={s.undernourishedPct.map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={hunger.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Which diseases weigh most on DR Congo?</h2>
+    <p>Malaria stands out: {mal.text} cases per 1,000 people at risk in {mal.year}, {ordinal(fromTop(mal))} worst of {mal.of}. Tuberculosis incidence was {tb.text} per 100,000. Measles vaccination covered only {measles.text} of toddlers in {measles.year}, {ordinal(fromBottom(measles))} lowest.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How little does DR Congo spend on health?</h2>
+    <p>{hPc.text} per person in {hPc.year}, or {hGdp.text} of GDP; households paid {oop.text} of it directly. The country has {doc.text} doctors per thousand people, about one per {perDoc.toLocaleString('en-US')}. Congolese life expectancy is shown with the <a href={path('/country/dr-congo/population/')}>population figures</a>.</p>
+  </div>
+</HealthTopic>

@@ -1,0 +1,79 @@
+---
+// Japan country hub (task 171). Every figure comes from the country profile (src/data/profiles/JPN.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/japan.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { countryIndex, assertClaim, people } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), births = st('population', 'births'), deaths = st('population', 'deaths'), age = st('population', 'medianAge');
+const life = st('population', 'lifeExp'), tfr = st('population', 'fertility'), grow = st('population', 'growth');
+const gdp = st('economy', 'gdp'), growth = st('economy', 'growth'), res = st('economy', 'reserves'), fx = st('economy', 'fx'), gdpPc = st('economy', 'gdpPc');
+const rd = st('education', 'rd'), pat = st('education', 'patRes'), hom = st('governance', 'homicide'), forest = st('environment', 'forestPct');
+const parl = st('governance', 'womenParl'), co2 = st('environment', 'co2');
+
+const big = countryIndex.countries.filter((c) => c.population > 100e6).map((c) => ({ iso3: c.iso3, e0: Number(stat(profile(c.iso3), 'population', 'lifeExp').value) })).sort((a, b) => b.e0 - a.e0);
+assertClaim(big[0].iso3 === 'JPN' && big[0].e0 - big[1].e0 > 5, 'longest life expectancy of all countries over 100 million, by more than five years');
+const ages = countryIndex.countries.filter((c) => c.population > 50e6).map((c) => ({ iso3: c.iso3, a: Number(stat(profile(c.iso3), 'population', 'medianAge').value) })).sort((a, b) => b.a - a.a);
+assertClaim(big[1].iso3 === 'USA' && ages[0].iso3 === 'JPN', 'runner-up the United States; oldest median age of countries over 50 million');
+const top3 = ['USA', 'CHN', 'DEU'].every((c) => fromTop(stat(profile(c), 'economy', 'gdp')) <= 3);
+assertClaim(top3, 'US, China and Germany ahead on GDP');
+assertClaim(Number(deaths.value) > 2 * Number(births.value) && Number(age.value) > 50, 'deaths more than twice births, median age over 50');
+assertClaim(fromTop(gdp) === 4 && fromTop(res) === 3 && Number(growth.value) < 1.5, 'fourth GDP, third reserves, growth under 1.5%');
+assertClaim(fromTop(rd) === 6 && fromTop(pat) === 3, 'sixth for R&D share, third for resident patents');
+assertClaim(fromBottom(hom) === 5 && fromTop(forest) === 20 && Number(forest.value) > 68, 'fifth-lowest homicide rate; forest over 68%, 20th');
+assertClaim(fromTop(co2) === 5 && fromTop(parl) > 140, 'fifth-largest CO2 emitter; women in parliament outside the top 140');
+
+const title = `Japan in Figures ${Y}: Ageing, Longevity, Economy, Safety | AtlasFigures`;
+const description = `Japan buries more than two people for every baby born, yet its babies are expected to live ${life.text} years, the longest of all countries with 100 million people or more. GDP ${gdp.text}; population ${people(Number(pop.value))} (UN, ${Y}).`;
+
+const faq = [
+  { q: 'How many yen buy one dollar?', a: `Roughly ${fx.text} yen across ${fx.year}, going by the official annual average the World Bank publishes.` },
+  { q: 'How much does Japan invest in research?', a: `${rd.text}% of GDP in ${rd.year}, ${ordinal(fromTop(rd))} of ${rd.of}, and inventors living in Japan filed ${pat.text} domestic patent requests during ${pat.year}, third most worldwide.` },
+  { q: 'What share of Japanese lawmakers are women?', a: `${parl.text} of lower-house members in ${parl.year}, ${ordinal(fromTop(parl))} of ${parl.of} parliaments on Inter-Parliamentary Union figures.` },
+  { q: 'What is Japanese income per head?', a: `GDP per head was ${gdpPc.text} in ${gdpPc.year}, ${ordinal(fromTop(gdpPc))} of ${gdpPc.of}, while total output ranked fourth.` },
+];
+const headline = `Japan in figures ${Y}: an ageing population, record longevity, the economy and safety`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Japan in figures: the oldest big country and the longest lives"
+  headline={headline}
+  faq={faq}
+  faqTitle="Japan: readers' quick questions"
+  related={[
+    { href: '/country/japan/population/', label: 'Japan population: live count and decline' },
+    { href: '/country/japan/economy/', label: 'Japan economy: GDP and the yen' },
+    { href: '/country/japan/health/', label: 'Japan health: infants, beds and nurses' },
+    { href: '/country/south-korea/population/', label: "South Korea's population" },
+    { href: '/country/china/', label: 'China by the numbers' },
+    { href: '/country/philippines/', label: 'The Philippines in data' },
+    { href: '/rankings/gdp-by-country/', label: 'GDP by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">With <strong>{people(Number(pop.value))}</strong> people on UN projections for {Y}, Japan is shrinking by {grow.text.replace('-', '')} a year as deaths run at more than double the number of births. The Japanese live longer than people in any other large nation, <strong>{life.text} years</strong> at birth, and the economy is the world's {ordinal(fromTop(gdp))} largest at {gdp.text}.</Fragment>
+  <div class="story-block prose">
+    <h2>Why does Japan record twice as many deaths as births?</h2>
+    <p>Because its people are old and have few children. Japan's {Y} projection pairs {people(Number(deaths.value))} deaths with only {people(Number(births.value))} births, and lifetime fertility sits at {tfr.text}. No country above 50 million inhabitants is older: Japan's median is {age.text}. For projections to 2100 see our <a href={path('/country/japan/population/')}>Japanese population figures</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Japan the longest-lived large country?</h2>
+    <p>It leads all {big.length} of the 100-million-plus nations by a wide margin: a Japanese baby born in {Y} can expect {life.text} years, more than five years longer than in the runner-up, the United States.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Japan's economy still growing?</h2>
+    <p>Slowly. Japanese output grew {growth.text} after inflation in {growth.year}, reaching {gdp.text}; only America, China and Germany produce more. Official reserves stand at {res.text}, {ordinal(fromTop(res))} most of {res.of}. See <a href={path('/country/japan/economy/')}>Japan's economy</a> for annual growth and inflation.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How safe and green is Japan?</h2>
+    <p>Very safe by this measure: {hom.text} intentional homicides per 100,000 people in {hom.year} (UNODC), {ordinal(fromBottom(hom))} lowest of {hom.of}. Forest still blankets {forest.text} of the land, {ordinal(fromTop(forest))} highest share worldwide, although Japan is also the {ordinal(fromTop(co2))} largest emitter of fossil CO₂ ({co2.text} million tonnes).</p>
+  </div>
+</CountryHub>

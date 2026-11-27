@@ -1,0 +1,75 @@
+---
+// DR Congo country hub (task 171). Every figure comes from the country profile (src/data/profiles/COD.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/dr-congo.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { countryIndex, assertClaim, people } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), grow = st('population', 'growth'), age = st('population', 'medianAge'), tfr = st('population', 'fertility');
+const births = st('population', 'births'), pov = st('economy', 'pov300'), gdpPc = st('economy', 'gdpPc'), gdp = st('economy', 'gdp'), fx = st('economy', 'fx');
+const elec = st('internet', 'electricity'), water = st('environment', 'waterBasic'), san = st('environment', 'sanBasic'), cook = st('internet', 'cleanCook');
+const forestA = st('environment', 'forestArea'), forest = st('environment', 'forestPct'), co2pc = st('environment', 'co2pc'), hydro = st('energy', 'hydroShare');
+const growth = st('economy', 'growth'), agri = st('jobs', 'empAgri');
+
+const big = countryIndex.countries.filter((c) => c.population > 100e6).map((c) => { const q = profile(c.iso3); return { iso3: c.iso3, g: Number(stat(q, 'population', 'growth').value), a: Number(stat(q, 'population', 'medianAge').value) }; });
+assertClaim([...big].sort((a, b) => b.g - a.g)[0].iso3 === 'COD' && [...big].sort((a, b) => a.a - b.a)[0].iso3 === 'COD', 'fastest-growing and youngest of all countries over 100 million');
+assertClaim(fromTop(pop) === 15 && Number(tfr.value) > 5.5, '15th by population, fertility above 5.5');
+assertClaim(fromTop(pov) === 1 && Number(pov.value) > 85, 'highest extreme poverty share, over 85%');
+assertClaim(fromBottom(water) === 1 && fromBottom(elec) === 7 && Number(elec.value) < 25, 'lowest basic water access; seventh-lowest electricity, under a quarter');
+assertClaim(fromTop(forestA) === 6 && Number(forest.value) > 60 && fromBottom(co2pc) === 1, 'sixth-largest forest, over 60%; lowest CO2 per person');
+assertClaim(fromBottom(gdpPc) === 9, 'ninth-lowest GDP per person');
+
+const title = `DR Congo Data ${Y}: Fastest Growth, Poverty, Water, Forests | AtlasFigures`;
+const description = `Among the world's 100-million-plus nations, DR Congo is both the youngest and the quickest to grow. ${pov.text} live below the $3.00-a-day line, the world's highest share, and basic drinking water reaches just ${water.text}.`;
+
+const faq = [
+  { q: 'How many Congolese francs equal a dollar?', a: `Around ${fx.text} francs over ${fx.year}, the official yearly average in World Bank data.` },
+  { q: 'How large is DR Congo\'s economy in dollars?', a: `${gdp.text} for ${gdp.year} after real growth of ${growth.text}; spread across the population that is ${gdpPc.text} each, ninth lowest of ${gdpPc.of}.` },
+  { q: 'How high is the birth rate in DR Congo?', a: `The UN projects ${people(Number(births.value))} births for ${Y}, with women averaging ${tfr.text} children over their lives.` },
+  { q: 'Does DR Congo get its power from hydro?', a: `Almost entirely: Ember's ${hydro.year} data credit dams with ${hydro.text} of Congolese generation, ${ordinal(fromTop(hydro))} highest share.` },
+];
+const headline = `DR Congo data ${Y}: population growth, extreme poverty, water and electricity, forests`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="DR Congo by the numbers: young, growing fast and very poor"
+  headline={headline}
+  faq={faq}
+  faqTitle="Quick facts on DR Congo"
+  related={[
+    { href: '/country/dr-congo/population/', label: 'DR Congo population: live count and growth' },
+    { href: '/country/dr-congo/economy/', label: 'DR Congo economy: GDP and growth' },
+    { href: '/country/dr-congo/health/', label: 'DR Congo health: malaria, hunger and children' },
+    { href: '/country/republic-of-the-congo/population/', label: "Republic of the Congo's population" },
+    { href: '/country/angola/population/', label: "Angola's population" },
+    { href: '/country/nigeria/', label: 'Nigeria in numbers' },
+    { href: '/rankings/forest-area-by-country/', label: 'Forest area by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Projected by the UN to number <strong>{people(Number(pop.value))}</strong> in {Y}, the Congolese population is rising <strong>{grow.text} a year</strong>, faster than any other nation with over 100 million people. {pov.text} of Congolese lived on under $3.00 a day at the {pov.year} survey, the highest share recorded anywhere.</Fragment>
+  <div class="story-block prose">
+    <h2>Is DR Congo the fastest-growing big country?</h2>
+    <p>Yes, and the youngest of the {big.length} such nations too: half of all Congolese are under {age.text}, and a woman bears {tfr.text} children in her lifetime on current rates. The <a href={path('/country/dr-congo/population/')}>DR Congo population page</a> shows where the UN projects this leads.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Does DR Congo have the most extreme poverty?</h2>
+    <p>As a share of the population, yes. On the World Bank's international line ($3.00 a day at 2021 purchasing-power prices), {pov.text} of the population was in extreme poverty in {pov.year}, the top share of {pov.of} countries surveyed. GDP per head of {gdpPc.text} ({gdpPc.year}) is {ordinal(fromBottom(gdpPc))} lowest, and farming employs {agri.text} of the workforce.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many Congolese have electricity and safe water?</h2>
+    <p>Few. Just {elec.text} had access to electricity in {elec.year}, and only {water.text} had even basic drinking water, the bottom figure among {water.of} countries tracked by WHO and UNICEF. Basic sanitation reached {san.text}, clean cooking fuels {cook.text}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much forest does DR Congo have?</h2>
+    <p>{forestA.text} km² in {forestA.year}; just {fromTop(forestA) - 1} countries have more, covering {forest.text} of the land. Fossil CO₂ emissions are the lowest per person in the world, {co2pc.text} tonnes.</p>
+  </div>
+</CountryHub>

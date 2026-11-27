@@ -1,0 +1,74 @@
+---
+// Thailand country hub (task 171). Every figure comes from the country profile (src/data/profiles/THA.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/thailand.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people, int, countryIndex, countryData } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), births = st('population', 'births'), deaths = st('population', 'deaths'), tfr = st('population', 'fertility');
+const age = st('population', 'medianAge'), grow = st('population', 'growth'), tour = st('trade', 'tourists'), tourInc = st('trade', 'tourismInc');
+const unemp = st('jobs', 'unemp'), infl = st('economy', 'inflation'), expPct = st('trade', 'exportsPct'), hitech = st('trade', 'hitech');
+const gdp = st('economy', 'gdp'), gdpPc = st('economy', 'gdpPc'), fx = st('economy', 'fx'), acc = st('internet', 'account'), agri = st('jobs', 'empAgri');
+
+assertClaim(Number(deaths.value) > Number(births.value) && Number(grow.value) < 0 && Number(tfr.value) < 1.2, 'deaths exceed births, population shrinking, fertility under 1.2');
+const lowerTfr = countryIndex.countries.filter((c) => (countryData(c.iso3).years.find((y) => y.year === Y) as any).fertility < Number(tfr.value)).length;
+const neg = countryIndex.countries.map((c) => profile(c.iso3).sections.find((x) => x.id === 'economy')!.stats.find((x) => x.id === 'inflation' && x.status === 'live')).filter((x) => x && Number(x.value) < 0).length;
+assertClaim(lowerTfr < 20 && neg <= 15, 'fewer than 20 countries with lower fertility; at most 15 negative inflation readings');
+assertClaim(fromTop(tour) === 5 && tour.year === 2019, 'fifth for tourist arrivals in 2019');
+assertClaim(fromBottom(unemp) === 4 && Number(unemp.value) < 1, 'fourth-lowest unemployment, under 1%');
+assertClaim(Number(infl.value) < 0 && fromTop(expPct) === 27 && fromTop(hitech) === 19, 'falling prices; 27th exports ratio; 19th high-tech share');
+
+const title = `Thailand in Data ${Y}: Shrinking Population, Tourism, Jobs | AtlasFigures`;
+const description = `Thailand now records more deaths than births, with women having ${tfr.text} children each. It drew ${people(Number(tour.value))} tourists in ${tour.year}, fifth most, and unemployment is just ${unemp.text}. Population ${people(Number(pop.value))} (UN, ${Y}).`;
+
+const faq = [
+  { q: 'How many baht to a US dollar?', a: `About ${fx.text} baht in ${fx.year}, averaging the official rate (World Bank).` },
+  { q: 'What does Thailand\'s economy produce in a year?', a: `${gdp.text} in ${gdp.year}, or ${gdpPc.text} per Thai resident.` },
+  { q: 'Do most Thais use banks?', a: `Yes: ${acc.text} of Thai adults had an account at a bank, other institution or mobile-money provider in ${acc.year} (Global Findex).` },
+  { q: 'How much of Thailand\'s economy is exports?', a: `Foreign sales came to ${expPct.text} of Thai GDP in ${expPct.year}; high-tech products formed ${hitech.text} of manufactured exports.` },
+];
+const headline = `Thailand in data ${Y}: a shrinking population, tourism, jobs and prices`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Thailand in data: fewer births, many visitors, few jobless"
+  headline={headline}
+  faq={faq}
+  faqTitle="Thailand FAQ"
+  related={[
+    { href: '/country/thailand/population/', label: 'Thailand population: live count and outlook' },
+    { href: '/country/thailand/economy/', label: 'Thailand economy: GDP and the baht' },
+    { href: '/country/thailand/health/', label: 'Thailand health: roads and costs' },
+    { href: '/country/vietnam/', label: 'Vietnam in numbers' },
+    { href: '/country/myanmar/population/', label: "Myanmar's population" },
+    { href: '/country/cambodia/population/', label: "Cambodia's population" },
+    { href: '/rankings/unemployment-rate-by-country/', label: 'Unemployment rate by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Thailand's people, <strong>{people(Number(pop.value))}</strong> as projected for {Y}, are already declining in number, as deaths overtake births. It welcomed <strong>{people(Number(tour.value))} international tourists</strong> in {tour.year}, fifth most in the world, and its unemployment rate is among the lowest anywhere at {unemp.text}.</Fragment>
+  <div class="story-block prose">
+    <h2>Is Thailand's population already shrinking?</h2>
+    <p>Yes, slightly: by {grow.text.replace('-', '')} in {Y}. Thai births ({int(Number(births.value))}) fall short of deaths ({int(Number(deaths.value))}) in the UN projection, fertility is {tfr.text} (only {lowerTfr} countries or areas are lower), and half of Thais are over {age.text}. Projections continue on the <a href={path('/country/thailand/population/')}>Thailand population page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Thailand one of the most visited countries?</h2>
+    <p>Yes. In {tour.year}, its most recent year of data, Thailand logged {people(Number(tour.value))} international arrivals, {ordinal(fromTop(tour))} of {tour.of}. Tourism receipts were {tourInc.text} in {tourInc.year}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is unemployment in Thailand close to zero?</h2>
+    <p>Close to none: modelled by the ILO, Thai joblessness was {unemp.text} for {unemp.year}, {ordinal(fromBottom(unemp))} lowest of {unemp.of}. Agriculture still employs {agri.text} of Thai workers.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Did consumer prices fall in Thailand?</h2>
+    <p>Marginally: inflation was {infl.text} in {infl.year}, one of only {neg} negative readings among the countries in our data. The <a href={path('/country/thailand/economy/')}>Thai economy page</a> tracks prices and growth.</p>
+  </div>
+</CountryHub>
