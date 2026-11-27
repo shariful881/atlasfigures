@@ -805,15 +805,6 @@
      "rank": "low"
     },
     {
-     "id": "uhc",
-     "label": "Universal health coverage index",
-     "src": "wdi",
-     "key": "uhcIndex",
-     "unit": "0–100",
-     "fmt": "int",
-     "rank": "high"
-    },
-    {
      "id": "measles",
      "label": "Measles vaccination",
      "src": "wdi",
@@ -902,6 +893,11 @@
      "unit": "per 100,000 people",
      "fmt": "dec1",
      "rank": "low"
+    },
+    {
+     "label": "Universal health coverage index",
+     "planned": "D",
+     "source": "WHO Global Health Observatory (the WDI file SH.UHC.SRVS.CV.XD has impossible values — task 150)"
     },
     {
      "label": "HIV prevalence",

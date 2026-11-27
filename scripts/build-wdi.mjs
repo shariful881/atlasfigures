@@ -94,7 +94,6 @@ export const LABELS = {
   'SH.XPD.CHEX.GD.ZS': { key: 'healthSpendPctGdp', label: "Current health expenditure", unit: "% of GDP" },
   'SH.XPD.CHEX.PC.CD': { key: 'healthSpendPerCapita', label: "Current health expenditure per person", unit: "current US$" },
   'SH.XPD.OOPC.CH.ZS': { key: 'outOfPocketPct', label: "Out-of-pocket expenditure", unit: "% of current health expenditure" },
-  'SH.UHC.SRVS.CV.XD': { key: 'uhcIndex', label: "UHC service coverage index", unit: "index, 0\u2013100" },
   'SH.IMM.MEAS': { key: 'measlesVaccPct', label: "Immunisation, measles", unit: "% of children ages 12\u201323 months" },
   'SH.IMM.IDPT': { key: 'dptVaccPct', label: "Immunisation, DPT", unit: "% of children ages 12\u201323 months" },
   'SH.STA.DIAB.ZS': { key: 'diabetesPct', label: "Diabetes prevalence", unit: "% of population ages 20\u201379" },

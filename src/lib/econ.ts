@@ -22,7 +22,7 @@ export type IndicatorKey =
   | 'gini' | 'agriPctGdp' | 'industryPctGdp' | 'manufPctGdp' | 'servicesPctGdp' | 'householdConsPctGdp'
   | 'savingsPctGdp' | 'remittancesPaid' | 'tariffPct' | 'hiTechExportsPct' | 'touristArrivals' | 'tourismReceipts'
   | 'youthUnemploymentPct' | 'labourForce' | 'doctorsPer1000' | 'nursesPer1000' | 'hospitalBedsPer1000' | 'healthSpendPctGdp'
-  | 'healthSpendPerCapita' | 'outOfPocketPct' | 'uhcIndex' | 'measlesVaccPct' | 'dptVaccPct' | 'diabetesPct'
+  | 'healthSpendPerCapita' | 'outOfPocketPct' | 'measlesVaccPct' | 'dptVaccPct' | 'diabetesPct'
   | 'tbIncidence' | 'malariaIncidence' | 'tobaccoPct' | 'undernourishedPct' | 'stuntingPct' | 'neonatalMortality'
   | 'roadDeathsPer100k' | 'primaryEnrolPct' | 'secondaryEnrolPct' | 'tertiaryEnrolPct' | 'primaryCompletionPct' | 'pupilTeacherPrimary'
   | 'outOfSchoolPrimary' | 'rdSpendPctGdp' | 'journalArticles' | 'patentsResident' | 'patentsNonresident' | 'electricityAccessPct'
