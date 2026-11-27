@@ -1,0 +1,75 @@
+---
+// Ukraine country hub (task 174). Every figure comes from the country profile (src/data/profiles/UKR.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/ukraine.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { countryIndex, assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), grow = st('population', 'growth'), tfr = st('population', 'fertility'), age = st('population', 'medianAge');
+const births = st('population', 'births'), deaths = st('population', 'deaths'), life = st('population', 'lifeExp'), urban = st('population', 'urban'), mig = st('population', 'migrantStock');
+const budget = st('economy', 'budget'), expense = st('economy', 'expense'), ext = st('economy', 'extDebt'), extPct = st('economy', 'extDebtPct'), infl = st('economy', 'inflation'), gdp = st('economy', 'gdp');
+const arable = st('farming', 'arable'), agriLand = st('farming', 'agriLand'), arablePc = st('farming', 'arablePc'), gini = st('economy', 'gini');
+
+const big = countryIndex.countries.filter((c) => c.population > 30e6).map((c) => { const q = profile(c.iso3); return { iso3: c.iso3, g: Number(stat(q, 'population', 'growth').value), f: Number(stat(q, 'population', 'fertility').value) }; });
+const byGrow = [...big].sort((a, b) => a.g - b.g), byTfr = [...big].sort((a, b) => a.f - b.f);
+const ratio = Number(deaths.value) / Number(births.value);
+assertClaim(byGrow[0].iso3 === 'UKR' && byTfr[0].iso3 === 'KOR' && byTfr[1].iso3 === 'UKR' && ratio > 2, 'fastest-shrinking above 30 million; second-lowest fertility after South Korea; deaths more than twice births');
+assertClaim(fromBottom(budget) === 1 && budget.year === 2024 && fromTop(expense) === 3, 'deepest budget deficit (2024); spending share third');
+assertClaim(fromTop(ext) === 10 && fromTop(extPct) === 7 && Number(extPct.value) > 100 && fromTop(infl) === 18, 'external debt tenth, seventh as share of GNI, over 100%; inflation 18th');
+assertClaim(fromTop(arable) === 4 && Number(arable.value) > 50 && fromTop(arablePc) === 5, 'arable share of land fourth, over half; arable per person fifth');
+assertClaim(fromBottom(gini) === 6 && fromTop(mig) === 14, 'Gini sixth lowest; migrant stock 14th');
+
+const title = `Ukraine in Figures ${Y}: Shrinking Population, Budget, Debt, Farmland | AtlasFigures`;
+const description = `No nation above 30 million is losing people faster than Ukraine, down ${grow.text.replace('-', '')} a year by UN projection. Its ${budget.year} budget deficit, ${budget.text.replace('-', '')} of GDP, was the widest reported.`;
+
+const faq = [
+  { q: 'Are incomes in Ukraine evenly spread?', a: `More evenly than almost anywhere: a ${gini.year} Gini reading of ${gini.text} leaves just five countries of ${gini.of} more equal.` },
+  { q: 'Does Ukraine have many foreign-born residents?', a: `${people(Number(mig.value))} in ${mig.year}, according to UN DESA, which ranks ${ordinal(fromTop(mig))} worldwide.` },
+  { q: 'How many years do Ukrainians live on average?', a: `A newborn's expected lifespan is ${life.text} years under the UN's ${Y} projection; the median resident is ${age.text}.` },
+  { q: 'How much of Ukraine is agricultural land?', a: `${agriLand.text} of its land area in ${agriLand.year}, counting cropland and pasture (FAO).` },
+];
+const headline = `Ukraine in figures ${Y}: the fastest population decline among large countries, record deficit, abundant cropland`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Ukraine in figures: falling numbers, heavy borrowing, rich cropland"
+  headline={headline}
+  faq={faq}
+  faqTitle="Ukraine: more short answers"
+  related={[
+    { href: '/country/ukraine/population/', label: 'Ukraine population: live count' },
+    { href: '/country/ukraine/economy/', label: 'Ukraine economy: GDP and the hryvnia' },
+    { href: '/country/ukraine/health/', label: 'Ukraine health: vaccines, TB, hunger' },
+    { href: '/country/russia/', label: 'Russia in figures' },
+    { href: '/country/germany/', label: 'Germany data hub' },
+    { href: '/country/turkey/', label: 'Turkey at a glance' },
+    { href: '/rankings/population-by-country/', label: 'Population by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Ukrainians, <strong>{people(Number(pop.value))}</strong> strong in the {Y} UN estimate, are becoming fewer by <strong>{grow.text.replace('-', '')}</strong> each year. Deaths run at more than twice the number of births, and the {budget.year} budget gap reached {budget.text.replace('-', '')} of GDP.</Fragment>
+  <div class="story-block prose">
+    <h2>How fast is Ukraine losing population?</h2>
+    <p>Quicker than any other country with 30 million-plus people. UN projections for {Y} show {int(Number(births.value))} births and {int(Number(deaths.value))} deaths. Fertility of {tfr.text} child per woman is the second lowest in that group, after South Korea. <a href={path('/country/ukraine/population/')}>Ukraine's population page</a> has the live estimate.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How large is Ukraine's budget deficit?</h2>
+    <p>The largest in the World Bank data: {budget.text.replace('-', '')} of GDP in {budget.year}, last of {budget.of}. Public spending had reached {expense.text} of output in {expense.year}, behind only two countries. Ukraine's {gdp.year} GDP, {gdp.text}, along with the hryvnia and prices, is charted on <a href={path('/country/ukraine/economy/')}>the Ukraine economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>What is Ukraine's foreign debt?</h2>
+    <p>Ukraine's debt to foreign lenders, {ext.text} as of {ext.year}, ranks {ordinal(fromTop(ext))} among reporting countries, a sum equal to {extPct.text} of gross national income ({ordinal(fromTop(extPct))} highest ratio). Consumer prices rose {infl.text} that year.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much of Ukraine is cropland?</h2>
+    <p>Fields under crops took up {arable.text} of Ukrainian territory in {arable.year}, a proportion exceeded in three countries, or {arablePc.text} hectares per inhabitant ({ordinal(fromTop(arablePc))}).</p>
+  </div>
+</CountryHub>

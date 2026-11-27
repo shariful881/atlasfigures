@@ -1,0 +1,105 @@
+---
+// Angola health (task 174). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/angola.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), mat = st('maternal'), tb = st('tb'), mal = st('malaria'), hGdp = st('healthGdp'), hPc = st('healthPc');
+const measles = st('measles'), dpt = st('dpt'), under = st('undernour'), stunt = st('stunting'), doc = st('doctors'), diab = st('diabetes');
+const U = u5.year!;
+
+const tbPeak = s.tbIncidence.reduce((a, b) => (b[1] > a[1] ? b : a));
+assertClaim(fromTop(tb) === 15 && tbPeak[0] === 2007 && Number(tb.value) < 0.75 * tbPeak[1], 'TB 15th, peak 2007, now under three quarters of it');
+const malLow = s.malariaIncidence.reduce((a, b) => (b[1] < a[1] ? b : a));
+assertClaim(malLow[0] === 2012 && Number(mal.value) > 1.6 * malLow[1] && fromTop(mal) === 16, 'malaria lowest in 2012, now over 1.6 times; 16th');
+const u90 = v('under5Mortality', 1990), m90 = v('maternalMortality', 1990);
+assertClaim(Number(u5.value) < u90 / 4 && Number(mat.value) < m90 / 4, 'under-five and maternal rates under a quarter of 1990');
+assertClaim(fromBottom(hGdp) === 8 && Number(hPc.value) < 100 && fromBottom(measles) === 9, 'health share eighth lowest; under $100 per person; measles ninth lowest');
+const u01 = v('undernourishedPct', 2001);
+assertClaim(1000 / Number(doc.value) > 3800 && 1000 / Number(doc.value) < 4300, 'about one doctor per four thousand people');
+assertClaim(u01 > 3.5 * Number(under.value), 'undernourishment in 2001 more than 3.5 times today');
+
+const title = `Angola Health Data ${U}: TB, Malaria, Child Survival, Health Spending | AtlasFigures`;
+const description = `Angolan tuberculosis incidence of ${tb.text} per 100k (${tb.year}) ranks ${ordinal(fromTop(tb))} worldwide, and malaria has climbed since ${malLow[0]}. Child deaths before five fell to ${u5.text} per 1,000 from ${u90} in 1990.`;
+
+const faq = [
+  { q: 'Has hunger fallen in Angola?', a: `Substantially since the start of the FAO series: undernourishment was ${u01}% in 2001 and ${under.text} in ${under.year}.` },
+  { q: 'What share of Angolan children are stunted?', a: `${stunt.text} at the ${stunt.year} survey, the latest available, ${ordinal(fromTop(stunt))} highest of ${stunt.of}.` },
+  { q: 'Are there enough physicians in Angola?', a: `Very few by world standards: ${doc.text} for each thousand Angolans (${doc.year}), roughly one per four thousand people.` },
+  { q: 'Is diabetes rare in Angola?', a: `Relatively: ${diab.text} of adults in ${diab.year}, ${ordinal(fromBottom(diab))} lowest of ${diab.of}.` },
+];
+const headline = `Angola health ${U}: heavy TB and malaria burdens, steep falls in child and maternal deaths`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Angola's health: TB and malaria weigh heavily, children survive longer"
+  headline={headline}
+  tableTitle={`Angolan health numbers over the years, 1990 to ${U}`}
+  tableSubtitle="Key years in the table; Angola's full annual data are in the CSV."
+  faq={faq}
+  faqTitle="Angolan health: more questions"
+  related={[
+    { href: '/country/angola/', label: 'Angola in figures' },
+    { href: '/country/angola/population/', label: 'Angola population and births' },
+    { href: '/country/dr-congo/health/', label: 'DR Congo health' },
+    { href: '/country/south-africa/health/', label: 'South Africa health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality league table' },
+  ]}
+>
+  <Fragment slot="answer">Angola's TB incidence was an estimated <strong>{tb.text} per 100k</strong> in {tb.year}, and malaria ran at {mal.text} per thousand exposed. Yet under-five mortality has dropped to <strong>{u5.text} per 1,000</strong>, from {u90} in 1990.</Fragment>
+  <div class="story-block prose">
+    <h2>Is Angola's TB rate among the world's highest?</h2>
+    <p>It is in the top twenty: {ordinal(fromTop(tb))} of {tb.of} countries in {tb.year}. WHO's Angolan series topped out at {tbPeak[1]} in {tbPeak[0]} and has eased since.</p>
+  </div>
+  <LineChart
+    title={`Angola's tuberculosis rate since 2000`}
+    subtitle="WHO-modelled annual TB incidence for Angola, per 100k inhabitants."
+    points={s.tbIncidence.map(([x, y]) => ({ x, y: Math.round(y) }))}
+    format="plain"
+    unit="per 100,000"
+    highlight={tb.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is malaria getting worse in Angola?</h2>
+    <p>Since {malLow[0]}, yes: from that year's low of {malLow[1]}, the rate climbed to {mal.text} by {mal.year}; among malaria-endemic countries only fifteen record more.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are Angolan children more likely to survive than in 1990?</h2>
+    <p>Far more likely: the under-five toll has dropped by over three quarters, from {u90} to {u5.text} per thousand. Maternal mortality was cut from {int(m90)} to {mat.text} for each 100,000 deliveries ({mat.year}).</p>
+  </div>
+  <LineChart
+    title={`Angolan children dying before their fifth birthday, 1990–${U}`}
+    subtitle="Of every thousand Angolan babies, how many die before turning five; UN IGME."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 births"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is Angola's health budget small?</h2>
+    <p>Relative to the economy, yes: health got {hGdp.text} of Angolan output in {hGdp.year}, eighth lowest worldwide, or {hPc.text} a head. Vaccination is patchy too, with measles at {measles.text} and DPT at {dpt.text} in {measles.year}. Angola's fast-growing headcount is tracked at <a href={path('/country/angola/population/')}>this live counter</a>.</p>
+  </div>
+</HealthTopic>

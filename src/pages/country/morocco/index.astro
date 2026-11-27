@@ -1,0 +1,75 @@
+---
+// Morocco country hub (task 174). Every figure comes from the country profile (src/data/profiles/MAR.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/morocco.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), net = st('population', 'netMigrants'), tfr = st('population', 'fertility'), age = st('population', 'medianAge'), urban = st('population', 'urban');
+const migPct = st('population', 'migrantPct');
+const remit = st('trade', 'remit'), remitPct = st('trade', 'remitPct'), gdp = st('economy', 'gdp'), growth = st('economy', 'growth');
+const povNat = st('economy', 'povNat'), sanSafe = st('environment', 'sanSafe'), sanBasic = st('environment', 'sanBasic');
+const lfpF = st('jobs', 'lfpF'), accF = st('internet', 'accountF'), acc = st('internet', 'account');
+const ports = st('internet', 'ports'), enr = st('education', 'enrPri');
+
+assertClaim(fromTop(remit) === 16 && Number(net.value) < 0 && fromBottom(migPct) === 15, 'remittances 16th; net emigration; migrant share 15th lowest');
+assertClaim(fromBottom(povNat) === 3 && Number(povNat.value) < 4, 'national poverty rate third lowest, under 4%');
+assertClaim(fromBottom(sanSafe) === 3 && Number(sanSafe.value) < 10 && Number(sanBasic.value) > 85, 'safely managed sanitation third lowest, under 10%; basic over 85%');
+assertClaim(fromBottom(lfpF) === 12 && Number(lfpF.value) < 20 && fromBottom(accF) === 20, "women's participation 12th lowest, under 20%; women's accounts 20th lowest");
+assertClaim(fromTop(ports) === 19 && fromTop(enr) === 16 && Number(tfr.value) > 2.1 && Number(tfr.value) < 2.2, 'ports 19th; primary enrolment 16th; fertility just above 2.1');
+
+assertClaim(Number(lfpF.value) > 18 && Number(lfpF.value) < 22, 'about four in five women outside the labour force');
+const title = `Morocco in Figures ${Y}: Remittances, Poverty, Sanitation, Women at Work | AtlasFigures`;
+const description = `Moroccans abroad wired home ${remit.text} in ${remit.year}, ${ordinal(fromTop(remit))} highest anywhere. Its national poverty rate was ${povNat.text} (${povNat.year}), yet safely managed sanitation reaches only ${sanSafe.text} of people.`;
+
+const faq = [
+  { q: 'How busy are Morocco\'s container ports?', a: `They handled ${people(Number(ports.value))} twenty-foot equivalent units in ${ports.year}, ${ordinal(fromTop(ports))} most of ${ports.of} countries.` },
+  { q: 'Do many foreigners live in Morocco?', a: `Hardly any. Immigrants were ${migPct.text} of the ${migPct.year} population, the ${ordinal(fromBottom(migPct))} lowest proportion recorded by UN DESA.` },
+  { q: 'Is Moroccan fertility above replacement level?', a: `Narrowly. Projected fertility of ${tfr.text} (${Y}) sits fractionally over the replacement rate of about 2.1.` },
+  { q: 'Are Moroccan children in primary school?', a: `Enrolment is universal on UNESCO's gross measure, ${enr.text} for ${enr.year}, which exceeds 100% because over- and under-age pupils count too.` },
+];
+const headline = `Morocco in figures ${Y}: large remittances, low measured poverty, sanitation and jobs gaps`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Morocco in figures: money from abroad and a sanitation gap"
+  headline={headline}
+  faq={faq}
+  faqTitle="Morocco in four extra answers"
+  related={[
+    { href: '/country/morocco/population/', label: 'Morocco population: live count' },
+    { href: '/country/morocco/economy/', label: 'Morocco economy: GDP and the dirham' },
+    { href: '/country/morocco/health/', label: 'Morocco health: vaccines, mothers, TB' },
+    { href: '/country/algeria/', label: 'Algeria in figures' },
+    { href: '/country/spain/', label: 'Spain data hub' },
+    { href: '/country/egypt/', label: 'Egypt at a glance' },
+    { href: '/rankings/remittances-by-country/', label: 'Remittances by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">There are <strong>{people(Number(pop.value))}</strong> Moroccans in {Y} by UN projection, and {urban.text} of them are town or city dwellers. Remittances brought in <strong>{remit.text}</strong> in {remit.year}, and {povNat.text} of Moroccans lived below the national poverty line at the {povNat.year} survey.</Fragment>
+  <div class="story-block prose">
+    <h2>Is Morocco a big receiver of remittances?</h2>
+    <p>One of the biggest: personal transfers into Morocco totalled {remit.text} during {remit.year}, a figure only fifteen countries exceed, worth {remitPct.text} of Moroccan GDP. More people still leave than arrive: the UN's {Y} net migration figure is {int(Number(net.value))}. See <a href={path('/country/morocco/population/')}>the Moroccan population page</a> for the live count.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>What share of Moroccans are poor?</h2>
+    <p>Counted against Morocco's own poverty line, {povNat.text} in {povNat.year}; only two of the {povNat.of} countries publishing such a rate report less. National lines differ from country to country, so this is not an international comparison of living standards. GDP, {gdp.text} in {gdp.year}, grew {growth.text}; more on <a href={path('/country/morocco/economy/')}>our Morocco economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many Moroccan homes have safe sanitation?</h2>
+    <p>Most have basic toilets, {sanBasic.text} in {sanBasic.year}, but just {sanSafe.text} use facilities where waste is safely managed, {ordinal(fromBottom(sanSafe))} lowest of {sanSafe.of} in the WHO/UNICEF monitoring.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Do most Moroccan women stay out of paid work?</h2>
+    <p>Four in five do. The ILO's {lfpF.year} participation rate for women is {lfpF.text}, {ordinal(fromBottom(lfpF))} from the bottom of {lfpF.of}, and account ownership among Moroccan women ({accF.text}) trails the adult average of {acc.text}. Median age: {age.text}.</p>
+  </div>
+</CountryHub>

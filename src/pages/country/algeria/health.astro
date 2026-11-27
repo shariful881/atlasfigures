@@ -1,0 +1,107 @@
+---
+// Algeria health (task 174). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/algeria.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), mat = st('maternal'), diab = st('diabetes'), tob = st('tobacco'), oop = st('oop'), measles = st('measles');
+const tb = st('tb'), doc = st('doctors'), hGdp = st('healthGdp'), hPc = st('healthPc'), infant = st('infant');
+const U = u5.year!;
+
+assertClaim(fromTop(diab) === 26 && Number(diab.value) > 2 * v('diabetesPct', 2011), 'diabetes 26th, more than double 2011');
+const tobs = s.tobaccoPct.map((x) => x[1]);
+assertClaim(tobs.every((x, i) => i === 0 || x >= tobs[i - 1]) && tobs[tobs.length - 1] > tobs[0], 'tobacco use never fell between WHO estimates since 2000');
+const oopPeak = s.outOfPocketPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+const oop00 = v('outOfPocketPct', 2000);
+assertClaim(oopPeak[0] === 2022 && Number(oop.value) < oopPeak[1] && Number(oop.value) > 1.7 * oop00 && fromTop(oop) === 44, 'out-of-pocket peaked in 2022; now over 1.7 times 2000; 44th');
+const m90 = v('maternalMortality', 1990), m19 = v('maternalMortality', 2019), m20 = v('maternalMortality', 2020);
+assertClaim(m20 > 1.3 * m19 && Number(mat.value) < m19 && Number(mat.value) < m90 / 3, 'maternal ratio jumped in 2020, now below 2019 and under a third of 1990');
+const ms22 = v('measlesVaccPct', 2022), ms23 = v('measlesVaccPct', 2023);
+assertClaim(ms22 < 80 && ms23 > 98 && Number(measles.value) < ms23, 'measles under 80% in 2022, above 98% in 2023, lower again now');
+const u90 = v('under5Mortality', 1990), tb00 = v('tbIncidence', 2000);
+assertClaim(Number(u5.value) < u90 / 2.3 && Number(tb.value) < tb00 / 2, 'under-five under 1/2.3 of 1990; TB under half of 2000');
+
+assertClaim(Number(diab.value) > 15.5 && Number(diab.value) < 18.5, 'diabetes about one adult in six');
+const title = `Algeria Health Data ${U}: Diabetes, Smoking, Out-of-Pocket Costs, Mothers | AtlasFigures`;
+const description = `One Algerian adult in six has diabetes (${diab.text}), up from ${v('diabetesPct', 2011)}% in 2011. Tobacco reaches ${tob.text}, and patients settle ${oop.text} of medical bills themselves.`;
+
+const faq = [
+  { q: 'Is TB falling in Algeria?', a: `Yes, by more than half: ${tb00} cases per 100k Algerians in 2000, ${tb.text} in ${tb.year}, WHO's modelling shows.` },
+  { q: 'What is the doctor-to-population ratio in Algeria?', a: `${doc.text} physicians for each 1,000 residents in ${doc.year}.` },
+  { q: 'How much money goes into Algerian healthcare?', a: `${hPc.text} per person in ${hPc.year}, all sources combined, equal to ${hGdp.text} of GDP.` },
+  { q: 'How many Algerian infants die in their first year?', a: `UN IGME's ${U} figure is ${infant.text} deaths before the first birthday for every thousand babies.` },
+];
+const headline = `Algeria health ${U}: high diabetes, rising tobacco use, families paying more for care`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Algeria's health: diabetes doubles and patients pay more"
+  headline={headline}
+  tableTitle={`Algerian health, decade by decade to ${U}`}
+  tableSubtitle="Twelve benchmark years; the Algerian CSV carries every available year."
+  faq={faq}
+  faqTitle="Algerian health in short"
+  related={[
+    { href: '/country/algeria/', label: 'Algeria in figures' },
+    { href: '/country/algeria/population/', label: 'Algeria population and births' },
+    { href: '/country/morocco/health/', label: 'Morocco health' },
+    { href: '/country/egypt/health/', label: 'Egypt health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal mortality around the world' },
+  ]}
+>
+  <Fragment slot="answer">IDF modelling puts diabetes at <strong>{diab.text} of Algerian adults</strong> for {diab.year}. Smoking and chewing tobacco now reach {tob.text}, and families paid <strong>{oop.text}</strong> of all {oop.year} health costs from their own budgets.</Fragment>
+  <div class="story-block prose">
+    <h2>Does Algeria have a diabetes problem?</h2>
+    <p>A large one. The rate has climbed from {v('diabetesPct', 2011)}% in 2011 to {diab.text}, putting Algeria {ordinal(fromTop(diab))} of {diab.of} countries in the federation's comparison.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Has tobacco use in Algeria gone up since 2000?</h2>
+    <p>Slowly, yes. WHO's tobacco-use estimate has not fallen once since 2000, moving from {pct(tobs[0])} of adults to {tob.text} in {tob.year}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are Algerian families paying more for healthcare?</h2>
+    <p>Much more than in 2000, when patients' own payments were {pct(oop00)} of all spending. It topped out at {pct(oopPeak[1])} in {oopPeak[0]} and was {oop.text} in {oop.year}, {ordinal(fromTop(oop))} among {oop.of}.</p>
+  </div>
+  <LineChart
+    title={`Algeria: households' direct share of health costs since 2000`}
+    subtitle="Percent of current health expenditure paid directly by Algerian households (WHO Global Health Expenditure Database)."
+    points={s.outOfPocketPct.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="percent"
+    highlight={oop.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Are Algerian mothers and children safer than in 1990?</h2>
+    <p>Yes. Modelled maternal deaths went from {m90} for every 100k births in 1990 to {m19} in 2019, spiked to {m20} in 2020, and settled at {mat.text} in {mat.year}. Child mortality under five shrank from {u90} to {u5.text} per mille ({U}). Measles coverage slipped to {ms22}% in 2022, reached {ms23}% the next year and was {measles.text} in {measles.year}. Algeria's growing population is counted live on <a href={path('/country/algeria/population/')}>its own page</a>.</p>
+  </div>
+  <LineChart
+    title={`Mothers' deaths in Algeria from 1990 to ${mat.year}`}
+    subtitle="Algerian women dying from maternal causes for every 100,000 live births; MMEIG modelled series."
+    points={s.maternalMortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    unit="per 100,000 births"
+    highlight={mat.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+</HealthTopic>

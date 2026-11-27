@@ -1,0 +1,77 @@
+---
+// Afghanistan country hub (task 174). Every figure comes from the country profile (src/data/profiles/AFG.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/afghanistan.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { countryIndex, assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), tfr = st('population', 'fertility'), urban = st('population', 'urban');
+const births = st('population', 'births'), deaths = st('population', 'deaths');
+const gdpPc = st('economy', 'gdpPc'), hh = st('economy', 'hhCons'), infl = st('economy', 'inflation'), agri = st('economy', 'agriGdp');
+const lfpF = st('jobs', 'lfpF'), lit = st('education', 'literacy');
+const ren = st('energy', 'renShare'), ws = st('energy', 'wsShare');
+const acc = st('internet', 'account'), net = st('internet', 'internet'), lpi = st('internet', 'lpi');
+
+const big = countryIndex.countries.filter((c) => c.population > 30e6).map((c) => { const q = profile(c.iso3); return { iso3: c.iso3, r: Number(stat(q, 'population', 'births').value) / Number(stat(q, 'population', 'deaths').value) }; }).sort((a, b) => b.r - a.r);
+const ratio = Number(births.value) / Number(deaths.value);
+assertClaim(big.slice(0, 4).map((x) => x.iso3).join() === 'UGA,YEM,SAU,AFG' && ratio > 6, 'fourth-highest births per death above 30 million, over six');
+assertClaim(fromBottom(gdpPc) === 2 && fromTop(hh) === 4 && Number(hh.value) > 100 && fromBottom(infl) === 1 && Number(infl.value) < 0, 'GDP per person second lowest; consumption over 100% of GDP, fourth; lowest inflation, negative');
+const yem = stat(profile('YEM'), 'jobs', 'lfpF');
+assertClaim(fromBottom(lfpF) === 2 && fromBottom(yem) === 1 && fromBottom(lit) === 4, "women's participation second lowest after Yemen; literacy fourth lowest");
+assertClaim(fromTop(ws) === 7 && Number(ren.value) > 90, 'wind and solar seventh; renewables over 90%');
+assertClaim(fromBottom(acc) === 2 && fromBottom(net) === 8 && fromBottom(lpi) === 2 && fromTop(agri) === 6, 'accounts second lowest; internet eighth lowest; logistics second lowest; farm share of GDP sixth');
+
+const title = `Afghanistan in Figures ${Y}: Births, Poverty, Women's Work, Solar and Hydro | AtlasFigures`;
+const description = `Half of all Afghans are under ${age.text}, and births outnumber deaths more than six to one. Each resident's share of GDP was ${gdpPc.text} in ${gdpPc.year}; just ${lfpF.text} of Afghan women hold or seek a job.`;
+
+const faq = [
+  { q: 'Can Afghans save money in a bank?', a: `Very few do: Findex's ${acc.year} survey, its most recent for Afghanistan, found accounts held by ${acc.text} of over-15s, ${ordinal(fromBottom(acc))} from the bottom among ${acc.of}.` },
+  { q: 'Is Afghanistan connected to the internet?', a: `Barely: ITU reckons ${net.text} of Afghans went online in ${net.year}; only seven countries of ${net.of} sit lower.` },
+  { q: 'How does Afghanistan score on logistics?', a: `${lpi.text} on a scale of 1 to 5 in the ${lpi.year} Logistics Performance Index, a score beaten by every one of ${lpi.of} countries except one.` },
+  { q: 'How big is farming in the Afghan economy?', a: `Crops and livestock make up ${agri.text} of Afghan value added (${agri.year}), with only five economies more agricultural.` },
+];
+const headline = `Afghanistan in figures ${Y}: a very young population, low incomes and few women in paid work`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Afghanistan in figures: a nation of children, low incomes and renewable power"
+  headline={headline}
+  faq={faq}
+  faqTitle="Afghanistan: quick follow-ups"
+  related={[
+    { href: '/country/afghanistan/population/', label: 'Afghanistan population: live count' },
+    { href: '/country/afghanistan/economy/', label: 'Afghanistan economy: GDP and prices' },
+    { href: '/country/afghanistan/health/', label: 'Afghanistan health: mothers, newborns, costs' },
+    { href: '/country/pakistan/', label: 'Pakistan in figures' },
+    { href: '/country/iran/', label: 'Iran data hub' },
+    { href: '/country/india/', label: 'India at a glance' },
+    { href: '/rankings/female-labor-force-participation-by-country/', label: "Women's labour force participation" },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">By UN projection, <strong>{people(Number(pop.value))}</strong> people will live in Afghanistan in {Y}; the median Afghan is just {age.text}. GDP divided by headcount gave <strong>{gdpPc.text}</strong> for {gdpPc.year}; among women, {lfpF.text} are counted in the labour force.</Fragment>
+  <div class="story-block prose">
+    <h2>Just how young are Afghans?</h2>
+    <p>Very. The UN expects {int(Number(births.value))} births in {Y} and {int(Number(deaths.value))} deaths, a ratio among countries of 30 million-plus that only Uganda, Yemen and Saudi Arabia exceed. Average fertility stands at {tfr.text}, and barely a quarter of Afghans ({urban.text}) are urban dwellers; see <a href={path('/country/afghanistan/population/')}>our Afghan population page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is any country poorer per head than Afghanistan?</h2>
+    <p>Only one. Its {gdpPc.year} GDP per capita of {gdpPc.text} beats just one of {gdpPc.of} economies. What households consumed exceeded total output, at {hh.text} of GDP, and consumer prices fell {infl.text.replace('-', '')}, the lowest inflation reading anywhere that year. More on <a href={path('/country/afghanistan/economy/')}>the Afghanistan economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Do Afghan women have jobs outside the home?</h2>
+    <p>Almost none, statistically: ILO modelling for {lfpF.year} counts {lfpF.text} of adult Afghan women as working or job-hunting, a share undercut only by Yemen. UNESCO's {lit.year} adult literacy rate for Afghanistan was {lit.text}, {ordinal(fromBottom(lit))} lowest in its comparison.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Afghan electricity renewable?</h2>
+    <p>Mostly from renewable sources: {ren.text} of domestic generation in {ren.year}, Ember reports. Wind and solar alone produced {ws.text}, the {ordinal(fromTop(ws))} highest share of {ws.of}.</p>
+  </div>
+</CountryHub>

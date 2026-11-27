@@ -1,0 +1,106 @@
+---
+// Afghanistan health (task 174). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/afghanistan.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), neo = st('neonatal'), mat = st('maternal'), hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop');
+const beds = st('beds'), dpt = st('dpt'), under = st('undernour'), stunt = st('stunting'), mal = st('malaria'), tb = st('tb'), nurse = st('nurses'), diab = st('diabetes');
+const U = u5.year!;
+
+const m90 = v('maternalMortality', 1990);
+assertClaim(fromTop(mat) === 7 && Number(mat.value) < m90 / 2.9, 'maternal ratio seventh highest, under 1/2.9 of 1990');
+const hPeak = s.healthSpendPctGdp.reduce((a, b) => (b[1] > a[1] ? b : a));
+assertClaim(fromTop(hGdp) === 4 && hPeak[0] === 2022 && hPeak[1] > 23 && fromTop(oop) === 4 && Number(oop.value) > 75, 'health share fourth, peak 2022 above 23%; out-of-pocket fourth, over 75%');
+const u90 = v('under5Mortality', 1990);
+assertClaim(fromTop(neo) === 6 && Number(u5.value) < u90 / 3 && fromBottom(dpt) === 8 && fromBottom(beds) === 6, 'newborn rate sixth highest; under-five under a third of 1990; DPT eighth lowest; beds sixth lowest');
+const uLow = s.undernourishedPct.filter(([y]) => y >= 2005).reduce((a, b) => (b[1] < a[1] ? b : a));
+const u22 = v('undernourishedPct', 2022);
+assertClaim(uLow[0] === 2009 && u22 > 1.8 * uLow[1] && Number(under.value) < u22 && fromTop(under) === 12 && fromTop(stunt) === 7, 'undernourishment low 2009, 2022 over 1.8 times, lower now; 12th; stunting seventh');
+const malLow = s.malariaIncidence.reduce((a, b) => (b[1] < a[1] ? b : a));
+assertClaim(malLow[0] === 2021 && Number(mal.value) > 2.5 * malLow[1], 'malaria lowest in 2021, now over 2.5 times that');
+
+assertClaim(Number(neo.value) > 30 && Number(neo.value) < 36 && Number(oop.value) > 72 && Number(oop.value) < 78 && Number(diab.value) > 10, 'newborn deaths about one in thirty; out-of-pocket about three quarters; diabetes over one in ten');
+const title = `Afghanistan Health Statistics ${U}: Childbirth Risk, Newborns, Costs, Hunger | AtlasFigures`;
+const description = `Afghanistan's maternal ratio, ${mat.text} (${mat.year}), ranks seventh worst in the world. Health took ${hGdp.text} of GDP, three quarters of it (${oop.text}) paid by patients.`;
+
+const faq = [
+  { q: 'Has malaria come back in Afghanistan?', a: `It has risen since ${malLow[0]}, when WHO's rate bottomed at ${malLow[1]}; by ${mal.year} it stood at ${mal.text} among every thousand Afghans exposed.` },
+  { q: 'Is TB a major problem in Afghanistan?', a: `Yes. WHO's ${tb.year} incidence estimate of ${tb.text} per 100k ranks ${ordinal(fromTop(tb))} of ${tb.of}.` },
+  { q: 'Is there a shortage of nursing staff in Afghanistan?', a: `Staff numbers are thin: ${nurse.text} nurses and midwives for every thousand residents, WHO reports for ${nurse.year}.` },
+  { q: 'Is diabetes widespread among Afghans?', a: `More than one adult in ten: ${diab.text}, IDF modelling for ${diab.year}.` },
+];
+const headline = `Afghanistan health ${U}: very high maternal and newborn deaths, costly care, widespread hunger`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Afghanistan's health: risky births and costly care"
+  headline={headline}
+  tableTitle={`Afghan health record from 1990 to ${U}`}
+  tableSubtitle="Key years only; every Afghan data point downloads in the CSV."
+  faq={faq}
+  faqTitle="Afghan health: other questions"
+  related={[
+    { href: '/country/afghanistan/', label: 'Afghanistan in figures' },
+    { href: '/country/afghanistan/population/', label: 'Afghanistan population and births' },
+    { href: '/country/pakistan/health/', label: 'Pakistan health' },
+    { href: '/country/iran/health/', label: 'Iran health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal mortality ranking' },
+  ]}
+>
+  <Fragment slot="answer">Childbearing remains perilous in Afghanistan: <strong>{mat.text} maternal deaths</strong> for each hundred thousand live births, MMEIG estimates for {mat.year}. Healthcare consumes <strong>{hGdp.text} of GDP</strong>, {ordinal(fromTop(hGdp))} highest, and the people treated cover {oop.text} of costs themselves.</Fragment>
+  <div class="story-block prose">
+    <h2>Is childbirth dangerous in Afghanistan?</h2>
+    <p>Very. Only six of {mat.of} countries have a worse maternal ratio than Afghanistan's {mat.text}, though that figure is far below the {int(m90)} modelled for 1990.</p>
+  </div>
+  <LineChart
+    title={`Afghan mothers lost per 100,000 births since 1990`}
+    subtitle="Afghan maternal mortality ratio per 100,000 live births, modelled by the UN MMEIG."
+    points={s.maternalMortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    unit="per 100,000 births"
+    highlight={mat.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How much of Afghanistan's economy goes on health?</h2>
+    <p>An unusually large slice: {hGdp.text} in {hGdp.year}, having touched {pct(hPeak[1])} in {hPeak[0]}, though in cash terms it amounts to just {hPc.text} per Afghan. Three dollars in four come straight from families' pockets ({oop.text}), with only three countries relying more on such payments.</p>
+  </div>
+  <LineChart
+    title={`How much of Afghan GDP goes to health, 2002–${hGdp.year}`}
+    subtitle="All Afghan health outlays, public and private, as a share of gross domestic product; WHO health accounts."
+    points={s.healthSpendPctGdp.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="percent"
+    highlight={hGdp.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How many Afghan newborns die in their first month?</h2>
+    <p>About one in thirty: {neo.text} of every thousand born in {U} died within four weeks, {ordinal(fromTop(neo))} worst. Before age five the toll is {u5.text}, against {u90} in 1990. Only {dpt.text} of babies completed the DPT series ({ordinal(fromBottom(dpt))} lowest), and hospitals had {beds.text} beds per thousand Afghans.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is hunger increasing in Afghanistan?</h2>
+    <p>It rose sharply after {uLow[0]}, when FAO's undernourishment estimate was {uLow[1]}%, to {u22}% in 2022, and was {under.text} in {under.year} ({ordinal(fromTop(under))} highest). Stunting, a sign of chronic undernutrition, affected {stunt.text} of young children in {stunt.year}. For births and population growth, open <a href={path('/country/afghanistan/population/')}>the Afghan population counter</a>.</p>
+  </div>
+</HealthTopic>

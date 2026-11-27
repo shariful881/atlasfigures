@@ -1,0 +1,103 @@
+---
+// Spain health (task 174). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/spain.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct, dec } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), mat = st('maternal'), neo = st('neonatal'), tob = st('tobacco'), hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop');
+const doc = st('doctors'), nurse = st('nurses'), road = st('road'), tb = st('tb'), measles = st('measles'), diab = st('diabetes');
+const U = u5.year!;
+
+assertClaim(fromBottom(mat) === 8 && fromBottom(neo) === 19, 'maternal ratio eighth lowest; newborn 19th lowest');
+assertClaim(s.under5Mortality.filter(([y]) => y >= 2017).every(([, x]) => x === Number(u5.value)) && v('under5Mortality', 2016) > Number(u5.value), 'under-five rate unchanged since 2017');
+const tobs = s.tobaccoPct.map((x) => x[1]);
+assertClaim(tobs.every((x, i) => i === 0 || x < tobs[i - 1]) && fromTop(tob) === 39 && Number(tob.value) > 25, 'tobacco fell at every estimate since 2000; 39th');
+const hPeak = s.healthSpendPctGdp.reduce((a, b) => (b[1] > a[1] ? b : a));
+assertClaim(hPeak[0] === 2020 && Number(hGdp.value) < hPeak[1] - 1.5 && fromTop(hPc) === 30, 'health share peaked in 2020, now 1.5+ points lower; per person 30th');
+const d00 = v('doctorsPer1000', 2000);
+assertClaim(Number(doc.value) > 1.35 * d00 && fromTop(doc) === 24 && Number(nurse.value) > 1.4 * Number(doc.value), 'doctors up over 35% since 2000, 24th; more than 1.4 nurses per doctor');
+assertClaim(fromBottom(road) === 16 && Number(tb.value) < v('tbIncidence', 2000) / 3, 'road deaths 16th lowest; TB under a third of 2000');
+
+assertClaim(Number(diab.value) > 9 && Number(diab.value) < 11, 'diabetes roughly one adult in ten');
+const title = `Spain Health Data ${U}: Safe Births, Smoking, Health Spending, Doctors | AtlasFigures`;
+const description = `Only seven countries record fewer maternal deaths per birth than Spain (${mat.text} per 100,000). Tobacco still reaches ${tob.text} of adults, and the health sector took ${hGdp.text} of GDP in ${hGdp.year}.`;
+
+const faq = [
+  { q: 'Are Spanish roads safe?', a: `Among the safest anywhere, with ${road.text} traffic fatalities per 100k Spaniards in ${road.year}; fifteen countries do better.` },
+  { q: 'Is tuberculosis still found in Spain?', a: `Occasionally: about ${tb.text} cases per 100k in ${tb.year}, down from ${v('tbIncidence', 2000)} in 2000.` },
+  { q: 'Are Spanish toddlers vaccinated against measles?', a: `Nearly all: coverage with the first dose stood at ${measles.text} in ${measles.year}.` },
+  { q: 'What share of Spaniards have diabetes?', a: `Roughly one adult in ten (${diab.text}, ${diab.year}), per IDF modelling.` },
+];
+const headline = `Spain health ${U}: very low maternal deaths, slowly falling tobacco use, more doctors`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Spain's health: safe births, stubborn smoking"
+  headline={headline}
+  tableTitle={`Spanish health in numbers, 1990 to ${U}`}
+  tableSubtitle="Selected milestones; download the CSV for all Spanish years."
+  faq={faq}
+  faqTitle="Spanish health facts"
+  related={[
+    { href: '/country/spain/', label: 'Spain in figures' },
+    { href: '/country/spain/population/', label: 'Spain population and ageing' },
+    { href: '/country/france/health/', label: 'France health' },
+    { href: '/country/italy/health/', label: 'Italy health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal deaths by country' },
+  ]}
+>
+  <Fragment slot="answer">Spanish mothers face very low risk: <strong>{mat.text} maternal deaths per hundred thousand births</strong> ({mat.year}), {ordinal(fromBottom(mat))} best worldwide. Tobacco still reaches <strong>{tob.text}</strong> of the adult population, and health outlays come to {hPc.text} a head.</Fragment>
+  <div class="story-block prose">
+    <h2>How safe is childbirth in Spain?</h2>
+    <p>Very safe. Beyond the low maternal ratio, newborn deaths run at {neo.text} per thousand ({ordinal(fromBottom(neo))} lowest), and the under-five rate has been flat at {u5.text} from 2017 onward.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Do many Spaniards still smoke?</h2>
+    <p>Over a quarter of adults do: {tob.text} in {tob.year}, {ordinal(fromTop(tob))} highest of {tob.of}. Still, the trend is steadily down, each successive WHO estimate below its predecessor, from {pct(tobs[0])} in 2000.</p>
+  </div>
+  <LineChart
+    title={`Spanish adults using tobacco, 2000–${tob.year}`}
+    subtitle="Spanish residents 15 and older who use tobacco, age-standardised percent from WHO."
+    points={s.tobaccoPct.map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={tob.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Did Spanish health spending fall after 2020?</h2>
+    <p>As a share of output, yes: from {pct(hPeak[1])} in {hPeak[0]} to {hGdp.text} in {hGdp.year}. Per resident that is {hPc.text} ({ordinal(fromTop(hPc))}), and households cover {oop.text} directly.</p>
+  </div>
+  <LineChart
+    title={`Spanish health outlays relative to GDP, 2000 onward`}
+    subtitle="Public plus private spending on health in Spain, in percent of economic output; WHO accounts."
+    points={s.healthSpendPctGdp.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="percent"
+    highlight={hGdp.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Does Spain have more doctors than in 2000?</h2>
+    <p>Yes: {doc.text} for every thousand Spaniards in {doc.year}, compared with {dec(d00, 1)} in 2000, ranking {ordinal(fromTop(doc))}, plus {nurse.text} nurses. Ageing trends feature on <a href={path('/country/spain/population/')}>Spain's population tracker</a>.</p>
+  </div>
+</HealthTopic>

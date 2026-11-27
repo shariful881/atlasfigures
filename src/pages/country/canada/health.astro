@@ -1,0 +1,102 @@
+---
+// Canada health (task 174). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/canada.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), mat = st('maternal'), tob = st('tobacco'), hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop');
+const nurse = st('nurses'), doc = st('doctors'), tb = st('tb'), road = st('road'), diab = st('diabetes');
+const U = u5.year!;
+
+const t00 = v('tobaccoPct', 2000);
+assertClaim(Number(tob.value) < 0.4 * t00 && fromBottom(tob) === 40, 'tobacco use down by more than 60% since 2000; 40th lowest');
+const mPeak = s.maternalMortality.reduce((a, b) => (b[1] > a[1] ? b : a)), m90 = v('maternalMortality', 1990);
+assertClaim(mPeak[0] === 2020 && Number(mat.value) < mPeak[1] && Number(mat.value) > m90, 'maternal ratio peaked in 2020, now lower but above 1990');
+assertClaim(fromTop(hGdp) === 14 && fromTop(hPc) === 15 && Number(oop.value) < 16, 'health share 14th, per person 15th; out-of-pocket under 16%');
+const uLow = s.under5Mortality.reduce((a, b) => (b[1] < a[1] ? b : a)), tbLow = s.tbIncidence.reduce((a, b) => (b[1] < a[1] ? b : a));
+assertClaim(uLow[0] === 2017 && Number(u5.value) > uLow[1] && v('under5Mortality', 2021) === uLow[1] && tbLow[0] === 2010 && Number(tb.value) > 1.2 * tbLow[1], 'under-five lowest from 2017, higher now; TB lowest in 2010, now over 1.2 times');
+assertClaim(fromTop(nurse) === 18 && Number(nurse.value) > 3.5 * Number(doc.value) && fromBottom(road) === 29, 'nurses 18th, over 3.5 per doctor; road deaths 29th lowest');
+
+const title = `Canada Health Data ${U}: Smoking Decline, Maternal Deaths, Spending | AtlasFigures`;
+const description = `Canadian tobacco use dropped from ${pct(t00)} in 2000 to ${tob.text}. Health outlays reach ${hPc.text} a head, yet maternal deaths per birth now exceed the 1990 level.`;
+
+const faq = [
+  { q: 'How many nurses work in Canada?', a: `${nurse.text} per 1,000 inhabitants in ${nurse.year}, compared with ${doc.text} doctors.` },
+  { q: 'Is TB still rare in Canada?', a: `Rare but edging up: ${tb.text} cases for every 100k residents (${tb.year}), compared with a low of ${tbLow[1]} in ${tbLow[0]}.` },
+  { q: 'How safe are Canadian roads?', a: `WHO counted ${road.text} road deaths per 100,000 in ${road.year}, the ${ordinal(fromBottom(road))} lowest rate.` },
+  { q: 'How prevalent is diabetes in Canada?', a: `The IDF model gives ${diab.text} of grown-ups for ${diab.year}.` },
+];
+const headline = `Canada health ${U}: tobacco use cut by more than half, high spending, maternal deaths above 1990`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Canada's health: fewer smokers, costlier care"
+  headline={headline}
+  tableTitle={`Canadian health trends, 1990–${U}`}
+  tableSubtitle="Benchmark years shown; each Canadian year is in the CSV file."
+  faq={faq}
+  faqTitle="Canada's health, briefly"
+  related={[
+    { href: '/country/canada/', label: 'Canada in figures' },
+    { href: '/country/canada/population/', label: 'Canada population and immigration' },
+    { href: '/country/united-states/health/', label: 'United States health' },
+    { href: '/country/united-kingdom/health/', label: 'United Kingdom health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal mortality worldwide' },
+  ]}
+>
+  <Fragment slot="answer">Tobacco reaches just <strong>{tob.text} of Canadians</strong> aged 15+ ({tob.year}), compared with {pct(t00)} in 2000. Spending of <strong>{hPc.text} a head</strong> ({hPc.year}) ranks {ordinal(fromTop(hPc))}, but the maternal ratio, {mat.text}, sits above 1990's {m90}.</Fragment>
+  <div class="story-block prose">
+    <h2>How much has smoking fallen in Canada?</h2>
+    <p>By more than three fifths since 2000, on WHO's estimates, to {tob.text} in {tob.year}, the {ordinal(fromBottom(tob))} lowest rate of {tob.of}.</p>
+  </div>
+  <LineChart
+    title={`Tobacco use among Canadians, 2000–${tob.year}`}
+    subtitle="Percent of Canadians aged 15+ using any tobacco product, age-standardised WHO estimates."
+    points={s.tobaccoPct.map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={tob.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is maternal mortality rising in Canada?</h2>
+    <p>Compared with 1990, yes. MMEIG modelling shows {m90} Canadian maternal deaths for each 100k births that year, a high of {mPeak[1]} in {mPeak[0]} and {mat.text} in {mat.year}.</p>
+  </div>
+  <LineChart
+    title={`Pregnancy-related deaths in Canada since 1990`}
+    subtitle="UN inter-agency (MMEIG) estimate of women dying from pregnancy-related causes in Canada."
+    points={s.maternalMortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    unit="per 100,000 births"
+    highlight={mat.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is Canadian healthcare expensive?</h2>
+    <p>By global standards, yes. Canadians devoted {hGdp.text} of national income to health in {hGdp.year}, exceeded in thirteen countries; individuals' direct payments made up {oop.text}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Have child deaths stopped falling in Canada?</h2>
+    <p>They have edged up since 2021. Under-five mortality first hit a floor of {uLow[1]} per thousand in {uLow[0]}, stayed there to 2021, and stood at {u5.text} by {U}. How immigration drives Canada's numbers is shown at <a href={path('/country/canada/population/')}>its population counter</a>.</p>
+  </div>
+</HealthTopic>

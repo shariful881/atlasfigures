@@ -1,0 +1,106 @@
+---
+// Iraq health (task 174). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/iraq.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), mat = st('maternal'), oop = st('oop'), tb = st('tb'), doc = st('doctors'), nurse = st('nurses');
+const diab = st('diabetes'), road = st('road'), under = st('undernour'), neo = st('neonatal');
+const U = u5.year!;
+
+const since12 = s.outOfPocketPct.filter(([y]) => y >= 2012);
+const over = since12.filter(([, x]) => x > 50).length;
+const oopPeak = s.outOfPocketPct.reduce((a, b) => (b[1] > a[1] ? b : a));
+assertClaim(over === 10 && since12.length === 12 && oopPeak[0] === 2015 && fromTop(oop) === 27, 'out-of-pocket above half in ten of twelve years from 2012; peak 2015; 27th');
+const u00 = v('under5Mortality', 2000);
+const uf = s.under5Mortality.filter(([y]) => y >= 2000).map((x) => x[1]);
+assertClaim(Number(u5.value) < u00 / 2 && uf.every((x, i) => i === 0 || x < uf[i - 1]), 'under-five rate less than half of 2000, falling every year');
+const tbPeak = s.tbIncidence.reduce((a, b) => (b[1] > a[1] ? b : a)), tbLow = s.tbIncidence.reduce((a, b) => (b[1] < a[1] ? b : a));
+assertClaim(tbPeak[0] === 2002 && tbLow[0] === 2020 && Number(tb.value) > tbLow[1] && Number(tb.value) < tbPeak[1] / 3, 'TB peaked 2002, low 2020, now above the low but under a third of the peak');
+const docs = s.doctorsPer1000.filter(([y]) => y >= 2018);
+assertClaim(docs.every((x, i) => i === 0 || x[1] > docs[i - 1][1]) && Number(doc.value) === Math.max(...s.doctorsPer1000.map((x) => x[1])) && Number(nurse.value) > 2.5 * Number(doc.value), 'doctors rose every year from 2018, at a record; over 2.5 nurses per doctor');
+assertClaim(fromTop(road) === 38 && fromTop(diab) === 42 && Number(mat.value) > v('maternalMortality', 2022), 'road deaths 38th; diabetes 42nd; maternal ratio up from 2022');
+
+const title = `Iraq Health Data ${U}: Out-of-Pocket Costs, Child Deaths, TB, Doctors | AtlasFigures`;
+const description = `Iraqi households paid ${oop.text} of health spending themselves in ${oop.year}. Child mortality before five has halved since 2000 (now ${u5.text}), while TB fell to ${tb.text} per 100,000.`;
+
+const faq = [
+  { q: 'What share of Iraqi adults live with diabetes?', a: `IDF's ${diab.year} modelling says ${diab.text}, ranking Iraq ${ordinal(fromTop(diab))} of ${diab.of}.` },
+  { q: 'How deadly are Iraqi roads?', a: `Traffic crashes killed ${road.text} Iraqis per 100k in ${road.year} on WHO's estimate, ${ordinal(fromTop(road))} worst of ${road.of}.` },
+  { q: 'Is hunger common in Iraq?', a: `FAO's three-year average for ${under.year} classes ${under.text} of Iraqis as undernourished.` },
+  { q: 'Are maternal deaths rising in Iraq?', a: `The latest MMEIG figure, ${mat.text} for ${mat.year}, is above the ${v('maternalMortality', 2022)} of the year before.` },
+];
+const headline = `Iraq health ${U}: patients paying half the bill, fewer child deaths, more doctors`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Iraq's health: families pay half, children survive longer"
+  headline={headline}
+  tableTitle={`Iraq's health data table, 1990 through ${U}`}
+  tableSubtitle="Sampled years in the table; the CSV lists Iraq year by year."
+  faq={faq}
+  faqTitle="Iraq's health, quickly"
+  related={[
+    { href: '/country/iraq/', label: 'Iraq in figures' },
+    { href: '/country/iraq/population/', label: 'Iraq population and births' },
+    { href: '/country/iran/health/', label: 'Iran health' },
+    { href: '/country/turkey/health/', label: 'Turkey health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Under-five mortality worldwide' },
+  ]}
+>
+  <Fragment slot="answer">Iraqi patients paid <strong>{oop.text}</strong> of the country's {oop.year} health costs directly. Mortality before age five, <strong>{u5.text} per thousand</strong> in {U}, is under half its 2000 level, and {neo.text} babies per thousand die in their first month.</Fragment>
+  <div class="story-block prose">
+    <h2>Do Iraqis pay for healthcare out of pocket?</h2>
+    <p>For about half of it. In {over} of the {since12.length} years from 2012, direct payments made up more than half of spending, with a peak of {pct(oopPeak[1])} in {oopPeak[0]}; the {oop.year} figure of {oop.text} ranks {ordinal(fromTop(oop))} of {oop.of}.</p>
+  </div>
+  <LineChart
+    title={`Share of Iraqi health spending paid by patients, 2003–${oop.year}`}
+    subtitle="Direct medical payments by Iraqi households as a percentage of total health outlays; WHO."
+    points={s.outOfPocketPct.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="percent"
+    highlight={oop.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Has Iraq's under-five mortality kept falling?</h2>
+    <p>Without interruption: UN IGME's estimate is lower in each successive year from 2000, taking the rate from {u00} to {u5.text} per mille in {U}.</p>
+  </div>
+  <LineChart
+    title={`Iraqi under-five mortality since 2000`}
+    subtitle="UN IGME estimate of Iraqi under-five deaths for every 1,000 births."
+    points={s.under5Mortality.filter(([y]) => y >= 2000).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 births"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is TB less common in Iraq than in 2002?</h2>
+    <p>Sharply. WHO's incidence estimate peaked at {tbPeak[1]} per 100,000 in {tbPeak[0]}, bottomed at {tbLow[1]} in {tbLow[0]} and was {tb.text} in {tb.year}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is the number of Iraqi doctors per person rising?</h2>
+    <p>Yes: {doc.text} physicians per 1,000 in {doc.year}, after a rise in each year from 2018, the best ratio on record, alongside {nurse.text} nurses per thousand. The live headcount sits on <a href={path('/country/iraq/population/')}>Iraq's population counter</a>.</p>
+  </div>
+</HealthTopic>

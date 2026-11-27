@@ -1,0 +1,79 @@
+---
+// Algeria country hub (task 174). Every figure comes from the country profile (src/data/profiles/DZA.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/algeria.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { countryIndex, assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), tfr = st('population', 'fertility'), urban = st('population', 'urban');
+const births = st('population', 'births'), deaths = st('population', 'deaths');
+const land = st('facts', 'landArea'), forest = st('environment', 'forestPct');
+const fossil = st('energy', 'fossilShare'), ren = st('energy', 'renShare');
+const extPct = st('economy', 'extDebtPct'), sav = st('economy', 'savings'), gdp = st('economy', 'gdp');
+const lfpF = st('jobs', 'lfpF'), accF = st('internet', 'accountF'), acc = st('internet', 'account');
+const edu = st('education', 'eduSpend'), ind = st('jobs', 'empInd');
+
+const afr = countryIndex.countries.filter((c) => c.region === 'Africa').map((c) => ({ iso3: c.iso3, a: (() => { try { return Number(stat(profile(c.iso3), 'facts', 'landArea').value); } catch { return 0; } })() })).sort((a, b) => b.a - a.a);
+assertClaim(afr[0].iso3 === 'DZA', 'largest land area in Africa');
+assertClaim(fromTop(land) === 10 && fromBottom(forest) === 14 && Number(forest.value) < 1, 'tenth-largest land area; forest under 1% of land, 14th lowest');
+assertClaim(fromTop(fossil) === 5 && Number(fossil.value) > 98, 'fossil fuels over 98% of electricity, fifth-highest share');
+assertClaim(fromBottom(extPct) === 2 && fromTop(sav) === 11, 'external debt second-lowest share of GNI; savings 11th');
+assertClaim(fromBottom(lfpF) === 6 && Number(lfpF.value) < 15 && fromBottom(accF) === 5, "women's participation sixth lowest, under 15%; women with accounts fifth lowest");
+assertClaim(fromTop(edu) === 5 && fromTop(ind) === 11, 'education spending fifth; industry jobs 11th');
+assertClaim(Number(births.value) > 3.5 * Number(deaths.value), 'births more than three and a half times deaths');
+
+assertClaim(Number(urban.value) > 74 && Number(urban.value) < 78, 'about three in four urban');
+const title = `Algeria in Figures ${Y}: Africa's Largest Land, Fossil Power, Low Debt, Women at Work | AtlasFigures`;
+const description = `With ${land.text} km², Algeria is Africa's biggest country and tenth by land worldwide; trees cover ${forest.text}. Its power stations burn fossil fuels for ${fossil.text} of output, while only ${lfpF.text} of Algerian women have or seek a job.`;
+
+const faq = [
+  { q: 'Does Algeria invest heavily in education?', a: `Yes, by international standards. State education outlays equalled ${edu.text} of output in ${edu.year}; UNESCO's comparison of ${edu.of} countries puts just four ahead.` },
+  { q: 'Is industry a big employer in Algeria?', a: `Yes. ILO modelling puts ${ind.text} of Algerian workers in industry for ${ind.year}, ${ordinal(fromTop(ind))} of ${ind.of}.` },
+  { q: 'How many Algerians are city or town dwellers?', a: `Three in four Algerians count as urban residents, ${urban.text} in ${Y} by the national yardstick that UN demographers record.` },
+  { q: 'Do births still outnumber deaths in Algeria?', a: `Comfortably. Projected Algerian births for ${Y} total ${int(Number(births.value))}, set against ${int(Number(deaths.value))} deaths; fertility is ${tfr.text}.` },
+];
+const headline = `Algeria in figures ${Y}: the biggest land area in Africa, fossil power, little foreign debt`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Algeria in figures: Africa's largest country and a grid run on fossil fuels"
+  headline={headline}
+  faq={faq}
+  faqTitle="Algeria, four more answers"
+  related={[
+    { href: '/country/algeria/population/', label: 'Algeria population: live count' },
+    { href: '/country/algeria/economy/', label: 'Algeria economy: GDP and prices' },
+    { href: '/country/algeria/health/', label: 'Algeria health: diabetes, mothers, TB' },
+    { href: '/country/morocco/', label: 'Morocco in figures' },
+    { href: '/country/egypt/', label: 'Egypt data hub' },
+    { href: '/country/sudan/', label: 'Sudan at a glance' },
+    { href: '/rankings/land-area-by-country/', label: 'Land area by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Some <strong>{people(Number(pop.value))}</strong> Algerians live, as of {Y} on UN projections, on <strong>{land.text} km²</strong> of land, more than any other African country. Fossil fuels generate {fossil.text} of its power, and foreign debt is tiny next to national income.</Fragment>
+  <div class="story-block prose">
+    <h2>How large is Algeria?</h2>
+    <p>Huge: FAO lists {land.text} square kilometres of land, {ordinal(fromTop(land))} most of {land.of} countries. Woodland is scarce, covering {forest.text} of that area in {forest.year}, which is the {ordinal(fromBottom(forest))} smallest forest share recorded.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How little of Algeria's electricity is renewable?</h2>
+    <p>Next to none. Ember attributes just {ren.text} of Algerian generation in {ren.year} to renewable sources; coal, gas and other fossil plants account for {fossil.text}, a share exceeded in four countries only.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much foreign debt does Algeria carry?</h2>
+    <p>Very little. External obligations equalled {extPct.text} of GNI in {extPct.year}; among {extPct.of} countries filing debt data with the World Bank, only one owed less relative to income. Algerians saved {sav.text} of GDP that year, and output came to {gdp.text}. Growth and prices are charted on <a href={path('/country/algeria/economy/')}>our page on Algeria's economy</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are Algerian women largely outside the job market?</h2>
+    <p>The ILO's {lfpF.year} activity rate for Algerian women, {lfpF.text}, is the {ordinal(fromBottom(lfpF))} lowest in the ILO's {lfpF.of}-country series. Financial inclusion follows the same pattern: {accF.text} of women had an account in Findex's survey, against {acc.text} across all adults. Median age is {age.text}; <a href={path('/country/algeria/population/')}>Algeria's population tracker</a> has the live estimate.</p>
+  </div>
+</CountryHub>

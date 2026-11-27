@@ -1,0 +1,77 @@
+---
+// Spain country hub (task 174). Every figure comes from the country profile (src/data/profiles/ESP.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/spain.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { countryIndex, assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), life = st('population', 'lifeExp'), grow = st('population', 'growth');
+const births = st('population', 'births'), deaths = st('population', 'deaths'), net = st('population', 'netMigrants'), mig = st('population', 'migrantStock');
+const ws = st('energy', 'wsShare'), ren = st('energy', 'renShare');
+const gdp = st('economy', 'gdp'), tour = st('trade', 'tourists'), ports = st('internet', 'ports'), air = st('internet', 'air');
+const parl = st('governance', 'womenParl'), mat = st('health', 'maternal'), ter = st('education', 'enrTer');
+
+const big = countryIndex.countries.filter((c) => c.population > 30e6).map((c) => { const q = profile(c.iso3); return { iso3: c.iso3, a: Number(stat(q, 'population', 'medianAge').value), e: Number(stat(q, 'population', 'lifeExp').value) }; });
+const byAge = [...big].sort((a, b) => b.a - a.a), byLife = [...big].sort((a, b) => b.e - a.e);
+assertClaim(byAge.slice(0, 3).map((x) => x.iso3).join() === 'JPN,ITA,ESP', 'third-oldest median age above 30 million, after Japan and Italy');
+assertClaim(byLife.slice(0, 4).map((x) => x.iso3).join() === 'JPN,KOR,ITA,ESP', 'fourth-longest life expectancy above 30 million');
+const natural = Number(deaths.value) - Number(births.value);
+assertClaim(natural > Number(net.value) && Number(net.value) > 0 && Number(grow.value) < 0 && fromTop(mig) === 6, 'natural decrease larger than net immigration, so shrinking; migrant stock sixth');
+assertClaim(fromTop(ws) === 9 && Number(ws.value) > 40, 'wind and solar over 40% of power, ninth');
+assertClaim(fromTop(gdp) === 12 && fromTop(tour) === 8 && tour.year === 2020 && fromTop(ports) === 10, 'GDP 12th; tourists 8th (2020); container ports tenth');
+assertClaim(fromTop(parl) === 18 && fromBottom(mat) === 8 && fromTop(air) === 11 && fromTop(ter) === 13, 'women MPs 18th; maternal eighth lowest; air passengers 11th; tertiary 13th');
+
+const title = `Spain in Figures ${Y}: Ageing, Immigration, Wind and Solar, Tourism | AtlasFigures`;
+const description = `Among nations of 30 million or more, only Japan and Italy are older than Spain (median ${age.text}). Deaths outnumber births in ${Y}; wind and solar give ${ws.text} of its electricity.`;
+
+const faq = [
+  { q: 'Is Spain\'s parliament close to gender parity?', a: `Close: women held ${parl.text} of Congress of Deputies seats in ${parl.year}, ${ordinal(fromTop(parl))} among ${parl.of} national chambers.` },
+  { q: 'Is giving birth safe in Spain?', a: `Exceptionally. Spanish maternal mortality, modelled at ${mat.text} per 100,000 births for ${mat.year}, is lower in only seven countries.` },
+  { q: 'How busy are Spanish airports?', a: `Carriers registered in Spain flew ${int(Number(air.value))} passengers in ${air.year}, ${ordinal(fromTop(air))} most of ${air.of} countries.` },
+  { q: 'How many young Spaniards enter higher education?', a: `University and college enrolment equalled ${ter.text} of the age group in ${ter.year}, ${ordinal(fromTop(ter))} of ${ter.of}.` },
+];
+const headline = `Spain in figures ${Y}: one of the oldest large populations, held up by immigration`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Spain in figures: long lives, few births and sunshine on the grid"
+  headline={headline}
+  faq={faq}
+  faqTitle="More about Spain in brief"
+  related={[
+    { href: '/country/spain/population/', label: 'Spain population: live count' },
+    { href: '/country/spain/economy/', label: 'Spain economy: GDP and inflation' },
+    { href: '/country/spain/health/', label: 'Spain health: doctors, nurses, smoking' },
+    { href: '/country/france/', label: 'France in figures' },
+    { href: '/country/italy/', label: 'Italy data hub' },
+    { href: '/country/morocco/', label: 'Morocco at a glance' },
+    { href: '/rankings/immigrant-population-by-country/', label: 'Immigrant population by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">There are <strong>{people(Number(pop.value))}</strong> Spaniards in the UN's {Y} projection, a number slipping {grow.text.replace('-', '')} annually. Half of Spaniards are older than <strong>{age.text}</strong>, and wind turbines plus solar panels met {ws.text} of electricity demand in {ws.year}.</Fragment>
+  <div class="story-block prose">
+    <h2>Are Spaniards among the world's oldest populations?</h2>
+    <p>Yes. In the club of nations above 30 million, Spain's median age ({age.text}) is beaten only by Japan and Italy. A Spanish baby can expect {life.text} years, fourth in that club after Japan, South Korea and Italy.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Does Spain have more deaths than births?</h2>
+    <p>Yes: {int(Number(deaths.value))} funerals against {int(Number(births.value))} births in the UN's {Y} projection, a shortfall bigger than the {int(Number(net.value))} migrants Spain gains on balance. Residents born outside Spain totalled {people(Number(mig.value))} in {mig.year}, sixth most of any country. A running estimate appears on <a href={path('/country/spain/population/')}>Spain's population counter</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Spain a wind and solar leader?</h2>
+    <p>Ember's {ws.year} data credit wind and solar with {ws.text}, a share topped by eight of the {ws.of} countries it tracks monthly. All renewable sources together reached {ren.text}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Where does the Spanish economy stand globally?</h2>
+    <p>{gdp.text} in {gdp.year}, placing Spain {ordinal(fromTop(gdp))}. Even in pandemic-hit {tour.year}, {people(Number(tour.value))} foreign tourists came ({ordinal(fromTop(tour))} most), and its docks moved {people(Number(ports.value))} twenty-foot boxes. Prices and jobs are on <a href={path('/country/spain/economy/')}>the Spain economy page</a>.</p>
+  </div>
+</CountryHub>

@@ -1,0 +1,75 @@
+---
+// Angola country hub (task 174). Every figure comes from the country profile (src/data/profiles/AGO.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/angola.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { countryIndex, assertClaim, people, int } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), grow = st('population', 'growth'), age = st('population', 'medianAge'), tfr = st('population', 'fertility'), urban = st('population', 'urban');
+const births = st('population', 'births'), deaths = st('population', 'deaths');
+const comp = st('education', 'priComp'), out = st('education', 'outSchool'), ptr = st('education', 'ptr');
+const gini = st('economy', 'gini'), infl = st('economy', 'inflation'), impPct = st('trade', 'importsPct'), gdp = st('economy', 'gdp');
+const lfpF = st('jobs', 'lfpF'), ind = st('jobs', 'empInd'), forestA = st('environment', 'forestArea'), hGdp = st('health', 'healthGdp');
+
+const big = countryIndex.countries.filter((c) => c.population > 30e6).map((c) => ({ iso3: c.iso3, g: Number(stat(profile(c.iso3), 'population', 'growth').value) })).sort((a, b) => b.g - a.g);
+assertClaim(big.slice(0, 3).map((x) => x.iso3).join() === 'COD,SDN,AGO' && Number(age.value) < 17, 'third-fastest growth above 30 million after DR Congo and Sudan; median under 17');
+assertClaim(fromBottom(comp) === 5 && Number(comp.value) < 50 && fromTop(out) === 5 && Number(out.value) > 2e6, 'primary completion fifth lowest, under half; out of school fifth, over 2 million');
+assertClaim(fromTop(gini) === 7 && fromTop(infl) === 11 && fromBottom(impPct) === 3, 'Gini seventh; inflation 11th; imports third-lowest share of GDP');
+assertClaim(fromTop(lfpF) === 15 && Number(lfpF.value) > 70 && fromBottom(ind) === 7, "women's participation 15th, over 70%; industry jobs seventh lowest");
+assertClaim(fromTop(forestA) === 12 && fromBottom(hGdp) === 8 && fromTop(ptr) === 9, 'forest area 12th; health spending share eighth lowest; pupils per teacher ninth');
+
+assertClaim(Number(urban.value) > 68 && Number(urban.value) < 74, 'roughly seven in ten urban');
+const title = `Angola in Figures ${Y}: Population Boom, Unfinished School, Gini, Women's Work | AtlasFigures`;
+const description = `Only DR Congo and Sudan, of all nations past 30 million, add people faster than Angola (${grow.text} yearly). Fewer than half of its children finish primary school; its Gini index is ${gini.text}.`;
+
+const faq = [
+  { q: 'Does Angola have large forests?', a: `FAO measured ${forestA.text} km² of Angolan woodland in ${forestA.year}; eleven countries have more.` },
+  { q: 'Does Angola spend much on health?', a: `Little relative to its economy: ${hGdp.text} of GDP in ${hGdp.year}, ${ordinal(fromBottom(hGdp))} lowest of ${hGdp.of}.` },
+  { q: 'How crowded are Angolan classrooms?', a: `Each primary teacher had ${ptr.text} pupils on average in ${ptr.year}, Angola's most recent UNESCO figure, ${ordinal(fromTop(ptr))} highest load.` },
+  { q: 'Do Angolans mostly live in urban areas?', a: `Yes, roughly seven in ten (${urban.text} for ${Y}), counting places Angola itself classes as urban.` },
+];
+const headline = `Angola in figures ${Y}: a very young, fast-growing population, school gaps and inequality`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Angola in figures: a booming young population and unfinished schooling"
+  headline={headline}
+  faq={faq}
+  faqTitle="Angola: four short answers"
+  related={[
+    { href: '/country/angola/population/', label: 'Angola population: live count' },
+    { href: '/country/angola/economy/', label: 'Angola economy: GDP and the kwanza' },
+    { href: '/country/angola/health/', label: 'Angola health: TB, malaria, vaccines' },
+    { href: '/country/dr-congo/', label: 'DR Congo in figures' },
+    { href: '/country/south-africa/', label: 'South Africa data hub' },
+    { href: '/country/tanzania/', label: 'Tanzania at a glance' },
+    { href: '/rankings/population-by-country/', label: 'Population by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Angola's {Y} headcount stands at <strong>{people(Number(pop.value))}</strong> by UN projection, climbing <strong>{grow.text}</strong> a year; the typical Angolan is {age.text} years old. Only {comp.text} of children complete primary school, and prices climbed {infl.text} in {infl.year}.</Fragment>
+  <div class="story-block prose">
+    <h2>Which big countries grow faster than Angola?</h2>
+    <p>Just two, DR Congo and Sudan, among states over 30 million. For {Y}, UN demographers foresee {int(Number(births.value))} Angolan newborns and {int(Number(deaths.value))} deaths, at {tfr.text} children per woman. Follow it live on <a href={path('/country/angola/population/')}>our Angolan population page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many Angolan children finish primary school?</h2>
+    <p>Fewer than half. UNESCO's completion rate was {comp.text} in {comp.year}, {ordinal(fromBottom(comp))} lowest of {comp.of}, and {people(Number(out.value))} primary-age children were out of school, {ordinal(fromTop(out))} most anywhere.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Angola a very unequal society?</h2>
+    <p>By the Gini measure, yes: {gini.text} at the {gini.year} household survey, placing Angola {ordinal(fromTop(gini))} among {gini.of}. Prices climbed {infl.text} in {infl.year} ({ordinal(fromTop(infl))} steepest), and purchases from abroad amounted to a slim {impPct.text} of GDP. GDP was {gdp.text}; see <a href={path('/country/angola/economy/')}>the Angola economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are Angolan women active in the job market?</h2>
+    <p>Strongly so. The ILO's {lfpF.year} participation estimate for Angolan women is {lfpF.text}, {ordinal(fromTop(lfpF))} of {lfpF.of} countries. Factories, mines and construction together employ just {ind.text} of workers, the {ordinal(fromBottom(ind))} smallest industrial share.</p>
+  </div>
+</CountryHub>
