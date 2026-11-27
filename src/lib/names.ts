@@ -5,14 +5,9 @@
 //   3. the UN WPP name as published
 // Disputed areas keep neutral wording ("country or area"); see the data guide.
 import wpp from '../data/wpp/index.json';
+import commonNames from '../data/common-names.json';
 
-const NAMES: Record<string, string> = {
-  BOL: 'Bolivia', BRN: 'Brunei', COD: 'DR Congo', COG: 'Republic of the Congo', FSM: 'Micronesia',
-  HKG: 'Hong Kong SAR (China)', MAC: 'Macao SAR (China)', IRN: 'Iran', KOR: 'South Korea', PRK: 'North Korea',
-  LAO: 'Laos', MAF: 'Saint Martin (French part)', MDA: 'Moldova', RUS: 'Russia', SXM: 'Sint Maarten (Dutch part)',
-  SYR: 'Syria', TUR: 'Turkey', TZA: 'Tanzania', USA: 'United States', VEN: 'Venezuela', VNM: 'Vietnam',
-  XKX: 'Kosovo', CHI: 'Channel Islands', GBR: 'United Kingdom', CIV: "Côte d'Ivoire", CPV: 'Cabo Verde',
-};
+const NAMES: Record<string, string> = commonNames.names;
 
 const editorial = Object.values({
   ...import.meta.glob('../data/countries/*.json', { eager: true, import: 'default' }),
