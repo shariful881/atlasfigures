@@ -1,0 +1,6 @@
+# Every Wikidata item with an ISO 3166-1 alpha-3 code (P298), with its English label and number of sitelinks.
+# build-facts.mjs keeps, for each code, the item with the most sitelinks (e.g. Denmark, not the Kingdom of Denmark).
+SELECT ?iso3 ?item ?itemLabel ?sitelinks WHERE {
+  ?item wdt:P298 ?iso3 ; wikibase:sitelinks ?sitelinks .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+}

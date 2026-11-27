@@ -10,7 +10,10 @@
       "fetch": "fetch-wdi.yml",
       "autoFetch": true,
       "frequency": "several times a year",
-      "check": { "type": "wdi", "api": "https://api.worldbank.org/v2/sources/2?format=json" },
+      "check": {
+        "type": "wdi",
+        "api": "https://api.worldbank.org/v2/sources/2?format=json"
+      },
       "backups": [],
       "feeds": "economy pages, World Bank rankings, literacy, migration, telecom, health, country profiles (115 indicators since task 150)"
     },
@@ -23,7 +26,13 @@
       "fetch": "fetch-energy.yml",
       "autoFetch": true,
       "frequency": "yearly file, revised during the year",
-      "check": { "type": "sha", "file": "ember-yearly-electricity-global.csv", "urls": ["https://files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv"] },
+      "check": {
+        "type": "sha",
+        "file": "ember-yearly-electricity-global.csv",
+        "urls": [
+          "https://files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv"
+        ]
+      },
       "backups": [],
       "feeds": "renewable electricity ranking, energy rows"
     },
@@ -36,7 +45,10 @@
       "fetch": "fetch-energy.yml",
       "autoFetch": false,
       "frequency": "yearly (each version is a new Zenodo record: update GCB_RECORD and GCB_VERSION in fetch-energy.yml)",
-      "check": { "type": "zenodo-latest", "record": "23667912" },
+      "check": {
+        "type": "zenodo-latest",
+        "record": "23667912"
+      },
       "backups": [],
       "feeds": "CO2 ranking, energy rows"
     },
@@ -49,7 +61,14 @@
       "fetch": "fetch-un-data.yml (population tab, branch dev)",
       "autoFetch": false,
       "frequency": "new revision every two years — a new revision means re-verifying ALL pages together (CLAUDE.md)",
-      "check": { "type": "sha", "file": "WPP2024_CSV_files_update.zip", "urls": ["https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/WPP2024_CSV_files_update.zip"], "note": "detects a new interim update; a new revision (WPP 2026…) is checked by hand on population.un.org/wpp" },
+      "check": {
+        "type": "sha",
+        "file": "WPP2024_CSV_files_update.zip",
+        "urls": [
+          "https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/WPP2024_CSV_files_update.zip"
+        ],
+        "note": "detects a new interim update; a new revision (WPP 2026…) is checked by hand on population.un.org/wpp"
+      },
       "backups": [],
       "feeds": "every population page and ranking, live counters"
     },
@@ -62,22 +81,105 @@
       "fetch": "fetch-un-wup.yml (population tab, branch dev)",
       "autoFetch": false,
       "frequency": "new revision every few years",
-      "check": { "type": "sha", "file": "WUP2025-F15-National-Definitions_percPop_by_category.xlsx", "urls": ["https://population.un.org/wup/assets/Download/Countries%20and%20Aggregates/WUP2025-F15-National-Definitions_percPop_by_category.xlsx"] },
+      "check": {
+        "type": "sha",
+        "file": "WUP2025-F15-National-Definitions_percPop_by_category.xlsx",
+        "urls": [
+          "https://population.un.org/wup/assets/Download/Countries%20and%20Aggregates/WUP2025-F15-National-Definitions_percPop_by_category.xlsx"
+        ]
+      },
       "backups": [],
       "feeds": "urban share on population pages"
     },
-    { "id": "faostat", "name": "FAOSTAT (crops, livestock, food balances, prices)", "licence": "CC BY 4.0 — verify when building (task 151)", "status": "planned", "task": 151 },
-    { "id": "usgs-mcs", "name": "USGS Mineral Commodity Summaries", "licence": "US public domain — verify (task 152)", "status": "planned", "task": 152 },
-    { "id": "eia-intl", "name": "US EIA International Energy Data", "licence": "US public domain — verify (task 152)", "status": "planned", "task": 152 },
-    { "id": "ilostat", "name": "ILOSTAT (wages, hours, informality)", "licence": "CC BY 4.0 — verify (task 153)", "status": "planned", "task": 153 },
-    { "id": "baci", "name": "CEPII BACI (trade by product and partner)", "licence": "Licence Ouverte / Etalab — verify commercial use (task 153)", "status": "planned", "task": 153 },
-    { "id": "climatewatch", "name": "Climate Watch / EDGAR greenhouse gases", "licence": "CC BY 4.0 — verify (task 154)", "status": "planned", "task": 154 },
-    { "id": "gfw", "name": "Global Forest Watch tree cover loss", "licence": "CC BY 4.0 — verify (task 154)", "status": "planned", "task": 154 },
-    { "id": "cckp", "name": "World Bank Climate Change Knowledge Portal", "licence": "CC BY 4.0 — verify (task 154)", "status": "planned", "task": 154 },
-    { "id": "unhcr", "name": "UNHCR Refugee Data Finder", "licence": "verify (task 155)", "status": "planned", "task": 155 },
-    { "id": "ourairports", "name": "OurAirports", "licence": "public domain — verify (task 155)", "status": "planned", "task": 155 },
-    { "id": "naturalearth", "name": "Natural Earth (borders, coastlines)", "licence": "public domain — verify (task 156)", "status": "planned", "task": 156 },
-    { "id": "geonames", "name": "GeoNames (cities)", "licence": "CC BY 4.0 — verify (task 156)", "status": "planned", "task": 156 },
-    { "id": "wikidata", "name": "Wikidata (static country facts)", "licence": "CC0 — verify (task 156)", "status": "planned", "task": 156 }
+    {
+      "id": "facts",
+      "name": "Country facts (Unicode CLDR, IANA tz, GeoNames, Wikidata)",
+      "licence": "CLDR Unicode License v3, tz public domain, GeoNames CC BY 4.0, Wikidata CC0 — each checked in the downloaded files by fetch-facts.yml",
+      "status": "active",
+      "raw": "data/raw/facts",
+      "fetch": "fetch-facts.yml",
+      "autoFetch": true,
+      "frequency": "GeoNames daily, Wikidata continuously; CLDR twice a year and tz a few times a year (pinned tags CLDR_TAG/TZ_TAG in fetch-facts.yml, updated by hand)",
+      "check": {
+        "type": "sha",
+        "file": "geonames-countryInfo.txt",
+        "urls": [
+          "https://download.geonames.org/export/dump/countryInfo.txt"
+        ],
+        "note": "a GeoNames change re-fetches all four sources (Wikidata answers included)"
+      },
+      "backups": [],
+      "feeds": "country profiles: currency, languages, calling code, domain, time zones, neighbours, landlocked, highest point, driving side, plugs, emergency numbers"
+    },
+    {
+      "id": "faostat",
+      "name": "FAOSTAT (crops, livestock, food balances, prices)",
+      "licence": "CC BY 4.0 — verify when building (task 151)",
+      "status": "planned",
+      "task": 151
+    },
+    {
+      "id": "usgs-mcs",
+      "name": "USGS Mineral Commodity Summaries",
+      "licence": "US public domain — verify (task 152)",
+      "status": "planned",
+      "task": 152
+    },
+    {
+      "id": "eia-intl",
+      "name": "US EIA International Energy Data",
+      "licence": "US public domain — verify (task 152)",
+      "status": "planned",
+      "task": 152
+    },
+    {
+      "id": "ilostat",
+      "name": "ILOSTAT (wages, hours, informality)",
+      "licence": "CC BY 4.0 — verify (task 153)",
+      "status": "planned",
+      "task": 153
+    },
+    {
+      "id": "baci",
+      "name": "CEPII BACI (trade by product and partner)",
+      "licence": "Licence Ouverte / Etalab — verify commercial use (task 153)",
+      "status": "planned",
+      "task": 153
+    },
+    {
+      "id": "climatewatch",
+      "name": "Climate Watch / EDGAR greenhouse gases",
+      "licence": "CC BY 4.0 — verify (task 154)",
+      "status": "planned",
+      "task": 154
+    },
+    {
+      "id": "gfw",
+      "name": "Global Forest Watch tree cover loss",
+      "licence": "CC BY 4.0 — verify (task 154)",
+      "status": "planned",
+      "task": 154
+    },
+    {
+      "id": "cckp",
+      "name": "World Bank Climate Change Knowledge Portal",
+      "licence": "CC BY 4.0 — verify (task 154)",
+      "status": "planned",
+      "task": 154
+    },
+    {
+      "id": "unhcr",
+      "name": "UNHCR Refugee Data Finder",
+      "licence": "verify (task 155)",
+      "status": "planned",
+      "task": 155
+    },
+    {
+      "id": "ourairports",
+      "name": "OurAirports",
+      "licence": "public domain — verify (task 155)",
+      "status": "planned",
+      "task": 155
+    }
   ]
 }

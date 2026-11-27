@@ -1,0 +1,3074 @@
+[
+  {
+    "iso3": "GAB",
+    "item": "http://www.wikidata.org/entity/Q1000",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "GMB",
+    "item": "http://www.wikidata.org/entity/Q1005",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "GIN",
+    "item": "http://www.wikidata.org/entity/Q1006",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "GIN",
+    "item": "http://www.wikidata.org/entity/Q1006",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "GIN",
+    "item": "http://www.wikidata.org/entity/Q1006",
+    "value": "http://www.wikidata.org/entity/Q1502017",
+    "valueLabel": "Type K"
+  },
+  {
+    "iso3": "GNB",
+    "item": "http://www.wikidata.org/entity/Q1007",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "CIV",
+    "item": "http://www.wikidata.org/entity/Q1008",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "CIV",
+    "item": "http://www.wikidata.org/entity/Q1008",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "CMR",
+    "item": "http://www.wikidata.org/entity/Q1009",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "CMR",
+    "item": "http://www.wikidata.org/entity/Q1009",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "CPV",
+    "item": "http://www.wikidata.org/entity/Q1011",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "CPV",
+    "item": "http://www.wikidata.org/entity/Q1011",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "LSO",
+    "item": "http://www.wikidata.org/entity/Q1013",
+    "value": "http://www.wikidata.org/entity/Q1383497",
+    "valueLabel": "BS 546"
+  },
+  {
+    "iso3": "LBR",
+    "item": "http://www.wikidata.org/entity/Q1014",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "LBR",
+    "item": "http://www.wikidata.org/entity/Q1014",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "LBR",
+    "item": "http://www.wikidata.org/entity/Q1014",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "LBR",
+    "item": "http://www.wikidata.org/entity/Q1014",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "LBR",
+    "item": "http://www.wikidata.org/entity/Q1014",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "LBY",
+    "item": "http://www.wikidata.org/entity/Q1016",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "LBY",
+    "item": "http://www.wikidata.org/entity/Q1016",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "LBY",
+    "item": "http://www.wikidata.org/entity/Q1016",
+    "value": "http://www.wikidata.org/entity/Q1520890",
+    "valueLabel": "Type L"
+  },
+  {
+    "iso3": "LBY",
+    "item": "http://www.wikidata.org/entity/Q1016",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "MDG",
+    "item": "http://www.wikidata.org/entity/Q1019",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "MDG",
+    "item": "http://www.wikidata.org/entity/Q1019",
+    "value": "http://www.wikidata.org/entity/Q1502017",
+    "valueLabel": "Type K"
+  },
+  {
+    "iso3": "MDG",
+    "item": "http://www.wikidata.org/entity/Q1019",
+    "value": "http://www.wikidata.org/entity/Q2335530",
+    "valueLabel": "SN 441011"
+  },
+  {
+    "iso3": "MDG",
+    "item": "http://www.wikidata.org/entity/Q1019",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "MDG",
+    "item": "http://www.wikidata.org/entity/Q1019",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "MWI",
+    "item": "http://www.wikidata.org/entity/Q1020",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "MRT",
+    "item": "http://www.wikidata.org/entity/Q1025",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "MUS",
+    "item": "http://www.wikidata.org/entity/Q1027",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "MUS",
+    "item": "http://www.wikidata.org/entity/Q1027",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "MAR",
+    "item": "http://www.wikidata.org/entity/Q1028",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "MAR",
+    "item": "http://www.wikidata.org/entity/Q1028",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "MOZ",
+    "item": "http://www.wikidata.org/entity/Q1029",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "MOZ",
+    "item": "http://www.wikidata.org/entity/Q1029",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "MOZ",
+    "item": "http://www.wikidata.org/entity/Q1029",
+    "value": "http://www.wikidata.org/entity/Q1383497",
+    "valueLabel": "BS 546"
+  },
+  {
+    "iso3": "NAM",
+    "item": "http://www.wikidata.org/entity/Q1030",
+    "value": "http://www.wikidata.org/entity/Q1383497",
+    "valueLabel": "BS 546"
+  },
+  {
+    "iso3": "NAM",
+    "item": "http://www.wikidata.org/entity/Q1030",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "NER",
+    "item": "http://www.wikidata.org/entity/Q1032",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "NER",
+    "item": "http://www.wikidata.org/entity/Q1032",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "NER",
+    "item": "http://www.wikidata.org/entity/Q1032",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "NER",
+    "item": "http://www.wikidata.org/entity/Q1032",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "NER",
+    "item": "http://www.wikidata.org/entity/Q1032",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "NER",
+    "item": "http://www.wikidata.org/entity/Q1032",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "NGA",
+    "item": "http://www.wikidata.org/entity/Q1033",
+    "value": "http://www.wikidata.org/entity/Q1383497",
+    "valueLabel": "BS 546"
+  },
+  {
+    "iso3": "NGA",
+    "item": "http://www.wikidata.org/entity/Q1033",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "UGA",
+    "item": "http://www.wikidata.org/entity/Q1036",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "RWA",
+    "item": "http://www.wikidata.org/entity/Q1037",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "RWA",
+    "item": "http://www.wikidata.org/entity/Q1037",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "RWA",
+    "item": "http://www.wikidata.org/entity/Q1037",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "STP",
+    "item": "http://www.wikidata.org/entity/Q1039",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "STP",
+    "item": "http://www.wikidata.org/entity/Q1039",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "SEN",
+    "item": "http://www.wikidata.org/entity/Q1041",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "SEN",
+    "item": "http://www.wikidata.org/entity/Q1041",
+    "value": "http://www.wikidata.org/entity/Q1502017",
+    "valueLabel": "Type K"
+  },
+  {
+    "iso3": "SEN",
+    "item": "http://www.wikidata.org/entity/Q1041",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "SEN",
+    "item": "http://www.wikidata.org/entity/Q1041",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "SYC",
+    "item": "http://www.wikidata.org/entity/Q1042",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "SLE",
+    "item": "http://www.wikidata.org/entity/Q1044",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "SLE",
+    "item": "http://www.wikidata.org/entity/Q1044",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "SOM",
+    "item": "http://www.wikidata.org/entity/Q1045",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "SDN",
+    "item": "http://www.wikidata.org/entity/Q1049",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "SDN",
+    "item": "http://www.wikidata.org/entity/Q1049",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "SWZ",
+    "item": "http://www.wikidata.org/entity/Q1050",
+    "value": "http://www.wikidata.org/entity/Q1383497",
+    "valueLabel": "BS 546"
+  },
+  {
+    "iso3": "KEN",
+    "item": "http://www.wikidata.org/entity/Q114",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "ETH",
+    "item": "http://www.wikidata.org/entity/Q115",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "ETH",
+    "item": "http://www.wikidata.org/entity/Q115",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "ETH",
+    "item": "http://www.wikidata.org/entity/Q115",
+    "value": "http://www.wikidata.org/entity/Q1520890",
+    "valueLabel": "Type L"
+  },
+  {
+    "iso3": "ETH",
+    "item": "http://www.wikidata.org/entity/Q115",
+    "value": "http://www.wikidata.org/entity/Q2335530",
+    "valueLabel": "SN 441011"
+  },
+  {
+    "iso3": "ETH",
+    "item": "http://www.wikidata.org/entity/Q115",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "ETH",
+    "item": "http://www.wikidata.org/entity/Q115",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "GHA",
+    "item": "http://www.wikidata.org/entity/Q117",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "GHA",
+    "item": "http://www.wikidata.org/entity/Q117",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "PRI",
+    "item": "http://www.wikidata.org/entity/Q1183",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "PRI",
+    "item": "http://www.wikidata.org/entity/Q1183",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "XKS",
+    "item": "http://www.wikidata.org/entity/Q1246",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "MAF",
+    "item": "http://www.wikidata.org/entity/Q126125",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "MAF",
+    "item": "http://www.wikidata.org/entity/Q126125",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "MSR",
+    "item": "http://www.wikidata.org/entity/Q13353",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "MSR",
+    "item": "http://www.wikidata.org/entity/Q13353",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "GIB",
+    "item": "http://www.wikidata.org/entity/Q1410",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "FRA",
+    "item": "http://www.wikidata.org/entity/Q142",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "GBR",
+    "item": "http://www.wikidata.org/entity/Q145",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "MAC",
+    "item": "http://www.wikidata.org/entity/Q14773",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "MAC",
+    "item": "http://www.wikidata.org/entity/Q14773",
+    "value": "http://www.wikidata.org/entity/Q1383497",
+    "valueLabel": "BS 546"
+  },
+  {
+    "iso3": "MAC",
+    "item": "http://www.wikidata.org/entity/Q14773",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "MAC",
+    "item": "http://www.wikidata.org/entity/Q14773",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "CHN",
+    "item": "http://www.wikidata.org/entity/Q148",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "BRA",
+    "item": "http://www.wikidata.org/entity/Q155",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "BRA",
+    "item": "http://www.wikidata.org/entity/Q155",
+    "value": "http://www.wikidata.org/entity/Q1653438",
+    "valueLabel": "IEC 60906-1"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "RUS",
+    "item": "http://www.wikidata.org/entity/Q159",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "CAN",
+    "item": "http://www.wikidata.org/entity/Q16",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "CAN",
+    "item": "http://www.wikidata.org/entity/Q16",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "GUM",
+    "item": "http://www.wikidata.org/entity/Q16635",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "GUM",
+    "item": "http://www.wikidata.org/entity/Q16635",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "ASM",
+    "item": "http://www.wikidata.org/entity/Q16641",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "ASM",
+    "item": "http://www.wikidata.org/entity/Q16641",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "ASM",
+    "item": "http://www.wikidata.org/entity/Q16641",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "ASM",
+    "item": "http://www.wikidata.org/entity/Q16641",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "JPN",
+    "item": "http://www.wikidata.org/entity/Q17",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "JPN",
+    "item": "http://www.wikidata.org/entity/Q17",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "GLP",
+    "item": "http://www.wikidata.org/entity/Q17012",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "GLP",
+    "item": "http://www.wikidata.org/entity/Q17012",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "GLP",
+    "item": "http://www.wikidata.org/entity/Q17012",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "MTQ",
+    "item": "http://www.wikidata.org/entity/Q17054",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "MTQ",
+    "item": "http://www.wikidata.org/entity/Q17054",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "MTQ",
+    "item": "http://www.wikidata.org/entity/Q17054",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "REU",
+    "item": "http://www.wikidata.org/entity/Q17070",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "TCA",
+    "item": "http://www.wikidata.org/entity/Q18221",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "TCA",
+    "item": "http://www.wikidata.org/entity/Q18221",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "DEU",
+    "item": "http://www.wikidata.org/entity/Q183",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "DEU",
+    "item": "http://www.wikidata.org/entity/Q183",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "BLR",
+    "item": "http://www.wikidata.org/entity/Q184",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "BLR",
+    "item": "http://www.wikidata.org/entity/Q184",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "ISL",
+    "item": "http://www.wikidata.org/entity/Q189",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "ISL",
+    "item": "http://www.wikidata.org/entity/Q189",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "EST",
+    "item": "http://www.wikidata.org/entity/Q191",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "EST",
+    "item": "http://www.wikidata.org/entity/Q191",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "NOR",
+    "item": "http://www.wikidata.org/entity/Q20",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "NOR",
+    "item": "http://www.wikidata.org/entity/Q20",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "LVA",
+    "item": "http://www.wikidata.org/entity/Q211",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "LVA",
+    "item": "http://www.wikidata.org/entity/Q211",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "UKR",
+    "item": "http://www.wikidata.org/entity/Q212",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "UKR",
+    "item": "http://www.wikidata.org/entity/Q212",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "ABW",
+    "item": "http://www.wikidata.org/entity/Q21203",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "ABW",
+    "item": "http://www.wikidata.org/entity/Q21203",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "ABW",
+    "item": "http://www.wikidata.org/entity/Q21203",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "CZE",
+    "item": "http://www.wikidata.org/entity/Q213",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "CZE",
+    "item": "http://www.wikidata.org/entity/Q213",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "SVK",
+    "item": "http://www.wikidata.org/entity/Q214",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "SVK",
+    "item": "http://www.wikidata.org/entity/Q214",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "SVN",
+    "item": "http://www.wikidata.org/entity/Q215",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "SVN",
+    "item": "http://www.wikidata.org/entity/Q215",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "MDA",
+    "item": "http://www.wikidata.org/entity/Q217",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "MDA",
+    "item": "http://www.wikidata.org/entity/Q217",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "ROU",
+    "item": "http://www.wikidata.org/entity/Q218",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "ROU",
+    "item": "http://www.wikidata.org/entity/Q218",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "BGR",
+    "item": "http://www.wikidata.org/entity/Q219",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "BGR",
+    "item": "http://www.wikidata.org/entity/Q219",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "PSE",
+    "item": "http://www.wikidata.org/entity/Q219060",
+    "value": "http://www.wikidata.org/entity/Q1266396",
+    "valueLabel": "Type H"
+  },
+  {
+    "iso3": "PSE",
+    "item": "http://www.wikidata.org/entity/Q219060",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "PSE",
+    "item": "http://www.wikidata.org/entity/Q219060",
+    "value": "http://www.wikidata.org/entity/Q1383497",
+    "valueLabel": "BS 546"
+  },
+  {
+    "iso3": "MKD",
+    "item": "http://www.wikidata.org/entity/Q221",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "MKD",
+    "item": "http://www.wikidata.org/entity/Q221",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "ALB",
+    "item": "http://www.wikidata.org/entity/Q222",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "ALB",
+    "item": "http://www.wikidata.org/entity/Q222",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "GRL",
+    "item": "http://www.wikidata.org/entity/Q223",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "GRL",
+    "item": "http://www.wikidata.org/entity/Q223",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "GRL",
+    "item": "http://www.wikidata.org/entity/Q223",
+    "value": "http://www.wikidata.org/entity/Q1502017",
+    "valueLabel": "Type K"
+  },
+  {
+    "iso3": "GRL",
+    "item": "http://www.wikidata.org/entity/Q223",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "HRV",
+    "item": "http://www.wikidata.org/entity/Q224",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "HRV",
+    "item": "http://www.wikidata.org/entity/Q224",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "BIH",
+    "item": "http://www.wikidata.org/entity/Q225",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "BIH",
+    "item": "http://www.wikidata.org/entity/Q225",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "AZE",
+    "item": "http://www.wikidata.org/entity/Q227",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "AZE",
+    "item": "http://www.wikidata.org/entity/Q227",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "AND",
+    "item": "http://www.wikidata.org/entity/Q228",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "AND",
+    "item": "http://www.wikidata.org/entity/Q228",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "CYP",
+    "item": "http://www.wikidata.org/entity/Q229",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "GEO",
+    "item": "http://www.wikidata.org/entity/Q230",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "GEO",
+    "item": "http://www.wikidata.org/entity/Q230",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "KAZ",
+    "item": "http://www.wikidata.org/entity/Q232",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "KAZ",
+    "item": "http://www.wikidata.org/entity/Q232",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "MLT",
+    "item": "http://www.wikidata.org/entity/Q233",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "MCO",
+    "item": "http://www.wikidata.org/entity/Q235",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "MCO",
+    "item": "http://www.wikidata.org/entity/Q235",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "MCO",
+    "item": "http://www.wikidata.org/entity/Q235",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "MCO",
+    "item": "http://www.wikidata.org/entity/Q235",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "MNE",
+    "item": "http://www.wikidata.org/entity/Q236",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "MNE",
+    "item": "http://www.wikidata.org/entity/Q236",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "BMU",
+    "item": "http://www.wikidata.org/entity/Q23635",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "BMU",
+    "item": "http://www.wikidata.org/entity/Q23635",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "SMR",
+    "item": "http://www.wikidata.org/entity/Q238",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "SMR",
+    "item": "http://www.wikidata.org/entity/Q238",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "SMR",
+    "item": "http://www.wikidata.org/entity/Q238",
+    "value": "http://www.wikidata.org/entity/Q1520890",
+    "valueLabel": "Type L"
+  },
+  {
+    "iso3": "CUB",
+    "item": "http://www.wikidata.org/entity/Q241",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "CUB",
+    "item": "http://www.wikidata.org/entity/Q241",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "BLZ",
+    "item": "http://www.wikidata.org/entity/Q242",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "BLZ",
+    "item": "http://www.wikidata.org/entity/Q242",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "BLZ",
+    "item": "http://www.wikidata.org/entity/Q242",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "BRB",
+    "item": "http://www.wikidata.org/entity/Q244",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "BRB",
+    "item": "http://www.wikidata.org/entity/Q244",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "IDN",
+    "item": "http://www.wikidata.org/entity/Q252",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "IDN",
+    "item": "http://www.wikidata.org/entity/Q252",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "ANT",
+    "item": "http://www.wikidata.org/entity/Q25227",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "ANT",
+    "item": "http://www.wikidata.org/entity/Q25227",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "ANT",
+    "item": "http://www.wikidata.org/entity/Q25227",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "ANT",
+    "item": "http://www.wikidata.org/entity/Q25227",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "AIA",
+    "item": "http://www.wikidata.org/entity/Q25228",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "GGY",
+    "item": "http://www.wikidata.org/entity/Q25230",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "GGY",
+    "item": "http://www.wikidata.org/entity/Q25230",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "CUW",
+    "item": "http://www.wikidata.org/entity/Q25279",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "CUW",
+    "item": "http://www.wikidata.org/entity/Q25279",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "VGB",
+    "item": "http://www.wikidata.org/entity/Q25305",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "VGB",
+    "item": "http://www.wikidata.org/entity/Q25305",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "ZAF",
+    "item": "http://www.wikidata.org/entity/Q258",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "ZAF",
+    "item": "http://www.wikidata.org/entity/Q258",
+    "value": "http://www.wikidata.org/entity/Q1383497",
+    "valueLabel": "BS 546"
+  },
+  {
+    "iso3": "ZAF",
+    "item": "http://www.wikidata.org/entity/Q258",
+    "value": "http://www.wikidata.org/entity/Q1653438",
+    "valueLabel": "IEC 60906-1"
+  },
+  {
+    "iso3": "ZAF",
+    "item": "http://www.wikidata.org/entity/Q258",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "DZA",
+    "item": "http://www.wikidata.org/entity/Q262",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "DZA",
+    "item": "http://www.wikidata.org/entity/Q262",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "DZA",
+    "item": "http://www.wikidata.org/entity/Q262",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "UZB",
+    "item": "http://www.wikidata.org/entity/Q265",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "UZB",
+    "item": "http://www.wikidata.org/entity/Q265",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "UZB",
+    "item": "http://www.wikidata.org/entity/Q265",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "COK",
+    "item": "http://www.wikidata.org/entity/Q26988",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "IRL",
+    "item": "http://www.wikidata.org/entity/Q27",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "HUN",
+    "item": "http://www.wikidata.org/entity/Q28",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "HUN",
+    "item": "http://www.wikidata.org/entity/Q28",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "ESP",
+    "item": "http://www.wikidata.org/entity/Q29",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "ESP",
+    "item": "http://www.wikidata.org/entity/Q29",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "CHL",
+    "item": "http://www.wikidata.org/entity/Q298",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "CHL",
+    "item": "http://www.wikidata.org/entity/Q298",
+    "value": "http://www.wikidata.org/entity/Q1520890",
+    "valueLabel": "Type L"
+  },
+  {
+    "iso3": "NLD",
+    "item": "http://www.wikidata.org/entity/Q29999",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "NLD",
+    "item": "http://www.wikidata.org/entity/Q29999",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "USA",
+    "item": "http://www.wikidata.org/entity/Q30",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "USA",
+    "item": "http://www.wikidata.org/entity/Q30",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "BEL",
+    "item": "http://www.wikidata.org/entity/Q31",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "BEL",
+    "item": "http://www.wikidata.org/entity/Q31",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "LUX",
+    "item": "http://www.wikidata.org/entity/Q32",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "LUX",
+    "item": "http://www.wikidata.org/entity/Q32",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "FIN",
+    "item": "http://www.wikidata.org/entity/Q33",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "FIN",
+    "item": "http://www.wikidata.org/entity/Q33",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "SGP",
+    "item": "http://www.wikidata.org/entity/Q334",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "NCL",
+    "item": "http://www.wikidata.org/entity/Q33788",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "NCL",
+    "item": "http://www.wikidata.org/entity/Q33788",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "SWE",
+    "item": "http://www.wikidata.org/entity/Q34",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "SWE",
+    "item": "http://www.wikidata.org/entity/Q34",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "NIU",
+    "item": "http://www.wikidata.org/entity/Q34020",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "LIE",
+    "item": "http://www.wikidata.org/entity/Q347",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "LIE",
+    "item": "http://www.wikidata.org/entity/Q347",
+    "value": "http://www.wikidata.org/entity/Q2335530",
+    "valueLabel": "SN 441011"
+  },
+  {
+    "iso3": "DNK",
+    "item": "http://www.wikidata.org/entity/Q35",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "DNK",
+    "item": "http://www.wikidata.org/entity/Q35",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "DNK",
+    "item": "http://www.wikidata.org/entity/Q35",
+    "value": "http://www.wikidata.org/entity/Q1502017",
+    "valueLabel": "Type K"
+  },
+  {
+    "iso3": "DNK",
+    "item": "http://www.wikidata.org/entity/Q35",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "POL",
+    "item": "http://www.wikidata.org/entity/Q36",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "POL",
+    "item": "http://www.wikidata.org/entity/Q36",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "LTU",
+    "item": "http://www.wikidata.org/entity/Q37",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "LTU",
+    "item": "http://www.wikidata.org/entity/Q37",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "GUF",
+    "item": "http://www.wikidata.org/entity/Q3769",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "GUF",
+    "item": "http://www.wikidata.org/entity/Q3769",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "GUF",
+    "item": "http://www.wikidata.org/entity/Q3769",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "ITA",
+    "item": "http://www.wikidata.org/entity/Q38",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "ITA",
+    "item": "http://www.wikidata.org/entity/Q38",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "ITA",
+    "item": "http://www.wikidata.org/entity/Q38",
+    "value": "http://www.wikidata.org/entity/Q1520890",
+    "valueLabel": "Type L"
+  },
+  {
+    "iso3": "CHE",
+    "item": "http://www.wikidata.org/entity/Q39",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "CHE",
+    "item": "http://www.wikidata.org/entity/Q39",
+    "value": "http://www.wikidata.org/entity/Q2335530",
+    "valueLabel": "SN 441011"
+  },
+  {
+    "iso3": "BHR",
+    "item": "http://www.wikidata.org/entity/Q398",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "ARM",
+    "item": "http://www.wikidata.org/entity/Q399",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "ARM",
+    "item": "http://www.wikidata.org/entity/Q399",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "AUT",
+    "item": "http://www.wikidata.org/entity/Q40",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "AUT",
+    "item": "http://www.wikidata.org/entity/Q40",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "SRB",
+    "item": "http://www.wikidata.org/entity/Q403",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "SRB",
+    "item": "http://www.wikidata.org/entity/Q403",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "AUS",
+    "item": "http://www.wikidata.org/entity/Q408",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "GRC",
+    "item": "http://www.wikidata.org/entity/Q41",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "GRC",
+    "item": "http://www.wikidata.org/entity/Q41",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "ARG",
+    "item": "http://www.wikidata.org/entity/Q414",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "ARG",
+    "item": "http://www.wikidata.org/entity/Q414",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "PER",
+    "item": "http://www.wikidata.org/entity/Q419",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "PER",
+    "item": "http://www.wikidata.org/entity/Q419",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "PER",
+    "item": "http://www.wikidata.org/entity/Q419",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "PRK",
+    "item": "http://www.wikidata.org/entity/Q423",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "PRK",
+    "item": "http://www.wikidata.org/entity/Q423",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "PRK",
+    "item": "http://www.wikidata.org/entity/Q423",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "KHM",
+    "item": "http://www.wikidata.org/entity/Q424",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "KHM",
+    "item": "http://www.wikidata.org/entity/Q424",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "KHM",
+    "item": "http://www.wikidata.org/entity/Q424",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "TUR",
+    "item": "http://www.wikidata.org/entity/Q43",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "TUR",
+    "item": "http://www.wikidata.org/entity/Q43",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "PRT",
+    "item": "http://www.wikidata.org/entity/Q45",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "PRT",
+    "item": "http://www.wikidata.org/entity/Q45",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "FRO",
+    "item": "http://www.wikidata.org/entity/Q4628",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "FRO",
+    "item": "http://www.wikidata.org/entity/Q4628",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "FRO",
+    "item": "http://www.wikidata.org/entity/Q4628",
+    "value": "http://www.wikidata.org/entity/Q1502017",
+    "valueLabel": "Type K"
+  },
+  {
+    "iso3": "FRO",
+    "item": "http://www.wikidata.org/entity/Q4628",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "TLS",
+    "item": "http://www.wikidata.org/entity/Q574",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "TLS",
+    "item": "http://www.wikidata.org/entity/Q574",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "TLS",
+    "item": "http://www.wikidata.org/entity/Q574",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "TLS",
+    "item": "http://www.wikidata.org/entity/Q574",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "CYM",
+    "item": "http://www.wikidata.org/entity/Q5785",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "CYM",
+    "item": "http://www.wikidata.org/entity/Q5785",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "TCD",
+    "item": "http://www.wikidata.org/entity/Q657",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "TCD",
+    "item": "http://www.wikidata.org/entity/Q657",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "TCD",
+    "item": "http://www.wikidata.org/entity/Q657",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "TCD",
+    "item": "http://www.wikidata.org/entity/Q657",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "NZL",
+    "item": "http://www.wikidata.org/entity/Q664",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "IND",
+    "item": "http://www.wikidata.org/entity/Q668",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "IND",
+    "item": "http://www.wikidata.org/entity/Q668",
+    "value": "http://www.wikidata.org/entity/Q1383497",
+    "valueLabel": "BS 546"
+  },
+  {
+    "iso3": "IND",
+    "item": "http://www.wikidata.org/entity/Q668",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "TUV",
+    "item": "http://www.wikidata.org/entity/Q672",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "TON",
+    "item": "http://www.wikidata.org/entity/Q678",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "WSM",
+    "item": "http://www.wikidata.org/entity/Q683",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "SLB",
+    "item": "http://www.wikidata.org/entity/Q685",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "SLB",
+    "item": "http://www.wikidata.org/entity/Q685",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "VUT",
+    "item": "http://www.wikidata.org/entity/Q686",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "VUT",
+    "item": "http://www.wikidata.org/entity/Q686",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "VUT",
+    "item": "http://www.wikidata.org/entity/Q686",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "PNG",
+    "item": "http://www.wikidata.org/entity/Q691",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "PLW",
+    "item": "http://www.wikidata.org/entity/Q695",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "PLW",
+    "item": "http://www.wikidata.org/entity/Q695",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "NRU",
+    "item": "http://www.wikidata.org/entity/Q697",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "FSM",
+    "item": "http://www.wikidata.org/entity/Q702",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "FSM",
+    "item": "http://www.wikidata.org/entity/Q702",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "KIR",
+    "item": "http://www.wikidata.org/entity/Q710",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "MNG",
+    "item": "http://www.wikidata.org/entity/Q711",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "MNG",
+    "item": "http://www.wikidata.org/entity/Q711",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "FJI",
+    "item": "http://www.wikidata.org/entity/Q712",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "VEN",
+    "item": "http://www.wikidata.org/entity/Q717",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "VEN",
+    "item": "http://www.wikidata.org/entity/Q717",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "SUR",
+    "item": "http://www.wikidata.org/entity/Q730",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "SUR",
+    "item": "http://www.wikidata.org/entity/Q730",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "PRY",
+    "item": "http://www.wikidata.org/entity/Q733",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "GUY",
+    "item": "http://www.wikidata.org/entity/Q734",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "GUY",
+    "item": "http://www.wikidata.org/entity/Q734",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "GUY",
+    "item": "http://www.wikidata.org/entity/Q734",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "GUY",
+    "item": "http://www.wikidata.org/entity/Q734",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "ECU",
+    "item": "http://www.wikidata.org/entity/Q736",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "ECU",
+    "item": "http://www.wikidata.org/entity/Q736",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "COL",
+    "item": "http://www.wikidata.org/entity/Q739",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "COL",
+    "item": "http://www.wikidata.org/entity/Q739",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "BOL",
+    "item": "http://www.wikidata.org/entity/Q750",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "BOL",
+    "item": "http://www.wikidata.org/entity/Q750",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "TTO",
+    "item": "http://www.wikidata.org/entity/Q754",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "TTO",
+    "item": "http://www.wikidata.org/entity/Q754",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "VCT",
+    "item": "http://www.wikidata.org/entity/Q757",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "VCT",
+    "item": "http://www.wikidata.org/entity/Q757",
+    "value": "http://www.wikidata.org/entity/Q1502017",
+    "valueLabel": "Type K"
+  },
+  {
+    "iso3": "VCT",
+    "item": "http://www.wikidata.org/entity/Q757",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "VCT",
+    "item": "http://www.wikidata.org/entity/Q757",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "VCT",
+    "item": "http://www.wikidata.org/entity/Q757",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "VCT",
+    "item": "http://www.wikidata.org/entity/Q757",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "LCA",
+    "item": "http://www.wikidata.org/entity/Q760",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "KNA",
+    "item": "http://www.wikidata.org/entity/Q763",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "KNA",
+    "item": "http://www.wikidata.org/entity/Q763",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "KNA",
+    "item": "http://www.wikidata.org/entity/Q763",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "KNA",
+    "item": "http://www.wikidata.org/entity/Q763",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "JAM",
+    "item": "http://www.wikidata.org/entity/Q766",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "JAM",
+    "item": "http://www.wikidata.org/entity/Q766",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "GRD",
+    "item": "http://www.wikidata.org/entity/Q769",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "URY",
+    "item": "http://www.wikidata.org/entity/Q77",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "URY",
+    "item": "http://www.wikidata.org/entity/Q77",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "URY",
+    "item": "http://www.wikidata.org/entity/Q77",
+    "value": "http://www.wikidata.org/entity/Q1520890",
+    "valueLabel": "Type L"
+  },
+  {
+    "iso3": "URY",
+    "item": "http://www.wikidata.org/entity/Q77",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "GTM",
+    "item": "http://www.wikidata.org/entity/Q774",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "GTM",
+    "item": "http://www.wikidata.org/entity/Q774",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "BHS",
+    "item": "http://www.wikidata.org/entity/Q778",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "BHS",
+    "item": "http://www.wikidata.org/entity/Q778",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "ATG",
+    "item": "http://www.wikidata.org/entity/Q781",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "ATG",
+    "item": "http://www.wikidata.org/entity/Q781",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "HND",
+    "item": "http://www.wikidata.org/entity/Q783",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "HND",
+    "item": "http://www.wikidata.org/entity/Q783",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "DMA",
+    "item": "http://www.wikidata.org/entity/Q784",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "DMA",
+    "item": "http://www.wikidata.org/entity/Q784",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "JEY",
+    "item": "http://www.wikidata.org/entity/Q785",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "DOM",
+    "item": "http://www.wikidata.org/entity/Q786",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "DOM",
+    "item": "http://www.wikidata.org/entity/Q786",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "EGY",
+    "item": "http://www.wikidata.org/entity/Q79",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "EGY",
+    "item": "http://www.wikidata.org/entity/Q79",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "HTI",
+    "item": "http://www.wikidata.org/entity/Q790",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "HTI",
+    "item": "http://www.wikidata.org/entity/Q790",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "SLV",
+    "item": "http://www.wikidata.org/entity/Q792",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "SLV",
+    "item": "http://www.wikidata.org/entity/Q792",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "IRN",
+    "item": "http://www.wikidata.org/entity/Q794",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "IRN",
+    "item": "http://www.wikidata.org/entity/Q794",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "IRQ",
+    "item": "http://www.wikidata.org/entity/Q796",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "IRQ",
+    "item": "http://www.wikidata.org/entity/Q796",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "IRQ",
+    "item": "http://www.wikidata.org/entity/Q796",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "CRI",
+    "item": "http://www.wikidata.org/entity/Q800",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "CRI",
+    "item": "http://www.wikidata.org/entity/Q800",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "ISR",
+    "item": "http://www.wikidata.org/entity/Q801",
+    "value": "http://www.wikidata.org/entity/Q1266396",
+    "valueLabel": "Type H"
+  },
+  {
+    "iso3": "ISR",
+    "item": "http://www.wikidata.org/entity/Q801",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "ISR",
+    "item": "http://www.wikidata.org/entity/Q801",
+    "value": "http://www.wikidata.org/entity/Q1383497",
+    "valueLabel": "BS 546"
+  },
+  {
+    "iso3": "PAN",
+    "item": "http://www.wikidata.org/entity/Q804",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "PAN",
+    "item": "http://www.wikidata.org/entity/Q804",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "YEM",
+    "item": "http://www.wikidata.org/entity/Q805",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "YEM",
+    "item": "http://www.wikidata.org/entity/Q805",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "YEM",
+    "item": "http://www.wikidata.org/entity/Q805",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "JOR",
+    "item": "http://www.wikidata.org/entity/Q810",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "JOR",
+    "item": "http://www.wikidata.org/entity/Q810",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "JOR",
+    "item": "http://www.wikidata.org/entity/Q810",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "JOR",
+    "item": "http://www.wikidata.org/entity/Q810",
+    "value": "http://www.wikidata.org/entity/Q2335530",
+    "valueLabel": "SN 441011"
+  },
+  {
+    "iso3": "JOR",
+    "item": "http://www.wikidata.org/entity/Q810",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "JOR",
+    "item": "http://www.wikidata.org/entity/Q810",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "NIC",
+    "item": "http://www.wikidata.org/entity/Q811",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "NIC",
+    "item": "http://www.wikidata.org/entity/Q811",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "KGZ",
+    "item": "http://www.wikidata.org/entity/Q813",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "KGZ",
+    "item": "http://www.wikidata.org/entity/Q813",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "KWT",
+    "item": "http://www.wikidata.org/entity/Q817",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "KWT",
+    "item": "http://www.wikidata.org/entity/Q817",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "LAO",
+    "item": "http://www.wikidata.org/entity/Q819",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "LAO",
+    "item": "http://www.wikidata.org/entity/Q819",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "LAO",
+    "item": "http://www.wikidata.org/entity/Q819",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "LAO",
+    "item": "http://www.wikidata.org/entity/Q819",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "LAO",
+    "item": "http://www.wikidata.org/entity/Q819",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "LBN",
+    "item": "http://www.wikidata.org/entity/Q822",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "LBN",
+    "item": "http://www.wikidata.org/entity/Q822",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "LBN",
+    "item": "http://www.wikidata.org/entity/Q822",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "LBN",
+    "item": "http://www.wikidata.org/entity/Q822",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "LBN",
+    "item": "http://www.wikidata.org/entity/Q822",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "MDV",
+    "item": "http://www.wikidata.org/entity/Q826",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "MDV",
+    "item": "http://www.wikidata.org/entity/Q826",
+    "value": "http://www.wikidata.org/entity/Q1502017",
+    "valueLabel": "Type K"
+  },
+  {
+    "iso3": "MDV",
+    "item": "http://www.wikidata.org/entity/Q826",
+    "value": "http://www.wikidata.org/entity/Q1520890",
+    "valueLabel": "Type L"
+  },
+  {
+    "iso3": "MDV",
+    "item": "http://www.wikidata.org/entity/Q826",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "MDV",
+    "item": "http://www.wikidata.org/entity/Q826",
+    "value": "http://www.wikidata.org/entity/Q2335530",
+    "valueLabel": "SN 441011"
+  },
+  {
+    "iso3": "MDV",
+    "item": "http://www.wikidata.org/entity/Q826",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "MDV",
+    "item": "http://www.wikidata.org/entity/Q826",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "MYS",
+    "item": "http://www.wikidata.org/entity/Q833",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "MMR",
+    "item": "http://www.wikidata.org/entity/Q836",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "MMR",
+    "item": "http://www.wikidata.org/entity/Q836",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "MMR",
+    "item": "http://www.wikidata.org/entity/Q836",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "MMR",
+    "item": "http://www.wikidata.org/entity/Q836",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "NPL",
+    "item": "http://www.wikidata.org/entity/Q837",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "NPL",
+    "item": "http://www.wikidata.org/entity/Q837",
+    "value": "http://www.wikidata.org/entity/Q1383497",
+    "valueLabel": "BS 546"
+  },
+  {
+    "iso3": "NPL",
+    "item": "http://www.wikidata.org/entity/Q837",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "OMN",
+    "item": "http://www.wikidata.org/entity/Q842",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "OMN",
+    "item": "http://www.wikidata.org/entity/Q842",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "PAK",
+    "item": "http://www.wikidata.org/entity/Q843",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "PAK",
+    "item": "http://www.wikidata.org/entity/Q843",
+    "value": "http://www.wikidata.org/entity/Q1383497",
+    "valueLabel": "BS 546"
+  },
+  {
+    "iso3": "PAK",
+    "item": "http://www.wikidata.org/entity/Q843",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "PAK",
+    "item": "http://www.wikidata.org/entity/Q843",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "QAT",
+    "item": "http://www.wikidata.org/entity/Q846",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "QAT",
+    "item": "http://www.wikidata.org/entity/Q846",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "SAU",
+    "item": "http://www.wikidata.org/entity/Q851",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "LKA",
+    "item": "http://www.wikidata.org/entity/Q854",
+    "value": "http://www.wikidata.org/entity/Q1383497",
+    "valueLabel": "BS 546"
+  },
+  {
+    "iso3": "LKA",
+    "item": "http://www.wikidata.org/entity/Q854",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "LKA",
+    "item": "http://www.wikidata.org/entity/Q854",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "SYR",
+    "item": "http://www.wikidata.org/entity/Q858",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "SYR",
+    "item": "http://www.wikidata.org/entity/Q858",
+    "value": "http://www.wikidata.org/entity/Q1520890",
+    "valueLabel": "Type L"
+  },
+  {
+    "iso3": "SYR",
+    "item": "http://www.wikidata.org/entity/Q858",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "TJK",
+    "item": "http://www.wikidata.org/entity/Q863",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "TJK",
+    "item": "http://www.wikidata.org/entity/Q863",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "TJK",
+    "item": "http://www.wikidata.org/entity/Q863",
+    "value": "http://www.wikidata.org/entity/Q2335539",
+    "valueLabel": "AS/NZS 3112"
+  },
+  {
+    "iso3": "HKG",
+    "item": "http://www.wikidata.org/entity/Q8646",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "TWN",
+    "item": "http://www.wikidata.org/entity/Q865",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "TWN",
+    "item": "http://www.wikidata.org/entity/Q865",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "THA",
+    "item": "http://www.wikidata.org/entity/Q869",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "THA",
+    "item": "http://www.wikidata.org/entity/Q869",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "THA",
+    "item": "http://www.wikidata.org/entity/Q869",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "THA",
+    "item": "http://www.wikidata.org/entity/Q869",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "TKM",
+    "item": "http://www.wikidata.org/entity/Q874",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "TKM",
+    "item": "http://www.wikidata.org/entity/Q874",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "TKM",
+    "item": "http://www.wikidata.org/entity/Q874",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "ARE",
+    "item": "http://www.wikidata.org/entity/Q878",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "ARE",
+    "item": "http://www.wikidata.org/entity/Q878",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "ARE",
+    "item": "http://www.wikidata.org/entity/Q878",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "VNM",
+    "item": "http://www.wikidata.org/entity/Q881",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "VNM",
+    "item": "http://www.wikidata.org/entity/Q881",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "VNM",
+    "item": "http://www.wikidata.org/entity/Q881",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "VNM",
+    "item": "http://www.wikidata.org/entity/Q881",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "KOR",
+    "item": "http://www.wikidata.org/entity/Q884",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "KOR",
+    "item": "http://www.wikidata.org/entity/Q884",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "AFG",
+    "item": "http://www.wikidata.org/entity/Q889",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "AFG",
+    "item": "http://www.wikidata.org/entity/Q889",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "AFG",
+    "item": "http://www.wikidata.org/entity/Q889",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "BGD",
+    "item": "http://www.wikidata.org/entity/Q902",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "BGD",
+    "item": "http://www.wikidata.org/entity/Q902",
+    "value": "http://www.wikidata.org/entity/Q1502017",
+    "valueLabel": "Type K"
+  },
+  {
+    "iso3": "BGD",
+    "item": "http://www.wikidata.org/entity/Q902",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "BGD",
+    "item": "http://www.wikidata.org/entity/Q902",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "BGD",
+    "item": "http://www.wikidata.org/entity/Q902",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "MLI",
+    "item": "http://www.wikidata.org/entity/Q912",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "MLI",
+    "item": "http://www.wikidata.org/entity/Q912",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "AGO",
+    "item": "http://www.wikidata.org/entity/Q916",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "BTN",
+    "item": "http://www.wikidata.org/entity/Q917",
+    "value": "http://www.wikidata.org/entity/Q1123613",
+    "valueLabel": "Schuko"
+  },
+  {
+    "iso3": "BTN",
+    "item": "http://www.wikidata.org/entity/Q917",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "BTN",
+    "item": "http://www.wikidata.org/entity/Q917",
+    "value": "http://www.wikidata.org/entity/Q1383497",
+    "valueLabel": "BS 546"
+  },
+  {
+    "iso3": "BTN",
+    "item": "http://www.wikidata.org/entity/Q917",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "BTN",
+    "item": "http://www.wikidata.org/entity/Q917",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "BRN",
+    "item": "http://www.wikidata.org/entity/Q921",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "TZA",
+    "item": "http://www.wikidata.org/entity/Q924",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "TZA",
+    "item": "http://www.wikidata.org/entity/Q924",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "PHL",
+    "item": "http://www.wikidata.org/entity/Q928",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "PHL",
+    "item": "http://www.wikidata.org/entity/Q928",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "PHL",
+    "item": "http://www.wikidata.org/entity/Q928",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "CAF",
+    "item": "http://www.wikidata.org/entity/Q929",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "CAF",
+    "item": "http://www.wikidata.org/entity/Q929",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "TGO",
+    "item": "http://www.wikidata.org/entity/Q945",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "TUN",
+    "item": "http://www.wikidata.org/entity/Q948",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "TUN",
+    "item": "http://www.wikidata.org/entity/Q948",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "ZMB",
+    "item": "http://www.wikidata.org/entity/Q953",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "ZMB",
+    "item": "http://www.wikidata.org/entity/Q953",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "ZMB",
+    "item": "http://www.wikidata.org/entity/Q953",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "ZWE",
+    "item": "http://www.wikidata.org/entity/Q954",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "ZWE",
+    "item": "http://www.wikidata.org/entity/Q954",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "MEX",
+    "item": "http://www.wikidata.org/entity/Q96",
+    "value": "http://www.wikidata.org/entity/Q24288454",
+    "valueLabel": "NEMA 1-15"
+  },
+  {
+    "iso3": "MEX",
+    "item": "http://www.wikidata.org/entity/Q96",
+    "value": "http://www.wikidata.org/entity/Q24288456",
+    "valueLabel": "NEMA 5-15"
+  },
+  {
+    "iso3": "BEN",
+    "item": "http://www.wikidata.org/entity/Q962",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "BEN",
+    "item": "http://www.wikidata.org/entity/Q962",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "BWA",
+    "item": "http://www.wikidata.org/entity/Q963",
+    "value": "http://www.wikidata.org/entity/Q1383497",
+    "valueLabel": "BS 546"
+  },
+  {
+    "iso3": "BWA",
+    "item": "http://www.wikidata.org/entity/Q963",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "BWA",
+    "item": "http://www.wikidata.org/entity/Q963",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "FLK",
+    "item": "http://www.wikidata.org/entity/Q9648",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "BFA",
+    "item": "http://www.wikidata.org/entity/Q965",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "BFA",
+    "item": "http://www.wikidata.org/entity/Q965",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "BDI",
+    "item": "http://www.wikidata.org/entity/Q967",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "BDI",
+    "item": "http://www.wikidata.org/entity/Q967",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "IMN",
+    "item": "http://www.wikidata.org/entity/Q9676",
+    "value": "http://www.wikidata.org/entity/Q1528507",
+    "valueLabel": "BS 1363"
+  },
+  {
+    "iso3": "COM",
+    "item": "http://www.wikidata.org/entity/Q970",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "COM",
+    "item": "http://www.wikidata.org/entity/Q970",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "COG",
+    "item": "http://www.wikidata.org/entity/Q971",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "COG",
+    "item": "http://www.wikidata.org/entity/Q971",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "COD",
+    "item": "http://www.wikidata.org/entity/Q974",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "COD",
+    "item": "http://www.wikidata.org/entity/Q974",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "COD",
+    "item": "http://www.wikidata.org/entity/Q974",
+    "value": "http://www.wikidata.org/entity/Q60740126",
+    "valueLabel": "AC power plugs and sockets: British and related types"
+  },
+  {
+    "iso3": "DJI",
+    "item": "http://www.wikidata.org/entity/Q977",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "DJI",
+    "item": "http://www.wikidata.org/entity/Q977",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "GNQ",
+    "item": "http://www.wikidata.org/entity/Q983",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "GNQ",
+    "item": "http://www.wikidata.org/entity/Q983",
+    "value": "http://www.wikidata.org/entity/Q2335536",
+    "valueLabel": "Type E"
+  },
+  {
+    "iso3": "ERI",
+    "item": "http://www.wikidata.org/entity/Q986",
+    "value": "http://www.wikidata.org/entity/Q1378312",
+    "valueLabel": "Europlug"
+  },
+  {
+    "iso3": "ERI",
+    "item": "http://www.wikidata.org/entity/Q986",
+    "value": "http://www.wikidata.org/entity/Q1520890",
+    "valueLabel": "Type L"
+  }
+]

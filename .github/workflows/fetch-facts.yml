@@ -1,0 +1,122 @@
+# Downloads the original files behind the country facts in the profiles (task 156):
+#  - Unicode CLDR (currencies, currency names/symbols, official languages, language names) — Unicode License v3
+#  - IANA time zone database (zone1970.tab, iso3166.tab) — public domain
+#  - GeoNames (countryInfo.txt: calling code, internet domain, land neighbours) — CC BY 4.0
+#  - Wikidata query results (data/facts-queries/*.rq: government, driving side, plugs, emergency numbers, highest
+#    point, landlocked, and second-source checks for calling code, domain, languages and borders) — CC0
+# Each licence is checked in the downloaded files themselves; the run fails if a licence text is not what we expect.
+# Writes data/raw/facts/ with SOURCE.md (URLs, download time, bytes, SHA-256, licence).
+name: Fetch country facts (dev-data)
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev-data]
+    paths:
+      - .github/workflows/fetch-facts.yml
+      - data/facts-queries/**
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+  issues: write
+env:
+  CLDR_TAG: '49.0.0'
+  TZ_TAG: '2026f'
+concurrency:
+  group: data-fetch-${{ github.ref }}   # one fetch at a time per branch
+  cancel-in-progress: false
+jobs:
+  fetch:
+    if: github.ref == 'refs/heads/dev-data' || startsWith(github.ref, 'refs/heads/data-update-')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Download CLDR, IANA tz, GeoNames and Wikidata files
+        run: |
+          set -euo pipefail
+          DIR=data/raw/facts
+          rm -rf "$DIR"; mkdir -p "$DIR/wikidata"
+          UA='AtlasFigures data fetch (github.com/shariful881/atlasfigures; country facts)'
+          ROWS=""
+          row() { ROWS="$ROWS| $1 | $2 | $3 | $4 | $(stat -c %s "$DIR/$2") | $(sha256sum "$DIR/$2" | cut -d' ' -f1) |"$'\n'; }
+          get() { curl -fSL --retry 4 --retry-delay 10 -A "$UA" -o "$DIR/$1" "$2"; }
+
+          # Unicode CLDR (tagged release)
+          C="https://raw.githubusercontent.com/unicode-org/cldr-json/$CLDR_TAG"
+          get cldr-LICENSE.txt "$C/LICENSE"
+          grep -q 'UNICODE LICENSE V3' "$DIR/cldr-LICENSE.txt" || { echo '::error::CLDR licence text changed'; exit 1; }
+          row "Unicode CLDR $CLDR_TAG" cldr-LICENSE.txt "Unicode License v3" "$C/LICENSE"
+          for F in cldr-core/supplemental/currencyData.json cldr-core/supplemental/territoryInfo.json cldr-numbers-full/main/en/currencies.json cldr-localenames-full/main/en/languages.json; do
+            N="cldr-$(basename "$F")"; get "$N" "$C/cldr-json/$F"; jq -e . "$DIR/$N" >/dev/null
+            row "Unicode CLDR $CLDR_TAG" "$N" "Unicode License v3" "$C/cldr-json/$F"
+          done
+
+          # IANA time zone database (tagged release)
+          T="https://raw.githubusercontent.com/eggert/tz/$TZ_TAG"
+          get tz-LICENSE.txt "$T/LICENSE"
+          grep -qi 'public domain' "$DIR/tz-LICENSE.txt" || { echo '::error::tz licence text changed'; exit 1; }
+          for F in LICENSE zone1970.tab iso3166.tab; do
+            [ "$F" = LICENSE ] || get "tz-$F" "$T/$F"
+            N="tz-$F"; [ "$F" = LICENSE ] && N=tz-LICENSE.txt
+            row "IANA tz $TZ_TAG" "$N" "public domain" "$T/$F"
+          done
+
+          # GeoNames
+          G=https://download.geonames.org/export/dump
+          get geonames-readme.txt "$G/readme.txt"
+          grep -q 'Creative Commons Attribution 4.0' "$DIR/geonames-readme.txt" || { echo '::error::GeoNames licence text changed'; exit 1; }
+          get geonames-countryInfo.txt "$G/countryInfo.txt"
+          for F in readme.txt countryInfo.txt; do row "GeoNames" "geonames-$F" "CC BY 4.0" "$G/$F"; done
+
+          # Wikidata Query Service (results sorted so an unchanged answer gives an unchanged file)
+          W=https://query.wikidata.org/sparql
+          for Q in data/facts-queries/*.rq; do
+            N=$(basename "$Q" .rq)
+            for TRY in 1 2 3 4; do
+              curl -fsS -G -A "$UA" -H 'Accept: application/sparql-results+json' --data-urlencode "query@$Q" -o "$DIR/wikidata/$N.raw.json" "$W" && jq -e '.results.bindings' "$DIR/wikidata/$N.raw.json" >/dev/null && break
+              echo "$N: retry $TRY"; sleep $((TRY * 20))
+            done
+            jq -S '[.results.bindings[] | with_entries(.value = .value.value)] | sort_by(tostring)' "$DIR/wikidata/$N.raw.json" > "$DIR/wikidata/$N.json"
+            rm "$DIR/wikidata/$N.raw.json"
+            echo "$N: $(jq length "$DIR/wikidata/$N.json") rows"
+            row "Wikidata (query $Q)" "wikidata/$N.json" "CC0 1.0" "$W"
+          done
+          {
+            echo "# Country facts — original files"
+            echo
+            echo "Downloaded automatically by .github/workflows/fetch-facts.yml. Do not edit by hand."
+            echo
+            echo "- Unicode CLDR $CLDR_TAG — https://cldr.unicode.org — Unicode License v3 (cldr-LICENSE.txt)"
+            echo "- IANA time zone database $TZ_TAG — https://www.iana.org/time-zones — public domain (tz-LICENSE.txt)"
+            echo "- GeoNames — https://www.geonames.org — CC BY 4.0 (stated in geonames-readme.txt)"
+            echo "- Wikidata — https://www.wikidata.org — CC0 1.0 (structured data); queries in data/facts-queries/"
+            echo "- Downloaded (UTC): $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo
+            echo "| Source | File | Licence | URL | Bytes | SHA-256 |"
+            echo "|---|---|---|---|---|---|"
+            printf '%s' "$ROWS"
+          } > "$DIR/SOURCE.md"
+          cat "$DIR/SOURCE.md"
+      - name: Commit to the branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/raw/facts
+          git diff --cached --quiet -- . ':(exclude)*/SOURCE.md' && { echo 'No new data'; git reset -q; exit 0; }
+          git commit -m 'Data: country facts (CLDR, IANA tz, GeoNames, Wikidata)'
+          git pull --rebase origin ${{ github.ref_name }}
+          git push origin HEAD:${{ github.ref_name }}
+      - name: Open a pull request into main (data-update branches only)
+        if: startsWith(github.ref, 'refs/heads/data-update-')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git fetch origin main
+          if git diff --quiet origin/main HEAD; then echo 'No change against main'; exit 0; fi
+          gh pr list --head "${{ github.ref_name }}" --base main --json number --jq '.[0].number // empty' | grep -q . && exit 0
+          gh workflow run check.yml --ref "${{ github.ref_name }}"
+          MSG="Fetched by ${{ github.workflow }} after the weekly source check (watch-sources.yml) into branch ${{ github.ref_name }}. Check that every changed fact still agrees with its second source (check-facts lists the differences), re-check by hand where needed (data/facts-checked.json), then merge into main."
+          gh pr create --base main --head "${{ github.ref_name }}" --title "Data update: country facts (${{ github.ref_name }})" --body "$MSG" \
+            || gh issue create --title "Data update ready: ${{ github.ref_name }}" --body "$MSG (A pull request could not be opened automatically — open it by hand.)"

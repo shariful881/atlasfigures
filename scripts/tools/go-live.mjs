@@ -21,7 +21,7 @@ const dataUpdate = args.includes('--data-update'); if (dataUpdate) args.splice(a
 const task = one('--task') ?? (dataUpdate ? 'data update' : null), approved = one('--approved') ?? (dataUpdate ? "owner's rule of 27 Nov 2026: data updates go live after the checks" : null), title = one('--title'), bodyFile = one('--body-file'), verify = all('--verify');
 const die = (m) => { console.error(`✗ ${m}`); process.exit(1); };
 if (!task || !approved || !title || !bodyFile) die('need --task, --approved "<owner\'s words>", --title and --body-file');
-if (!dataUpdate && !/live/i.test(approved)) die(`--approved must be the owner's go-live words (e.g. "${task} live কর"), got "${approved}"`);
+if (!dataUpdate && !/live|লাইভ/i.test(approved)) die(`--approved must be the owner's go-live words (e.g. "${task} live কর"), got "${approved}"`);
 
 const sh = (c, o = {}) => execSync(c, { stdio: ['ignore', 'pipe', 'inherit'], encoding: 'utf8', ...o }).trim();
 const run = (c) => { console.log(`$ ${c}`); const r = spawnSync(c, { shell: true, stdio: 'inherit' }); if (r.status !== 0) die(`failed: ${c}`); };
