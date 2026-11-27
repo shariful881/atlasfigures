@@ -1,0 +1,74 @@
+---
+// Brazil country hub (task 170). Every figure comes from the country profile (src/data/profiles/BRA.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/brazil.json';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, people } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), tfr = st('population', 'fertility'), urban = st('population', 'urban'), grow = st('population', 'growth');
+const land = st('facts', 'landArea'), forestA = st('environment', 'forestArea'), forest = st('environment', 'forestPct'), prot = st('environment', 'protected');
+const ren = st('energy', 'renShare'), hydro = st('energy', 'hydroShare'), ws = st('energy', 'wsShare'), gini = st('economy', 'gini');
+const gdp = st('economy', 'gdp'), gdpPc = st('economy', 'gdpPc'), fdi = st('economy', 'fdi'), debt = st('economy', 'extDebt'), fx = st('economy', 'fx');
+const rusForest = stat(profile('RUS'), 'environment', 'forestArea');
+
+assertClaim(fromTop(pop) === 7 && fromTop(land) === 5, 'seventh by population, fifth by land area');
+assertClaim(fromTop(forestA) === 2 && fromTop(rusForest) === 1 && Number(forest.value) > 58, 'second-largest forest after Russia, over 58% forested');
+assertClaim(fromTop(ren) === 15 && Number(hydro.value) > 50 && Number(ren.value) > 85, 'over 85% renewable power, over half hydro, 15th');
+assertClaim(fromTop(gini) === 5 && Number(gini.value) > 50, 'fifth-highest Gini index, above 50');
+assertClaim(fromTop(gdp) === 11 && fromTop(fdi) === 6 && fromTop(debt) === 3, '11th GDP, 6th FDI, 3rd external debt');
+assertClaim(Number(tfr.value) < 1.6 && Number(urban.value) > 88, 'fertility under 1.6, nearly nine in ten urban');
+
+const title = `Brazil Numbers ${Y}: Forest Area, Renewable Power, Inequality | AtlasFigures`;
+const description = `Brazil holds the world's second-largest forest, makes ${ren.text} of its power from renewables and has one of the highest Gini indexes on record; population ${people(Number(pop.value))} (UN, ${Y}).`;
+
+const faq = [
+  { q: 'How many reais to a US dollar?', a: `${fx.text} reais bought a dollar on average during ${fx.year} (official rate; World Bank).` },
+  { q: 'Is Brazil considered a developed country?', a: `By World Bank income group it is ${st('facts', 'income').text.toLowerCase()}. Brazilian GDP for ${gdp.year}: ${gdp.text}, ${ordinal(fromTop(gdp))} worldwide, or ${gdpPc.text} per Brazilian.` },
+  { q: 'How much foreign investment goes to Brazil?', a: `Net inflows of foreign direct investment were ${fdi.text} in ${fdi.year}, the ${ordinal(fromTop(fdi))} highest of ${fdi.of} countries.` },
+  { q: 'How much of Brazil is protected land or sea?', a: `${prot.text} of its land and territorial waters together had protected status in ${prot.year} (UNEP-WCMC).` },
+];
+const headline = `Brazil facts and figures ${Y}: population, the second-largest forest, renewable power and inequality`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Brazil in data: people, rainforest, power and wealth"
+  headline={headline}
+  faq={faq}
+  faqTitle="Brazil, briefly: reader questions"
+  related={[
+    { href: '/country/brazil/population/', label: 'Brazil population: live count and ageing' },
+    { href: '/country/brazil/economy/', label: 'Brazil economy: GDP, inflation and the real' },
+    { href: '/country/brazil/health/', label: 'Brazil health: children, mothers and spending' },
+    { href: '/country/argentina/population/', label: "Argentina's population" },
+    { href: '/country/colombia/population/', label: "Colombia's population" },
+    { href: '/country/mexico/', label: 'Mexico in figures' },
+    { href: '/rankings/forest-area-by-country/', label: 'Forest area by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Home to <strong>{people(Number(pop.value))} Brazilians</strong> ({Y}, UN projection), Brazil's {forestA.text} km² of trees make the second-biggest national forest. Its {gdp.year} GDP was <strong>{gdp.text}</strong>, and renewables generated {ren.text} of its electricity.</Fragment>
+  <div class="story-block prose">
+    <h2>How much rainforest and woodland does Brazil have?</h2>
+    <p>Forest covered {forest.text} of Brazilian territory in {forest.year}. Only Russia has more forest than Brazil's {forestA.text} km². Protected areas take in {prot.text} of its land and coastal waters.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Where does Brazil get its electricity?</h2>
+    <p>Mostly from water. Hydropower supplied {hydro.text} of generation in {hydro.year} and wind and solar another {ws.text}, putting Brazil's renewable total at {ren.text} and its rank at {ordinal(fromTop(ren))} among the {ren.of} countries Ember tracks.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How unequal is income in Brazil?</h2>
+    <p>Among the most unequal in the world. Brazil's Gini index of {gini.text} in {gini.year} was the {ordinal(fromTop(gini))} highest of {gini.of} countries with a recent survey, on a scale where higher means more unequal. Per person, GDP averaged {gdpPc.text}; growth and inflation are tracked on the <a href={path('/country/brazil/economy/')}>Brazilian economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How slowly is Brazil's population growing?</h2>
+    <p>Growth is already down to {grow.text} for {Y}. Brazilian fertility, {tfr.text} births per woman, sits below what a population needs to replace itself. Nearly nine in ten Brazilians ({urban.text}) are urban dwellers under the national definition.</p>
+  </div>
+</CountryHub>

@@ -1,0 +1,84 @@
+---
+// India country hub (task 170). Every figure comes from the country profile (src/data/profiles/IND.json), which
+// build-profiles makes from the generated UN and World Bank data; check-profiles compares it with that data.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/india.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { countryIndex, assertClaim, people, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), gdp = st('economy', 'gdp'), gdpPc = st('economy', 'gdpPc'), gini = st('economy', 'gini');
+const remit = st('trade', 'remit'), remitPct = st('trade', 'remitPct'), lfpF = st('jobs', 'lfpF'), lfpM = st('jobs', 'lfpM');
+const labour = st('jobs', 'labourForce'), co2 = st('environment', 'co2'), co2pc = st('environment', 'co2pc'), gen = st('energy', 'gen');
+const fossil = st('energy', 'fossilShare'), pm = st('environment', 'pm25'), subs = st('internet', 'mobileSubs'), net = st('internet', 'internet');
+const armed = st('governance', 'armed'), fx = st('economy', 'fx'), hGdp = st('health', 'healthGdp'), u5 = st('health', 'u5');
+
+const me = countryIndex.countries.find((c) => c.iso3 === 'IND')!;
+const chn = countryIndex.countries.find((c) => c.iso3 === 'CHN')!;
+const share = (me as any).worldSharePct as number;
+assertClaim(me.worldRank === 1 && chn.worldRank === 2, 'India first by population, China second');
+assertClaim(share > 17 && share < 18.5, 'roughly one person in six or seven alive is Indian');
+assertClaim(fromTop(gdp) === 6 && fromTop(gdpPc) > 160, 'sixth-largest GDP, yet outside the top 160 per person');
+assertClaim(fromBottom(gini) === 1, 'lowest Gini index of the countries with a recent survey');
+assertClaim(fromTop(remit) === 1, 'largest remittance inflow in the world');
+assertClaim(Number(lfpF.value) < 35 && Number(lfpM.value) > 75 && fromTop(lfpF) > 160, 'about a third of women in the labour force against over three quarters of men');
+assertClaim(fromTop(co2) === 3 && fromTop(gen) === 3 && fromTop(co2pc) > 120, 'third in total CO2 and power generation, far down per person');
+assertClaim(fromTop(subs) === 2 && fromTop(labour) === 2 && fromTop(armed) === 1, 'second by mobile subscriptions and labour force, first by armed forces');
+assertClaim(fromTop(pm) === 11, 'eleventh-worst PM2.5');
+
+const title = `India Statistics ${Y}: People, GDP, Remittances, Work | AtlasFigures`;
+const description = `No country has more people than India, home to ${people(Number(pop.value))} according to UN projections for ${Y}. Its GDP is ${gdp.text}, and no nation receives more remittances.`;
+
+const faq = [
+  { q: 'Does India have more people than China?', a: `Yes. The UN projects ${people(Number(pop.value))} Indians in ${Y} against ${people(chn.population)} people in China, which leaves ${pct(share)} of all humans living in India.` },
+  { q: 'Why is India rich in total but poor per person?', a: `Because the total is divided among so many people. Output worth ${gdp.text} (${gdp.year}) places India ${ordinal(fromTop(gdp))} out of ${gdp.of}, yet that comes to ${gdpPc.text} a head, ${ordinal(fromTop(gdpPc))} of ${gdpPc.of}.` },
+  { q: 'How many rupees to a US dollar?', a: `On average ${fx.text} Indian rupees bought one dollar during ${fx.year} (official exchange rate, as published in World Bank data).` },
+  { q: 'What share of its GDP does India put into health?', a: `${hGdp.text} in ${hGdp.year}, counting government, insurance and household spending together.` },
+];
+const headline = `India statistics ${Y}: the most populous country's economy, work, energy and health`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="India in numbers: the world's largest population and its economy"
+  headline={headline}
+  faq={faq}
+  faqTitle="Quick facts people look up about India"
+  related={[
+    { href: '/country/india/population/', label: 'India population: live count and the UN outlook' },
+    { href: '/country/india/economy/', label: 'India economy: GDP, growth and prices' },
+    { href: '/country/india/health/', label: 'India health: child survival and medical costs' },
+    { href: '/country/bangladesh/', label: 'Bangladesh at a glance' },
+    { href: '/country/pakistan/', label: 'Pakistan in figures' },
+    { href: '/country/china/', label: 'China in figures' },
+    { href: '/rankings/remittances-by-country/', label: 'Remittances received, country by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">India is home to <strong>{people(Number(pop.value))} people</strong> in {Y} (UN projection), more than any other country. GDP came to <strong>{gdp.text}</strong> for {gdp.year}, sixth among all economies, and Indian emigrants wired home {remit.text}, a sum no other country matches.</Fragment>
+  <div class="story-block prose">
+    <h2>Has India overtaken China in population?</h2>
+    <p>It has. The UN figure for {Y} is {people(Number(pop.value))} for India and {people(chn.population)} for China, which puts {pct(share)} of humanity in India. Its workforce is second only to China's ({people(Number(labour.value))} workers or job seekers, {labour.year}), and so is its number of mobile phone subscriptions: {people(Number(subs.value))}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is India's economy big or small?</h2>
+    <p>Both, depending on how you divide it. India's {gdp.year} output of {gdp.text} puts it {ordinal(fromTop(gdp))} on Earth; split across the population it is {gdpPc.text} a person, {ordinal(fromTop(gdpPc))} of {gdpPc.of}. Measured spending is unusually evenly spread: no nation among the {gini.of} with a survey in the past few years has a lower Gini index than India's {gini.text} ({gini.year}). Year-by-year growth is on the <a href={path('/country/india/economy/')}>Indian economy page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Do Indian migrants send home more money than anyone?</h2>
+    <p>Yes. Personal remittances flowing in hit {remit.text} in {remit.year}, top of a {remit.of}-country table and worth {remitPct.text} of GDP.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many Indian women are in the workforce?</h2>
+    <p>Far fewer than men, one of the widest gaps anywhere. Just {lfpF.text} of Indian women had a job or sought one in {lfpF.year}, while among Indian men the figure was {lfpM.text}. On this ILO modelled estimate India comes {ordinal(fromTop(lfpF))} of {lfpF.of} for women's participation.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much power and carbon does India produce?</h2>
+    <p>A lot in total, little per head. Indian power stations turned out {gen.text} TWh in {gen.year}, {ordinal(fromTop(gen))} most worldwide and {fossil.text} of it fossil-fired, while fossil CO₂ reached {co2.text} million tonnes, likewise {ordinal(fromTop(co2))}. Per person that is {co2pc.text} tonnes, {ordinal(fromTop(co2pc))} of {co2pc.of}. The air pays the price: average PM2.5 exposure of {pm.text} µg/m³ in {pm.year} was the {ordinal(fromTop(pm))} highest.</p>
+  </div>
+</CountryHub>

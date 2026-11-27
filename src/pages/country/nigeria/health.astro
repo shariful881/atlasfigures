@@ -1,0 +1,111 @@
+---
+// Nigeria health (task 170). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/nigeria.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), infant = st('infant'), neo = st('neonatal'), mat = st('maternal'), doc = st('doctors');
+const hPc = st('healthPc'), oop = st('oop'), measles = st('measles'), dpt = st('dpt'), stunt = st('stunting');
+const hunger = st('undernour'), mal = st('malaria'), tob = st('tobacco');
+const U = u5.year!;
+
+const u5_15 = v('under5Mortality', 2015), u5_90 = v('under5Mortality', 1990);
+assertClaim(fromTop(u5) === 1 && fromTop(mat) === 1 && fromTop(infant) === 2 && fromTop(neo) === 2, 'highest under-five and maternal rates, second for infants and newborns');
+assertClaim(U === 2024 && u5_15 - Number(u5.value) < 2.5 && s.under5Mortality.filter(([y]) => y >= 2015).every(([, x]) => x > 115), 'under-five rate above 115 every year since 2015, down less than 2.5 points');
+const mat90 = v('maternalMortality', 1990);
+assertClaim(Number(mat.value) > 0.75 * mat90 && mat.year === 2023, 'maternal ratio still above three quarters of 1990');
+assertClaim(fromBottom(measles) === 12 && Number(measles.value) < 60, 'twelfth-lowest measles coverage, under 60%');
+const h10 = v('undernourishedPct', 2010);
+const rising = s.undernourishedPct.filter(([y]) => y >= 2015);
+assertClaim(rising.every(([, x], i) => i === 0 || x > rising[i - 1][1]) && Number(hunger.value) > 2 * h10, 'undernourishment up every year since 2015, more than double 2010');
+assertClaim(Number(oop.value) > 70 && Number(oop.value) < 75, 'nearly three quarters paid out of pocket');
+assertClaim(fromTop(oop) === 6 && fromTop(mal) === 10 && fromBottom(tob) === 1, 'sixth-highest out-of-pocket, tenth-highest malaria, lowest tobacco use');
+
+const title = `Nigeria Health Statistics ${U}: Child and Maternal Deaths, Hunger | AtlasFigures`;
+const description = `Worst on two counts: Nigeria's child deaths before five (${u5.text} per 1,000 in ${U}) and maternal mortality (${mat.text} per 100,000 in ${mat.year}) are the highest of any country. Vaccines, hunger, malaria and costs too.`;
+
+const faq = [
+  { q: 'Is Nigeria the worst country for child deaths?', a: `On the UN's ${U} estimates, yes: Nigeria's rate of ${u5.text} child deaths before five, per thousand births, tops all ${u5.of} countries.` },
+  { q: 'How common is malaria in Nigeria?', a: `The WHO counted ${mal.text} infections a year for every thousand Nigerians at risk (${mal.year}); ${fromTop(mal) - 1} of ${mal.of} malaria-endemic countries had higher incidence.` },
+  { q: 'Is tobacco use low in Nigeria?', a: `The lowest anywhere: ${tob.text} of Nigerian adults in ${tob.year}, below every other country of ${tob.of} with WHO estimates.` },
+  { q: 'Does Nigeria have enough doctors?', a: `Far from it: ${doc.text} per 1,000 Nigerians in ${doc.year}, so each doctor serves roughly ${Math.round(1000 / Number(doc.value)).toLocaleString('en-US')} people.` },
+];
+assertClaim(Math.round(1000 / Number(doc.value)) > 2500 && Math.round(1000 / Number(doc.value)) < 2700, 'about one doctor per 2,500–2,700 people');
+const headline = `Nigeria health ${U}: the highest child and maternal mortality, vaccination and hunger`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Health in Nigeria: mothers, children, malaria and food"
+  headline={headline}
+  tableTitle={`Nigeria health trends, 1990–${U}`}
+  tableSubtitle="Benchmark years only; the CSV gives Nigeria's full series year after year."
+  faq={faq}
+  faqTitle="Nigerian health questions, answered"
+  related={[
+    { href: '/country/nigeria/', label: 'Nigeria in numbers' },
+    { href: '/country/nigeria/population/', label: 'Nigeria population and life expectancy' },
+    { href: '/country/ethiopia/health/', label: 'Ethiopia health' },
+    { href: '/country/pakistan/health/', label: 'Pakistan health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal mortality by country' },
+  ]}
+>
+  <Fragment slot="answer">No country loses more children or mothers than Nigeria: <strong>{u5.text} of every thousand babies</strong> die before five ({U}) and <strong>{mat.text} women per 100,000 births</strong> die from pregnancy ({mat.year}). FAO data show hunger worsening annually since 2015.</Fragment>
+  <div class="story-block prose">
+    <h2>Why has Nigeria's child mortality stopped falling?</h2>
+    <p>The estimates show the stall, not its causes. Down from {u5_90.toFixed(1)} in 1990, Nigeria reached {u5_15.toFixed(1)} by 2015 and has hardly shifted since, ending at {u5.text} in {U}. Among newborns, {neo.text} per thousand die within four weeks, a figure surpassed by one country only.</p>
+  </div>
+  <LineChart
+    title={`Nigerian children dying before five, 1990–${U}`}
+    subtitle="Deaths under age five out of each thousand Nigerian live births; IGME model estimates."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 live births"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How dangerous is pregnancy in Nigeria?</h2>
+    <p>More than anywhere else. UN modellers estimate {mat.text} Nigerian maternal deaths for every hundred thousand births in {mat.year}, still more than three quarters of the {mat90} estimated for 1990.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many Nigerian children get vaccinated?</h2>
+    <p>Barely more than half. A measles shot reached {measles.text} of Nigerian toddlers in {measles.year} and {dpt.text} completed three DPT doses, leaving Nigeria {ordinal(fromBottom(measles))} lowest of {measles.of} for measles coverage.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is hunger growing in Nigeria?</h2>
+    <p>Yes, year after year. FAO's undernourishment estimate for Nigeria has gone up annually since 2015 and reached {hunger.text} in {hunger.year}, over twice the {pct(h10)} of 2010. At the {stunt.year} survey, {stunt.text} of small Nigerian children were stunted.</p>
+  </div>
+  <LineChart
+    title={`Share of Nigerians undernourished, ${s.undernourishedPct[0][0]}–${hunger.year}`}
+    subtitle="Nigerians not getting enough food energy for a normal, active life, % of population (FAO)."
+    points={s.undernourishedPct.map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={hunger.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How much of Nigerian health care do families fund?</h2>
+    <p>Nearly three quarters. Nigerian households paid {oop.text} directly in {oop.year}, a share only {fromTop(oop) - 1} countries exceed, from an overall {hPc.text} per person. Malaria remains widespread too. The <a href={path('/country/nigeria/economy/')}>economy page</a> gives incomes and prices.</p>
+  </div>
+</HealthTopic>

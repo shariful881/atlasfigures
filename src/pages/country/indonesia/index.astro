@@ -1,0 +1,78 @@
+---
+// Indonesia country hub (task 170). Every figure comes from the country profile (src/data/profiles/IDN.json),
+// built from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/indonesia.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people, countryIndex } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), urban = st('population', 'urban'), grow = st('population', 'growth');
+const gdp = st('economy', 'gdp'), gdpPc = st('economy', 'gdpPc'), fx = st('economy', 'fx'), ind = st('economy', 'indGdp');
+const fossil = st('energy', 'fossilShare'), ws = st('energy', 'wsShare'), co2 = st('environment', 'co2'), co2pc = st('environment', 'co2pc');
+const forest = st('environment', 'forestPct'), forestA = st('environment', 'forestArea'), edu = st('education', 'eduSpend'), lit = st('education', 'literacy');
+const acct = st('internet', 'account'), subs = st('internet', 'mobileSubs'), labour = st('jobs', 'labourForce');
+
+assertClaim(fromTop(pop) === 4 && fromTop(labour) === 4 && fromTop(subs) === 4, 'fourth by population, labour force and mobile subscriptions');
+assertClaim(fromBottom(ws) === 4 && fromTop(fossil) === 15 && Number(fossil.value) > 80, 'wind and solar fourth-lowest share, over 80% fossil');
+assertClaim(fromTop(co2) === 7, 'seventh-largest CO2 emitter');
+const asia = countryIndex.countries.filter((c) => (c as any).region === 'Asia' && c.iso3 !== 'IDN');
+const fa = (iso: string) => Number(profile(iso).sections.find((x) => x.id === 'environment')!.stats.find((x) => x.id === 'forestArea' && x.status === 'live')?.value ?? 0);
+assertClaim(asia.filter((c) => fa(c.iso3) > Number(forestA.value)).map((c) => c.iso3).join() === 'CHN', 'in Asia (UN region) only China has more forest');
+assertClaim(Number(forest.value) > 50 && fromTop(forestA) === 8, 'over half forested, eighth-largest forest area');
+assertClaim(fromBottom(edu) === 8 && Number(lit.value) > 95, 'eighth-lowest education spending share, literacy above 95%');
+assertClaim(Number(acct.value) > 50 && Number(acct.value) < 60, 'little more than half have an account');
+assertClaim(fromTop(gdp) === 17 && fromTop(ind) === 19, '17th-largest GDP, 19th-highest industry share');
+
+const title = `Indonesia Data ${Y}: Population, Coal-Heavy Power, Forests | AtlasFigures`;
+const description = `Indonesia is the fourth most populous nation (${people(Number(pop.value))}, UN projection for ${Y}); forest still covers half the islands, yet fossil fuels make ${fossil.text} of the electricity.`;
+
+const faq = [
+  { q: 'Is Indonesia the fourth most populous country?', a: `Yes. Just three nations outnumber its ${people(Number(pop.value))} inhabitants (${Y}, UN projection): India first, then China and the US.` },
+  { q: 'What is the rupiah worth against the dollar?', a: `A dollar fetched ${fx.text} rupiah across ${fx.year} on average (official rate, World Bank series).` },
+  { q: 'How many Indonesians have a bank account?', a: `Little more than half: ${acct.text} of Indonesians aged 15+ held a financial or mobile-money account in ${acct.year} (Global Findex).` },
+  { q: 'What is the value of Indonesia\'s GDP?', a: `${gdp.text} for ${gdp.year}, ${ordinal(fromTop(gdp))} of ${gdp.of}, equal to ${gdpPc.text} per person. Industry, including mining and factories, made up ${ind.text} of it.` },
+];
+const headline = `Indonesia facts and figures ${Y}: the fourth-largest population, forests, energy and schools`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Indonesia: facts on the world's fourth-biggest population"
+  headline={headline}
+  faq={faq}
+  faqTitle="Indonesia: what readers often ask"
+  related={[
+    { href: '/country/indonesia/population/', label: 'Indonesia population: live count and outlook' },
+    { href: '/country/indonesia/economy/', label: 'Indonesia economy: GDP and growth' },
+    { href: '/country/indonesia/health/', label: 'Indonesia health: children, tuberculosis and tobacco' },
+    { href: '/country/malaysia/population/', label: "Malaysia's population" },
+    { href: '/country/philippines/population/', label: 'Philippines population' },
+    { href: '/rankings/forest-area-by-country/', label: 'Forest area by country' },
+    { href: '/rankings/renewable-electricity-by-country/', label: 'Renewable electricity by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">With a projected <strong>{people(Number(pop.value))}</strong> residents this year ({Y}), Indonesia ranks fourth among nations. GDP stood at <strong>{gdp.text}</strong> for {gdp.year}, and {forest.text} of its land is forest, yet coal, oil and gas still produce {fossil.text} of its power.</Fragment>
+  <div class="story-block prose">
+    <h2>Has Indonesia's population growth slowed?</h2>
+    <p>Markedly: the UN projects just {grow.text} growth for {Y}. The median Indonesian is {age.text}, and {urban.text} live in towns and cities by the national definition. The <a href={path('/country/indonesia/population/')}>population page</a> follows the numbers to 2100.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Where does Indonesia's electricity come from?</h2>
+    <p>Mostly coal, oil and gas: Ember data give fossil fuels a {fossil.text} share for {fossil.year}, {ordinal(fromTop(fossil))} among {fossil.of} tracked countries. Wind and solar supplied only {ws.text}, fourth lowest among them. Fossil CO₂ emissions totalled {co2.text} million tonnes, {ordinal(fromTop(co2))} in the world, but {co2pc.text} tonnes per person.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Indonesia still mostly forest?</h2>
+    <p>Just over half of it is: {forest.text} of the land in {forest.year}. Measured in area, Indonesia's {forestA.text} km² of woodland ({forestA.year}) ranks {ordinal(fromTop(forestA))} worldwide, more than in any other Asian country but China (UN regions).</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Does Indonesia spend little on education?</h2>
+    <p>Among the least of any country: the state put {edu.text} of GDP into education in {edu.year}, eighth lowest of {edu.of}. Adult literacy is nonetheless high, {lit.text} in {lit.year}.</p>
+  </div>
+</CountryHub>

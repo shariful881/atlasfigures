@@ -1,0 +1,118 @@
+---
+// Pakistan health (task 170). Figures from the World Bank WDI files (src/data/wdi/, checked against the original
+// zips by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/pakistan.json';
+import { econData, econMeta, econIndex, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), infant = st('infant'), neo = st('neonatal'), mat = st('maternal'), doc = st('doctors'), nurse = st('nurses');
+const hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop'), measles = st('measles'), stunt = st('stunting');
+const hunger = st('undernour'), tob = st('tobacco'), diab = st('diabetes');
+const U = u5.year!;
+
+const neo90 = v('neonatalMortality', 1990);
+const neoShare = (Number(neo.value) / Number(u5.value)) * 100;
+assertClaim(fromTop(neo) === 3 && neoShare > 63 && neoShare < 66 && neo.year === U, 'third-highest newborn death rate, almost two thirds of under-five deaths');
+assertClaim(Number(neo.value) > neo90 / 2, 'newborn rate still more than half its 1990 level');
+assertClaim(fromTop(diab) === 1 && Number(diab.value) > 30, 'highest diabetes prevalence, nearly a third of adults');
+const h19 = v('undernourishedPct', 2019), h23 = v('undernourishedPct', 2023);
+assertClaim(h23 === Math.max(...s.undernourishedPct.filter(([y]) => y >= 2010).map(([, x]) => x)) && Number(hunger.value) > h19 + 3, 'undernourishment up by more than three points since 2019, 2023 the peak since 2010');
+assertClaim(fromBottom(hGdp) === 6 && fromBottom(st('healthPc')) === 10, 'sixth-lowest spending share, tenth-lowest per person');
+assertClaim(Number(nurse.value) < Number(doc.value) && fromBottom(nurse) === 12 && nurse.year === doc.year, 'fewer nurses than doctors, twelfth-lowest nurse density');
+// countries with fewer nurses than doctors (latest year since 2018 with both figures) — our count
+const fewer = (econIndex.economies as any[]).filter((e) => {
+  const c = econData(e.iso3).series, nd = Object.fromEntries(c.doctorsPer1000), nn = Object.fromEntries(c.nursesPer1000);
+  const ys = Object.keys(nd).map(Number).filter((y) => y >= 2018 && nn[y] != null);
+  if (!ys.length) return false; const y = Math.max(...ys); return nn[y] < nd[y];
+}).map((e) => e.iso3);
+assertClaim(fewer.includes('PAK') && fewer.length <= 12, 'Pakistan one of no more than 12 countries with fewer nurses than doctors');
+const tob00 = v('tobaccoPct', 2000), m90 = v('measlesVaccPct', 1990);
+assertClaim(Number(tob.value) < tob00 / 2 && m90 === 50 && Number(measles.value) === 86, 'tobacco more than halved; measles 50% to 86%');
+assertClaim(fromTop(stunt) === 11, 'eleventh-highest stunting');
+
+const title = `Pakistan Health Statistics ${U}: Newborn Deaths, Diabetes, Hunger | AtlasFigures`;
+const description = `Newborn deaths in Pakistan: ${neo.text} per 1,000 births (${neo.year}), third worst worldwide. Adult diabetes: ${diab.text} (${diab.year}), worst of all. Plus hunger, vaccines and health spending.`;
+
+const faq = [
+  { q: 'What is Pakistan\'s infant mortality rate?', a: `${infant.text} per thousand born alive (${U}); counting to age five, the toll rises to ${u5.text}.` },
+  { q: 'Why is diabetes so common in Pakistan?', a: `The IDF figure republished by the World Bank measures prevalence, not causes; it puts Pakistan top of ${diab.of} countries with ${diab.text} of adults affected in ${diab.year}.` },
+  { q: 'How many mothers die in childbirth in Pakistan?', a: `Pakistan's maternal ratio was ${mat.text} per 100,000 births in ${mat.year} on the UN inter-agency estimate, against ${v('maternalMortality', 1990)} in 1990.` },
+  { q: 'Do Pakistanis pay for medical care out of their own pockets?', a: `Mostly, yes: patients and their families covered ${oop.text} of health costs directly in ${oop.year}, from an overall spend of ${hPc.text} per person.` },
+];
+const headline = `Pakistan health ${U}: newborn deaths, diabetes, undernourishment and health spending`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Pakistan health: newborns, diabetes and rising hunger"
+  headline={headline}
+  tableTitle={`Pakistan's health statistics, 1990–${U}`}
+  tableSubtitle="Shown for twelve benchmark years; the downloadable CSV is complete from 1960."
+  faq={faq}
+  faqTitle="Pakistan health: the short version"
+  related={[
+    { href: '/country/pakistan/', label: 'Pakistan by numbers' },
+    { href: '/country/pakistan/population/', label: 'Pakistan population' },
+    { href: '/country/india/health/', label: 'India health' },
+    { href: '/country/bangladesh/health/', label: 'Bangladesh health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality, every country ranked' },
+  ]}
+>
+  <Fragment slot="answer">Pakistan lost <strong>{neo.text}</strong> babies per thousand births in the neonatal period ({neo.year}), a newborn death rate exceeded in just two countries. Diabetes is more common than anywhere else: <strong>{diab.text} of adults</strong> had it in {diab.year}.</Fragment>
+  <div class="story-block prose">
+    <h2>Why do so many Pakistani newborns die?</h2>
+    <p>The UN estimates measure the deaths, not their causes: {neo.text} per thousand born alive in {neo.year}. The rate has come down slowly from {neo90} in 1990, and newborns now make up {pct(neoShare)} of all Pakistani children who die before turning five (our calculation).</p>
+  </div>
+  <LineChart
+    title={`Newborn mortality in Pakistan, 1990–${neo.year}`}
+    subtitle="Deaths of Pakistani infants aged 0–27 days per 1,000 born alive, UN IGME estimates."
+    points={s.neonatalMortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 live births"
+    highlight={neo.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Does Pakistan have the highest diabetes rate in the world?</h2>
+    <p>It does on this measure. Diabetes affected {diab.text} of Pakistani adults in {diab.year}, nearly one in three and the top figure of all {diab.of} places the International Diabetes Federation covers.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is hunger getting worse in Pakistan?</h2>
+    <p>Since 2019 it has. FAO figures put undernourished Pakistanis at {pct(h19)} of the population in 2019, {pct(h23)} in 2023 and {hunger.text} in {hunger.year}. At the {stunt.year} survey {stunt.text} of young children were already stunted, {ordinal(fromTop(stunt))} highest of {stunt.of}.</p>
+  </div>
+  <LineChart
+    title={`Undernourishment in Pakistan, ${s.undernourishedPct[0][0]}–${hunger.year}`}
+    subtitle="Percentage of Pakistan's population whose usual food intake falls short of dietary energy needs (FAO)."
+    points={s.undernourishedPct.map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={hunger.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is Pakistan's health spending among the world's lowest?</h2>
+    <p>Yes. Health took {hGdp.text} of Pakistani GDP in {hGdp.year}, sixth lowest, or {hPc.text} per person, tenth lowest; households themselves covered {oop.text}. Pakistan is one of only {fewer.length} countries with fewer nurses than doctors (our count, latest year since 2018), with {nurse.text} nurses and midwives to {doc.text} doctors per 1,000 Pakistanis ({doc.year}).</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is tobacco use declining in Pakistan?</h2>
+    <p>Pakistani tobacco use has fallen below half of what it was in 2000 ({pct(tob00)}), to {tob.text} in {tob.year}. Measles immunisation of young children climbed from {pct(m90)} (1990) to {measles.text} ({measles.year}). See the <a href={path('/country/pakistan/population/')}>population page</a> for life expectancy.</p>
+  </div>
+</HealthTopic>

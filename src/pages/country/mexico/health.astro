@@ -1,0 +1,110 @@
+---
+// Mexico health (task 170). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/mexico.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), neo = st('neonatal'), mat = st('maternal'), doc = st('doctors'), nurse = st('nurses'), beds = st('beds');
+const hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop'), measles = st('measles'), dpt = st('dpt'), stunt = st('stunting');
+const tob = st('tobacco'), diab = st('diabetes');
+const U = u5.year!;
+
+assertClaim(fromTop(diab) === 30 && Number(diab.value) > 15.5 && Number(diab.value) < 17.5, 'diabetes about one adult in six, 30th highest');
+assertClaim(fromTop(tob) > tob.of! / 2, 'tobacco use below the median country');
+const m19 = v('measlesVaccPct', 2019), m21 = v('measlesVaccPct', 2021), m23 = v('measlesVaccPct', 2023);
+assertClaim(m19 === 73 && m21 === 99 && m23 === 76 && Number(measles.value) === 80, 'measles 73% in 2019, 99% in 2021, 76% in 2023, 80% now');
+const x19 = v('maternalMortality', 2019), x21 = v('maternalMortality', 2021);
+assertClaim(mat.year === 2023 && x21 > 2.3 * x19 && Number(mat.value) < x19, 'maternal ratio more than doubled in 2021, now below 2019');
+const oop00 = v('outOfPocketPct', 2000);
+assertClaim(oop00 > 52 && Number(oop.value) > 40 && Number(oop.value) < 42, 'out-of-pocket from over half to about two fifths');
+assertClaim(fromTop(beds) === 123 && Number(beds.value) > 0.95 && Number(beds.value) < 1.05 && Number(stunt.value) > 12 && Number(stunt.value) < 13, 'about one hospital bed per thousand, 123rd');
+const u5_90 = v('under5Mortality', 1990);
+assertClaim(u5_90 / Number(u5.value) > 3.3 && U === 2024, 'under-five rate less than a third of 1990');
+
+const title = `Mexico Health Statistics ${U}: Diabetes, Vaccination, Care Costs | AtlasFigures`;
+const description = `Diabetes touches ${diab.text} of Mexican adults (${diab.year}); measles cover lurched from ${pct(m19)} to ${pct(m21)} to ${measles.text} in five years; families fund ${oop.text} of care themselves.`;
+
+const faq = [
+  { q: 'What percentage of Mexicans have diabetes?', a: `${diab.text} of adults in ${diab.year}, which ranks Mexico ${ordinal(fromTop(diab))} of ${diab.of} places estimated by the IDF.` },
+  { q: 'How many hospital beds does Mexico have?', a: `About one per 1,000 Mexicans (${beds.text}, ${beds.year}), ${ordinal(fromTop(beds))} of ${beds.of}; doctors numbered ${doc.text} and nurses or midwives ${nurse.text} per 1,000.` },
+  { q: 'What is infant and child mortality in Mexico?', a: `Mexico's under-five rate was ${u5.text} per thousand births for ${U} (1990: ${u5_90.toFixed(1)}), and ${neo.text} babies per thousand died as newborns.` },
+  { q: 'Is smoking common in Mexico?', a: `Less than in many countries: ${tob.text} of grown-ups in Mexico used tobacco in ${tob.year}, a little under the ${pct(v('tobaccoPct', 2000))} of 2000.` },
+];
+const headline = `Mexico health ${U}: diabetes, measles vaccination, maternal deaths and out-of-pocket costs`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Mexico health: diabetes, vaccines and paying for care"
+  headline={headline}
+  tableTitle={`Mexico's health over time, 1990–${U}`}
+  tableSubtitle="Selected years for reading on screen; the CSV contains Mexico's yearly series in full."
+  faq={faq}
+  faqTitle="Mexico health: quick answers"
+  related={[
+    { href: '/country/mexico/', label: 'Mexico in numbers' },
+    { href: '/country/mexico/population/', label: 'Mexico population and life expectancy' },
+    { href: '/country/united-states/health/', label: 'US health' },
+    { href: '/country/brazil/health/', label: 'Brazil health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal mortality by country' },
+  ]}
+>
+  <Fragment slot="answer"><strong>{diab.text} of Mexican adults</strong> had diabetes in {diab.year}, one of the higher rates in the world. Childhood vaccination has been unsteady, and Mexican families covered <strong>{oop.text}</strong> of their nation's health bill out of pocket in {oop.year}.</Fragment>
+  <div class="story-block prose">
+    <h2>How common is diabetes in Mexico?</h2>
+    <p>About one adult in six has it: {diab.text} in {diab.year}, putting Mexico {ordinal(fromTop(diab))} of {diab.of} by IDF estimates. Tobacco use, at {tob.text}, is lower than in many countries.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Why does Mexico's measles vaccination rate keep changing?</h2>
+    <p>The WHO/UNICEF estimates swing widely from year to year without giving reasons: {pct(m19)} of one-year-olds in 2019, {pct(m21)} in 2021, {pct(m23)} in 2023 and {measles.text} in {measles.year}. Mexico's DPT3 coverage stood at {dpt.text}, {ordinal(fromTop(dpt))} of {dpt.of}.</p>
+  </div>
+  <LineChart
+    title={`Mexico's measles vaccination coverage, 1990–${measles.year}`}
+    subtitle="Measles vaccine coverage among Mexico's one-year-olds, % (WHO/UNICEF national estimates)."
+    points={s.measlesVaccPct.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={measles.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Did maternal deaths rise in Mexico in 2021?</h2>
+    <p>They more than doubled. The modelled ratio went from {x19} deaths per hundred thousand births in 2019 to {x21} in 2021, then fell to {v('maternalMortality', 2022)} in 2022 and {mat.text} in {mat.year}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>What share of Mexico's health spending comes from patients?</h2>
+    <p>About two fifths. Mexican households' direct share was {oop.text} in {oop.year}, down from {pct(oop00)} in 2000. Total Mexican health spending amounted to {hGdp.text} of GDP, or {hPc.text} for each resident. Hospital capacity is thin, at {beds.text} beds per thousand people.</p>
+  </div>
+  <LineChart
+    title={`Mexico: children dying under age five, 1990–${U}`}
+    subtitle="Deaths of Mexican children younger than five, per thousand babies born alive (UN IGME)."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 live births"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Has Mexico cut child mortality since 1990?</h2>
+    <p>By more than two thirds: Mexico's under-five rate went from {u5_90.toFixed(1)} per thousand in 1990 to {u5.text} in {U}. One young child in eight was stunted at the {stunt.year} survey ({stunt.text}). For lifespans, see <a href={path('/country/mexico/population/')}>Mexico's population figures</a>.</p>
+  </div>
+</HealthTopic>

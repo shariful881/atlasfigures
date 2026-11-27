@@ -1,0 +1,77 @@
+---
+// China country hub (task 170). Every figure comes from the country profile (src/data/profiles/CHN.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/china.json';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, people } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+const us = profile('USA');
+
+const pop = st('population', 'population'), births = st('population', 'births'), deaths = st('population', 'deaths');
+const tfr = st('population', 'fertility'), age = st('population', 'medianAge'), life = st('population', 'lifeExp');
+const gdp = st('economy', 'gdp'), gdpPc = st('economy', 'gdpPc'), usGdp = stat(us, 'economy', 'gdp'), fx = st('economy', 'fx');
+const exp = st('trade', 'exports'), imp = st('trade', 'imports'), res = st('economy', 'reserves'), teu = st('internet', 'ports');
+const art = st('education', 'articles'), pat = st('education', 'patRes'), rd = st('education', 'rd'), manuf = st('economy', 'manufGdp');
+const gen = st('energy', 'gen'), ren = st('energy', 'renShare'), co2 = st('environment', 'co2'), co2pc = st('environment', 'co2pc');
+
+assertClaim(fromTop(pop) === 2 && Number(births.value) < Number(deaths.value) && Number(st('population', 'growth').value) < 0, 'second by population, more deaths than births, shrinking');
+assertClaim(Number(tfr.value) < 1.1, 'about one child per woman');
+assertClaim(fromTop(exp) === 1 && fromTop(imp) === 2 && fromTop(res) === 1 && fromTop(teu) === 1, 'top exporter, second importer, largest reserves and container traffic');
+assertClaim(fromTop(art) === 1 && fromTop(pat) === 1, 'most scientific articles and resident patent applications');
+assertClaim(fromTop(gen) === 1 && fromTop(co2) === 1 && fromTop(co2pc) === 29, 'first in electricity and CO2, 29th per person');
+assertClaim(fromTop(gdp) === 2 && fromTop(usGdp) === 1, 'GDP second to the United States');
+assertClaim(fromTop(manuf) === 9, 'ninth-highest manufacturing share');
+
+const title = `China in Numbers ${Y}: Shrinking Population, Exports, Energy | AtlasFigures`;
+const description = `China's population of ${people(Number(pop.value))} is now shrinking (UN projection for ${Y}). It is the top exporting nation, selling ${exp.text} abroad, and leads the world in power generation and CO₂.`;
+
+const faq = [
+  { q: "Is China's economy larger than America's?", a: `Not in dollars. Chinese output totalled ${gdp.text} for ${gdp.year}, second behind America's ${usGdp.text}; per resident it was ${gdpPc.text}.` },
+  { q: 'What is China\'s life expectancy?', a: `A child born in ${Y} can look forward to ${life.text} years by the UN projection, while China's median age is ${age.text}.` },
+  { q: 'How many yuan buy one US dollar?', a: `About ${fx.text} yuan, averaging the official renminbi rate over ${fx.year} (World Bank).` },
+  { q: 'Is China still the factory of the world?', a: `Manufacturing alone made up ${manuf.text} of Chinese GDP in ${manuf.year}, ${ordinal(fromTop(manuf))} of ${manuf.of} countries, and China sold more goods and services abroad than anyone else.` },
+];
+const headline = `China in numbers ${Y}: a shrinking population, world trade, science and energy`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="China by the numbers: people, trade, science and power"
+  headline={headline}
+  faq={faq}
+  faqTitle="China facts people ask about"
+  related={[
+    { href: '/country/china/population/', label: 'China population: live count and decline' },
+    { href: '/country/china/economy/', label: 'China economy: GDP, growth and trade' },
+    { href: '/country/china/health/', label: 'China health: child survival and spending' },
+    { href: '/country/india/', label: 'India in numbers' },
+    { href: '/country/russia/', label: 'Russia in figures' },
+    { href: '/rankings/exports-by-country/', label: 'Exports by country' },
+    { href: '/rankings/co2-emissions-by-country/', label: 'CO₂ emissions, every country ranked' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Second to India and declining, China counts <strong>{people(Number(pop.value))}</strong> people in {Y} on UN projections. It sells more to the rest of the world than any other country, <strong>{exp.text}</strong> worth in {exp.year}, and no country releases more carbon from fossil fuels: {co2.text} million tonnes of CO₂.</Fragment>
+  <div class="story-block prose">
+    <h2>Why are there fewer Chinese every year?</h2>
+    <p>Too few births. The UN expects {people(Number(births.value))} Chinese babies in {Y} but {people(Number(deaths.value))} deaths; a Chinese woman now has {tfr.text} children over her lifetime, about half of what a stable population needs. The median age has reached {age.text}. Our <a href={path('/country/china/population/')}>China population page</a> charts the UN outlook to 2100.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How much does China sell to the rest of the world?</h2>
+    <p>More than any other country: exports worth {exp.text} in {exp.year}, against imports of {imp.text}, the {ordinal(fromTop(imp))} highest. Chinese ports handled {people(Number(teu.value))} containers (twenty-foot units) in {teu.year}, the most of {teu.of}, and the central bank held {res.text} in reserves, also number one.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Does China publish more research than the US?</h2>
+    <p>Yes, by article count. Chinese scientists produced {people(Number(art.value))} science and engineering articles in {art.year}, the highest total of {art.of}, and Chinese inventors lodged {people(Number(pat.value))} domestic patent applications in {pat.year}, again first. Research spending came to {rd.text}% of GDP, {ordinal(fromTop(rd))} of {rd.of}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is China the biggest polluter?</h2>
+    <p>In total, yes; per person, no. China's fossil carbon dioxide came to {co2.text} million tonnes for {co2.year}, more than any other nation, but that is {co2pc.text} tonnes a head, {ordinal(fromTop(co2pc))} of {co2pc.of}. It also generated the most electricity, {gen.text} terawatt-hours, of which {ren.text} came from renewable sources such as hydro, wind and solar.</p>
+  </div>
+</CountryHub>

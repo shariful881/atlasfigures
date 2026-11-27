@@ -1,0 +1,73 @@
+---
+// Mexico country hub (task 170). Every figure comes from the country profile (src/data/profiles/MEX.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/mexico.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, people } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), urban = st('population', 'urban'), age = st('population', 'medianAge');
+const remit = st('trade', 'remit'), remitPct = st('trade', 'remitPct'), tour = st('trade', 'tourists'), parl = st('governance', 'womenParl');
+const gdp = st('economy', 'gdp'), growth = st('economy', 'growth'), gdpPc = st('economy', 'gdpPc'), fx = st('economy', 'fx');
+const exp = st('trade', 'exports'), expPct = st('trade', 'exportsPct'), hitech = st('trade', 'hitech');
+const acc = st('internet', 'account'), accF = st('internet', 'accountF'), accM = st('internet', 'accountM'), unemp = st('jobs', 'unemp');
+
+assertClaim(fromTop(remit) === 2 && fromTop(tour) === 3 && fromTop(parl) === 5 && Number(parl.value) > 50, 'second for remittances, third for tourists, fifth for women in parliament (over half)');
+assertClaim(fromTop(gdp) === 14 && fromBottom(growth) === 25 && Number(growth.value) < 1, '14th GDP, growth under 1%, 25th slowest');
+assertClaim(fromTop(exp) === 16 && Number(expPct.value) > 39, '16th-largest exporter, exports near two fifths of GDP');
+assertClaim(Number(acc.value) < 55 && Number(accM.value) - Number(accF.value) > 10, 'about half with an account, men over ten points ahead');
+assertClaim(fromTop(pop) === 11 && Number(urban.value) > 78 && Number(urban.value) < 82, 'eleventh by population; four in five urban');
+
+const title = `Mexico Data ${Y}: Remittances, Tourists, Exports, Parliament | AtlasFigures`;
+const description = `Second only to India for remittances (${remit.text}), third for tourist arrivals and fifth for women in parliament (${parl.text}): that is Mexico, whose population the UN projects at ${people(Number(pop.value))} for ${Y}.`;
+
+const faq = [
+  { q: 'How many pesos to the dollar?', a: `Over ${fx.year} the dollar averaged ${fx.text} pesos (official rate as compiled by the World Bank).` },
+  { q: 'What is the jobless rate in Mexico?', a: `Low: ILO models give Mexico a jobless rate of ${unemp.text} in ${unemp.year}, ${ordinal(fromBottom(unemp))} lowest of ${unemp.of}.` },
+  { q: 'What is Mexican output per person?', a: `${gdpPc.text} of GDP for each Mexican in ${gdpPc.year}, ${ordinal(fromTop(gdpPc))} of ${gdpPc.of}, from total output of ${gdp.text}.` },
+  { q: 'Does Mexico export high-tech goods?', a: `High-technology products made up ${hitech.text} of Mexico's manufactured exports in ${hitech.year}, ${ordinal(fromTop(hitech))} of ${hitech.of} countries.` },
+];
+const headline = `Mexico facts and figures ${Y}: population, remittances, tourism, trade and women in politics`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Mexico in numbers: remittances, visitors, trade and politics"
+  headline={headline}
+  faq={faq}
+  faqTitle="Mexico: frequently searched facts"
+  related={[
+    { href: '/country/mexico/population/', label: 'Mexico population: live count and outlook' },
+    { href: '/country/mexico/economy/', label: 'Mexico economy: GDP and remittances' },
+    { href: '/country/mexico/health/', label: 'Mexico health: diabetes and vaccines' },
+    { href: '/country/united-states/', label: 'The United States in figures' },
+    { href: '/country/guatemala/population/', label: "Guatemala's population" },
+    { href: '/country/brazil/', label: 'Brazil in data' },
+    { href: '/rankings/remittances-by-country/', label: 'Remittances received, country by country' },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">Mexicans abroad remitted <strong>{remit.text}</strong> to their home country in {remit.year}, a total beaten only by India, and women fill {parl.text} of its lower-house seats. The UN projects <strong>{people(Number(pop.value))}</strong> Mexicans for {Y}.</Fragment>
+  <div class="story-block prose">
+    <h2>Which country gets the second-most remittances?</h2>
+    <p>Mexico. Its diaspora remitted {remit.text} in {remit.year}, behind only India out of {remit.of} recipients; that sum matches {remitPct.text} of Mexican GDP.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many tourists visit Mexico?</h2>
+    <p>{people(Number(tour.value))} international arrivals were recorded in {tour.year}, the {ordinal(fromTop(tour))} highest count of {tour.of} countries in the latest UN Tourism figures carried by the World Bank.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are half of Mexico's lawmakers women?</h2>
+    <p>Slightly more than half: {parl.text} of seats in the lower or single chamber in {parl.year} (Inter-Parliamentary Union), so only {fromTop(parl) - 1} legislatures have a larger female share. Banking is less equal: {accF.text} of Mexican women held an account in {accF.year}, versus {accM.text} of Mexican men.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Did Mexico's economy stall in the latest year?</h2>
+    <p>Nearly: real growth in {growth.year} was only {growth.text}, {ordinal(fromBottom(growth))} slowest of {growth.of}, to {gdp.text}. Trade is central: exports of goods and services reached {exp.text}, {expPct.text} of GDP. Year-by-year figures are on the <a href={path('/country/mexico/economy/')}>Mexican economy page</a>. Four in five Mexicans ({urban.text}) live in cities or towns; half are older than {age.text}.</p>
+  </div>
+</CountryHub>

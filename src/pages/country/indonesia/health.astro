@@ -1,0 +1,112 @@
+---
+// Indonesia health (task 170). Figures from the World Bank WDI files (src/data/wdi/, checked against the original
+// zips by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/indonesia.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), mat = st('maternal'), doc = st('doctors'), nurse = st('nurses'), hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop');
+const measles = st('measles'), dpt = st('dpt'), stunt = st('stunting'), tb = st('tb'), tob = st('tobacco'), diab = st('diabetes');
+const U = u5.year!;
+
+const u5_90 = v('under5Mortality', 1990), mat90 = v('maternalMortality', 1990);
+assertClaim(u5_90 / Number(u5.value) > 4.5 && u5_90 / Number(u5.value) < 5 && U === 2024, 'under-five rate cut to between a fourth and a fifth of 1990');
+const tb19 = v('tbIncidence', 2020), tb00 = v('tbIncidence', 2000);
+assertClaim(fromTop(tb) === 13 && Number(tb.value) > tb00 && tb19 < Number(tb.value), 'TB 13th highest, above 2000 and 2020 levels');
+const m19 = v('measlesVaccPct', 2019), m21 = v('measlesVaccPct', 2021), m22 = v('measlesVaccPct', 2022);
+assertClaim(m19 === 88 && m21 === 72 && m22 === 92 && Number(measles.value) === 85, 'measles coverage 88 → 72 → 92 → 85');
+const stunt00 = v('stuntingPct', 2000);
+assertClaim(stunt.year === 2023 && Number(stunt.value) < stunt00 * 0.55, 'stunting roughly halved since 2000');
+const tob00 = v('tobaccoPct', 2000);
+assertClaim(Number(tob.value) > 30 && Number(tob.value) < 33.4 && Number(diab.value) > 10, 'nearly a third use tobacco; over one in ten with diabetes');
+assertClaim(fromTop(tob) === 26 && tob00 - Number(tob.value) < 4, 'tobacco 26th highest, down less than four points since 2000');
+assertClaim(fromBottom(hGdp) === 9, 'ninth-lowest health spending share');
+const doc22 = v('doctorsPer1000', 2022);
+assertClaim(doc.year === 2023 && Number(doc.value) < doc22, 'doctor figure lower in 2023 than 2022');
+
+const title = `Indonesia Health Statistics ${U}: TB, Vaccines, Stunting, Smoking | AtlasFigures`;
+const description = `Indonesia recorded ${tb.text} new tuberculosis cases per 100,000 people in ${tb.year}, the ${ordinal(fromTop(tb))} highest rate, while ${tob.text} of adults used tobacco and ${stunt.text} of young children were stunted (${stunt.year}).`;
+
+const faq = [
+  { q: 'What is the infant and child death rate in Indonesia?', a: `UN IGME puts it at ${u5.text} under-five deaths per thousand for ${U}, versus ${u5_90.toFixed(1)} in 1990.` },
+  { q: 'Did Indonesia\'s doctor numbers drop?', a: `On paper, yes. The WHO workforce figures show ${doc.text} per 1,000 residents in ${doc.year}, below the ${doc22} reported a year earlier; nursing and midwifery personnel came to ${nurse.text}.` },
+  { q: 'Does Indonesia spend enough on health?', a: `Its spending is among the lowest relative to the economy: ${hGdp.text} of GDP (${hGdp.year}), ninth from the bottom of ${hGdp.of}, or ${hPc.text} a head; ${oop.text} was paid by households.` },
+  { q: 'Is diabetes common in Indonesia?', a: `More than one Indonesian adult in ten has it: ${diab.text} in ${diab.year}, per the IDF.` },
+];
+const headline = `Indonesia health ${U}: tuberculosis, vaccination, stunting, tobacco and spending`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Indonesia's health: TB, vaccines, nutrition and tobacco"
+  headline={headline}
+  tableTitle={`Indonesia health data, 1990–${U}`}
+  tableSubtitle="Twelve chosen years; open the CSV for the unbroken yearly record of each indicator."
+  faq={faq}
+  faqTitle="Indonesian health, answered briefly"
+  related={[
+    { href: '/country/indonesia/', label: 'Indonesia: all figures' },
+    { href: '/country/indonesia/population/', label: 'Indonesia population' },
+    { href: '/country/china/health/', label: 'China health' },
+    { href: '/country/india/health/', label: 'India health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality, every country ranked' },
+  ]}
+>
+  <Fragment slot="answer">Tuberculosis struck Indonesia at a rate of <strong>{tb.text} per 100,000</strong> in {tb.year}; only {fromTop(tb) - 1} countries fared worse. Deaths of young children keep falling, to <strong>{u5.text} per 1,000 births</strong> in {U}, but tobacco use has barely moved since 2000.</Fragment>
+  <div class="story-block prose">
+    <h2>How widespread is tuberculosis in Indonesia?</h2>
+    <p>Very. Indonesia's TB incidence, estimated by the WHO at {tb.text} per 100,000 in {tb.year}, is higher than the {tb00} of 2000 and the {tb19} of 2020, and only twelve countries had a higher rate.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>What happened to measles vaccination in Indonesia?</h2>
+    <p>It fell, rebounded and fell back. Coverage of children in their second year was {pct(m19)} in 2019, dropped to {pct(m21)} in 2021, recovered to {pct(m22)} in 2022 and stood at {measles.text} in {measles.year}. DPT, given in three doses, reached {dpt.text} of Indonesian infants, {ordinal(fromTop(dpt))} of {dpt.of} countries.</p>
+  </div>
+  <LineChart
+    title={`Measles vaccination of Indonesian toddlers, 1990–${measles.year}`}
+    subtitle="Percentage of Indonesian toddlers (second year of life) immunised against measles, WHO/UNICEF."
+    points={s.measlesVaccPct.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={measles.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Are fewer Indonesian children stunted than before?</h2>
+    <p>Yes, about half as many. Low height for age was found in {pct(stunt00)} of Indonesian under-fives in 2000 and {stunt.text} in {stunt.year}. Death before five became rarer too, dropping from {u5_90.toFixed(1)} per thousand in 1990 to {u5.text} by {U}, and Indonesia's maternal ratio fell from {mat90} to {mat.text} per 100,000 ({mat.year}).</p>
+  </div>
+  <LineChart
+    title={`Indonesia's child death rate before age five, 1990–${U}`}
+    subtitle="How many children per thousand born in Indonesia never reach age five, as modelled by UN IGME."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 live births"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Why has smoking barely declined in Indonesia?</h2>
+    <p>The WHO estimates show the trend but not its reasons. Almost one Indonesian adult in three smoked or chewed tobacco in {tob.year} ({tob.text}), {ordinal(fromTop(tob))} highest of {tob.of}; in 2000 the share was {pct(tob00)}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is Indonesian health care underfunded?</h2>
+    <p>By international comparison, yes. Just {hGdp.text} of Indonesian GDP went on health in {hGdp.year}, ninth lowest of {hGdp.of}, which comes to {hPc.text} per Indonesian; {oop.text} came straight from households. The <a href={path('/country/indonesia/economy/')}>economy page</a> shows GDP and growth.</p>
+  </div>
+</HealthTopic>

@@ -1,0 +1,160 @@
+---
+// Frame of a country hub (/country/<slug>/), task 160/170: everything that is site UI or comes straight from the
+// country profile — Key facts, topic chips, Story/Data/FAQ tabs, the "All figures" tables and CSV link, Sources,
+// JSON-LD. The page file supplies only what is written for that country: title, description, H1, the direct answer
+// (slot "answer"), the story sections (default slot), the FAQ and the related links.
+import Base from '../layouts/Base.astro';
+import KeyFacts from './KeyFacts.astro';
+import SourceBadge from './SourceBadge.astro';
+import StatList from './StatList.astro';
+import PageTabs from './PageTabs.astro';
+import { profile, liveStats, TOPICS, type ProfileStat } from '../lib/profile';
+import { abs, path, longDate, ORG_ID, WEBSITE_ID, PUBLISHER, reportErrorUrl } from '../site';
+import facts from '../data/facts/index.json';
+
+interface Props {
+  pg: any; title: string; description: string; h1: string; headline: string;
+  faq: { q: string; a: string }[]; faqTitle: string; related: { href: string; label: string }[];
+}
+const { pg, title, description, h1, headline, faq, faqTitle, related } = Astro.props;
+const PAGE = `/country/${pg.slug}/`;
+const meta = pg.pages.hub;
+const iso = (d: string) => `${d}T12:00:00+06:00`;
+const p = profile(pg.iso3);
+const Y = p.year;
+const checkedOn = meta.verification?.checkedOn;
+const code = p.iso2.toLowerCase();
+const find = (sec: string, id: string) => p.sections.find((s) => s.id === sec)?.stats.find((s) => s.id === id && s.status === 'live') as (ProfileStat & { text: string }) | undefined;
+const f = (facts as any).facts[pg.iso3];
+
+// Key facts: the same labels on every hub, each only when the profile has it live
+const tzText = f.timeZones.length > 1 ? `${f.timeZones.length} time zones` : find('facts', 'tz')?.text;
+const cur = f.currencies[0];
+const row = (label: string, s: ProfileStat | undefined, value?: string, note?: string) => (s ? [{ label, value: value ?? s.text!, ...(note ? { note } : {}) }] : []);
+const pop = find('population', 'population'), dens = find('population', 'density'), life = find('population', 'lifeExp');
+const gdpPc = find('economy', 'gdpPc'), land = find('facts', 'landArea');
+const factGroups = [
+  { title: 'People', facts: [...row('Population', pop, undefined, `${Y}, UN projection`), ...row('Population density', dens, `${dens?.text} per km²`), ...row('Life expectancy', life, `${life?.text} years`)] },
+  { title: 'Land', facts: [...row('Capital', find('facts', 'capital')), ...row('Land area', land, `${land?.text} km²`), ...row('Land neighbours', find('facts', 'neighbours')), ...(tzText ? [{ label: f.timeZones.length > 1 ? 'Time zones' : 'Time zone', value: tzText }] : [])] },
+  { title: 'Society', facts: [...row(find('facts', 'languages')?.text?.includes(',') ? 'Official languages' : 'Official language', find('facts', 'languages')), ...row('Currency', find('facts', 'currency')), ...row('Calling code', find('facts', 'calling')), ...row('GDP per person', gdpPc, undefined, gdpPc ? `${gdpPc.year}` : undefined)] },
+].filter((g) => g.facts.length);
+const highlights = [
+  ...(pop ? [{ label: 'Population', value: pop.text }] : []),
+  ...(find('facts', 'capital') ? [{ label: 'Capital', value: find('facts', 'capital')!.text }] : []),
+  ...(cur && find('facts', 'currency') ? [{ label: 'Currency', value: cur.code }] : []),
+  ...(gdpPc ? [{ label: 'GDP per person', value: gdpPc.text }] : []),
+];
+const kfSource = 'UN WPP 2024, World Bank, Unicode CLDR, GeoNames';
+
+const SECTIONS = p.sections.map((s) => ({ ...s, rows: liveStats(p, s.id, pg.checkedFacts ?? []) })).filter((s) => s.rows.length);
+const totalLive = SECTIONS.reduce((n, s) => n + s.rows.length, 0);
+const files = Object.keys(import.meta.glob('../pages/country/*/*.astro'));
+const have = (t: string) => files.includes(`../pages/country/${pg.slug}/${t}.astro`);
+const topics = TOPICS.filter((t) => have(t.topic));
+const topicPage = (section: string) => { const t = topics.find((x) => x.section === section); return t ? { href: `/country/${pg.slug}/${t.topic}/`, label: `${t.name} page` } : undefined; };
+
+const schema = [
+  {
+    '@type': 'Article', '@id': abs(`${PAGE}#article`), headline, description,
+    datePublished: iso(meta.published), dateModified: iso(meta.updated),
+    author: { '@type': 'Organization', name: PUBLISHER, url: abs('/about/') }, publisher: { '@id': ORG_ID }, isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: abs(PAGE), image: abs('/icon-512.png'), inLanguage: 'en',
+    about: { '@type': 'Country', name: pg.name, ...(pg.wikipedia ? { sameAs: pg.wikipedia } : {}) },
+    citation: [
+      { '@type': 'CreativeWork', name: 'World Population Prospects 2024', url: 'https://population.un.org/wpp/', publisher: { '@type': 'Organization', name: 'United Nations, Department of Economic and Social Affairs, Population Division' } },
+      { '@type': 'CreativeWork', name: 'World Development Indicators', url: 'https://datacatalog.worldbank.org/search/dataset/0037712', publisher: { '@type': 'Organization', name: 'The World Bank' } },
+      { '@type': 'CreativeWork', name: 'Global Carbon Budget, fossil CO2 emissions dataset', url: 'https://globalcarbonbudget.org/' },
+      { '@type': 'CreativeWork', name: 'Ember, Yearly Electricity Data', url: 'https://ember-energy.org/data/yearly-electricity-data/' },
+      { '@type': 'CreativeWork', name: 'Unicode CLDR', url: 'https://cldr.unicode.org/' },
+      { '@type': 'CreativeWork', name: 'GeoNames', url: 'https://www.geonames.org/' },
+      { '@type': 'CreativeWork', name: 'Wikidata', url: 'https://www.wikidata.org/' },
+    ],
+  },
+  {
+    '@type': 'Dataset', '@id': abs(`${PAGE}#dataset`),
+    name: `${pg.name}: ${totalLive} statistics with year, world rank and source`,
+    description: `Every figure on this page, one row per statistic: population and its make-up (UN World Population Prospects 2024, ${Y} values are UN projections), economy, trade, jobs, health, education, internet, environment and farming (World Bank World Development Indicators), CO2 and electricity (Global Carbon Project, Ember) and fixed country facts.`,
+    url: abs(PAGE), creator: { '@id': ORG_ID },
+    isBasedOn: ['https://population.un.org/wpp/', 'https://datacatalog.worldbank.org/search/dataset/0037712'],
+    spatialCoverage: { '@type': 'Place', name: pg.name }, dateModified: iso(meta.updated),
+    distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: abs(`/data/${pg.slug}-profile.csv`) }],
+  },
+  { '@type': 'FAQPage', '@id': abs(`${PAGE}#faq`), mainEntity: faq.map((x) => ({ '@type': 'Question', name: x.q, acceptedAnswer: { '@type': 'Answer', text: x.a } })) },
+];
+const checks = pg.factChecks ?? [];
+---
+<Base title={title} description={description} section="population" appTitle={pg.name} back="/country/" ogType="article"
+  breadcrumbs={[{ name: 'Home', href: '/' }, { name: 'Countries', href: '/country/' }, { name: pg.name, href: PAGE }]} schema={schema}>
+  <div class="country hub">
+    <article class="country-main">
+      <header class="country-head">
+        <h1>{h1}</h1>
+        <p class="answer"><slot name="answer" /></p>
+        <div class="dates"><span>Updated <time datetime={meta.updated}>{longDate(meta.updated)}</time></span><SourceBadge source="UN, World Bank and other sources listed below" checkedOn={checkedOn} /></div>
+        <KeyFacts variant="mobile" country={pg.name} code={code} year={Y} groups={factGroups} highlights={highlights} source={kfSource} checkedOn={checkedOn} />
+        <nav class="topic-chips" aria-label={`${pg.name} topics`}>
+          {topics.map((t) => <a class="chip" href={path(`/country/${pg.slug}/${t.topic}/`)}>{t.name}</a>)}
+          <a class="chip" href="#data" data-tab="data">All {totalLive} figures</a>
+        </nav>
+      </header>
+      <div class="segments" role="tablist" aria-label="Page sections">
+        <button role="tab" aria-selected="true" data-panel="story">Story</button>
+        <button role="tab" aria-selected="false" data-panel="data">Data</button>
+        <button role="tab" aria-selected="false" data-panel="faq">FAQ</button>
+      </div>
+      <section class="panel" data-panel="story" aria-label="The story">
+        <slot />
+        <nav class="related" aria-label="Related pages">
+          <h2>More about {pg.name}</h2>
+          <ul>{related.map((r) => <li><a href={path(r.href)}>{r.label}</a></li>)}</ul>
+        </nav>
+      </section>
+      <section class="panel" data-panel="data" id="data" aria-labelledby="data-h">
+        <div class="data-head">
+          <h2 id="data-h">All {totalLive} figures for {pg.name}</h2>
+          <a class="btn-ghost" href={path(`/data/${pg.slug}-profile.csv`)} download={`${pg.slug}-profile.csv`}>
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m0 0-3.5-3.5M10 12l3.5-3.5M4 15.5h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            CSV
+          </a>
+        </div>
+        <p class="data-note">Latest year for each figure; the world rank counts every country or area with a value in the five years before it. Rows link to the world ranking where one exists. {Y} population figures are UN projections.</p>
+        {SECTIONS.map((s) => <StatList id={`s-${s.id}`} title={s.label} section={s.id} stats={s.rows} more={topicPage(s.id)} caption={`${pg.name}: ${s.label.toLowerCase()}`} />)}
+      </section>
+      <section class="panel" data-panel="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">{faqTitle}</h2>
+        <div class="faq">{faq.map((x) => (<details><summary><h3>{x.q}</h3></summary><p>{x.a}</p></details>))}</div>
+      </section>
+      <details class="sources-details" id="sources">
+        <summary><h2>Sources and methodology</h2></summary>
+        <div class="sources-block">
+          <ul class="sources">
+            <li><a href="https://population.un.org/wpp/">UN DESA Population Division, World Population Prospects 2024</a>: population, density, age, births, deaths, migration and life expectancy ({Y} values are UN projections); urban share from <a href="https://population.un.org/wup/">World Urbanization Prospects 2025</a>.</li>
+            <li><a href="https://datacatalog.worldbank.org/search/dataset/0037712">World Bank, World Development Indicators</a> (original bulk files): economy, trade, jobs, health, education, internet, environment, farming and governance indicators, each with its code in the CSV. Licence CC BY 4.0. The World Bank does not endorse this page.</li>
+            <li><a href="https://globalcarbonbudget.org/">Global Carbon Project</a> (fossil CO2, CC BY 4.0) and <a href="https://ember-energy.org/data/yearly-electricity-data/">Ember</a> (electricity, CC BY 4.0).</li>
+            <li>Country facts: currency and official languages from <a href="https://cldr.unicode.org/">Unicode CLDR</a>, checked against GeoNames and Wikidata; calling code, internet domain and land neighbours from <a href="https://www.geonames.org/">GeoNames</a> (CC BY 4.0), checked against Wikidata; time zones from the IANA time zone database. Facts where the two sources disagree are left out until checked by hand.{checks.length > 0 && <> Checked by hand: {checks.map((c: any, i: number) => (<>{i > 0 && '; '}{c.label ?? c.fact} (<a href={c.url}>{c.sourceName}</a>)</>))}.</>}</li>
+            <li>World ranks are our calculation: every country or area with a value in the five years before the figure's year, each at its latest year.</li>
+          </ul>
+          <p class="note">See our <a href={path('/methodology/')}>methodology</a> for how figures are collected and checked.</p>
+          <p class="note">Published <time datetime={meta.published}>{longDate(meta.published)}</time> · Updated <time datetime={meta.updated}>{longDate(meta.updated)}</time> · By {PUBLISHER}</p>
+          <p class="note report-error">Spotted an error? <a href={reportErrorUrl(`${pg.name} at a glance`, PAGE)}>Report an error</a> · <a href={path('/corrections/')}>How we correct errors</a></p>
+        </div>
+      </details>
+    </article>
+    <KeyFacts variant="box" country={pg.name} code={code} year={Y} groups={factGroups} highlights={highlights} source={kfSource} checkedOn={checkedOn} />
+  </div>
+  <PageTabs />
+  <script is:inline>
+    document.querySelectorAll('a[data-tab]').forEach(function (a) { a.addEventListener('click', function () { var t = document.querySelector('.segments [data-panel="' + a.dataset.tab + '"]'); if (t && window.matchMedia('(max-width: 767px)').matches) t.click(); }); });
+  </script>
+</Base>
+<style>
+  .topic-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
+  .topic-chips .chip { padding: 6px 12px; border-radius: 99px; border: 1px solid var(--line, #dfe5ea); text-decoration: none; font-size: .9rem; }
+  .data-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .data-note { color: var(--muted, #5b6b7b); font-size: .9rem; margin: 4px 0 8px; }
+  .related { margin: 28px 0 8px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .related h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .related ul { margin: 0; padding-left: 18px; }
+  .related li { margin: 6px 0; }
+  @media (max-width: 767px) { .topic-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; } .topic-chips .chip { white-space: nowrap; } .related { border: 0; padding: 16px 18px; } }
+</style>

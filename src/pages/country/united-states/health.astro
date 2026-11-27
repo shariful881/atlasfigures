@@ -1,0 +1,113 @@
+---
+// United States health (task 170). Figures from the World Bank WDI files (src/data/wdi/, checked against the
+// original zips by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/united-states.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), neo = st('neonatal'), mat = st('maternal'), doc = st('doctors'), nurse = st('nurses'), beds = st('beds');
+const hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop'), measles = st('measles'), tob = st('tobacco'), diab = st('diabetes');
+const U = u5.year!;
+const chnU5 = stat(profile('CHN'), 'health', 'u5'), rusU5 = stat(profile('RUS'), 'health', 'u5');
+
+assertClaim(s.under5Mortality.filter(([y]) => y >= 2018).every(([, x]) => x === 6.5) && U === 2024, 'under-five rate unchanged at 6.5 since 2018');
+assertClaim(Number(chnU5.value) < Number(u5.value) && Number(rusU5.value) < Number(u5.value) && chnU5.year === U, 'China and Russia below the US rate');
+const mat90 = v('maternalMortality', 1990), mat21 = v('maternalMortality', 2021);
+assertClaim(mat.year === 2023 && Number(mat.value) > mat90 && mat21 === Math.max(...s.maternalMortality.map(([, x]) => x)), 'maternal ratio above 1990, peak in 2021');
+const neoLow = Math.min(...s.neonatalMortality.map(([, x]) => x));
+assertClaim(neoLow === 3.5 && Number(neo.value) > neoLow, 'newborn deaths back up from a low of 3.5');
+const hg00 = v('healthSpendPctGdp', 2000), hg20 = v('healthSpendPctGdp', 2020);
+assertClaim(fromTop(hPc) === 1 && fromTop(hGdp) === 3 && hg20 === Math.max(...s.healthSpendPctGdp.map(([, x]) => x)), 'top per person, third as share, peak share in 2020');
+assertClaim(fromTop(nurse) === 8 && Number(nurse.value) / Number(doc.value) > 3.5, 'eighth-most nurses per person, over three and a half per doctor');
+const tob00 = v('tobaccoPct', 2000);
+assertClaim(Number(tob.value) < tob00 / 2, 'tobacco use less than half the 2000 rate');
+assertClaim(fromTop(oop) > 160, 'among the lowest out-of-pocket shares');
+const mv = s.measlesVaccPct.filter(([y]) => y >= 1990).map(([, x]) => x), mLo = Math.min(...mv), mHi = Math.max(...mv);
+assertClaim(Number(diab.value) > 13 && Number(diab.value) < 15.5, 'about one adult in seven with diabetes');
+
+const title = `US Health Statistics ${U}: Spending, Maternal Deaths, Nurses | AtlasFigures`;
+const description = `The US spent ${hPc.text} per person on health in ${hPc.year}, more than any country, yet its under-five death rate has stalled at ${u5.text} per 1,000 and ${mat.text} mothers died per 100,000 births in ${mat.year}.`;
+
+const faq = [
+  { q: 'Why does the US spend so much on health care?', a: `The data show the size, not the reasons: ${hGdp.text} of GDP in ${hGdp.year}, or ${hPc.text} a head. Americans paid ${oop.text} of it directly, one of the smallest out-of-pocket shares, the rest going through insurers and government.` },
+  { q: 'How many nurses does America have?', a: `${nurse.text} per 1,000 Americans in ${nurse.year} (nurses and midwives), ${ordinal(fromTop(nurse))} in the world, beside ${doc.text} physicians.` },
+  { q: 'What share of Americans have diabetes?', a: `Roughly one adult in seven: ${diab.text} in ${diab.year}, as estimated by the International Diabetes Federation.` },
+  { q: 'Is measles vaccination falling in the US?', a: `Not sharply: American toddler coverage has ranged from ${pct(mLo)} to ${pct(mHi)} since 1990, and the ${measles.year} estimate is ${measles.text}, ${ordinal(fromTop(measles))} of ${measles.of} countries.` },
+];
+const headline = `US health ${U}: the highest spending per person, stalled child survival and maternal deaths`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="US health: the most spent per person, and what it buys"
+  headline={headline}
+  tableTitle={`American health figures, 1990–${U}`}
+  tableSubtitle="A dozen years picked from the full record; the CSV adds all the others."
+  faq={faq}
+  faqTitle="US health in brief"
+  related={[
+    { href: '/country/united-states/', label: 'The United States in figures' },
+    { href: '/country/united-states/population/', label: 'US population and life expectancy' },
+    { href: '/country/mexico/health/', label: 'Mexico health' },
+    { href: '/country/brazil/health/', label: 'Brazil health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal mortality by country' },
+  ]}
+>
+  <Fragment slot="answer">The United States spent <strong>{hPc.text} per person</strong> on health care in {hPc.year}, the most in the world. Its child survival has not kept pace: the under-five death rate has been stuck at <strong>{u5.text} per 1,000</strong> since 2018, and maternal deaths are higher than in 1990.</Fragment>
+  <div class="story-block prose">
+    <h2>Has US child mortality stopped improving?</h2>
+    <p>On the UN estimate, yes. America's rate went from {v('under5Mortality', 1990).toFixed(1)} in 1990 down to {u5.text} per thousand by 2018, then froze there through {U}. China ({chnU5.text}) and Russia ({rusU5.text}) now have lower rates. Newborn deaths in the first 28 days touched a low of {neoLow} and stood at {neo.text} in {neo.year}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are more American women dying in childbirth?</h2>
+    <p>More than in 1990. America's maternal ratio, as modelled by the UN Maternal Mortality Estimation Inter-agency Group, rose from {mat90} per 100,000 births then to {mat.text} in {mat.year}, with a high point of {mat21} in 2021.</p>
+  </div>
+  <LineChart
+    title={`Maternal mortality in the United States, 1990–${mat.year}`}
+    subtitle="Women who die from pregnancy or childbirth, per 100,000 live births in the US, modelled by the UN MMEIG."
+    points={s.maternalMortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    unit="per 100,000 live births"
+    highlight={mat.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How much does the US spend on health care?</h2>
+    <p>{hGdp.text} of GDP in {hGdp.year}, {ordinal(fromTop(hGdp))} of {hGdp.of}, compared with {pct(hg00)} in 2000; the record so far is {pct(hg20)}, set in 2020. That works out to {hPc.text} for every resident. Only {oop.text} was paid directly by patients, {ordinal(fromTop(oop))} of {oop.of} for that share.</p>
+  </div>
+  <LineChart
+    title={`America's health bill relative to GDP, 2000–${hGdp.year}`}
+    subtitle="Current US health expenditure, public plus private, measured against gross domestic product (WHO)."
+    points={s.healthSpendPctGdp.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="percent"
+    highlight={hGdp.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Does the US have many nurses and hospital beds?</h2>
+    <p>Many nurses, fewer beds. Only {fromTop(nurse) - 1} countries had more nurses and midwives per head than America's {nurse.text} per 1,000 in {nurse.year}; doctors numbered {doc.text}. Hospital beds numbered {beds.text} per thousand ({beds.year}), {ordinal(fromTop(beds))} of {beds.of}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many Americans smoke or have diabetes?</h2>
+    <p>American tobacco use dropped below half its 2000 level ({pct(tob00)}), reaching {tob.text} by {tob.year}. About one adult in seven has diabetes ({diab.text}, {diab.year}). Life expectancy and births are on the <a href={path('/country/united-states/population/')}>US population page</a>.</p>
+  </div>
+</HealthTopic>

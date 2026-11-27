@@ -1,0 +1,117 @@
+---
+// India health (task 170). Figures from the World Bank WDI files (src/data/wdi/, compared with the original zips by
+// check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/india.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), infant = st('infant'), neo = st('neonatal'), mat = st('maternal');
+const doc = st('doctors'), nurse = st('nurses'), hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop');
+const measles = st('measles'), stunt = st('stunting'), hunger = st('undernour'), tb = st('tb'), tob = st('tobacco'), diab = st('diabetes');
+const U = u5.year!;
+
+const u5_90 = v('under5Mortality', 1990);
+const cut = (1 - Number(u5.value) / u5_90) * 100;
+assertClaim(cut > 78 && cut < 80 && U === 2024, 'child deaths down by nearly four fifths since 1990');
+const neoShare = (Number(neo.value) / Number(u5.value)) * 100;
+assertClaim(neoShare > 62 && neoShare < 64, 'close to two thirds of deaths before five happen in the first 28 days');
+const mat90 = v('maternalMortality', 1990), mat20 = v('maternalMortality', 2020), mat21 = v('maternalMortality', 2021);
+assertClaim(mat.year === 2023 && mat21 > mat20 * 1.5 && Number(mat.value) < mat20 && Number(mat.value) / mat90 < 0.16, 'maternal ratio jumped in 2021, now below 2020 and under a sixth of 1990');
+const oop00 = v('outOfPocketPct', 2000);
+assertClaim(oop00 > 70 && Number(oop.value) < 45 && oop.year === 2023, 'out-of-pocket share fell from over 70% to under 45%');
+assertClaim(fromTop(hGdp) > 165, 'health spending share among the lowest 30');
+assertClaim(Number(nurse.value) > 2 * Number(doc.value) && nurse.year === doc.year, 'more than two nurses per doctor');
+assertClaim(v('measlesVaccPct', 2000) === 56 && Number(measles.value) === 97, 'measles cover 56% in 2000, 97% now');
+assertClaim(fromTop(stunt) === 16 && Number(stunt.value) > 35, 'over a third of under-fives stunted, 16th highest');
+assertClaim(s.undernourishedPct.every(([y, x]) => y === hunger.year || x > Number(hunger.value)) && s.undernourishedPct[0][0] === 2001, 'undernourishment lowest since 2001');
+const tob00 = v('tobaccoPct', 2000), tb00 = v('tbIncidence', 2000);
+assertClaim(tob00 > 55 && Number(tob.value) < 23, 'tobacco use from over half of adults to under a quarter');
+assertClaim(Number(tb.value) < tb00 * 0.6 && fromTop(tb) === 38, 'TB incidence down by more than 40% since 2000, 38th highest');
+
+const title = `India Health Statistics ${U}: Child Mortality, Stunting, Costs | AtlasFigures`;
+const description = `Child deaths before five in India: ${u5.text} per 1,000 births in ${U}, from ${u5_90.toFixed(1)} in 1990. Out-of-pocket payments covered ${oop.text} of India's health bill in ${oop.year} (${pct(oop00)} in 2000).`;
+
+const faq = [
+  { q: 'What is India\'s under-five death rate?', a: `${u5.text} for every thousand born alive (${U}); ${infant.text} of them do not reach age one, and ${neo.text} die as newborns, within 28 days.` },
+  { q: 'What share of India\'s children are stunted?', a: `${stunt.text} of children under five were too short for their age in ${stunt.year}, which puts India ${ordinal(fromTop(stunt))} highest out of ${stunt.of} surveyed countries.` },
+  { q: 'How many doctors are there for each Indian?', a: `India counted ${doc.text} doctors for every thousand residents in ${doc.year}, one for roughly ${Math.round(1000 / Number(doc.value)).toLocaleString('en-US')} people, alongside ${nurse.text} nurses and midwives.` },
+  { q: 'Is tuberculosis still common in India?', a: `It is: the WHO puts India's TB incidence at ${tb.text} per 100,000 for ${tb.year}, against ${Math.round(tb00)} in 2000.` },
+];
+assertClaim(Math.round(1000 / Number(doc.value)) > 1350 && Math.round(1000 / Number(doc.value)) < 1420, 'about one doctor per 1,350–1,420 people');
+const headline = `India health ${U}: child mortality, stunting, tuberculosis and the cost of care`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Health in India: children, nutrition and the price of treatment"
+  headline={headline}
+  tableTitle={`India's health record, 1990–${U}`}
+  tableSubtitle="Selected years shown here; the CSV file carries each year and each health indicator back to 1960."
+  faq={faq}
+  faqTitle="India health: short answers"
+  related={[
+    { href: '/country/india/', label: 'India in numbers: every figure' },
+    { href: '/country/india/population/', label: 'India population and life expectancy' },
+    { href: '/country/bangladesh/health/', label: 'Bangladesh health' },
+    { href: '/country/pakistan/health/', label: 'Pakistan health' },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality, every country ranked' },
+  ]}
+>
+  <Fragment slot="answer">India's under-five death rate fell to <strong>{u5.text}</strong> per thousand births by {U}; the 1990 figure was {u5_90.toFixed(1)}. Families pay a smaller part of the bill than they did: <strong>{oop.text}</strong> of health spending came from their own pockets in {oop.year}, down from {pct(oop00)} in 2000.</Fragment>
+  <div class="story-block prose">
+    <h2>How much has child mortality fallen in India since 1990?</h2>
+    <p>By {pct(cut)} since 1990 (our calculation), with the under-five rate going from {u5_90.toFixed(1)} to {u5.text} in {U}. India's infant rate, deaths before the first birthday, stood at {infant.text}. India still sits {ordinal(fromTop(u5))} highest of {u5.of} countries.</p>
+  </div>
+  <LineChart
+    title={`India: children dying before age five, 1990–${U}`}
+    subtitle="Indian children who die before five, per thousand births; UN IGME estimates published by the World Bank."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 live births"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How risky is the first month of life in India?</h2>
+    <p>It is the most dangerous stretch of childhood. {neo.text} Indian babies in every thousand died within four weeks of birth in {neo.year}, {pct(neoShare)} of all under-five deaths. Mothers face far less danger than they did: India's maternal ratio stood at {mat.text} (per 100,000 births, {mat.year}), having been {mat90} in 1990, though it jumped from {mat20} (2020) to {mat21} (2021) along the way.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Do Indian families still pay for treatment themselves?</h2>
+    <p>Less than before, but still heavily. Indian households paid {oop.text} of their country's health costs directly in {oop.year}, compared with {pct(oop00)} in 2000. Total spending was only {hGdp.text} of GDP, {ordinal(fromTop(hGdp))} of {hGdp.of}, or {hPc.text} a person. India had {doc.text} doctors per thousand people in {doc.year} and {nurse.text} nursing and midwifery staff.</p>
+  </div>
+  <LineChart
+    title={`Out-of-pocket share of Indian health spending, 2000–${oop.year}`}
+    subtitle="What Indian households paid directly, as a share of all current health spending (WHO estimates)."
+    points={s.outOfPocketPct.map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="percent"
+    highlight={oop.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Why are so many Indian children stunted?</h2>
+    <p>Long-term undernutrition leaves {stunt.text} of under-fives too short for their age ({stunt.year}), {ordinal(fromTop(stunt))} worst among {stunt.of} countries surveyed. Hunger across the population is easing: {hunger.text} were undernourished in {hunger.year}, India's lowest since the World Bank series began in 2001. Vaccination has caught up faster: {measles.text} of toddlers received the measles jab in {measles.year}, against {pct(v('measlesVaccPct', 2000))} in 2000.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are tuberculosis, tobacco and diabetes rising in India?</h2>
+    <p>Two of them are falling. India's TB incidence dropped to {tb.text} per 100,000 in {tb.year} from {Math.round(tb00)} in 2000, though only {fromTop(tb) - 1} countries have a higher rate. Tobacco use, chewed or smoked, fell from {pct(tob00)} of adults to {tob.text}. For diabetes there is one recent estimate, {diab.text} of Indian adults in {diab.year}. India's life expectancy is covered on its <a href={path('/country/india/population/')}>population page</a>.</p>
+  </div>
+</HealthTopic>

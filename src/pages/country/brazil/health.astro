@@ -1,0 +1,110 @@
+---
+// Brazil health (task 170). Figures from the World Bank WDI files (src/data/wdi/, checked against the original zips
+// by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/brazil.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), neo = st('neonatal'), mat = st('maternal'), doc = st('doctors'), nurse = st('nurses');
+const hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop'), measles = st('measles'), stunt = st('stunting'), tob = st('tobacco'), diab = st('diabetes');
+const U = u5.year!;
+
+const m19 = v('maternalMortality', 2019), m20 = v('maternalMortality', 2020), m21 = v('maternalMortality', 2021), m22 = v('maternalMortality', 2022);
+assertClaim(mat.year === 2023 && m21 / m19 > 1.9 && Number(mat.value) - m19 < 3, 'maternal ratio nearly doubled by 2021, back near the 2019 level in 2023');
+const mz = s.measlesVaccPct.filter(([y]) => y >= 2006 && y <= 2012);
+const m2021 = v('measlesVaccPct', 2021);
+assertClaim(mz.every(([, x]) => x === 99) && m2021 === Math.min(...s.measlesVaccPct.filter(([y]) => y >= 1997).map(([, x]) => x)) && Number(measles.value) === 93, 'measles 99% 2006–2012, low of 73% in 2021 (lowest since 1997), 93% now');
+assertClaim(fromTop(hGdp) === 31 && Number(hGdp.value) > 9.5, '31st-highest health spending share, above 9.5%');
+const u5_90 = v('under5Mortality', 1990);
+assertClaim(Number(u5.value) < u5_90 / 4 && U === 2024, 'under-five rate below a quarter of 1990');
+const tob00 = v('tobaccoPct', 2000);
+assertClaim(Number(tob.value) < tob00 * 0.52, 'tobacco use roughly halved');
+assertClaim(Number(nurse.value) > 2 * Number(doc.value), 'more than two nurses per doctor');
+assertClaim(v('under5Mortality', 2019) - Number(u5.value) < 1.5 && Number(diab.value) > 10 && Number(diab.value) < 11.5, 'slow fall since 2019; just over one adult in ten with diabetes');
+
+const title = `Brazil Health Statistics ${U}: Maternal Deaths, Vaccines, Spending | AtlasFigures`;
+const description = `2021 was Brazil's worst recent year for mothers (maternal ratio ${m21} against ${mat.text} by ${mat.year}) and for measles cover (${pct(m2021)}, now ${measles.text}). Child deaths, nurses and spending as well.`;
+
+const faq = [
+  { q: 'What is the under-five mortality rate in Brazil?', a: `${u5.text} per 1,000 live births for ${U}, down from ${u5_90.toFixed(1)} in 1990; Brazilian newborn mortality was ${neo.text}.` },
+  { q: 'How much of Brazil\'s GDP goes to health?', a: `${hGdp.text} in ${hGdp.year}, ${ordinal(fromTop(hGdp))} highest of ${hGdp.of} countries, or ${hPc.text} per Brazilian.` },
+  { q: 'Are there enough nurses in Brazil?', a: `Brazil's nursing and midwifery staff reached ${nurse.text} per 1,000 residents in ${nurse.year}, over twice the density of doctors (${doc.text}).` },
+  { q: 'How common is diabetes among Brazilian adults?', a: `Just over one in ten has it: ${diab.text} in ${diab.year} (IDF).` },
+];
+const headline = `Brazil health ${U}: the 2021 maternal death spike, measles vaccination and health spending`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Brazil health: mothers, vaccines and the cost of care"
+  headline={headline}
+  tableTitle={`Health in Brazil, 1990–${U}`}
+  tableSubtitle="The table samples a dozen years; Brazil's complete annual data is in the CSV."
+  faq={faq}
+  faqTitle="Brazil health facts in short"
+  related={[
+    { href: '/country/brazil/', label: 'Brazil in data' },
+    { href: '/country/brazil/population/', label: 'Brazil population and life expectancy' },
+    { href: '/country/mexico/health/', label: 'Mexico health' },
+    { href: '/country/united-states/health/', label: 'US health' },
+    { href: '/rankings/maternal-mortality-by-country/', label: 'Maternal mortality by country' },
+  ]}
+>
+  <Fragment slot="answer">Brazil's maternal mortality ratio nearly doubled from {m19} per 100,000 births in 2019 to <strong>{m21} in 2021</strong>, and dropped again to {mat.text} by {mat.year}. Measles vaccination dropped to {pct(m2021)} in 2021 and recovered to <strong>{measles.text}</strong> in {measles.year}.</Fragment>
+  <div class="story-block prose">
+    <h2>What happened to maternal deaths in Brazil in 2021?</h2>
+    <p>They spiked. Brazil's UN-modelled ratio read {m19} in 2019, {m20} in 2020 and {m21} in 2021 (per 100,000 births), easing to {m22} the next year and {mat.text} in {mat.year}, close to its earlier level.</p>
+  </div>
+  <LineChart
+    title={`Brazil's maternal mortality ratio, 1990–${mat.year}`}
+    subtitle="Brazilian women dying of pregnancy-related causes per 100,000 live births, UN MMEIG model."
+    points={s.maternalMortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="plain"
+    unit="per 100,000 live births"
+    highlight={mat.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How far did measles vaccination fall in Brazil?</h2>
+    <p>From near-universal to under three quarters. Coverage of one-year-olds was {pct(mz[0][1])} each year from 2006 to 2012, slid after 2015 and bottomed out at {pct(m2021)} in 2021, Brazil's weakest year since 1997. It has climbed back to {measles.text} in {measles.year} (WHO/UNICEF).</p>
+  </div>
+  <LineChart
+    title={`Measles immunisation in Brazil, 1990–${measles.year}`}
+    subtitle="Percent of Brazilian one-year-olds given a measles-containing vaccine (WHO/UNICEF)."
+    points={s.measlesVaccPct.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y }))}
+    format="percent"
+    highlight={measles.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Does Brazil spend a lot on health?</h2>
+    <p>A larger share than most countries spend. Health absorbed {hGdp.text} of Brazilian GDP in {hGdp.year}, a share topped by just {fromTop(hGdp) - 1} countries, or {hPc.text} per person; Brazilian families' own payments made up {oop.text}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Is child mortality still falling in Brazil?</h2>
+    <p>Slowly now. Brazil's rate is {u5.text} for {U}, under a quarter of the {u5_90.toFixed(1)} of 1990, and newborn deaths within a month account for {neo.text} per thousand. The {stunt.year} survey found {stunt.text} of young Brazilian children stunted.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Has smoking fallen in Brazil?</h2>
+    <p>By about half: Brazilian tobacco use went from {pct(tob00)} (2000) to {tob.text} ({tob.year}). Life expectancy figures are on the <a href={path('/country/brazil/population/')}>Brazil population page</a>.</p>
+  </div>
+</HealthTopic>

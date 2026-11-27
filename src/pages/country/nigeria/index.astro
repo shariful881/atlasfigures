@@ -1,0 +1,78 @@
+---
+// Nigeria country hub (task 170). Every figure comes from the country profile (src/data/profiles/NGA.json), built
+// from the generated UN and World Bank data and checked against it by check-profiles.
+import CountryHub from '../../../components/CountryHub.astro';
+import pg from '../../../data/country-pages/nigeria.json';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { countryIndex, assertClaim, people } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const p = profile(pg.iso3);
+const Y = p.year;
+const st = (sec: string, id: string) => stat(p, sec, id);
+
+const pop = st('population', 'population'), age = st('population', 'medianAge'), tfr = st('population', 'fertility'), life = st('population', 'lifeExp');
+const births = st('population', 'births'), usBirths = stat(profile('USA'), 'population', 'births');
+const out = st('education', 'outSchool'), edu = st('education', 'eduSpend'), elec = st('internet', 'electricity'), cook = st('internet', 'cleanCook');
+const net = st('internet', 'internet'), lfpF = st('jobs', 'lfpF'), lfpM = st('jobs', 'lfpM'), pov = st('economy', 'pov300'), infl = st('economy', 'inflation');
+const gdp = st('economy', 'gdp'), gdpPc = st('economy', 'gdpPc'), fx = st('economy', 'fx'), pm = st('environment', 'pm25');
+
+// life expectancy among countries of over 100 million people
+const big = countryIndex.countries.filter((c) => c.population > 100e6).map((c) => ({ iso3: c.iso3, e0: Number(stat(profile(c.iso3), 'population', 'lifeExp').value) })).sort((a, b) => a.e0 - b.e0);
+assertClaim(big[0].iso3 === 'NGA' && big[1].e0 - big[0].e0 > 7, 'lowest life expectancy of all countries over 100 million, by more than seven years');
+assertClaim(countryIndex.countries.filter((c) => (c as any).region === 'Africa').sort((a, b) => b.population - a.population)[0].iso3 === 'NGA', 'largest population in Africa');
+assertClaim(fromTop(pop) === 6 && Number(age.value) < 19 && Number(tfr.value) > 4, 'sixth by population, median age under 19, more than four children per woman');
+assertClaim(Number(births.value) > 2 * Number(usBirths.value), 'more than twice as many births as the United States');
+assertClaim(fromTop(out) === 1 && fromBottom(edu) === 2, 'most children out of primary school, second-lowest education spending');
+assertClaim(Number(elec.value) < 65 && Number(cook.value) < 30, 'under two thirds with electricity, under 30% with clean cooking');
+assertClaim(fromTop(lfpF) === 3 && Number(lfpF.value) > 80, 'third-highest women\'s participation, over 80%');
+assertClaim(fromTop(infl) === 10 && fromTop(pm) === 4, 'tenth-highest inflation, fourth-worst PM2.5');
+
+const title = `Nigeria by the Numbers ${Y}: Births, Schooling, Electricity | AtlasFigures`;
+const description = `Africa's giant, with ${people(Number(pop.value))} people projected by the UN for ${Y}, half of them under ${age.text}, ${people(Number(out.value))} children missing primary school and electricity for only ${elec.text} of people.`;
+
+const faq = [
+  { q: 'Does Nigeria have more births than the United States?', a: `Far more: UN demographers project ${people(Number(births.value))} Nigerian babies for ${Y}, over twice America's ${people(Number(usBirths.value))}.` },
+  { q: 'How long can a Nigerian expect to live?', a: `${life.text} years from birth on the UN's ${Y} projection; of the ${big.length} countries above 100 million people, Nigeria is lowest.` },
+  { q: 'How many naira to one US dollar?', a: `${fx.text} naira in ${fx.year}, the yearly average of the official exchange rate (World Bank).` },
+  { q: 'How many Nigerians live in extreme poverty?', a: `${pov.text} were below the World Bank's international line of $3.00 a day (2021 purchasing-power prices) at the ${pov.year} survey.` },
+];
+const headline = `Nigeria facts and figures ${Y}: a young population, schooling, electricity, work and poverty`;
+---
+<CountryHub
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Nigeria in numbers: Africa's most populous country"
+  headline={headline}
+  faq={faq}
+  faqTitle="Nigeria at a glance: your questions"
+  related={[
+    { href: '/country/nigeria/population/', label: 'Nigeria population: live count and projections' },
+    { href: '/country/nigeria/economy/', label: 'Nigeria economy: GDP, inflation and oil' },
+    { href: '/country/nigeria/health/', label: 'Nigeria health: child and maternal deaths' },
+    { href: '/country/ghana/population/', label: "Ghana's population" },
+    { href: '/country/cameroon/population/', label: "Cameroon's population" },
+    { href: '/country/ethiopia/', label: 'Ethiopia in figures' },
+    { href: '/rankings/female-labor-force-participation-by-country/', label: "Women's labour force participation by country" },
+    { href: '/country/', label: 'All countries and areas' },
+  ]}
+>
+  <Fragment slot="answer">The <strong>{people(Number(pop.value))}</strong> Nigerians the UN projects for {Y} outnumber those of any other African country and rank sixth globally. Nigerian GDP totalled <strong>{gdp.text}</strong> for {gdp.year}, just {gdpPc.text} a head.</Fragment>
+  <div class="story-block prose">
+    <h2>Is Nigeria one of the youngest big countries?</h2>
+    <p>It is: the median Nigerian is {age.text}, and each woman has {tfr.text} births on average. A Nigerian newborn's expected lifespan, {life.text} years, trails every other nation above 100 million people by seven years or more. Projections to 2100 are on our <a href={path('/country/nigeria/population/')}>Nigeria population page</a>.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Does Nigeria have the most children out of school?</h2>
+    <p>Yes. UNESCO counted {people(Number(out.value))} Nigerian children of primary age not enrolled in {out.year}, the world's highest total. Government education spending came to a mere {edu.text} of GDP ({edu.year}); one country of {edu.of} reported less.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>How many Nigerians have electricity?</h2>
+    <p>{elec.text} of Nigerians had access in {elec.year}, which leaves more than a third without power at home. Only {cook.text} cooked with clean fuels such as gas or electricity, and {net.text} used the internet.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Do most Nigerian women work?</h2>
+    <p>Yes. ILO modelled estimates put Nigerian women's participation at {lfpF.text} for {lfpF.year}, behind just two countries and close to the {lfpM.text} recorded for Nigerian men. Inflation hit {infl.text} that year, {ordinal(fromTop(infl))} fastest of {infl.of}.</p>
+  </div>
+</CountryHub>

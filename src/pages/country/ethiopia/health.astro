@@ -1,0 +1,115 @@
+---
+// Ethiopia health (task 170). Figures from the World Bank WDI files (src/data/wdi/, checked against the original
+// zips by check-wdi) and the country profile; none typed by hand.
+import HealthTopic from '../../../components/HealthTopic.astro';
+import LineChart from '../../../components/LineChart.astro';
+import pg from '../../../data/country-pages/ethiopia.json';
+import { econData, econMeta, valueIn } from '../../../lib/econ';
+import { profile, stat, ordinal, fromTop, fromBottom } from '../../../lib/profile';
+import { assertClaim, pct } from '../../../lib/figures';
+import { path } from '../../../site';
+
+const WDI = 'World Bank, World Development Indicators';
+const WDI_URL = econMeta.sourceUrl;
+const checkedOn = (pg.pages.health as any).verification?.checkedOn;
+const p = profile(pg.iso3);
+const st = (id: string) => stat(p, 'health', id);
+const s = econData(pg.iso3).series;
+const v = (k: keyof typeof s, y: number) => valueIn(s[k], y)!;
+
+const u5 = st('u5'), mat = st('maternal'), doc = st('doctors'), nurse = st('nurses'), beds = st('beds');
+const hGdp = st('healthGdp'), hPc = st('healthPc'), oop = st('oop'), measles = st('measles'), stunt = st('stunting');
+const hunger = st('undernour'), tb = st('tb'), mal = st('malaria'), tob = st('tobacco');
+const U = u5.year!;
+
+const y20 = v('under5Mortality', 2020), y21 = v('under5Mortality', 2021), y22 = v('under5Mortality', 2022), y23 = v('under5Mortality', 2023), u5_90 = v('under5Mortality', 1990);
+assertClaim(U === 2024 && y21 > y20 * 1.3 && y23 === y20 && Number(u5.value) < y20, 'under-five rate jumped by over 30% in 2021, back to the 2020 level in 2023, lower in 2024');
+const mat90 = v('maternalMortality', 1990);
+assertClaim(mat.year === 2023 && mat90 / Number(mat.value) > 6.5, 'maternal ratio less than a sixth of 1990');
+const perDoc = Math.round(1000 / Number(doc.value));
+assertClaim(fromBottom(doc) === 18 && perDoc > 6900 && perDoc < 7100, 'eighteenth-lowest doctor density, about one per 6,900–7,100 people');
+const tb00 = v('tbIncidence', 2000);
+assertClaim(Number(tb.value) < tb00 * 0.3 && tb.year === 2024, 'TB incidence below 30% of the 2000 level');
+const st00 = v('stuntingPct', 2000);
+assertClaim(stunt.year === 2019 && Number(stunt.value) < st00 * 0.65, 'stunting down by more than a third since 2000');
+const oop20 = v('outOfPocketPct', 2020);
+assertClaim(oop.year === 2023 && Number(oop.value) > oop20 + 13 && fromBottom(hGdp) === 11, 'out-of-pocket share up over 13 points since 2020; eleventh-lowest spending share');
+const m90 = v('measlesVaccPct', 1990);
+assertClaim(Number(tob.value) > 4.5 && Number(tob.value) < 5.5, 'about one adult in twenty uses tobacco');
+assertClaim(m90 === 38 && Number(measles.value) === 72, 'measles 38% in 1990, 72% now');
+
+const title = `Ethiopia's Health ${U}: Child Mortality Spike, Doctor Shortage, TB | AtlasFigures`;
+const description = `Ethiopian under-five mortality leapt from ${y20} to ${y21} (per 1,000) in 2021 before dropping to ${u5.text} by ${U}. One doctor serves roughly ${perDoc.toLocaleString('en-US')} people.`;
+
+const faq = [
+  { q: 'What is the doctor-to-patient ratio in Ethiopia?', a: `Roughly one doctor per ${perDoc.toLocaleString('en-US')} people; in ${doc.year} Ethiopia counted ${doc.text} medical doctors for each thousand residents.` },
+  { q: 'How many Ethiopian mothers die in childbirth?', a: `UN modellers put the Ethiopian maternal ratio at ${mat.text} for ${mat.year} (per 100,000 births), against ${mat90} back in 1990.` },
+  { q: 'Is malaria a problem in Ethiopia?', a: `A serious one. WHO incidence for ${mal.year} was ${mal.text} for each thousand Ethiopians living in malaria areas, ${ordinal(fromTop(mal))} of ${mal.of} endemic countries.` },
+  { q: 'Is smoking rare in Ethiopia?', a: `Yes; only about one adult in twenty uses tobacco (${tob.text}, ${tob.year}), ${ordinal(fromBottom(tob))} lowest share of ${tob.of}.` },
+];
+const headline = `Ethiopia health ${U}: the 2021 child mortality jump, doctors, tuberculosis, stunting and costs`;
+---
+<HealthTopic
+  pg={pg}
+  title={title}
+  description={description}
+  h1="Ethiopian health: child survival, doctors and disease"
+  headline={headline}
+  tableTitle={`Ethiopia health, year by year, 1990–${U}`}
+  tableSubtitle="Twelve markers across the decades; the CSV keeps Ethiopia's figures for every single year."
+  faq={faq}
+  faqTitle="Ethiopia health: quick facts"
+  related={[
+    { href: '/country/ethiopia/', label: 'Ethiopia by the numbers' },
+    { href: '/country/ethiopia/population/', label: 'Ethiopia population and life expectancy' },
+    { href: '/country/nigeria/health/', label: 'Nigeria health' },
+    { href: '/country/kenya/population/', label: "Kenya's population" },
+    { href: '/rankings/child-mortality-by-country/', label: 'Child mortality, every country ranked' },
+  ]}
+>
+  <Fragment slot="answer">After falling for decades, Ethiopia's under-five mortality jumped from {y20} to <strong>{y21} per thousand births in 2021</strong> before easing to {u5.text} ({U}); in 1990 it was {u5_90}. Doctors are scarce: <strong>one for about {perDoc.toLocaleString('en-US')} people</strong>.</Fragment>
+  <div class="story-block prose">
+    <h2>What happened to child mortality in Ethiopia in 2021?</h2>
+    <p>It rose sharply for two years. The UN series for Ethiopia reads {y20} in 2020, {y21} in 2021, {y22} in 2022, {y23} in 2023 and {u5.text} in {U}; the estimates themselves give no cause. Over the long run the rate has fallen to under a quarter of 1990's {u5_90}.</p>
+  </div>
+  <LineChart
+    title={`Child deaths in Ethiopia before age five, 1990–${U}`}
+    subtitle="Ethiopia, under-five deaths per 1,000 live births, with the brief upturn the UN IGME series shows."
+    points={s.under5Mortality.filter(([y]) => y >= 1990).map(([x, y]) => ({ x, y: Number(y.toFixed(1)) }))}
+    format="plain"
+    unit="per 1,000 live births"
+    highlight={U}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>How short of doctors is Ethiopia?</h2>
+    <p>Very short. With {doc.text} physicians per 1,000 residents in {doc.year}, Ethiopia sits {ordinal(fromBottom(doc))} from the bottom of {doc.of}. Its nursing and midwifery workforce stood at {nurse.text} per 1,000, and hospital beds at {beds.text} ({beds.year}).</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Has tuberculosis fallen in Ethiopia?</h2>
+    <p>By more than two thirds. Ethiopia's estimated TB incidence went from {tb00} (2000) to {tb.text} ({tb.year}) per 100,000 inhabitants, according to the WHO. Malaria, by contrast, remains common.</p>
+  </div>
+  <LineChart
+    title={`Tuberculosis incidence in Ethiopia, 2000–${tb.year}`}
+    subtitle="Estimated new TB cases a year for every hundred thousand Ethiopians (WHO)."
+    points={s.tbIncidence.map(([x, y]) => ({ x, y }))}
+    format="plain"
+    unit="per 100,000 people"
+    highlight={tb.year!}
+    estimateLabel="World Bank data"
+    source={WDI}
+    sourceUrl={WDI_URL}
+    checkedOn={checkedOn}
+  />
+  <div class="story-block prose">
+    <h2>Is child stunting falling in Ethiopia?</h2>
+    <p>Yes, though it still affects more than a third of small children: {stunt.text} at the {stunt.year} survey, against {pct(st00)} in 2000. FAO counts {hunger.text} of Ethiopians as undernourished ({hunger.year}). Toddlers' measles cover has grown from {pct(m90)} in 1990 to {measles.text} in {measles.year}.</p>
+  </div>
+  <div class="story-block prose">
+    <h2>Are Ethiopian households paying more for care?</h2>
+    <p>Yes. What Ethiopian families pay at the point of care rose from {pct(oop20)} of the total in 2020 to {oop.text} in {oop.year}. Ethiopia as a whole put {hGdp.text} of GDP into health, {ordinal(fromBottom(hGdp))} lowest of {hGdp.of}, about {hPc.text} a person. For births, deaths and lifespans see the <a href={path('/country/ethiopia/population/')}>Ethiopia population page</a>.</p>
+  </div>
+</HealthTopic>
