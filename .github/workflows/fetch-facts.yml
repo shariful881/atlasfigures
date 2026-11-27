@@ -108,3 +108,15 @@ jobs:
           git commit -m 'Data: country facts (CLDR, IANA tz, GeoNames, Wikidata)'
           git pull --rebase origin ${{ github.ref_name }}
           git push origin HEAD:${{ github.ref_name }}
+      - name: Open a pull request into main (data-update branches only)
+        if: startsWith(github.ref, 'refs/heads/data-update-')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git fetch origin main
+          if git diff --quiet origin/main HEAD; then echo 'No change against main'; exit 0; fi
+          gh pr list --head "${{ github.ref_name }}" --base main --json number --jq '.[0].number // empty' | grep -q . && exit 0
+          gh workflow run check.yml --ref "${{ github.ref_name }}"
+          MSG="Fetched by ${{ github.workflow }} after the weekly source check (watch-sources.yml) into branch ${{ github.ref_name }}. Check that every changed fact still agrees with its second source (check-facts lists the differences), re-check by hand where needed (data/facts-checked.json), then merge into main."
+          gh pr create --base main --head "${{ github.ref_name }}" --title "Data update: country facts (${{ github.ref_name }})" --body "$MSG" \
+            || gh issue create --title "Data update ready: ${{ github.ref_name }}" --body "$MSG (A pull request could not be opened automatically — open it by hand.)"
