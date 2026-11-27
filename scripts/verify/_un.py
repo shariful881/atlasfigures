@@ -52,6 +52,8 @@ def load_page(slug):
 def run(slug, iso, exp, ld_keys, table_years):
     page, text, ld = load_page(slug)
     U = urban(iso)
+    from decimal import Decimal, ROUND_HALF_UP  # same as JS toFixed: exact binary value, ties away from zero
+    half_up = lambda x, n: float(Decimal(x).quantize(Decimal(1).scaleb(-n), rounding=ROUND_HALF_UP))
     bad = 0
     for k, v in exp.items():
         ok = v in text; bad += not ok
@@ -67,7 +69,7 @@ def run(slug, iso, exp, ld_keys, table_years):
         line = [l for l in csvt.splitlines() if l.startswith(f'{yr},')][0].split(',')
         urb = '' if yr not in U or U[yr] is None or yr > 2050 else round(U[yr], 1)
         good = (int(line[1]) == P(iso, yr) and line[2] == str(round(f(iso, yr, 'PopDensity')))
-                and float(line[3]) == round(f(iso, yr, 'TFR'), 2) and float(line[4]) == round(f(iso, yr, 'MedianAgePop'), 1)
+                and float(line[3]) == half_up(f(iso, yr, 'TFR'), 2) and float(line[4]) == half_up(f(iso, yr, 'MedianAgePop'), 1)
                 and (line[5] == '' if urb == '' else float(line[5]) == urb)
                 and int(line[6]) == K(iso, yr, 'NetMigrations') and int(line[7]) == rank(iso, yr))
         bad += not good; print('OK  ' if good else 'MISS', 'CSV row', yr)
